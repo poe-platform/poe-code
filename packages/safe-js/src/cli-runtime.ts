@@ -162,7 +162,7 @@ export async function runCli(
         if (brokenPipe.closed) {
           return 0;
         }
-        stderr.write(`${readErrorMessage(error)}\n`);
+        stderr.write(`${isParseError(error) ? formatInterpreterError(error) : readErrorMessage(error)}\n`);
         return brokenPipe.closed
           ? 0
           : error instanceof CliExitError
@@ -432,10 +432,11 @@ async function runScriptFile(
   }
   const modules = excludeHarnessModule(runtime.registry, loaded.isRawScript);
   let executableSource = loaded.executableSource;
+  const diagnosticFilename = parsed.filepath ?? filepath;
   const lintResult = parsed.fix
     ? lint(executableSource, {
         allowedExportNames: ["schema"],
-        filename: filepath,
+        filename: diagnosticFilename,
         fix: true,
         fixRanges: loaded.fixRanges,
         frontmatterFields: Object.keys(loaded.frontmatter),
@@ -443,7 +444,7 @@ async function runScriptFile(
       })
     : lint(executableSource, {
         allowedExportNames: ["schema"],
-        filename: filepath,
+        filename: diagnosticFilename,
         frontmatterFields: Object.keys(loaded.frontmatter),
         modules: createLintModulesFromRuntimeRegistry(modules)
       });
@@ -505,8 +506,8 @@ async function runScriptFile(
         parsed.maxSteps === undefined && parsed.dataSize === undefined
           ? undefined
           : new Budget({ dataSize: parsed.dataSize, maxSteps: parsed.maxSteps }),
-      entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
-      filename: filepath,
+      entryPointArgs: hasDefaultExport(executableSource, diagnosticFilename) ? [] : undefined,
+      filename: diagnosticFilename,
       modules,
       signal: abortController.signal,
       sink: createConsoleSink(options.stdout, options.stderr),
@@ -526,7 +527,7 @@ async function runScriptFile(
     if (!result.ok) {
       options.stderr.write(
         `${formatInterpreterError(result.error, {
-          filename: filepath,
+          filename: diagnosticFilename,
           source: executableSource
         })}\n`
       );
@@ -558,7 +559,7 @@ async function runScriptFile(
     }
     options.stderr.write(
       `${formatInterpreterError(error, {
-        filename: filepath,
+        filename: diagnosticFilename,
         source: executableSource
       })}\n`
     );

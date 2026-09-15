@@ -1,0 +1,23 @@
+[
+  {
+    "command": [
+      "node",
+      "--input-type=module"
+    ],
+    "exit": 0,
+    "stdout": "{\"withEffect\":false,\"outOfBand\":false,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":7},\"completedReplay\":{\"ok\":true,\"value\":7},\"saves\":1,\"effects\":[],\"replayError\":null}\n{\"withEffect\":false,\"outOfBand\":true,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":0},\"completedReplay\":{\"ok\":true,\"value\":0},\"saves\":1,\"effects\":[],\"replayError\":null}\n{\"withEffect\":true,\"outOfBand\":false,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":7},\"completedReplay\":{\"ok\":true,\"value\":7},\"saves\":1,\"effects\":[7,7],\"replayError\":null}\n{\"withEffect\":true,\"outOfBand\":true,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":0},\"completedReplay\":{\"error\":\"HostCallResumabilityError\",\"message\":\"Host call 902a2738-f4ff-4231-86f6-c063727d89cb:3 does not match the next restored invocation; reset is required.\"},\"saves\":1,\"effects\":[7,0],\"replayError\":null}\n",
+    "stderr": "",
+    "semanticAcceptance": false
+  },
+  {
+    "command": [
+      "/Users/kjopek/.bun/bin/bun",
+      "run",
+      "-"
+    ],
+    "exit": 0,
+    "stdout": "{\"withEffect\":false,\"outOfBand\":false,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":7},\"completedReplay\":{\"ok\":true,\"value\":7},\"saves\":1,\"effects\":[],\"replayError\":null}\n{\"withEffect\":false,\"outOfBand\":true,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":0},\"completedReplay\":{\"ok\":true,\"value\":0},\"saves\":1,\"effects\":[],\"replayError\":null}\n{\"withEffect\":true,\"outOfBand\":false,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":7},\"completedReplay\":{\"ok\":true,\"value\":7},\"saves\":1,\"effects\":[7,7],\"replayError\":null}\n{\"withEffect\":true,\"outOfBand\":true,\"original\":7,\"pendingReplay\":{\"ok\":true,\"value\":0},\"completedReplay\":{\"error\":\"HostCallResumabilityError\",\"message\":\"Host call 794333a2-a0e4-41c1-aa53-e07b01f68759:3 does not match the next restored invocation; reset is required.\"},\"saves\":1,\"effects\":[7,0],\"replayError\":null}\n",
+    "stderr": "",
+    "semanticAcceptance": false
+  }
+]

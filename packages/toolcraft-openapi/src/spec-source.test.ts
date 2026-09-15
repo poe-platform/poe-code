@@ -144,7 +144,7 @@ describe("parseOpenApiDocument", () => {
     parseJson.mockRestore();
   });
 
-  it("includes YAML parse positions from linePos when available", () => {
+  it("includes YAML parse positions from source offsets", () => {
     expect(() =>
       parseOpenApiDocument("openapi: 3.0.3\ninfo:\n  title: Test\n    bad: nope\n", "openapi.yaml")
     ).toThrowError(

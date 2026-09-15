@@ -20,7 +20,7 @@ export function nextRegExpIterator(
   const matcher = state.matcher!;
   if (!isSandboxRegex(matcher)) throw new TypeError("Custom RegExp iterator execution requires a sandbox context.");
   const input = state.input!;
-  const match = executeRegex(matcher, input, Number(matcher.lastIndex));
+  const match = executeRegex(matcher, input, Number(matcher.lastIndex), budget);
   if (match === null || !(state.global ?? matcher.flags.includes("g"))) {
     state.exhausted = true;
     state.matcher = undefined;

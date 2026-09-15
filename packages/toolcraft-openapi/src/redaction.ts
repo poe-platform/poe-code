@@ -1,3 +1,5 @@
+import { isSensitiveName } from "toolcraft";
+
 const SENSITIVE_QUERY_KEYS = new Set([
   "apikey",
   "accesstoken",
@@ -26,7 +28,7 @@ export function redactHeaderValue(key: string, value: string): string {
     return value.startsWith("Bearer ") ? "Bearer ****" : "****";
   }
 
-  if (SENSITIVE_HEADER_NAMES.has(normalizedKey)) {
+  if (SENSITIVE_HEADER_NAMES.has(normalizedKey) || isSensitiveName(key)) {
     return "****";
   }
 

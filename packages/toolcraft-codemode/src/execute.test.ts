@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { defineCommand, defineGroup } from "toolcraft";
+import { defineCommand, defineGroup, type DiagnosticLogEvent } from "toolcraft";
 import { createSDK } from "toolcraft/sdk";
 import { S, toJsonSchema } from "toolcraft-schema";
 
@@ -86,6 +86,55 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("makeExecuteCommand", () => {
+  it("routes script console output through diagnostics instead of process streams", async () => {
+    const root = fixtureRoot();
+    const events: DiagnosticLogEvent[] = [];
+    const sdk = createSDK(
+      defineGroup({
+        name: "code",
+        children: [makeExecuteCommand({ root, sdk: createSDK(root) })]
+      }),
+      { logLevel: "trace", logger: (event) => events.push(event), errorReports: false }
+    );
+    const hostLog = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const hostError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    try {
+      await expect(sdk.execute({
+        source: 'console.log("hello", { count: 2 }); console.error("problem", 3); return 42;'
+      })).resolves.toMatchObject({ ok: true, returnValue: 42 });
+      expect(hostLog).not.toHaveBeenCalled();
+      expect(hostError).not.toHaveBeenCalled();
+      expect(events).toEqual([
+        { level: "info", category: "runtime", message: "hello [Object: null prototype] { count: 2 }" },
+        { level: "error", category: "runtime", message: "problem 3" }
+      ]);
+    } finally {
+      hostLog.mockRestore();
+      hostError.mockRestore();
+    }
+  });
+
+  it("preserves an explicitly supplied console sink", async () => {
+    const root = fixtureRoot();
+    const sink = { log: vi.fn(), error: vi.fn() };
+    const events: DiagnosticLogEvent[] = [];
+    const sdk = createSDK(
+      defineGroup({
+        name: "code",
+        children: [makeExecuteCommand({ root, sdk: createSDK(root), sink })]
+      }),
+      { logLevel: "trace", logger: (event) => events.push(event), errorReports: false }
+    );
+
+    await expect(sdk.execute({
+      source: 'console.log("hello", { count: 2 }); console.error("problem", 3); return 42;'
+    })).resolves.toMatchObject({ ok: true, returnValue: 42 });
+    expect(sink.log).toHaveBeenCalledWith("hello", { count: 2 });
+    expect(sink.error).toHaveBeenCalledWith("problem", 3);
+    expect(events).toEqual([]);
+  });
+
   it("returns a value computed from two host calls", async () => {
     const result = await runExecute(
       [

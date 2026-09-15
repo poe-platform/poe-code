@@ -1,0 +1,39 @@
+{
+  "cases": [
+    {
+      "name": "2 entries, 0 pops, deletes []",
+      "source": "events=[]\nclass Key(str):\n def __hash__(self): return 17\n def __eq__(self,other):\n  events.append((str.__str__(self),str.__str__(other)))\n  return str.__eq__(self,other)\nsource={Key(str(i)):i for i in range(2)}\nfor i in range(0):source.popitem()\nfor i in []:del source[Key(str(i))]\nevents.clear()\ntarget={}\ntarget.update(source)\nresult=(events,list(target.items()),list(source.items()))\n",
+      "expected": "([], [('0', 0), ('1', 1)], [('0', 0), ('1', 1)])"
+    },
+    {
+      "name": "6 entries, 0 pops, deletes []",
+      "source": "events=[]\nclass Key(str):\n def __hash__(self): return 17\n def __eq__(self,other):\n  events.append((str.__str__(self),str.__str__(other)))\n  return str.__eq__(self,other)\nsource={Key(str(i)):i for i in range(6)}\nfor i in range(0):source.popitem()\nfor i in []:del source[Key(str(i))]\nevents.clear()\ntarget={}\ntarget.update(source)\nresult=(events,list(target.items()),list(source.items()))\n",
+      "expected": "([], [('0', 0), ('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5)], [('0', 0), ('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5)])"
+    },
+    {
+      "name": "6 entries, 4 pops, deletes []",
+      "source": "events=[]\nclass Key(str):\n def __hash__(self): return 17\n def __eq__(self,other):\n  events.append((str.__str__(self),str.__str__(other)))\n  return str.__eq__(self,other)\nsource={Key(str(i)):i for i in range(6)}\nfor i in range(4):source.popitem()\nfor i in []:del source[Key(str(i))]\nevents.clear()\ntarget={}\ntarget.update(source)\nresult=(events,list(target.items()),list(source.items()))\n",
+      "expected": "([('0', '1')], [('0', 0), ('1', 1)], [('0', 0), ('1', 1)])"
+    },
+    {
+      "name": "11 entries, 9 pops, deletes []",
+      "source": "events=[]\nclass Key(str):\n def __hash__(self): return 17\n def __eq__(self,other):\n  events.append((str.__str__(self),str.__str__(other)))\n  return str.__eq__(self,other)\nsource={Key(str(i)):i for i in range(11)}\nfor i in range(9):source.popitem()\nfor i in []:del source[Key(str(i))]\nevents.clear()\ntarget={}\ntarget.update(source)\nresult=(events,list(target.items()),list(source.items()))\n",
+      "expected": "([('0', '1')], [('0', 0), ('1', 1)], [('0', 0), ('1', 1)])"
+    },
+    {
+      "name": "4 entries, 0 pops, deletes [1]",
+      "source": "events=[]\nclass Key(str):\n def __hash__(self): return 17\n def __eq__(self,other):\n  events.append((str.__str__(self),str.__str__(other)))\n  return str.__eq__(self,other)\nsource={Key(str(i)):i for i in range(4)}\nfor i in range(0):source.popitem()\nfor i in [1]:del source[Key(str(i))]\nevents.clear()\ntarget={}\ntarget.update(source)\nresult=(events,list(target.items()),list(source.items()))\n",
+      "expected": "([('0', '2'), ('0', '3'), ('2', '3')], [('0', 0), ('2', 2), ('3', 3)], [('0', 0), ('2', 2), ('3', 3)])"
+    },
+    {
+      "name": "4 entries, 1 pops, deletes []",
+      "source": "events=[]\nclass Key(str):\n def __hash__(self): return 17\n def __eq__(self,other):\n  events.append((str.__str__(self),str.__str__(other)))\n  return str.__eq__(self,other)\nsource={Key(str(i)):i for i in range(4)}\nfor i in range(1):source.popitem()\nfor i in []:del source[Key(str(i))]\nevents.clear()\ntarget={}\ntarget.update(source)\nresult=(events,list(target.items()),list(source.items()))\n",
+      "expected": "([], [('0', 0), ('1', 1), ('2', 2)], [('0', 0), ('1', 1), ('2', 2)])"
+    },
+    {
+      "name": "11 entries, 1 pops, deletes []",
+      "source": "events=[]\nclass Key(str):\n def __hash__(self): return 17\n def __eq__(self,other):\n  events.append((str.__str__(self),str.__str__(other)))\n  return str.__eq__(self,other)\nsource={Key(str(i)):i for i in range(11)}\nfor i in range(1):source.popitem()\nfor i in []:del source[Key(str(i))]\nevents.clear()\ntarget={}\ntarget.update(source)\nresult=(events,list(target.items()),list(source.items()))\n",
+      "expected": "([('0', '1'), ('0', '2'), ('1', '2'), ('0', '3'), ('1', '3'), ('2', '3'), ('0', '4'), ('1', '4'), ('2', '4'), ('3', '4'), ('0', '5'), ('1', '5'), ('2', '5'), ('3', '5'), ('4', '5'), ('0', '6'), ('1', '6'), ('2', '6'), ('3', '6'), ('4', '6'), ('5', '6'), ('0', '7'), ('1', '7'), ('2', '7'), ('3', '7'), ('4', '7'), ('5', '7'), ('6', '7'), ('0', '8'), ('1', '8'), ('2', '8'), ('3', '8'), ('4', '8'), ('5', '8'), ('6', '8'), ('7', '8'), ('0', '9'), ('1', '9'), ('2', '9'), ('3', '9'), ('4', '9'), ('5', '9'), ('6', '9'), ('7', '9'), ('8', '9')], [('0', 0), ('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7), ('8', 8), ('9', 9)], [('0', 0), ('1', 1), ('2', 2), ('3', 3), ('4', 4), ('5', 5), ('6', 6), ('7', 7), ('8', 8), ('9', 9)])"
+    }
+  ]
+}

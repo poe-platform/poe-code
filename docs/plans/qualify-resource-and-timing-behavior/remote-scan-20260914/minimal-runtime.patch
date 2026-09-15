@@ -1,0 +1,134 @@
+diff --git a/packages/safe-js/src/interp/methods/regex.ts b/packages/safe-js/src/interp/methods/regex.ts
+index 028e2261f..469a8bf5f 100644
+--- a/packages/safe-js/src/interp/methods/regex.ts
++++ b/packages/safe-js/src/interp/methods/regex.ts
+@@ -177,7 +177,7 @@ export async function callRegexMethod(
+     if (!isSandboxRegex(target)) throw new TypeError("RegExp execution requires a regex receiver.");
+     cursor = target.lastIndex;
+     const lastIndex = await sandboxNumber(cursor, budget, context);
+-    const match = executeRegex(target, input, lastIndex);
++    const match = executeRegex(target, input, lastIndex, budget);
+     return toMatchArray(match, input, budget);
+   } finally {
+     budget.setRetainedValues(retained, undefined);
+@@ -240,9 +240,9 @@ export async function regexToString(
+   }
+ }
+ 
+-export function executeRegex(target: SandboxRegex, input: string, lastIndex: number): RegexMatch | null {
++export function executeRegex(target: SandboxRegex, input: string, lastIndex: number, budget?: Budget): RegexMatch | null {
+   const pattern = getSandboxRegexPattern(target);
+-  const match = matchRegex(pattern, input, lastIndex);
++  const match = matchRegex(pattern, input, lastIndex, budget);
+   if (pattern.flags.global || pattern.flags.sticky) {
+     target.lastIndex = match === null ? 0 : match.index + match.text.length;
+   }
+diff --git a/packages/safe-js/src/interp/methods/regexp-iterator.ts b/packages/safe-js/src/interp/methods/regexp-iterator.ts
+index e8419f3e9..b90de65ca 100644
+--- a/packages/safe-js/src/interp/methods/regexp-iterator.ts
++++ b/packages/safe-js/src/interp/methods/regexp-iterator.ts
+@@ -20,7 +20,7 @@ export function nextRegExpIterator(
+   const matcher = state.matcher!;
+   if (!isSandboxRegex(matcher)) throw new TypeError("Custom RegExp iterator execution requires a sandbox context.");
+   const input = state.input!;
+-  const match = executeRegex(matcher, input, Number(matcher.lastIndex));
++  const match = executeRegex(matcher, input, Number(matcher.lastIndex), budget);
+   if (match === null || !(state.global ?? matcher.flags.includes("g"))) {
+     state.exhausted = true;
+     state.matcher = undefined;
+diff --git a/packages/safe-js/src/interp/methods/string.ts b/packages/safe-js/src/interp/methods/string.ts
+index a46f4bf96..9f5913cfa 100644
+--- a/packages/safe-js/src/interp/methods/string.ts
++++ b/packages/safe-js/src/interp/methods/string.ts
+@@ -434,7 +434,7 @@ async function replaceRegex(
+   budget.setRetainedValues(retained, () => [value, regex, cursor, replacement, result]);
+   try {
+     const lastIndex = await sandboxNumber(cursor, budget, context);
+-    const matches = collectRegexMatches(regex, value, regex.flags.includes("g"), undefined, lastIndex);
++    const matches = collectRegexMatches(regex, value, regex.flags.includes("g"), budget, lastIndex);
+     let copiedThrough = 0;
+     for (const match of matches) {
+       result += value.slice(copiedThrough, match.index);
+@@ -746,7 +746,7 @@ function splitNormalized(
+       let copiedThrough = 0;
+       let endedWithZeroWidthMatch = false;
+       while (result.length < limit) {
+-        const match = executeRegex(splitter, value, Number(splitter.lastIndex));
++        const match = executeRegex(splitter, value, Number(splitter.lastIndex), budget);
+         if (match === null) break;
+         if (match.text.length === 0) splitter.lastIndex = advanceStringIndex(value, match.index, splitter.flags.includes("u") || splitter.flags.includes("v"));
+         endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
+@@ -943,12 +943,12 @@ function callMatchLikeMethod(
+   if (methodName === "search") {
+     const lastIndex = regex.lastIndex;
+     if (!Object.is(lastIndex, 0)) regex.lastIndex = 0;
+-    const match = executeRegex(regex, value, 0);
++    const match = executeRegex(regex, value, 0, compilation.owner?.budget);
+     if (!Object.is(regex.lastIndex, lastIndex)) regex.lastIndex = lastIndex;
+     return match?.index ?? -1;
+   }
+   if (methodName === "match" && !regex.flags.includes("g"))
+-    return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex)), value, compilation.owner?.budget);
++    return toMatchArray(executeRegex(regex, value, lastIndex ?? Number(regex.lastIndex), compilation.owner?.budget), value, compilation.owner?.budget);
+   if (methodName === "match") regex.lastIndex = 0;
+   const matcher =
+     methodName === "matchAll"
+@@ -970,7 +970,7 @@ function callMatchLikeMethod(
+ function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, budget?: Budget, lastIndex = 0) {
+   const matches = [];
+   do {
+-    const match = executeRegex(regex, value, lastIndex);
++    const match = executeRegex(regex, value, lastIndex, budget);
+     if (match === null) break;
+     budget?.allocateArrayLength(matches.length + 1);
+     matches.push(match);
+diff --git a/packages/safe-js/src/interp/regex/engine.ts b/packages/safe-js/src/interp/regex/engine.ts
+index 62233b619..e8a7d1f08 100644
+--- a/packages/safe-js/src/interp/regex/engine.ts
++++ b/packages/safe-js/src/interp/regex/engine.ts
+@@ -1,4 +1,4 @@
+-import { allocateRegexSteps } from "../budget.js";
++import { allocateRegexSteps, type Budget } from "../budget.js";
+ import type { CharacterClassItem, CharacterSet, RegexFlags, RegexNode, RegexPattern } from "./parse.js";
+ 
+ export type RegexMatch = {
+@@ -12,17 +12,18 @@ export type RegexMatch = {
+ 
+ type Capture = { start: number; end: number } | undefined;
+ type MatchState = { position: number; captures: Capture[] };
+-type MatchContext = { input: string; flags: RegexFlags; groups?: Record<string, number[]>; direction: 1 | -1; work: { steps: number } };
++type MatchContext = { input: string; flags: RegexFlags; groups?: Record<string, number[]>; direction: 1 | -1; work: { steps: number }; budget?: Budget };
+ 
+-export function matchRegex(pattern: RegexPattern, input: string, lastIndex = 0): RegexMatch | null {
++export function matchRegex(pattern: RegexPattern, input: string, lastIndex = 0, budget?: Budget): RegexMatch | null {
+   const startIndex = pattern.flags.global || pattern.flags.sticky ? normalizeLastIndex(lastIndex) : 0;
+-  return matchRegexFrom(pattern, input, startIndex);
++  return matchRegexFrom(pattern, input, startIndex, budget);
+ }
+ 
+ export function matchRegexFrom(
+   pattern: RegexPattern,
+   input: string,
+-  startIndex: number
++  startIndex: number,
++  budget?: Budget
+ ): RegexMatch | null {
+   if (startIndex > input.length) {
+     return null;
+@@ -33,7 +34,7 @@ export function matchRegexFrom(
+       input.charCodeAt(startIndex) >= 0xdc00 && input.charCodeAt(startIndex) <= 0xdfff &&
+       input.charCodeAt(startIndex - 1) >= 0xd800 && input.charCodeAt(startIndex - 1) <= 0xdbff) startIndex--;
+   for (let attempt = startIndex; attempt <= input.length; attempt = advanceStringIndex(input, attempt, unicode)) {
+-    const context: MatchContext = { input, flags: pattern.flags, groups: pattern.groups, direction: 1, work: { steps: 0 } };
++    const context: MatchContext = { input, flags: pattern.flags, groups: pattern.groups, direction: 1, work: { steps: 0 }, budget };
+     charge(context);
+     const initialState: MatchState = {
+       position: attempt,
+@@ -436,6 +437,7 @@ function clearNodeCaptures(node: RegexNode, captures: Capture[]): void {
+ }
+ 
+ function charge(context: MatchContext): void {
++  context.budget?.visitNode();
+   context.work.steps += 1;
+   allocateRegexSteps(context.work.steps);
+ }

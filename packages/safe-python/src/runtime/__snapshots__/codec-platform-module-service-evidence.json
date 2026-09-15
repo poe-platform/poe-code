@@ -1,0 +1,230 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "sources": [
+    {
+      "name": "encodings.mbcs",
+      "sha256": "f6ed445ed537c9f856d8defe8b56505727737d0dc9348d0a877abedab4bdd864"
+    },
+    {
+      "name": "encodings.oem",
+      "sha256": "481656d3a35f792d0e5109e3f821e6dbfcf097163a19b0cdfcbff3b3db99292f"
+    },
+    {
+      "name": "encodings._win_cp_codecs",
+      "sha256": "a10ef385d2096ff10a4ed00e7adfb7750fefcd10aa8eea1b573846145c9abad7"
+    }
+  ],
+  "cases": [
+    {
+      "name": "mbcs import failure and registry cache",
+      "source": "\nimport codecs\nimport encodings\nfor attempt in range(2):\n    try:\n        import encodings.mbcs\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'mbcs_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs'\n        assert error.path == codecs.__file__\n        assert error.name_from == 'mbcs_encode'\n        assert error.__context__ is None and error.__cause__ is None\n    else:\n        assert False\n    assert not hasattr(encodings, 'mbcs')\n    try:\n        codecs.lookup('mbcs')\n    except LookupError as error:\n        assert type(error) is LookupError\n        assert error.args == ('unknown encoding: mbcs',)\n    else:\n        assert False\nassert encodings._cache['mbcs'] is None\n",
+      "sha256": "c598b3881acafe9842c665e56a21549daa6153117f84e80bd5fdca80e54db608",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "AssertionError()",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": false
+    },
+    {
+      "name": "oem import failure and registry cache",
+      "source": "\nimport codecs\nimport encodings\nfor attempt in range(2):\n    try:\n        import encodings.oem\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'oem_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs'\n        assert error.path == codecs.__file__\n        assert error.name_from == 'oem_encode'\n        assert error.__context__ is None and error.__cause__ is None\n    else:\n        assert False\n    assert not hasattr(encodings, 'oem')\n    try:\n        codecs.lookup('oem')\n    except LookupError as error:\n        assert type(error) is LookupError\n        assert error.args == ('unknown encoding: oem',)\n    else:\n        assert False\nassert encodings._cache['oem'] is None\n",
+      "sha256": "af8f518577e40d6e29e73233e27c065b43622019998cc88aa1f81177c847bbff",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "AssertionError()",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": false
+    },
+    {
+      "name": "Windows code-page factory imports lazily and preserves argument precedence",
+      "source": "\nimport codecs\nimport encodings\nimport encodings._win_cp_codecs as module\nfrom encodings._win_cp_codecs import create_win32_code_page_codec as create\nassert encodings._win_cp_codecs is module\nassert module.codecs is codecs\nassert create is module.create_win32_code_page_codec\nassert create.__module__ == 'encodings._win_cp_codecs'\nassert create.__name__ == create.__qualname__ == 'create_win32_code_page_codec'\nassert create.__defaults__ is None and create.__kwdefaults__ is None\nassert module.__doc__ is None\nassert module.__package__ == 'encodings'\nfor cp in (0, 65001, None, object()):\n    try:\n        create(cp)\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'code_page_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs' and error.path == codecs.__file__\n        assert error.name_from == 'code_page_encode'\n    else:\n        assert False\ntry:\n    create()\nexcept TypeError as error:\n    assert error.args == (\"create_win32_code_page_codec() missing 1 required positional argument: 'cp'\",)\nelse:\n    assert False\nimport encodings._win_cp_codecs as again\nassert again is module\n",
+      "sha256": "7a20166ba665cea9657e470ca69ed5861daa17e9ed9d96d458e84bf10e19e02c",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "AssertionError()",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": false
+    },
+    {
+      "name": "native module filename and original subtype identity",
+      "source": "\nimport codecs\nclass Path(str):\n    def __str__(self):\n        return '/visible/subtype.py'\nModule = type(codecs)\nfor path in ('/guest/probe.py', '', Path('/guest/subtype.py'), None, 42):\n    module = Module('probe')\n    module.__file__ = path\n    __builtins__['__import__'] = lambda *args: module\n    try:\n        from probe import absent\n    except ImportError as error:\n        if isinstance(path, str):\n            assert error.args == (\"cannot import name 'absent' from 'probe' (\" + str(path) + \")\",)\n            assert error.path is path\n        else:\n            assert error.args == (\"cannot import name 'absent' from 'probe' (unknown location)\",)\n            assert error.path is None\n        assert error.name == 'probe' and error.name_from == 'absent'\n    else:\n        assert False\n",
+      "sha256": "3d6a382574fc553e3c66df6ea7aad68e9c5ba5ed7114205a005152d174960c5b",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": true
+    },
+    {
+      "name": "deleted module spec disables filename fallback",
+      "source": "\nimport codecs\nmodule = type(codecs)('probe')\nmodule.__file__ = '/guest/probe.py'\ndel module.__spec__\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ImportError as error:\n    assert error.args == (\"cannot import name 'absent' from 'probe' (unknown location)\",)\n    assert error.path is None\nelse:\n    assert False\n",
+      "sha256": "3cb3111e4148132e7dcb22358fb39f339926198b7e9af15f35bc43bafdc0fd7f",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": true
+    },
+    {
+      "name": "native filename bypasses module subclass attribute overrides",
+      "source": "\nimport codecs\nevents = []\nclass Module(type(codecs)):\n    def __getattribute__(self, name):\n        events.append(name)\n        if name == '__file__':\n            raise AssertionError('virtual filename lookup')\n        return super().__getattribute__(name)\nmodule = Module('probe')\nmodule.__file__ = '/guest/probe.py'\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ImportError as error:\n    assert error.args == (\"cannot import name 'absent' from 'probe' (/guest/probe.py)\",)\n    assert error.path == '/guest/probe.py'\n    assert events == ['absent', '__name__', '__spec__']\nelse:\n    assert False\n",
+      "sha256": "e72c3d734832e74f399135f60e86906cd782d58814a1a5f26c7954370fafc1ce",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": true
+    },
+    {
+      "name": "spec origin precedes native filename and initializing status",
+      "source": "\nimport codecs\nevents = []\nclass Spec:\n    def __getattribute__(self, name):\n        events.append(name)\n        if name == 'has_location':\n            return True\n        if name == 'origin':\n            return '/guest/origin.py'\n        if name == '_initializing':\n            return True\n        raise AttributeError(name)\nmodule = type(codecs)('probe')\nmodule.__file__ = '/guest/filename.py'\nmodule.__spec__ = Spec()\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ImportError as error:\n    assert error.args == (\"cannot import name 'absent' from partially initialized module 'probe' (most likely due to a circular import) (/guest/origin.py)\",)\n    assert error.path == '/guest/origin.py'\n    assert events == ['has_location', 'origin', '_initializing']\nelse:\n    assert False\n",
+      "sha256": "6655e1004e685b5dcbce9b3ba5258a19d611d733fdc1bcd1c296431c3c9b0b29",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": true
+    },
+    {
+      "name": "filename formatting propagates guest failure identity",
+      "source": "\nimport codecs\nfailure = ValueError('filename formatting')\nclass Path(str):\n    def __str__(self):\n        raise failure\nmodule = type(codecs)('probe')\nmodule.__file__ = Path('/guest/probe.py')\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\n",
+      "sha256": "4253d808480573af8c75655c9a3e6f0084a0ad649281e7c2cceea2387464b8da",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "",
+        "reads": 0,
+        "writes": 0
+      },
+      "match": true
+    },
+    {
+      "name": "platform module import preserves a serviced guest failure",
+      "source": "\nimport codecs\nfailure = ValueError('attribute service')\ndef missing(name):\n    assert name == '__path__'\n    assert input() == 'service'\n    raise failure\ncodecs.__getattr__ = missing\ntry:\n    import encodings.mbcs\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nprint('verified')\n",
+      "sha256": "0263b14f6cd84f6eaa707b7614201b53b85fb9750a58101ce64d347ab5c2c539",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "import error filename formatting uses the supplied input service",
+      "source": "\nimport codecs\nclass Path(str):\n    def __str__(self):\n        return input()\nmodule = type(codecs)('probe')\npath = Path('/guest/probe.py')\nmodule.__file__ = path\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ImportError as error:\n    assert error.args == (\"cannot import name 'absent' from 'probe' (service)\",)\n    assert error.path is path\nelse:\n    assert False\nprint('verified')\n",
+      "sha256": "04cd72eaf3b9ee3f47dbde23c1a9fc1e4d1dcbd86f9e70cb63c2df04c71b29dd",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    }
+  ],
+  "cancellation": [
+    {
+      "name": "platform module import preserves a serviced guest failure",
+      "source": "\nimport codecs\nfailure = ValueError('attribute service')\ndef missing(name):\n    assert name == '__path__'\n    assert input() == 'service'\n    raise failure\ncodecs.__getattr__ = missing\ntry:\n    import encodings.mbcs\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nprint('verified')\n",
+      "sha256": "0263b14f6cd84f6eaa707b7614201b53b85fb9750a58101ce64d347ab5c2c539",
+      "guest": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "stdout": "",
+        "reads": 1,
+        "writes": 0,
+        "following": {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      }
+    },
+    {
+      "name": "import error filename formatting uses the supplied input service",
+      "source": "\nimport codecs\nclass Path(str):\n    def __str__(self):\n        return input()\nmodule = type(codecs)('probe')\npath = Path('/guest/probe.py')\nmodule.__file__ = path\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ImportError as error:\n    assert error.args == (\"cannot import name 'absent' from 'probe' (service)\",)\n    assert error.path is path\nelse:\n    assert False\nprint('verified')\n",
+      "sha256": "04cd72eaf3b9ee3f47dbde23c1a9fc1e4d1dcbd86f9e70cb63c2df04c71b29dd",
+      "guest": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "stdout": "",
+        "reads": 1,
+        "writes": 0,
+        "following": {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      }
+    }
+  ]
+}

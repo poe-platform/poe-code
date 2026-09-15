@@ -1,0 +1,504 @@
+{
+  "oracle": "/opt/homebrew/Cellar/python@3.14/3.14.7/bin/python3.14",
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "command": [
+    "-I",
+    "-c",
+    "<unchanged source from single-byte-library-cases.ts>"
+  ],
+  "cases": [
+    {
+      "name": "mapping helpers",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "a91a8e4e26cd501ab1e421dfe7c71002eb54ecf42f75bf048f6b3182f1661e4b"
+    },
+    {
+      "name": "cp037",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "bc29130fa3d6dc662f872991610057e051043ea7970b7dc3e03f53034b4a1397"
+    },
+    {
+      "name": "cp1006",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "0c879e8542489ce34182ff4d11bd78602845a50e58186aa674ecd5ae018efe47"
+    },
+    {
+      "name": "cp1026",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "9ebf94fc58b764d9b90c35907824b4462fed2f939414fcf0580e7fa6b25b4d19"
+    },
+    {
+      "name": "cp1125",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "bb4f881ba707d875d82af00b7bfcd06599d37cb3152ca6ea4e21a0068a8241b3"
+    },
+    {
+      "name": "cp1140",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "27dacc940dfa01fe1a741cf6b83c163b51103848d4b64ae51f222dfbec3398fa"
+    },
+    {
+      "name": "cp1250",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "27a432475c45aeffdd4c1995af670c67c05bb3ac340ee29cca754a81c60bfd8f"
+    },
+    {
+      "name": "cp1251",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "348c9dfdfd31631b05e162b8d2f3c0b001d400da56180712c018c792695c39f2"
+    },
+    {
+      "name": "cp1252",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "b7bd1ee499f332417224628caedd10f12d34df7b271e78be31beddd28ee1aa00"
+    },
+    {
+      "name": "cp1253",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "51994f1f964f3d16df96531f8b02732cae90c9bda03fb29f39643f9fdc85f501"
+    },
+    {
+      "name": "cp1254",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "51cd2505369f60ad28398641e0510407bf057c2a1152f33669cfcc2b9f8a3e83"
+    },
+    {
+      "name": "cp1255",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "a4bfdec1f751fe3edcf338a66c80dc84202cf9c2da412d5f2c5c9d445aa276a4"
+    },
+    {
+      "name": "cp1256",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "fee6f6ac6ef6ed6c53c3a53d18b0a9d117dacc370c1308a78585c667feb8ed50"
+    },
+    {
+      "name": "cp1257",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "4cc88d018e11cf45441fd4b57bcc65e478d47205a6a4e399f7a749ff81aa4f33"
+    },
+    {
+      "name": "cp1258",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "1f158e03ad6eee09be5cfcb0cb171afb0b418610886f839c75f0e2b94e6273f4"
+    },
+    {
+      "name": "cp273",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "c284f8336c40d40482f24fd05f52977f17c637f6fe33c275100711700c949f34"
+    },
+    {
+      "name": "cp424",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "e0490650d570f76fac1a7da4789bf7a4ef673abeeef5bdec0277e47dcb5d8e52"
+    },
+    {
+      "name": "cp437",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "33278a29a2b6dc871aecff06a08c292e986acab80cb0e5770c8878e336c16730"
+    },
+    {
+      "name": "cp500",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "b940e28ebb7866bc0a193505e1d1e6724ae20ab4a7dd7c3ca77b27e1860a3d6f"
+    },
+    {
+      "name": "cp720",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "821fe0d83a242d528de8baff944b7aabfa38125aac1320811807b4574ac9aa17"
+    },
+    {
+      "name": "cp737",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "213a6071766e8d14270ba1fc7aac433cef4d24b32c94ca527c55d6100541703a"
+    },
+    {
+      "name": "cp775",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "0e50152c2c4a5bbf07d91a40aeb6fab81e4fde5b92960e78170775a0c4d3a08e"
+    },
+    {
+      "name": "cp850",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "fc8cbb715d5975fe4375e0504a0089658d403500d0da750ed7e142e9a6019068"
+    },
+    {
+      "name": "cp852",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "7e8d69e2f74beafbba6b9c8f16fcaeabbb9fe2febb5a6999774eafccc3a5fb8a"
+    },
+    {
+      "name": "cp855",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "23f7e94cee61cf01b358e94de47bbace3b1b4dcf2bae4f747862806872408b07"
+    },
+    {
+      "name": "cp856",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "46f757190792e157653a0ed46fba215492855587b5b488f4bacf1ccf70323c38"
+    },
+    {
+      "name": "cp857",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "a31872fc536a3c32a4f5b7f30f994d66af99e558b2da7cecbb2e74e448b8dff5"
+    },
+    {
+      "name": "cp858",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "6f26280b60a453ef2046df7820f463b55ef668deded94632bbf506ab97f08640"
+    },
+    {
+      "name": "cp860",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "decdf7f7c6aa8b1619d0c45a3f798606862d976c5eb9f7ff2563798aa0fde66d"
+    },
+    {
+      "name": "cp861",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "fe621f8f322ce0a8178d8bb92e2a35104fc852905b4bbfae9416b28d41d66ab5"
+    },
+    {
+      "name": "cp862",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "4496671771d9885ad9466d81e3eb439b467c6660a46db39809a2a44f6cd7164d"
+    },
+    {
+      "name": "cp863",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "bcab1e81a88aa0fa0f43176ac4056d1637f5f4a15c6e61fa20ff0ec9342dcac8"
+    },
+    {
+      "name": "cp864",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "932635102a635e824fd25f238ce8c939acd146b02e47eda4c8114326420be2e7"
+    },
+    {
+      "name": "cp865",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "6d4741f1b6866594f868092435d3abc14e08a9708b5deb6151559e2272be433f"
+    },
+    {
+      "name": "cp866",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "cb67d6f406ac1d44dbf2200a905e6077a82d8501b4871318c0ad06dc9a9bc45d"
+    },
+    {
+      "name": "cp869",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "a03c75468035d57c3aa0afe44e203f78f1011ef23466c135c9040eb01d63ed52"
+    },
+    {
+      "name": "cp874",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "19a646e3bc9bede47daa899b6628c5649443647181d6e156bed3e6f51ab65bb9"
+    },
+    {
+      "name": "cp875",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "dc3e5b35bee4cbd531cd2b4c456ec2b79224aee205185142fb2bd27cf2ffc3ec"
+    },
+    {
+      "name": "hp_roman8",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "89a197a5bcdcd88ccdcf83366c9158a8c11a0e4d0ce904fad4808a14e2f7b1ee"
+    },
+    {
+      "name": "iso8859_10",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "933bf26f2ccb268417e7b4e1478e6a68fc1128bb88a41ffb302f0fe8abea03d8"
+    },
+    {
+      "name": "iso8859_11",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "d83d4dc5c7c1ec15f7af89f2d259ee67457d2558fcbb9db5d91e382454c7ee87"
+    },
+    {
+      "name": "iso8859_13",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "4eb62dbbb42fc56924aaa580b2c44d906ce0da15a65e9f7c8232e6e636dd1ffa"
+    },
+    {
+      "name": "iso8859_14",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "2c6fd01994d51915b6a74ab0a6cdc5b6579fceda1b124f54203d686b15a6cf18"
+    },
+    {
+      "name": "iso8859_15",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "68cda6ce14805d19b5d8b73683c896b48b59e2bfc64f25130cd62f9b17794022"
+    },
+    {
+      "name": "iso8859_16",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "dfb3c2e2e3a3e5170ad2345fe67358192a603c1ffc2d4bc6e3fdb3f3bd598e5f"
+    },
+    {
+      "name": "iso8859_2",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "f7786adcd7a3178c20fcb4b5db3d4ac3d7d7e8a172f3975c51521dc2e355af1b"
+    },
+    {
+      "name": "iso8859_3",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "7531992c686aa5f29ded352ca7f940e161c0841287b6f869b25c0415c3f140a5"
+    },
+    {
+      "name": "iso8859_4",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "3628f89999a086c80690caaf679ccc3da06199af67e13c9ebe0000e02b4aa250"
+    },
+    {
+      "name": "iso8859_5",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "32061984abe6eaf21e249fb4c8f0a7c3e897ece10608b57dfbaf5739af249d17"
+    },
+    {
+      "name": "iso8859_6",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "90d9d93ba71f17a1844df4355dc94396abe779636d8b3020959c444a21a1a7d3"
+    },
+    {
+      "name": "iso8859_7",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "52e643a54aa2fcad5056800bfa1081c6c7269e7c256a704623624228df15655b"
+    },
+    {
+      "name": "iso8859_8",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "8b486a31db07706c732e01bc74a1901ac9f3f552483a83c80b00acb3ed1bb322"
+    },
+    {
+      "name": "iso8859_9",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "0628f1ef5a385a6fc451d1107df0bbda55bbed4580bbf34184b6ffa1d4fab89e"
+    },
+    {
+      "name": "koi8_r",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "8258b7eed63b211ff0db340300108deb323a445cf23838463e0018128917ee27"
+    },
+    {
+      "name": "koi8_t",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "4501aec5897fca90275c900184334320ce62bc7ae4917ff22798efb876dde734"
+    },
+    {
+      "name": "koi8_u",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "c20f56148c43ab4ed1b1f6278d807cf86c98e33308b6f997e535c637ca1c1a30"
+    },
+    {
+      "name": "kz1048",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "64f8ac9056db24751e9c56daec921b7a6b90a390e36f4226f44df4b1f71f1a0e"
+    },
+    {
+      "name": "mac_arabic",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "cf83dfc9314820d472bb60737a6dd63929aa0edbda6f7b8aeaffb117835a7578"
+    },
+    {
+      "name": "mac_croatian",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "0ab94cc85595dcb32d53ff2cedf42fd9403bc347e49279fd2983735d0bae2aec"
+    },
+    {
+      "name": "mac_cyrillic",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "7a4ae2b77e396c968813cbad841bc5e27d74176e85fc0af0de5719225b39315b"
+    },
+    {
+      "name": "mac_farsi",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "32c7e80e7847d937e31dec187b58c0f6bdf74d177998e0a16da51e40674ede63"
+    },
+    {
+      "name": "mac_greek",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "e78b54988ba625fd8b6eea00a1159a278a7f636e86cf5552c765f720a50e6fd2"
+    },
+    {
+      "name": "mac_iceland",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "aee099846b848a964ef28068a239504940bc410479745f77ac4417ccf21be161"
+    },
+    {
+      "name": "mac_latin2",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "80dbfa9e2abfcf56b1490675db8ea5f221c4f0c9d2de8dfe21011b5e30a751fe"
+    },
+    {
+      "name": "mac_roman",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "3a295b4a182f92a5eb9ec4c58980f7dccca80276a033442a344b916bb929ae46"
+    },
+    {
+      "name": "mac_romanian",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "af3d099dc2f404cb21e204061eaae377b289e1399385dd44f078e35949e9f097"
+    },
+    {
+      "name": "mac_turkish",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "76b1eab51b3c27ce03643bfcaf272feedcb35aa6cd6d876e14345140facde1f8"
+    },
+    {
+      "name": "palmos",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "963c4a88c02250db020bac49e2e2f87b9ff565fcc5b0b5bfcd6e32d9e3b7b70c"
+    },
+    {
+      "name": "ptcp154",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "e036118c4d06123649172415dd99efc201e0233f8b60282d6d31fd1fcb852a5d"
+    },
+    {
+      "name": "tis_620",
+      "status": 0,
+      "stdout": "",
+      "stderr": "",
+      "sourceSha256": "af5ad249db4d9ccbd207253697ff5041b754a02852432ede30a7f1bcc78fc40f"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+import type { ConstantValue, ConstantValues, PrimitiveConstant, TupleConstant, SliceConstant } from "./constant-values.js";
+import type { ExecutionMeter } from "./execution-budget.js";
+
+/** Concatenate matching exact immutable sequence kinds. This kernel declines
+ * mismatches; the caller owns reflected dispatch and sequence-specific errors.
+ * Byte/string storage is adopted once; tuple slots are generated directly into
+ * final storage. Complete host object/array overhead accounting is unfinished.
+ */
+export function constantConcat<Value = ConstantValue>(left: PrimitiveConstant | TupleConstant<Value> | SliceConstant<unknown>, right: PrimitiveConstant | TupleConstant<Value> | SliceConstant<unknown>, values: ConstantValues, meter: ExecutionMeter): PrimitiveConstant | TupleConstant<Value> {
+  meter.checkpoint();
+  if (left.kind === "str" && right.kind === "str") {
+    if (left.value.length === 0) return right;
+    if (right.value.length === 0) return left;
+    return values.stringPoints(left.value.concat(right.value, meter));
+  }
+  if (left.kind === "bytes" && right.kind === "bytes") {
+    if (left.value.length === 0) return right;
+    if (right.value.length === 0) return left;
+    return values.bytes(left.value.concat(right.value, meter));
+  }
+  if (left.kind === "tuple" && right.kind === "tuple") {
+    if (left.items.length === 0) return right;
+    if (right.items.length === 0) return left;
+    const length = left.items.length + right.items.length;
+    return values.tuple(length, index => index < left.items.length ? left.items[index] : right.items[index - left.items.length]);
+  }
+  return values.notImplemented;
+}

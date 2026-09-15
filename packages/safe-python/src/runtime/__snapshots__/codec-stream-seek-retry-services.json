@@ -1,0 +1,486 @@
+{
+  "adapter": "readSync input and complete writeSync loops with fsyncSync output, owned temporary files; removed after execution",
+  "reference": "codec-stream-seek-retry-3.14.7.json",
+  "rows": [
+    {
+      "name": "ascii, 1-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 150,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3' 0 1 ordinal not in range(128)\nb''  None 4 [('read', -1, b'\\xc3')]\nUnicodeDecodeError ascii b'\\xa9' 0 1 ordinal not in range(128)\nb''  None 5 [('read', 72, b'\\xa9')]\nrecover \n+BCE-\rZ\\xff\\xe2\\x82\nb''  None 16 [('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', '��', '+BCE-', 'Z���']\nb''  None 16 [('read', -1, b'A'), ('read', -1, b'\\r'), ('read', -1, b'\\n'), ('read', -1, b'\\xc3'), ('read', -1, b'\\xa9'), ('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "ascii, 1-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3' 0 1 ordinal not in range(128)\nb''  None 4 [('read', -1, b'\\xc3')]\nUnicodeDecodeError ascii b'\\xa9' 0 1 ordinal not in range(128)\nb''  None 5 [('read', 72, b'\\xa9')]\nrecover \n+BCE-\rZ\\xff\\xe2\\x82\nb''  None 16 [('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "ascii, 1-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3' 0 1 ordinal not in range(128)\nb''  None 4 [('read', -1, b'\\xc3')]\nUnicodeDecodeError ascii b'\\xa9' 0 1 ordinal not in range(128)\nb''  None 5 [('read', 72, b'\\xa9')]\nrecover \n+BCE-\rZ\\xff\\xe2\\x82\nb''  None 16 [('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "ascii, 2-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 150,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3\\xa9' 0 1 ordinal not in range(128)\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nUnicodeDecodeError ascii b'\\xff\\xe2' 0 1 ordinal not in range(128)\nb'' \n+BCE-\rZ None 15 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover \n+BCE-\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', '��', '+BCE-', 'Z���']\nb''  None 16 [('read', -1, b'A\\r'), ('read', -1, b'\\n\\xc3'), ('read', -1, b'\\xa9\\n'), ('read', -1, b'+B'), ('read', -1, b'CE'), ('read', -1, b'-\\r'), ('read', -1, b'Z\\xff'), ('read', -1, b'\\xe2\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "ascii, 2-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3\\xa9' 0 1 ordinal not in range(128)\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nUnicodeDecodeError ascii b'\\xff\\xe2' 0 1 ordinal not in range(128)\nb'' \n+BCE-\rZ None 15 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover \n+BCE-\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "ascii, 2-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3\\xa9' 0 1 ordinal not in range(128)\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nUnicodeDecodeError ascii b'\\xff\\xe2' 0 1 ordinal not in range(128)\nb'' \n+BCE-\rZ None 15 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover \n+BCE-\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "ascii, 3-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 150,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3\\xa9\\n' 0 1 ordinal not in range(128)\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError ascii b'Z\\xff\\xe2' 1 2 ordinal not in range(128)\nb'' +BCE-\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover +BCE-\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', '��', '+BCE-', 'Z���']\nb''  None 16 [('read', -1, b'A\\r\\n'), ('read', -1, b'\\xc3\\xa9\\n'), ('read', -1, b'+BC'), ('read', -1, b'E-\\r'), ('read', -1, b'Z\\xff\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "ascii, 3-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3\\xa9\\n' 0 1 ordinal not in range(128)\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError ascii b'Z\\xff\\xe2' 1 2 ordinal not in range(128)\nb'' +BCE-\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover +BCE-\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "ascii, 3-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError ascii b'\\xc3\\xa9\\n' 0 1 ordinal not in range(128)\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError ascii b'Z\\xff\\xe2' 1 2 ordinal not in range(128)\nb'' +BCE-\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover +BCE-\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "latin1, 1-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 134,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb''  None 5 [('read', -1, b'\\xc3'), ('read', -1, b'\\xa9')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'\\n'), ('read', 72, b'+'), ('read', 72, b'B'), ('read', 72, b'C'), ('read', 72, b'E'), ('read', 72, b'-'), ('read', 72, b'\\r'), ('read', 72, b'Z'), ('read', 72, b'\\xff'), ('read', 72, b'\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', 'Ã©', '+BCE-', 'Zÿâ\\x82']\nb''  None 16 [('read', -1, b'A'), ('read', -1, b'\\r'), ('read', -1, b'\\n'), ('read', -1, b'\\xc3'), ('read', -1, b'\\xa9'), ('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "latin1, 1-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 86,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb''  None 5 [('read', -1, b'\\xc3'), ('read', -1, b'\\xa9')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'\\n'), ('read', 72, b'+'), ('read', 72, b'B'), ('read', 72, b'C'), ('read', 72, b'E'), ('read', 72, b'-'), ('read', 72, b'\\r'), ('read', 72, b'Z'), ('read', 72, b'\\xff'), ('read', 72, b'\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "latin1, 1-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 86,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb''  None 5 [('read', -1, b'\\xc3'), ('read', -1, b'\\xa9')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'\\n'), ('read', 72, b'+'), ('read', 72, b'B'), ('read', 72, b'C'), ('read', 72, b'E'), ('read', 72, b'-'), ('read', 72, b'\\r'), ('read', 72, b'Z'), ('read', 72, b'\\xff'), ('read', 72, b'\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "latin1, 2-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 134,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', 'Ã©', '+BCE-', 'Zÿâ\\x82']\nb''  None 16 [('read', -1, b'A\\r'), ('read', -1, b'\\n\\xc3'), ('read', -1, b'\\xa9\\n'), ('read', -1, b'+B'), ('read', -1, b'CE'), ('read', -1, b'-\\r'), ('read', -1, b'Z\\xff'), ('read', -1, b'\\xe2\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "latin1, 2-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 86,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "latin1, 2-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 86,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "latin1, 3-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 134,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb'' \n None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', 'Ã©', '+BCE-', 'Zÿâ\\x82']\nb''  None 16 [('read', -1, b'A\\r\\n'), ('read', -1, b'\\xc3\\xa9\\n'), ('read', -1, b'+BC'), ('read', -1, b'E-\\r'), ('read', -1, b'Z\\xff\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "latin1, 3-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 86,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb'' \n None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "latin1, 3-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 86,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread Ã©\nb'' \n None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nreadline \n\nb'' None ['+BCE-\\r', 'Zÿâ\\x82'] 16 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2'), ('read', 72, b'\\x82'), ('read', 72, b'')]\nrecover +BCE-\rZÿâ\nb''  None 16 [('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf8, 1-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 142,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb''  None 6 [('read', -1, b'\\xc3'), ('read', -1, b'\\xa9'), ('read', -1, b'\\n')]\nUnicodeDecodeError utf-8 b'\\xff' 0 1 invalid start byte\nb'' +BCE-\rZ None 14 [('read', 72, b'+'), ('read', 72, b'B'), ('read', 72, b'C'), ('read', 72, b'E'), ('read', 72, b'-'), ('read', 72, b'\\r'), ('read', 72, b'Z'), ('read', 72, b'\\xff')]\nrecover +BCE-\rZ\nb'\\xe2\\x82'  None 16 [('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', 'é', '+BCE-', 'Z�']\nb'\\xe2\\x82'  None 16 [('read', -1, b'A'), ('read', -1, b'\\r'), ('read', -1, b'\\n'), ('read', -1, b'\\xc3'), ('read', -1, b'\\xa9'), ('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb'\\xe2\\x82'  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "utf8, 1-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 94,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb''  None 6 [('read', -1, b'\\xc3'), ('read', -1, b'\\xa9'), ('read', -1, b'\\n')]\nUnicodeDecodeError utf-8 b'\\xff' 0 1 invalid start byte\nb'' +BCE-\rZ None 14 [('read', 72, b'+'), ('read', 72, b'B'), ('read', 72, b'C'), ('read', 72, b'E'), ('read', 72, b'-'), ('read', 72, b'\\r'), ('read', 72, b'Z'), ('read', 72, b'\\xff')]\nrecover +BCE-\rZ\nb'\\xe2\\x82'  None 16 [('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf8, 1-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 94,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb''  None 6 [('read', -1, b'\\xc3'), ('read', -1, b'\\xa9'), ('read', -1, b'\\n')]\nUnicodeDecodeError utf-8 b'\\xff' 0 1 invalid start byte\nb'' +BCE-\rZ None 14 [('read', 72, b'+'), ('read', 72, b'B'), ('read', 72, b'C'), ('read', 72, b'E'), ('read', 72, b'-'), ('read', 72, b'\\r'), ('read', 72, b'Z'), ('read', 72, b'\\xff')]\nrecover +BCE-\rZ\nb'\\xe2\\x82'  None 16 [('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf8, 2-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 142,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb'' + None 7 [('read', -1, b'\\xc3\\xa9'), ('read', -1, b'\\n+')]\nUnicodeDecodeError utf-8 b'\\xff\\xe2' 0 1 invalid start byte\nb'' +BCE-\rZ None 15 [('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover +BCE-\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', 'é', '+BCE-', 'Z�']\nb'\\xe2\\x82'  None 16 [('read', -1, b'A\\r'), ('read', -1, b'\\n\\xc3'), ('read', -1, b'\\xa9\\n'), ('read', -1, b'+B'), ('read', -1, b'CE'), ('read', -1, b'-\\r'), ('read', -1, b'Z\\xff'), ('read', -1, b'\\xe2\\x82'), ('read', -1, b'')]\neof   []\nb'\\xe2\\x82'  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "utf8, 2-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 94,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb'' + None 7 [('read', -1, b'\\xc3\\xa9'), ('read', -1, b'\\n+')]\nUnicodeDecodeError utf-8 b'\\xff\\xe2' 0 1 invalid start byte\nb'' +BCE-\rZ None 15 [('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover +BCE-\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf8, 2-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 94,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb'' + None 7 [('read', -1, b'\\xc3\\xa9'), ('read', -1, b'\\n+')]\nUnicodeDecodeError utf-8 b'\\xff\\xe2' 0 1 invalid start byte\nb'' +BCE-\rZ None 15 [('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover +BCE-\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf8, 3-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 142,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError utf-8 b'Z\\xff\\xe2' 1 2 invalid start byte\nb'' +BCE-\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover +BCE-\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', 'é', '+BCE-', 'Z�']\nb'\\xe2\\x82'  None 16 [('read', -1, b'A\\r\\n'), ('read', -1, b'\\xc3\\xa9\\n'), ('read', -1, b'+BC'), ('read', -1, b'E-\\r'), ('read', -1, b'Z\\xff\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb'\\xe2\\x82'  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "utf8, 3-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 94,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError utf-8 b'Z\\xff\\xe2' 1 2 invalid start byte\nb'' +BCE-\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover +BCE-\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf8, 3-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 94,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nread é\n\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError utf-8 b'Z\\xff\\xe2' 1 2 invalid start byte\nb'' +BCE-\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover +BCE-\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf7, 1-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 150,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3' 0 1 unexpected special character\nb''  None 4 [('read', -1, b'\\xc3')]\nUnicodeDecodeError utf7 b'\\xa9' 0 1 unexpected special character\nb''  None 5 [('read', 72, b'\\xa9')]\nrecover \nС\rZ\\xff\\xe2\\x82\nb''  None 16 [('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', '��', 'С', 'Z���']\nb''  None 16 [('read', -1, b'A'), ('read', -1, b'\\r'), ('read', -1, b'\\n'), ('read', -1, b'\\xc3'), ('read', -1, b'\\xa9'), ('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "utf7, 1-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3' 0 1 unexpected special character\nb''  None 4 [('read', -1, b'\\xc3')]\nUnicodeDecodeError utf7 b'\\xa9' 0 1 unexpected special character\nb''  None 5 [('read', 72, b'\\xa9')]\nrecover \nС\rZ\\xff\\xe2\\x82\nb''  None 16 [('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf7, 1-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3' 0 1 unexpected special character\nb''  None 4 [('read', -1, b'\\xc3')]\nUnicodeDecodeError utf7 b'\\xa9' 0 1 unexpected special character\nb''  None 5 [('read', 72, b'\\xa9')]\nrecover \nС\rZ\\xff\\xe2\\x82\nb''  None 16 [('read', -1, b'\\n'), ('read', -1, b'+'), ('read', -1, b'B'), ('read', -1, b'C'), ('read', -1, b'E'), ('read', -1, b'-'), ('read', -1, b'\\r'), ('read', -1, b'Z'), ('read', -1, b'\\xff'), ('read', -1, b'\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf7, 2-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 150,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3\\xa9' 0 1 unexpected special character\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nUnicodeDecodeError utf7 b'\\xff\\xe2' 0 1 unexpected special character\nb'' \nС\rZ None 15 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover \nС\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', '��', 'С', 'Z���']\nb''  None 16 [('read', -1, b'A\\r'), ('read', -1, b'\\n\\xc3'), ('read', -1, b'\\xa9\\n'), ('read', -1, b'+B'), ('read', -1, b'CE'), ('read', -1, b'-\\r'), ('read', -1, b'Z\\xff'), ('read', -1, b'\\xe2\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "utf7, 2-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3\\xa9' 0 1 unexpected special character\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nUnicodeDecodeError utf7 b'\\xff\\xe2' 0 1 unexpected special character\nb'' \nС\rZ None 15 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover \nС\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf7, 2-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3\\xa9' 0 1 unexpected special character\nb''  None 5 [('read', -1, b'\\xc3\\xa9')]\nUnicodeDecodeError utf7 b'\\xff\\xe2' 0 1 unexpected special character\nb'' \nС\rZ None 15 [('read', 72, b'\\n+'), ('read', 72, b'BC'), ('read', 72, b'E-'), ('read', 72, b'\\rZ'), ('read', 72, b'\\xff\\xe2')]\nrecover \nС\rZ\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf7, 3-byte reads",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 150,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3\\xa9\\n' 0 1 unexpected special character\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError utf7 b'Z\\xff\\xe2' 1 2 unexpected special character\nb'' С\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover С\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\nseek None ['first\\n', 'last']\nb''  None 0 [('seek', 0, 0)]\nreplay ['A', '��', 'С', 'Z���']\nb''  None 16 [('read', -1, b'A\\r\\n'), ('read', -1, b'\\xc3\\xa9\\n'), ('read', -1, b'+BC'), ('read', -1, b'E-\\r'), ('read', -1, b'Z\\xff\\xe2'), ('read', -1, b'\\x82'), ('read', -1, b'')]\neof   []\nb''  None 16 [('read', -1, b''), ('read', 72, b''), ('read', -1, b'')]\n"
+    },
+    {
+      "name": "utf7, 3-byte reads",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3\\xa9\\n' 0 1 unexpected special character\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError utf7 b'Z\\xff\\xe2' 1 2 unexpected special character\nb'' С\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover С\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    },
+    {
+      "name": "utf7, 3-byte reads",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 102,
+      "flushes": 1,
+      "writesAfterCancellation": 0,
+      "stdout": "read A\nb''  None 1 [('read', 1, b'A')]\nreadline \r\n\nb''  None 3 [('read', 1, b'\\r'), ('read', 1, b'\\n')]\nUnicodeDecodeError utf7 b'\\xc3\\xa9\\n' 0 1 unexpected special character\nb''  None 6 [('read', -1, b'\\xc3\\xa9\\n')]\nUnicodeDecodeError utf7 b'Z\\xff\\xe2' 1 2 unexpected special character\nb'' С\r None 15 [('read', 72, b'+BC'), ('read', 72, b'E-\\r'), ('read', 72, b'Z\\xff\\xe2')]\nrecover С\r\\x82\nb''  None 16 [('read', -1, b'\\x82'), ('read', -1, b'')]\nTrue ('seek failed',) True\nb'Q' cached ['first\\n', 'last'] 0 [('seek', 0, 0)]\n"
+    }
+  ]
+}

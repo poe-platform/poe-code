@@ -1,0 +1,20 @@
+[
+  {
+    "package": "@poe-platform/safe-fs",
+    "version": "0.1.569",
+    "sha512": "82c21747649f9b54aad4fa8d6457a28472b293cbe83ffb462e468d9a53f937939cddf09e742337b5978faee6629cb0e5ecb784b2d9c11232cd623e4168c11171",
+    "matchesRegistryIntegrity": true,
+    "matchesProvenanceSubject": true,
+    "sourceCommit": "4d44bf1342b5a0e8193801120ca5127e4b48e1d1",
+    "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34752098668/attempts/1"
+  },
+  {
+    "package": "@poe-platform/safe-bash",
+    "version": "0.1.569",
+    "sha512": "02650018c0be1b2498530f831360807db93c9c33eaacb53d16712950c01fd0a8de90eb7179e8740c47e28dc1288304eb0343aa42a545bdac8b42df6d86ce2a2d",
+    "matchesRegistryIntegrity": true,
+    "matchesProvenanceSubject": true,
+    "sourceCommit": "4d44bf1342b5a0e8193801120ca5127e4b48e1d1",
+    "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34752098668/attempts/1"
+  }
+]

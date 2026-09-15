@@ -1,0 +1,6127 @@
+{
+  "driver": "import {openSync,closeSync,writeSync,readSync,fsyncSync,readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {ExecutionBudget} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nimport {RuntimeValues,type RuntimeValue} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-values.ts';\nimport {RuntimeTypeRegistry} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-type-registry.ts';\nimport {RuntimeExceptionExecution,RuntimeRaisedException} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-exception-execution.ts';\nimport {runtimeExceptionPayload} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-exception-state.ts';\nimport {runtimeComparison} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-comparison.ts';\nimport {compileSourceProgram} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {decodeUnicodeEscape} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/unicode-escape.ts';\nimport {PythonUnicodeMessageError} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/unicode-message-error.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst reference=JSON.parse(readFileSync(root+'source-codec-message-points-3.14.7.json','utf8'));\nconst directory=mkdtempSync(join(tmpdir(),'codec-message-points-'));\nconst records=[];\ntry {\n for(const row of reference.rows){\n  const source='# coding: point-fault\\n'+row.points.map((point:number)=>'\\\\U'+point.toString(16).padStart(8,'0')).join('')+'\\n';\n  const bytes=Buffer.from(source,'ascii'),path=join(directory,'source');\n  let fd=openSync(path,'w');try{writeSync(fd,bytes);fsyncSync(fd);}finally{closeSync(fd);}\n  const input=new Uint8Array(bytes.length);fd=openSync(path,'r');try{if(readSync(fd,input)!==input.length)throw Error('short read');}finally{closeSync(fd);}\n  const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000}),values=new RuntimeValues(meter);\n  const keys={hash:()=>0n,equal:(a:RuntimeValue,b:RuntimeValue)=>runtimeComparison('==',a,b,values,meter).value};\n  const exceptions=new RuntimeExceptionExecution(new RuntimeTypeRegistry(values,keys,meter),values,meter);\n  let fault:unknown,caught:unknown;\n  try{compileSourceProgram(input,{filename:'point-fault.py',mode:row.mode,stripDocstring:false,enterRecursiveCall:()=>()=>{},decodeSource:(_encoding,data,meter)=>{\n   const start=data.indexOf(10)+1,end=data.indexOf(10,start);\n   const decoded=decodeUnicodeEscape(data.subarray(start,end),true,'strict',meter).text;\n   fault=new PythonUnicodeMessageError(row.name,decoded,meter);throw fault;\n  }},values,meter);}catch(error){caught=error;}\n  const prepared=exceptions.prepare(caught);\n  if(!(prepared instanceof RuntimeRaisedException))throw prepared;\n  const state=runtimeExceptionPayload(prepared.value)!,message=state.args.items[0];\n  if(message.kind!=='str')throw Error('message must be str');\n  const actual:Record<string,unknown>={type:prepared.value.type.value.name,points:[...message.value],same:caught===fault};\n  if(actual.type==='SyntaxError'){\n   const member=(key:string)=>{const value=state.member(key,meter)!;if(value.kind==='str')return String.fromCodePoint(...value.value);if(value.kind==='int')return Number(value.value);if(value.kind==='none')return null;throw Error('invalid field');};\n   Object.assign(actual,{filename:member('filename'),line:member('lineno'),offset:member('offset'),text:member('text'),msgAlias:state.member('msg',meter)===message});\n  }\n  const matches=JSON.stringify(actual)===JSON.stringify(row.expected);\n  fd=openSync(join(directory,'results'),'a');try{writeSync(fd,JSON.stringify(actual)+'\\n');fsyncSync(fd);}finally{closeSync(fd);}\n  records.push({name:row.name,index:row.index,mode:row.mode,source,actual,expected:row.expected,matches,reads:1,writes:1});\n }\n}finally{rmSync(directory,{recursive:true,force:true});}\nwriteFileSync(root+'source-codec-message-points-services.json',JSON.stringify({driver:readFileSync('/tmp/source-codec-message-points-services.mts','utf8'),boundary:'Real file-descriptor source/result adapters, public compiler, raw-Unicode-escape kernel and native exception preparation. The explicit rejecting source codec produces its diagnostic from the source bytes. Guest registry wiring, guest exception subclass rendering and tracebacks remain unverified.',records},null,2)+'\\n');\nconsole.log({matches:records.filter(row=>row.matches).length,mismatches:records.filter(row=>!row.matches).length,reads:records.length,writes:records.length});\nif(records.some(row=>!row.matches))process.exitCode=1;\n",
+  "boundary": "Real file-descriptor source/result adapters, public compiler, raw-Unicode-escape kernel and native exception preparation. The explicit rejecting source codec produces its diagnostic from the source bytes. Guest registry wiring, guest exception subclass rendering and tracebacks remain unverified.",
+  "records": [
+    {
+      "name": "ValueError",
+      "index": 0,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 0,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 1,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 1,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 2,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 2,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 3,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 3,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 4,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 4,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 5,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 5,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 6,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 6,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 7,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 7,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 8,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 8,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 9,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "ValueError",
+      "index": 9,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 0,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 0,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 1,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 1,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 2,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 2,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 3,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 3,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 4,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 4,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 5,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 5,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 6,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 6,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 7,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 7,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 8,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 8,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 9,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "UnicodeError",
+      "index": 9,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 0,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 0,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 1,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 1,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 2,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 2,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 3,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 3,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 4,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 4,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 5,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 5,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 6,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 6,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 7,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 7,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 8,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 8,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 9,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "LookupError",
+      "index": 9,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 0,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 0,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 1,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 1,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 2,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 2,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 3,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 3,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 4,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 4,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 5,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 5,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 6,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 6,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 7,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 7,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 8,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 8,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 9,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "IndexError",
+      "index": 9,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 0,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 0,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 1,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 1,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 2,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 2,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 3,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 3,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 4,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 4,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 5,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 5,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 6,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 6,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 7,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 7,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 8,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 8,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 9,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "KeyError",
+      "index": 9,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 0,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 0,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 1,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 1,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000041\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 2,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 2,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000000\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 3,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 3,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 4,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 4,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 5,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 5,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 6,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 6,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 7,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 7,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U0000d800\\U0000d800\\U0000dc00\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 8,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 8,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00010000\\U0000d800\\U0000dc00\\U00000000\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 9,
+      "mode": "exec",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    },
+    {
+      "name": "TypeError",
+      "index": 9,
+      "mode": "eval",
+      "source": "# coding: point-fault\n\\U00000027\\U00000022\\U0000005c\\U0000000a\\U0000d800\\U0000dc00\n",
+      "actual": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "matches": true,
+      "reads": 1,
+      "writes": 1,
+      "sourceOracle": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      },
+      "sourceOracleMatches": true
+    }
+  ],
+  "oracleDriver": "import codecs,json,sys,unicodedata\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\nrows=json.load(sys.stdin)\nname=None\nfault=None\ndef decode(data,errors='strict'):\n    global fault\n    message=codecs.raw_unicode_escape_decode(bytes(data).split(b'\\n')[1])[0]\n    fault=getattr(__builtins__,name)(message)\n    raise fault\ncodecs.register(lambda encoding:(None,decode,None,None) if encoding=='point_fault' else None)\nresults=[]\nfor row in rows:\n    name=row['name']\n    try:\n        compile(row['source'].encode('ascii'),'point-fault.py',row['mode'])\n    except BaseException as error:\n        result={'type':type(error).__name__,'points':list(map(ord,error.args[0])),'same':error is fault}\n        if isinstance(error,SyntaxError):\n            result.update(filename=error.filename,line=error.lineno,offset=error.offset,text=error.text,msgAlias=error.msg is error.args[0])\n        results.append(result)\nprint(json.dumps(results))\n"
+}

@@ -1,0 +1,160 @@
+{
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\n",
+  "adapter": "PythonSession synchronous text services backed by real file descriptors; no runtime host Python delegation",
+  "cases": [
+    {
+      "name": "registry aliases and module identity",
+      "cancel": false,
+      "sourceSha256": "9bf0cd4593ccc7698b4b0fe251b35c17bb9856e8fdd4d64f01a69c5a39a2c78f",
+      "status": "ok",
+      "stdout": "rot-13 False True\nrot-13 False True\nrot-13 False True\nrot-13 False True\nundefined True True\nencodings.rot_13 encodings\n256 78 233\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "ROT13 full byte range and supplementary scalars",
+      "cancel": false,
+      "sourceSha256": "25e203b73688ac0f9a72aa4abf962b8ecce5b60907d0e6c0f9d30921d7731fc7",
+      "status": "ok",
+      "stdout": "'\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f !\"#$%&\\'()*+,-./0123456789:;<=>?@NOPQRSTUVWXYZABCDEFGHIJKLM[\\\\]^_`nopqrstuvwxyzabcdefghijklm{|}~\\x7f\\x80\\x81\\x82\\x83\\x84\\x85\\x86\\x87\\x88\\x89\\x8a\\x8b\\x8c\\x8d\\x8e\\x8f\\x90\\x91\\x92\\x93\\x94\\x95\\x96\\x97\\x98\\x99\\x9a\\x9b\\x9c\\x9d\\x9e\\x9f\\xa0\\xa1\\xa2\\xa3\\xa4\\xa5\\xa6\\xa7\\xa8\\xa9\\xaa\\xab\\xac\\xad\\xae\\xaf\\xb0\\xb1\\xb2\\xb3\\xb4\\xb5\\xb6\\xb7\\xb8\\xb9\\xba\\xbb\\xbc\\xbd\\xbe\\xbf\\xc0\\xc1\\xc2\\xc3\\xc4\\xc5\\xc6\\xc7\\xc8\\xc9\\xca\\xcb\\xcc\\xcd\\xce\\xcf\\xd0\\xd1\\xd2\\xd3\\xd4\\xd5\\xd6\\xd7\\xd8\\xd9\\xda\\xdb\\xdc\\xdd\\xde\\xdf\\xe0\\xe1\\xe2\\xe3\\xe4\\xe5\\xe6\\xe7\\xe8\\xe9\\xea\\xeb\\xec\\xed\\xee\\xef\\xf0\\xf1\\xf2\\xf3\\xf4\\xf5\\xf6\\xf7\\xf8\\xf9\\xfa\\xfb\\xfc\\xfd\\xfe\\xff\\ud800\\udcff\\U0001f40d'\nTrue\nUryyb, 世界!\nUryyb, 世界!\nUryyb, 世界!\nUryyb, 世界!\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "ROT13 shared mutable mapping and session cache",
+      "cancel": false,
+      "sourceSha256": "349ef966c9fe106799294095b65d8cf7b5ab0563257841de685421121b11660b",
+      "status": "ok",
+      "stdout": "('expandedP', 3) ('expandedP', 3)\nexpandedP expandedP\n('ZBC', 3) ZBC\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "ROT13 subtype evaluation order and callback failures",
+      "cancel": false,
+      "sourceSha256": "c15e8f3cb1ae2881a96108e5f2c748febca99af24b9d2a14d36dfc05bd67702f",
+      "status": "ok",
+      "stdout": "('AB', 17)\n[65, 66, 'len']\nTrue [\"encoding with 'rot13' codec failed\"]\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "ROT13 incremental state and arbitrary final values",
+      "cancel": false,
+      "sourceSha256": "efc15127f6576277ea526e0feccc4de8e1266c21d389d552f23611d2e19297b4",
+      "status": "ok",
+      "stdout": "custom 0\nNo 🐍M \nNone 0 None 0\ncustom (b'', 0)\nNo 🐍M \nNone (b'', 0) None (b'', 0)\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "ROT13 domain errors and encoder text rejection",
+      "cancel": false,
+      "sourceSha256": "8bff41cf4f976e854371ea878f60f90df14c07627b9f561a8ede6b0e422ae32e",
+      "status": "ok",
+      "stdout": "TypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'int' object\nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'NoneType' object\n'rot13' is not a text encoding; use codecs.encode() to handle arbitrary codecs\n'rot13' is not a text encoding; use codecs.encode() to handle arbitrary codecs\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "ROT13 writers filters and failure order",
+      "cancel": false,
+      "sourceSha256": "2c19fcc1018b756dbc30e7ff13ecd3d92989cbf9f93c61311a8a64087dbff774",
+      "status": "ok",
+      "stdout": "None None\nNone ['NOP', 'NoPq', 'Uryyb']\n('Hello', 5)\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "undefined transformations always fail including empty input",
+      "cancel": false,
+      "sourceSha256": "e5194eb59fdc89e04f1a0365c8eb35ab9359e722e0f21b7c8c8f85cc6153239a",
+      "status": "ok",
+      "stdout": "UnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nUnicodeError ('undefined encoding',)\nundefined encoding [\"encoding with 'undefined' codec failed\"]\nundefined encoding [\"decoding with 'undefined' codec failed\"]\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "stream reads preserve text-domain failures and empty reads",
+      "cancel": false,
+      "sourceSha256": "4b1da8f48de6df993916c67791c67162d91dde468673c32d2619b223eb44fd3f",
+      "status": "ok",
+      "stdout": "TypeError can't concat str to bytes\n[-1] b'' \nTypeError descriptor 'translate' for 'str' objects doesn't apply to a 'bytes' object\n[-1] b'' \n\n[-1] b'' \nTypeError can't concat str to bytes\n[-1] b'' \nUnicodeError undefined encoding\n[-1] b'' \n\n[-1] b'' \n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "ROT13 mapping invalid values and deletion order",
+      "cancel": false,
+      "sourceSha256": "eee30d2c7b0f4f8b7534ff5cb8c9ba1532960fd7cbb639b48214ead1619917bf",
+      "status": "ok",
+      "stdout": "ValueError character mapping must be in range(0x110000) [\"encoding with 'rot13' codec failed\"]\nValueError character mapping must be in range(0x110000) [\"encoding with 'rot13' codec failed\"]\nTypeError character mapping must return integer, None or str [\"encoding with 'rot13' codec failed\"]\nTypeError character mapping must return integer, None or str [\"encoding with 'rot13' codec failed\"]\nB\nB\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "undefined incremental and stream construction state",
+      "cancel": false,
+      "sourceSha256": "8310e534f9ad9b054aab2be2bed045ab3d3752c0b6e02cc2343ade95d278b816",
+      "status": "ok",
+      "stdout": "ignored 0 None None 0\nignored (b'', 0) None None (b'', 0)\nTrue ignored\nundefined encoding\nTrue ignored\nundefined encoding\n",
+      "reads": 0,
+      "passed": true
+    },
+    {
+      "name": "translation mapping",
+      "cancel": true,
+      "sourceSha256": "4851b7062eb1598f813277bda6aef6bbffcb4c30a698deb15074890fdf0de6be",
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "reads": 1,
+      "resumedStatus": "terminated",
+      "passed": true
+    },
+    {
+      "name": "consumed length",
+      "cancel": true,
+      "sourceSha256": "8a35d6d2a588143375ffd26311476378a26e122282deec686500bc1582c5fc1f",
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "reads": 1,
+      "resumedStatus": "terminated",
+      "passed": true
+    },
+    {
+      "name": "writer callback",
+      "cancel": true,
+      "sourceSha256": "dba1751a41ac045ce2c990813b5ec7a4bf86bd87bb5f3011d2fe9411f25e4540",
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "reads": 1,
+      "resumedStatus": "terminated",
+      "passed": true
+    },
+    {
+      "name": "reader callback",
+      "cancel": true,
+      "sourceSha256": "d0820f05ff0c031dfdb65082c082c8f4da4d39915fb6dd4171ff13a1de56b904",
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "reads": 1,
+      "resumedStatus": "terminated",
+      "passed": true
+    },
+    {
+      "name": "filter callback",
+      "cancel": true,
+      "sourceSha256": "e891a5e813bcc8f373339827b279e26a52d4b315e5e0d3b8a5b80e9e6700a293",
+      "status": "terminated",
+      "reason": "cancelled",
+      "stdout": "",
+      "reads": 1,
+      "resumedStatus": "terminated",
+      "passed": true
+    }
+  ]
+}

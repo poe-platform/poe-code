@@ -1,0 +1,109 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "recovery through an input service",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\ndef strict(failure):\n    seen.append(failure)\n    return (input(), failure.end)\ncodecs.register_error('strict', strict)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nassert len(seen) == 1\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "string subtype conversion bypasses virtual string methods",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\nclass Name(str):\n    def __str__(self):\n        raise AssertionError('virtual str')\n    def encode(self, *args):\n        raise AssertionError('virtual encode')\nname = Name(name)\nerror.encoding = name\ndef strict(failure):\n    assert failure.object is name\n    seen.append(failure)\n    return ('8', failure.end)\ncodecs.register_error('strict', strict)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nassert len(seen) == 1\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "negative resume position before a NUL byte",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\nname = 'utf\\ud800\\x00'\nerror.encoding = name\ndef strict(failure):\n    seen.append(failure)\n    return ('8', -1)\ncodecs.register_error('strict', strict)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nassert len(seen) == 1\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "recovered encoding bytes '8'",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\ndef strict(failure):\n    assert failure.object is name\n    assert (failure.encoding, failure.start, failure.end, failure.reason) == ('utf-8', 3, 4, 'surrogates not allowed')\n    seen.append(failure)\n    return ('8', failure.end)\ncodecs.register_error('strict', strict)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\ncodecs.register_error('strict', lambda failure: ('16', failure.end))\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nother = UnicodeDecodeError(name, b'\\xed\\xa0\\x80', 0, 1, 'other')\nassert recover(other) == ('\\ud800', 3)\nassert len(seen) == 1\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "recovered encoding bytes b'8'",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\ndef strict(failure):\n    assert failure.object is name\n    assert (failure.encoding, failure.start, failure.end, failure.reason) == ('utf-8', 3, 4, 'surrogates not allowed')\n    seen.append(failure)\n    return (b'8', failure.end)\ncodecs.register_error('strict', strict)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\ncodecs.register_error('strict', lambda failure: ('16', failure.end))\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nother = UnicodeDecodeError(name, b'\\xed\\xa0\\x80', 0, 1, 'other')\nassert recover(other) == ('\\ud800', 3)\nassert len(seen) == 1\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "recovered encoding bytes b'8\\x00ignored'",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\ndef strict(failure):\n    assert failure.object is name\n    assert (failure.encoding, failure.start, failure.end, failure.reason) == ('utf-8', 3, 4, 'surrogates not allowed')\n    seen.append(failure)\n    return (b'8\\x00ignored', failure.end)\ncodecs.register_error('strict', strict)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\ncodecs.register_error('strict', lambda failure: ('16', failure.end))\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nother = UnicodeDecodeError(name, b'\\xed\\xa0\\x80', 0, 1, 'other')\nassert recover(other) == ('\\ud800', 3)\nassert len(seen) == 1\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "failed conversion retries without caching and preserves exception identity",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\nsentinel = ValueError('name conversion failed')\ndef strict(failure):\n    seen.append(failure)\n    raise sentinel\ncodecs.register_error('strict', strict)\nfor attempt in range(2):\n    try:\n        recover(error)\n    except ValueError as failure:\n        assert failure is sentinel\n    else:\n        assert False\nassert len(seen) == 2\ncodecs.register_error('strict', lambda failure: ('8', failure.end))\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "unrecognized recovered name caches bytes but raises original error",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\ndef strict(failure):\n    seen.append(failure)\n    return (b'\\xff', failure.end)\ncodecs.register_error('strict', strict)\nfor attempt in range(2):\n    try:\n        recover(error)\n    except UnicodeEncodeError as failure:\n        assert failure is error\n    else:\n        assert False\nassert len(seen) == 1\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "equal distinct strings own independent caches",
+      "source": "\nimport codecs\nseen = []\nname = 'utf\\ud800'\nerror = UnicodeEncodeError(name, '\\ud800', 0, 1, 'original')\nrecover = codecs.lookup_error('surrogatepass')\n\nother_name = ''.join(['utf', '\\ud800'])\nassert other_name == name and other_name is not name\ndef strict(failure):\n    seen.append(failure.object)\n    return ('8' if len(seen) == 1 else '16', failure.end)\ncodecs.register_error('strict', strict)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nother = UnicodeEncodeError(other_name, '\\ud800', 0, 1, 'other')\nassert recover(other) == (b'\\x00\\xd8', 1)\nassert recover(error) == (b'\\xed\\xa0\\x80', 1)\nassert len(seen) == 2\n\nprint('verified')\n",
+      "input": "8\n",
+      "expected": "verified\n",
+      "actual": "verified\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    }
+  ]
+}

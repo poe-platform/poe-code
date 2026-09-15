@@ -67,6 +67,7 @@ export type DefineClientFromSpecOptions<TServices extends object = Record<string
 
 export interface ResolveOpenApiBaseUrlOptions {
   document: OpenApiDocument;
+  sourceUrl?: string | URL;
   environments?: Record<string, string>;
   environment?: string;
   env?: Record<string, string | undefined>;
@@ -124,6 +125,7 @@ export async function defineClientFromSpec<TServices extends object = Record<str
     baseUrl ??
     resolveOpenApiBaseUrl({
       document,
+      sourceUrl: resolved.sourceUrl,
       environments: config?.environments,
       environment,
       env: env ?? process.env
@@ -145,6 +147,7 @@ export async function defineClientFromSpec<TServices extends object = Record<str
 
 interface ResolvedOpenApiDocument {
   document: OpenApiDocument;
+  sourceUrl?: string;
   commit?: () => Promise<void>;
 }
 
@@ -167,6 +170,7 @@ async function resolveDocument(
     });
     return {
       document: loaded.document,
+      sourceUrl: loaded.sourceUrl,
       ...(loaded.commit === undefined ? {} : { commit: loaded.commit })
     };
   }
@@ -208,7 +212,7 @@ export function resolveOpenApiBaseUrl(options: ResolveOpenApiBaseUrlOptions): st
     const selectedUrl = selectedName === undefined ? undefined : environments[selectedName];
 
     if (selectedUrl !== undefined) {
-      return normalizeBaseUrl(selectedUrl);
+      return normalizeBaseUrl(selectedUrl, `environments[${JSON.stringify(selectedName)}]`);
     }
 
     if (selectedName !== undefined) {
@@ -218,12 +222,78 @@ export function resolveOpenApiBaseUrl(options: ResolveOpenApiBaseUrlOptions): st
     }
   }
 
-  const server = options.document.servers?.[0]?.url;
-  return server === undefined ? undefined : normalizeBaseUrl(server);
+  const document = options.document;
+  if (document.swagger === "2.0") {
+    if (document.host !== undefined && typeof document.host !== "string") {
+      throw new UserError("OpenAPI Swagger host must be a string.");
+    }
+    if (document.schemes !== undefined && !Array.isArray(document.schemes)) {
+      throw new UserError("OpenAPI Swagger schemes must be an array.");
+    }
+    if (document.schemes !== undefined && document.schemes.length > 0 && typeof document.schemes[0] !== "string") {
+      throw new UserError("OpenAPI Swagger schemes[0] must be a string.");
+    }
+    if (document.basePath !== undefined && (typeof document.basePath !== "string" || !document.basePath.startsWith("/"))) {
+      throw new UserError("OpenAPI Swagger basePath must be a string starting with '/'.");
+    }
+    const source = options.sourceUrl === undefined ? undefined : new URL(options.sourceUrl);
+    const host = document.host ?? source?.host;
+    const scheme = document.schemes?.[0] ?? source?.protocol.slice(0, -1);
+    if (host === undefined || scheme === undefined) return undefined;
+    return normalizeBaseUrl(`${scheme}://${host}${document.basePath ?? "/"}`, "Swagger host/schemes/basePath");
+  }
+
+  if (document.servers !== undefined && !Array.isArray(document.servers)) {
+    throw new UserError("OpenAPI servers must be an array.");
+  }
+  if (document.servers === undefined || document.servers.length === 0) {
+    return options.sourceUrl === undefined
+      ? undefined
+      : normalizeBaseUrl("/", "servers[0].url", options.sourceUrl);
+  }
+  const server = document.servers[0];
+  if (server === null || typeof server !== "object" || Array.isArray(server)) {
+    throw new UserError("OpenAPI servers[0] must be an object.");
+  }
+  if (typeof server.url !== "string") {
+    throw new UserError("OpenAPI servers[0].url must be a string.");
+  }
+
+  let expanded = "";
+  let offset = 0;
+  while (offset < server.url.length) {
+    const start = server.url.indexOf("{", offset);
+    if (start === -1) {
+      expanded += server.url.slice(offset);
+      break;
+    }
+    expanded += server.url.slice(offset, start);
+    const end = server.url.indexOf("}", start + 1);
+    if (end === -1) {
+      throw new UserError("OpenAPI servers[0].url contains an unterminated server variable.");
+    }
+    const name = server.url.slice(start + 1, end);
+    const value = server.variables?.[name]?.default;
+    if (typeof value !== "string") {
+      throw new UserError(`OpenAPI servers[0].variables[${JSON.stringify(name)}].default must be a string.`);
+    }
+    expanded += value;
+    offset = end + 1;
+  }
+  return normalizeBaseUrl(expanded, "servers[0].url", options.sourceUrl);
 }
 
-function normalizeBaseUrl(value: string): string {
-  return new URL(value).toString().replace(/\/$/, "");
+function normalizeBaseUrl(value: string, field: string, sourceUrl?: string | URL): string {
+  let url: URL;
+  try {
+    url = new URL(value, sourceUrl);
+  } catch {
+    throw new UserError(`OpenAPI ${field} must resolve to an absolute URL. Pass baseUrl for a relative server without a remote document origin.`);
+  }
+  const normalized = url.toString();
+  return normalized.endsWith("/") && url.search === "" && url.hash === ""
+    ? normalized.slice(0, -1)
+    : normalized;
 }
 
 function createRuntimeNodes(

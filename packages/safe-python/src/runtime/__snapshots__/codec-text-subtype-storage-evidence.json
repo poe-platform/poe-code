@@ -1,0 +1,129 @@
+{
+  "metadata": {
+    "status": 0,
+    "stdout": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\ndarwin little\n",
+    "stderr": ""
+  },
+  "cases": [
+    {
+      "name": "ascii; empty=false",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'A')\nassert str(source, 'ascii') == 'A'\nassert source.decode('ascii') == 'A'\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "ascii; empty=true",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'')\nassert str(source, 'ascii') == ''\nassert source.decode('ascii') == ''\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "latin1; empty=false",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'A')\nassert str(source, 'latin1') == 'A'\nassert source.decode('latin1') == 'A'\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "latin1; empty=true",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'')\nassert str(source, 'latin1') == ''\nassert source.decode('latin1') == ''\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "utf8; empty=false",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'A')\nassert str(source, 'utf8') == 'A'\nassert source.decode('utf8') == 'A'\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "utf8; empty=true",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'')\nassert str(source, 'utf8') == ''\nassert source.decode('utf8') == ''\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "utf16; empty=false",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'A\\x00')\nassert str(source, 'utf16') == 'A'\nassert source.decode('utf16') == 'A'\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "utf16; empty=true",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'')\nassert str(source, 'utf16') == ''\nassert source.decode('utf16') == ''\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "utf32; empty=false",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'A\\x00\\x00\\x00')\nassert str(source, 'utf32') == 'A'\nassert source.decode('utf32') == 'A'\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "utf32; empty=true",
+      "source": "events = []\nclass Export(bytes):\n    def __buffer__(self, flags):\n        events.append(flags)\n        raise RuntimeError('must not export')\n    def __bytes__(self):\n        raise RuntimeError('must not convert')\nsource = Export(b'')\nassert str(source, 'utf32') == ''\nassert source.decode('utf32') == ''\nassert events == []\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok"
+      }
+    }
+  ]
+}

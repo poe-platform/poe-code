@@ -1,0 +1,2728 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "darwin",
+    "unicode": "16.0.0",
+    "machine": "arm64",
+    "maxsize": 9223372036854776000,
+    "siteEnabled": true
+  },
+  "scope": "Fresh builtin-name publication only; stored external oracle from native-publication-audit-3.14.7.json. Matching publication is not behavior verification.",
+  "counts": {
+    "programs": 159,
+    "matches": 120,
+    "mismatches": 39
+  },
+  "rows": [
+    {
+      "kind": "builtin",
+      "name": "ArithmeticError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ArithmeticError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "AssertionError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"AssertionError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "AttributeError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"AttributeError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "BaseException",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"BaseException\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "BaseExceptionGroup",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"BaseExceptionGroup\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'BaseExceptionGroup'\", ('BaseExceptionGroup',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "BlockingIOError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"BlockingIOError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'BlockingIOError'\", ('BlockingIOError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "BrokenPipeError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"BrokenPipeError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'BrokenPipeError'\", ('BrokenPipeError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "BufferError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"BufferError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "BytesWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"BytesWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ChildProcessError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ChildProcessError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'ChildProcessError'\", ('ChildProcessError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "ConnectionAbortedError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ConnectionAbortedError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'ConnectionAbortedError'\", ('ConnectionAbortedError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "ConnectionError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ConnectionError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'ConnectionError'\", ('ConnectionError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "ConnectionRefusedError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ConnectionRefusedError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'ConnectionRefusedError'\", ('ConnectionRefusedError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "ConnectionResetError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ConnectionResetError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'ConnectionResetError'\", ('ConnectionResetError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "DeprecationWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"DeprecationWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "EOFError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"EOFError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "Ellipsis",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"Ellipsis\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'ellipsis')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'ellipsis')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "EncodingWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"EncodingWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "EnvironmentError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"EnvironmentError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'EnvironmentError'\", ('EnvironmentError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "Exception",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"Exception\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ExceptionGroup",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ExceptionGroup\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'ExceptionGroup'\", ('ExceptionGroup',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "False",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"False\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'bool')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'bool')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "FileExistsError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"FileExistsError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'FileExistsError'\", ('FileExistsError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "FileNotFoundError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"FileNotFoundError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'FileNotFoundError'\", ('FileNotFoundError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "FloatingPointError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"FloatingPointError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "FutureWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"FutureWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "GeneratorExit",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"GeneratorExit\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "IOError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"IOError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'IOError'\", ('IOError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "ImportError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ImportError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ImportWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ImportWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "IndentationError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"IndentationError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "IndexError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"IndexError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "InterruptedError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"InterruptedError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'InterruptedError'\", ('InterruptedError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "IsADirectoryError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"IsADirectoryError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'IsADirectoryError'\", ('IsADirectoryError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "KeyError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"KeyError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "KeyboardInterrupt",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"KeyboardInterrupt\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "LookupError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"LookupError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "MemoryError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"MemoryError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ModuleNotFoundError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ModuleNotFoundError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "NameError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"NameError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "None",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"None\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'NoneType')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'NoneType')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "NotADirectoryError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"NotADirectoryError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'NotADirectoryError'\", ('NotADirectoryError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "NotImplemented",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"NotImplemented\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'NotImplementedType')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'NotImplementedType')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "NotImplementedError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"NotImplementedError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "OSError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"OSError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'OSError'\", ('OSError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "OverflowError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"OverflowError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "PendingDeprecationWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"PendingDeprecationWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "PermissionError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"PermissionError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'PermissionError'\", ('PermissionError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "ProcessLookupError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ProcessLookupError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'ProcessLookupError'\", ('ProcessLookupError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "PythonFinalizationError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"PythonFinalizationError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "RecursionError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"RecursionError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ReferenceError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ReferenceError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ResourceWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ResourceWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "RuntimeError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"RuntimeError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "RuntimeWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"RuntimeWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "StopAsyncIteration",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"StopAsyncIteration\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "StopIteration",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"StopIteration\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "SyntaxError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"SyntaxError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "SyntaxWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"SyntaxWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "SystemError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"SystemError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "SystemExit",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"SystemExit\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "TabError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"TabError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "TimeoutError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"TimeoutError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'TimeoutError'\", ('TimeoutError',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "True",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"True\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'bool')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'bool')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "TypeError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"TypeError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "UnboundLocalError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"UnboundLocalError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "UnicodeDecodeError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"UnicodeDecodeError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "UnicodeEncodeError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"UnicodeEncodeError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "UnicodeError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"UnicodeError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "UnicodeTranslateError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"UnicodeTranslateError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "UnicodeWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"UnicodeWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "UserWarning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"UserWarning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ValueError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ValueError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "Warning",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"Warning\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ZeroDivisionError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ZeroDivisionError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "_IncompleteInputError",
+      "category": "exception",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"_IncompleteInputError\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "__build_class__",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__build_class__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "__debug__",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__debug__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'bool')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'bool')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "__doc__",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__doc__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'str')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'str')\n"
+      },
+      "matches": true,
+      "behaviorEvidence": "builtin-namespace-metadata-service-evidence.json"
+    },
+    {
+      "kind": "builtin",
+      "name": "__import__",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__import__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'__import__'\", ('__import__',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "__loader__",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__loader__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'__loader__'\", ('__loader__',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "__name__",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__name__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'str')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'str')\n"
+      },
+      "matches": true,
+      "behaviorEvidence": "builtin-namespace-metadata-service-evidence.json"
+    },
+    {
+      "kind": "builtin",
+      "name": "__package__",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__package__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'str')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'str')\n"
+      },
+      "matches": true,
+      "behaviorEvidence": "builtin-namespace-metadata-service-evidence.json"
+    },
+    {
+      "kind": "builtin",
+      "name": "__spec__",
+      "category": "constant",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"__spec__\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'ModuleSpec')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'__spec__'\", ('__spec__',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "abs",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"abs\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "aiter",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"aiter\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "all",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"all\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "anext",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"anext\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "any",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"any\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "ascii",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ascii\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "bin",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"bin\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "bool",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"bool\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "breakpoint",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"breakpoint\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'breakpoint'\", ('breakpoint',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "bytearray",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"bytearray\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'bytearray'\", ('bytearray',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "bytes",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"bytes\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "callable",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"callable\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "chr",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"chr\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "classmethod",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"classmethod\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "compile",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"compile\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "complex",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"complex\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "copyright",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"copyright\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', '_Printer')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'copyright'\", ('copyright',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "credits",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"credits\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', '_Printer')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'credits'\", ('credits',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "delattr",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"delattr\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "dict",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"dict\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "dir",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"dir\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "divmod",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"divmod\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "enumerate",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"enumerate\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "eval",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"eval\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "exec",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"exec\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "exit",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"exit\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'Quitter')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'exit'\", ('exit',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "filter",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"filter\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "float",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"float\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "format",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"format\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "frozenset",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"frozenset\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "getattr",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"getattr\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "globals",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"globals\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "hasattr",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"hasattr\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "hash",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"hash\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "help",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"help\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', '_Helper')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'help'\", ('help',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "hex",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"hex\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "id",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"id\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "input",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"input\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "int",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"int\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "isinstance",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"isinstance\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "issubclass",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"issubclass\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "iter",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"iter\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "len",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"len\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "license",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"license\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', '_Printer')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'license'\", ('license',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "list",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"list\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "locals",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"locals\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "map",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"map\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "max",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"max\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "memoryview",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"memoryview\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'memoryview'\", ('memoryview',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "min",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"min\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "next",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"next\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "object",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"object\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "oct",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"oct\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "open",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"open\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'open'\", ('open',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "ord",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"ord\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "pow",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"pow\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "print",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"print\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "property",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"property\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'property'\", ('property',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "quit",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"quit\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'Quitter')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('KeyError', \"'quit'\", ('quit',))\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "range",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"range\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "repr",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"repr\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "reversed",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"reversed\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": false
+    },
+    {
+      "kind": "builtin",
+      "name": "round",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"round\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "set",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"set\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "setattr",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"setattr\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "slice",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"slice\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "sorted",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"sorted\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "staticmethod",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"staticmethod\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "str",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"str\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "sum",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"sum\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "super",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"super\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "tuple",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"tuple\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "type",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"type\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'type')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "vars",
+      "category": "function",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"vars\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'builtin_function_or_method')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": true
+    },
+    {
+      "kind": "builtin",
+      "name": "zip",
+      "category": "type",
+      "source": "namespace = (lambda: None).__builtins__\ntry:\n    value = namespace[\"zip\"]\n    actual = ('published', type(value).__name__)\nexcept BaseException as error:\n    actual = (type(error).__name__, str(error), error.args)\nprint(repr(actual))\n",
+      "behaviorVerified": false,
+      "oracle": {
+        "status": 0,
+        "stdout": "('published', 'type')\n",
+        "stderr": ""
+      },
+      "runtime": {
+        "status": "ok",
+        "stdout": "('published', 'builtin_function_or_method')\n"
+      },
+      "matches": false
+    }
+  ],
+  "runtimeSource": {
+    "sha256": "9908b5291df936255043626e6ea684e593083c2d8557f01ab9977054a0604033",
+    "algorithm": "SHA-256 of sorted src-relative non-test .ts paths, NUL, file contents, NUL"
+  }
+}

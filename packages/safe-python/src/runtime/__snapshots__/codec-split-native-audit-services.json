@@ -1,0 +1,116 @@
+{
+  "adapter": "Node writeSync loops and fsyncSync on owned file descriptors, closed before comparison; owned temporary directory removed",
+  "oracle": "/opt/homebrew/bin/python3.14 (CPython 3.14.7, Unicode 16.0.0, Darwin little-endian)",
+  "writes": 1284,
+  "sha256": "a709b8c78815f12b0feddb738c40a7bc43395eebfc3c5fc020912c0b7aee3d1f",
+  "cases": [
+    {
+      "name": "UTF-7 split input with strict",
+      "status": "ok",
+      "rows": 35,
+      "bytes": 4362
+    },
+    {
+      "name": "UTF-7 split input with ignore",
+      "status": "ok",
+      "rows": 35,
+      "bytes": 2264
+    },
+    {
+      "name": "UTF-7 split input with replace",
+      "status": "ok",
+      "rows": 35,
+      "bytes": 2312
+    },
+    {
+      "name": "UTF-7 split input with surrogateescape",
+      "status": "ok",
+      "rows": 35,
+      "bytes": 3837
+    },
+    {
+      "name": "UTF-7 split input with surrogatepass",
+      "status": "ok",
+      "rows": 35,
+      "bytes": 4362
+    },
+    {
+      "name": "UTF-7 split input with backslashreplace",
+      "status": "ok",
+      "rows": 35,
+      "bytes": 2504
+    },
+    {
+      "name": "UTF-16 split input with strict",
+      "status": "ok",
+      "rows": 31,
+      "bytes": 5743
+    },
+    {
+      "name": "UTF-16 split input with ignore",
+      "status": "ok",
+      "rows": 31,
+      "bytes": 2401
+    },
+    {
+      "name": "UTF-16 split input with replace",
+      "status": "ok",
+      "rows": 31,
+      "bytes": 2491
+    },
+    {
+      "name": "UTF-16 split input with surrogateescape",
+      "status": "ok",
+      "rows": 31,
+      "bytes": 4837
+    },
+    {
+      "name": "UTF-16 split input with surrogatepass",
+      "status": "ok",
+      "rows": 31,
+      "bytes": 4891
+    },
+    {
+      "name": "UTF-16 split input with backslashreplace",
+      "status": "ok",
+      "rows": 31,
+      "bytes": 2671
+    },
+    {
+      "name": "UTF-32 split input with strict",
+      "status": "ok",
+      "rows": 41,
+      "bytes": 9028
+    },
+    {
+      "name": "UTF-32 split input with ignore",
+      "status": "ok",
+      "rows": 41,
+      "bytes": 3596
+    },
+    {
+      "name": "UTF-32 split input with replace",
+      "status": "ok",
+      "rows": 41,
+      "bytes": 3710
+    },
+    {
+      "name": "UTF-32 split input with surrogateescape",
+      "status": "ok",
+      "rows": 41,
+      "bytes": 8206
+    },
+    {
+      "name": "UTF-32 split input with surrogatepass",
+      "status": "ok",
+      "rows": 41,
+      "bytes": 7852
+    },
+    {
+      "name": "UTF-32 split input with backslashreplace",
+      "status": "ok",
+      "rows": 41,
+      "bytes": 4026
+    }
+  ]
+}

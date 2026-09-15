@@ -1,0 +1,53 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "name": "ascii compile strict recovery",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('#', error.end - len(error.object))\ncodecs.register_error('strict', handler)\nsource = b'# coding: ascii\\r\\n#\\xff\\r\\n42'\ncode = compile(source, 'source.py', 'eval')\nprint(eval(code))\nprint(events)\n",
+      "stdout": "42\n[('ascii', b'# coding: ascii\\n#\\xff\\n42', 17, 18, 'ordinal not in range(128)')]\n"
+    },
+    {
+      "name": "ascii exec strict recovery",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('#', error.end - len(error.object))\ncodecs.register_error('strict', handler)\nsource = b'# coding: ascii\\r\\n#\\xff\\r\\n42'\nexec(source)\nprint(events)\n",
+      "stdout": "[('ascii', b'# coding: ascii\\n#\\xff\\n42\\n', 17, 18, 'ordinal not in range(128)')]\n"
+    },
+    {
+      "name": "ascii eval strict recovery",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('#', error.end - len(error.object))\ncodecs.register_error('strict', handler)\nsource = b'# coding: ascii\\r\\n#\\xff\\r\\n42'\nprint(eval(source))\nprint(events)\n",
+      "stdout": "42\n[('ascii', b'# coding: ascii\\n#\\xff\\n42', 17, 18, 'ordinal not in range(128)')]\n"
+    },
+    {
+      "name": "utf8 compile strict recovery",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('#', error.end - len(error.object))\ncodecs.register_error('strict', handler)\nsource = b'# coding: utf8\\r\\n#\\xff\\r\\n42'\ncode = compile(source, 'source.py', 'eval')\nprint(eval(code))\nprint(events)\n",
+      "stdout": "42\n[('utf-8', b'# coding: utf8\\n#\\xff\\n42', 16, 17, 'invalid start byte')]\n"
+    },
+    {
+      "name": "utf8 exec strict recovery",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('#', error.end - len(error.object))\ncodecs.register_error('strict', handler)\nsource = b'# coding: utf8\\r\\n#\\xff\\r\\n42'\nexec(source)\nprint(events)\n",
+      "stdout": "[('utf-8', b'# coding: utf8\\n#\\xff\\n42\\n', 16, 17, 'invalid start byte')]\n"
+    },
+    {
+      "name": "utf8 eval strict recovery",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('#', error.end - len(error.object))\ncodecs.register_error('strict', handler)\nsource = b'# coding: utf8\\r\\n#\\xff\\r\\n42'\nprint(eval(source))\nprint(events)\n",
+      "stdout": "42\n[('utf-8', b'# coding: utf8\\n#\\xff\\n42', 16, 17, 'invalid start byte')]\n"
+    },
+    {
+      "name": "canonical UTF-8 keeps tokenizer validation",
+      "source": "import codecs\ndef handler(error):\n    raise AssertionError('must not call handler')\ncodecs.register_error('strict', handler)\ntry:\n    compile(b'# coding: utf-8\\n#\\xff\\n', 'source.py', 'exec')\nexcept SyntaxError as error:\n    print(error.msg, error.filename, error.lineno)\n",
+      "stdout": "Non-UTF-8 code starting with '\\xff' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details source.py 2\n"
+    },
+    {
+      "name": "native source recovery output is validated and translated",
+      "source": "import codecs\nreplacement = ''\ndef handler(error):\n    if isinstance(error, UnicodeEncodeError):\n        raise error\n    error.object = b''\n    return (replacement, 0)\ncodecs.register_error('strict', handler)\nfor replacement in ('\\rvalue = 42\\r', '\\x00ignored', '\\ud800', '\\ud800\\udc00'):\n    try:\n        exec(b'# coding: ascii\\n#\\xff')\n        print('ok', globals().get('value'))\n    except SyntaxError as error:\n        print(error.msg, error.lineno, error.offset)\n",
+      "stdout": "ok 42\nok 42\n'utf-8' codec can't encode character '\\ud800' in position 17: surrogates not allowed 0 -1\n'utf-8' codec can't encode characters in position 17-18: surrogates not allowed 0 -1\n"
+    },
+    {
+      "name": "source strict callback services and failures",
+      "source": "import codecs\nfailure = None\ndef handler(error):\n    print('recover', error.encoding)\n    assert input() == 'ready'\n    if failure is not None:\n        raise failure\n    return ('#', error.end)\ncodecs.register_error('strict', handler)\nfor failure in (None, ValueError('bad value'), TypeError('bad type')):\n    try:\n        exec(b'# coding: ascii\\n#\\xff\\n')\n        print('ok')\n    except BaseException as error:\n        print(type(error).__name__, error is failure, str(error))\n",
+      "stdout": "recover ascii\nok\nrecover ascii\nSyntaxError False bad value (<string>, line 0)\nrecover ascii\nTypeError True bad type\n"
+    }
+  ]
+}

@@ -1,0 +1,1328 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "driver": "import builtins, codecs, json, platform, sys, unicodedata\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\nactive = None\ndef decode(data, errors='strict'):\n    if isinstance(active, str):\n        codecs.lookup_error(active)\n    raise active\ndef search(name):\n    if name == 'native_fault':\n        return codecs.CodecInfo(name=name, encode=None, decode=decode)\ncodecs.register(search)\ncases=[]\nfor name in ['ValueError','UnicodeError','LookupError','IndexError','KeyError','TypeError','RuntimeError','OverflowError','MemoryError','OSError']:\n    for message in [None, '', 'decoder fault', \"a'b\\\"c\\\\\\n\\x00\", '\u00e9\ud83d\ude00\\ud800\\u200b']:\n        for mode in ['exec','eval']:\n            active=getattr(builtins,name)(*(() if message is None else (message,)))\n            try:\n                compile(b'# coding: native-fault\\n1', 'native-fault.py', mode)\n            except BaseException as error:\n                expected={'type':type(error).__name__, 'message':error.msg if isinstance(error,SyntaxError) else str(error)}\n                if isinstance(error,SyntaxError):\n                    expected.update(filename=error.filename,line=error.lineno,column=error.offset-1,endLine=error.end_lineno,endColumn=error.end_offset,text=error.text)\n                cases.append(dict(name=name,message=message,mode=mode,expected=expected))\nfor handler in ['', 'missing-source-handler', \"missing'handler\", '\u00e9\ud83d\ude00']:\n    for mode in ['exec', 'eval']:\n        active=handler\n        try:\n            compile(b'# coding: native-fault\\n1', 'native-fault.py', mode)\n        except SyntaxError as error:\n            cases.append(dict(name='handler', message=handler, mode=mode, expected=dict(type='SyntaxError',message=error.msg,filename=error.filename,line=error.lineno,column=error.offset-1,endLine=error.end_lineno,endColumn=error.end_offset,text=error.text)))\nprint(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),driver=open(__file__).read(),cases=cases),ensure_ascii=True,indent=2))\n",
+  "cases": [
+    {
+      "name": "ValueError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "ValueError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "LookupError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "decoder fault",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "a'b\"c\\\n\u0000",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "IndexError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "'decoder fault'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "'decoder fault'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "'a\\'b\"c\\\\\\n\\x00'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "'a\\'b\"c\\\\\\n\\x00'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "'\u00e9\ud83d\ude00\\ud800\\u200b'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "KeyError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "'\u00e9\ud83d\ude00\\ud800\\u200b'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "TypeError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "RuntimeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "RuntimeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "RuntimeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "RuntimeError",
+        "message": ""
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "RuntimeError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "RuntimeError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "RuntimeError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "RuntimeError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "RuntimeError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "RuntimeError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "RuntimeError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "OverflowError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "OverflowError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "OverflowError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "OverflowError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "OverflowError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "OverflowError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "OverflowError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "OverflowError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "OverflowError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "OverflowError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "OverflowError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "MemoryError",
+        "message": ""
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "MemoryError",
+        "message": ""
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "MemoryError",
+        "message": ""
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "MemoryError",
+        "message": ""
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "MemoryError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "MemoryError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "MemoryError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "MemoryError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "MemoryError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "MemoryError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "OSError",
+      "message": null,
+      "mode": "exec",
+      "expected": {
+        "type": "OSError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OSError",
+      "message": null,
+      "mode": "eval",
+      "expected": {
+        "type": "OSError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "OSError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "OSError",
+        "message": ""
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "decoder fault",
+      "mode": "exec",
+      "expected": {
+        "type": "OSError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "decoder fault",
+      "mode": "eval",
+      "expected": {
+        "type": "OSError",
+        "message": "decoder fault"
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "exec",
+      "expected": {
+        "type": "OSError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "a'b\"c\\\n\u0000",
+      "mode": "eval",
+      "expected": {
+        "type": "OSError",
+        "message": "a'b\"c\\\n\u0000"
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "exec",
+      "expected": {
+        "type": "OSError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "OSError",
+      "message": "\u00e9\ud83d\ude00\ud800\u200b",
+      "mode": "eval",
+      "expected": {
+        "type": "OSError",
+        "message": "\u00e9\ud83d\ude00\ud800\u200b"
+      }
+    },
+    {
+      "name": "handler",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name ''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "handler",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name ''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "handler",
+      "message": "missing-source-handler",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing-source-handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "handler",
+      "message": "missing-source-handler",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing-source-handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "handler",
+      "message": "missing'handler",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing'handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "handler",
+      "message": "missing'handler",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing'handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "handler",
+      "message": "\u00e9\ud83d\ude00",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name '\u00e9\ud83d\ude00'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    },
+    {
+      "name": "handler",
+      "message": "\u00e9\ud83d\ude00",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name '\u00e9\ud83d\ude00'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      }
+    }
+  ]
+}

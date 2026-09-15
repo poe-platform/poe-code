@@ -1,0 +1,243 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "driver": "import {mkdtempSync,readFileSync,writeFileSync,openSync,closeSync,readSync,writeSync,fsyncSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {isDeepStrictEqual} from 'node:util';\nimport {compileSourceProgram,PythonSyntaxError} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {ExecutionBudget,ExecutionLimitError} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nimport {RuntimeCodecRegistry} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.ts';\nimport {RuntimeValues} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-values.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst reference=JSON.parse(readFileSync(root+'source-codec-native-fault-3.14.7.json','utf8'));\nconst constants={string:(v:string)=>v,integer:(v:number)=>v,tuple:(v:unknown[])=>v};\nconst directory=mkdtempSync(join(tmpdir(),'source-native-fault-'));\nconst records=[];\ntry {\n for(const row of reference.cases.filter(row=>row.name==='handler')){\n  const inputPath=join(directory,'input');\n  writeFileSync(inputPath,'# coding: native-fault\\n1');\n  const input=openSync(inputPath,'r'),output=openSync(join(directory,'output'),'w');\n  let reads=0,writes=0,lookups=0,actual;\n  try{\n   const data=new Uint8Array(24);\n   const count=readSync(input,data,0,data.length,null);reads++;\n   const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000});\n   const registry=new RuntimeCodecRegistry(new RuntimeValues(meter),meter);\n   try{\n    compileSourceProgram(data.subarray(0,count),{filename:'native-fault.py',mode:row.mode,stripDocstring:false,enterRecursiveCall:()=>()=>{},decodeSource:()=>{\n     lookups++;registry.lookupError(row.message);throw Error('unexpected handler');\n    }},constants,meter);\n   }catch(error){\n    if(!(error instanceof PythonSyntaxError))throw error;\n    actual={type:error.name,message:error.message,filename:error.filename,line:error.position.line,column:error.position.column,endLine:error.endPosition?.line??null,endColumn:error.endPosition?.column??null,text:error.sourceLine??null};\n   }\n   const result={...row,actual,matches:isDeepStrictEqual(actual,row.expected),reads,lookups};\n   const bytes=Buffer.from(JSON.stringify(result));let offset=0;\n   while(offset<bytes.length){offset+=writeSync(output,bytes,offset,bytes.length-offset);writes++;}\n   fsyncSync(output);records.push({...result,writes});\n  }finally{closeSync(input);closeSync(output);}\n }\n}finally{rmSync(directory,{recursive:true,force:true});}\nwriteFileSync(root+'source-codec-native-fault-services.json',JSON.stringify({oracle:{version:reference.version,unicode:reference.unicode,platform:reference.platform},driver:readFileSync('/tmp/source-codec-native-fault-services.mts','utf8'),boundary:'Public compiler, explicit SourceByteDecoder and actual RuntimeCodecRegistry lookupError; explicit Node file-descriptor adapters. Does not certify guest source registry/buffer wiring or tracebacks.',records},null,2)+'\\n');\nconsole.log({passed:records.filter(r=>r.matches).length,failed:records.filter(r=>!r.matches).length,reads:records.reduce((s,r)=>s+r.reads,0),writes:records.reduce((s,r)=>s+r.writes,0)});\nif(records.some(r=>!r.matches))process.exitCode=1;\n",
+  "boundary": "Public compiler, explicit SourceByteDecoder and actual RuntimeCodecRegistry lookupError; explicit Node file-descriptor adapters. Does not certify guest source registry/buffer wiring or tracebacks.",
+  "records": [
+    {
+      "name": "handler",
+      "message": "",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name ''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name ''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    },
+    {
+      "name": "handler",
+      "message": "",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name ''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name ''",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    },
+    {
+      "name": "handler",
+      "message": "missing-source-handler",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing-source-handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing-source-handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    },
+    {
+      "name": "handler",
+      "message": "missing-source-handler",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing-source-handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing-source-handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    },
+    {
+      "name": "handler",
+      "message": "missing'handler",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing'handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing'handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    },
+    {
+      "name": "handler",
+      "message": "missing'handler",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing'handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'missing'handler'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    },
+    {
+      "name": "handler",
+      "message": "é😀",
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'é😀'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'é😀'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    },
+    {
+      "name": "handler",
+      "message": "é😀",
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'é😀'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "actual": {
+        "type": "SyntaxError",
+        "message": "unknown error handler name 'é😀'",
+        "filename": "native-fault.py",
+        "line": 0,
+        "column": -2,
+        "endLine": null,
+        "endColumn": null,
+        "text": null
+      },
+      "matches": true,
+      "reads": 1,
+      "lookups": 1,
+      "writes": 1
+    }
+  ]
+}

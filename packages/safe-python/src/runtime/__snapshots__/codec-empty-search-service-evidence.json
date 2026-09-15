@@ -1,0 +1,213 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapters": "Actual temporary file descriptors with readSync, partial-write-aware writeSync and fsyncSync; files and descriptors cleaned in finally blocks. Synchronous text services only.",
+  "rows": [
+    {
+      "name": "source.encode(name), \"\": empty search path diagnostics",
+      "sourceSha256": "e1214e6350236e929ea9bf6148cd95a133beae5d9efb53d6d0a74a19e80a6974",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "source.encode(name), \"\": cached self-unregistered codec",
+      "sourceSha256": "f6b1b14b804b9b90ef1e17c1592f8909ccb2c3a89df51007c428aeb85cb53e68",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "source.encode(name), \"text\": empty search path diagnostics",
+      "sourceSha256": "d0e9214f33963a89a68a0e24bf34590cbf00060a6fff88400d609aacc9199097",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "source.encode(name), \"text\": cached self-unregistered codec",
+      "sourceSha256": "640e9f89498affe499bebdac6e3b236c757c7a7f88833b636df7cb40def9f7c5",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "str.encode(source, name), \"\": empty search path diagnostics",
+      "sourceSha256": "225efc9c21c1eafe949e70bc14e2a94bb91ebcc73aeb28b9ae2560e8bc41026a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "str.encode(source, name), \"\": cached self-unregistered codec",
+      "sourceSha256": "b1408d758c0ae33ee05cc4ab2ab682ec28ad2f7892ac38982ea42c3a07a33a06",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "str.encode(source, name), \"text\": empty search path diagnostics",
+      "sourceSha256": "5d533ae2daaf6920745c700751fb13651532bd15145caac45525c27cb818955f",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "str.encode(source, name), \"text\": cached self-unregistered codec",
+      "sourceSha256": "1ae756403c1419dd5cfae6415b361a0904bdc907cbb9d1396e98d0f35f93c425",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes(source, name), \"\": empty search path diagnostics",
+      "sourceSha256": "918231e97bccf27b7379529c9153b6b550c2c4c93da059e5b81bdb9674f8e0f8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes(source, name), \"\": cached self-unregistered codec",
+      "sourceSha256": "fc01f90d07801062bf6b50b92fdeab3b581ab97d403601b1277c3aae5cdc9f68",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes(source, name), \"text\": empty search path diagnostics",
+      "sourceSha256": "fb6dfebeca4d360abcbdf5be4bd62414eea09a30ca92b3f1eb4a307e865db4ef",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes(source, name), \"text\": cached self-unregistered codec",
+      "sourceSha256": "82bbcd5807c0555e45adf0edac4805b362819e394d569bfeac0bfaa3389969b1",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes.__new__(bytes, source, name), \"\": empty search path diagnostics",
+      "sourceSha256": "5649873a6c1f8421e092737f9deba0e399350de99950abac9ef0af6839cd16a9",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes.__new__(bytes, source, name), \"\": cached self-unregistered codec",
+      "sourceSha256": "07551577595c740d183375dc248001b708c7f1d071df7bcdd7400a952fb0bb38",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes.__new__(bytes, source, name), \"text\": empty search path diagnostics",
+      "sourceSha256": "2e15a853eb78fb7da9223fe95e73a0bbca6aa642b85979d2be5eb4331a08982e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "bytes.__new__(bytes, source, name), \"text\": cached self-unregistered codec",
+      "sourceSha256": "a78f102683c293a9aa051d38d5d28bfd8f6db7e340e614d3891340c957f9aa4a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "cached codec retains live text flags, callback failures and result validation",
+      "sourceSha256": "092b8f92a1c60c35da1256cb4f8f33c0f30329778103ebe04de6aacbcdb5ec39",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ok\n",
+      "reads": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "cached encoder cancellation (throws=false)",
+      "sourceSha256": "39c2a12831f9c8807272b2366afa8dafba371ac726964195cf9de0bdcb90cf0b",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "cached encoder cancellation (throws=true)",
+      "sourceSha256": "b66f3b925a86e2c5021e00fa164bd74042fa6a9b3e088f2e053230ce8cb970ca",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    }
+  ]
+}

@@ -342,6 +342,7 @@ export function createCommandTestHarness<TServices extends object = EmptyHarness
           ),
           fs: memoryFs,
           fetch: runtimeFetch,
+          apiVersion: options.apiVersion,
           logLevel: options.logLevel,
           outputEmitter(entry) {
             stdout += entry;

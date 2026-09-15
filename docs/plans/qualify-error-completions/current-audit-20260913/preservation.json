@@ -1,0 +1,8 @@
+{
+  "changedOriginalSafejsFiles": [
+    "packages/safe-js/src/interp/host-bridge.ts"
+  ],
+  "stagedBefore": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "stagedAfter": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "stagedUnchanged": true
+}

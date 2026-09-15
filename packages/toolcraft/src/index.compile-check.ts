@@ -2,10 +2,13 @@ import { S } from "toolcraft-schema";
 import {
   ApprovalDeclinedError,
   UserError,
+  asMCPResult,
+  cloneCommandNode,
   defineCommand,
   defineGroup
 } from "./index.js";
 import { createFileChangeRenderers } from "./file-change-renderer.js";
+import { validate as validateSchema } from "./schema.js";
 import type {
   Command,
   Group,
@@ -18,6 +21,7 @@ import type {
   Requires,
   Scope,
   SecretDeclarations,
+  ValidationOptions,
 } from "./index.js";
 import type {
   AnySchema,
@@ -33,6 +37,34 @@ import type {
 } from "./index.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
+
+const ignoredValidationOptions: ValidationOptions = { defaults: "none" };
+const ignoredWithoutDefaults = validateSchema(S.Object({ count: S.Optional(S.Number({ default: 2 })) }), {}, ignoredValidationOptions);
+
+const ignoredMCPResult = asMCPResult({
+  content: [{ type: "text", text: "upstream message" }],
+  structuredContent: { id: "one" },
+  _meta: { trace: "request" }
+});
+const ignoredMCPResultCommand = defineCommand({
+  name: "upstream",
+  params: S.Object({}),
+  handler: () => ignoredMCPResult,
+  render: { json: (result) => ({ id: result.structuredContent.id, trace: result._meta.trace }) }
+});
+type ignoredMCPResultExport = AssertAssignable<
+  { content: Array<{ type: "text"; text: string }>; structuredContent: { id: string }; _meta: { trace: string } },
+  typeof ignoredMCPResult
+>;
+type ignoredMCPResultRenderer = AssertAssignable<Renderers<typeof ignoredMCPResult>, NonNullable<typeof ignoredMCPResultCommand.render>>;
+
+const ignoredClonedCommand = cloneCommandNode(ignoredMCPResultCommand);
+type ignoredClonedCommandType = AssertAssignable<typeof ignoredMCPResultCommand, typeof ignoredClonedCommand>;
+const ignoredExtendedCommand = { ...ignoredMCPResultCommand, extraRuntimeState: 1 };
+const ignoredClonedDefinition = cloneCommandNode(ignoredExtendedCommand);
+type ignoredCloneOmitsExtraState = AssertAssignable<false, "extraRuntimeState" extends keyof typeof ignoredClonedDefinition ? true : false>;
+const ignoredScopeOverrideClone = cloneCommandNode(ignoredMCPResultCommand, ["cli"]);
+type ignoredScopeOverrideDropsOldInference = AssertAssignable<false, "__agentKitCommandTypeInfo" extends keyof typeof ignoredScopeOverrideClone ? true : false>;
 
 const ignoredScope = ["cli", "sdk"] satisfies Scope[];
 const ignoredSecrets = {

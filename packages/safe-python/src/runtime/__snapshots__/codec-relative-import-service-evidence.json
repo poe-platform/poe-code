@@ -1,0 +1,243 @@
+{
+  "oracle": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "adapter": "Explicit Node readSync(0) and writeSync(1) services; flush is empty for synchronous descriptor writes. No host access is exposed to guest code.",
+  "cases": [
+    {
+      "name": "package-relative imports return the requested module and preserve registry identities",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.ascii as ascii\nimport encodings.aliases as aliases\nnamespace = {'__package__': 'encodings'}\nassert __import__('ascii', namespace, None, (), 1) is ascii\nassert __import__('ascii', namespace, None, ('Codec',), 1) is ascii\nassert __import__('', namespace, None, (), 1) is encodings\nassert __import__('', namespace, None, ('aliases',), 1) is encodings\nassert __import__('aliases', {'__package__': 'encodings.child'}, None, (), 2) is aliases\nassert codecs.lookup('ascii').encode is ascii.Codec.encode\n__package__ = 'encodings'\nfrom . import latin_1\nfrom .utf_8 import getregentry\nassert latin_1.getregentry().name == 'iso8859-1'\nassert getregentry().name == 'utf-8'\n",
+      "sha256": "564a02e67650f1d850326a39383c24ca6171198fa8605fe87abb2cd3297ca413",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "",
+        "warnings": []
+      },
+      "actual": {
+        "exit": 0,
+        "output": "",
+        "status": "ok",
+        "reads": 0,
+        "warnings": []
+      },
+      "match": true
+    },
+    {
+      "name": "native globals and package payloads bypass dictionary and string overrides",
+      "source": "\nimport encodings.ascii as ascii\nclass Namespace(dict):\n    def __getitem__(self, key):\n        raise AssertionError('virtual dictionary access')\n    def __contains__(self, key):\n        raise AssertionError('virtual dictionary membership')\nclass Package(str):\n    def __str__(self):\n        raise AssertionError('virtual package conversion')\n    def rsplit(self, *args):\n        raise AssertionError('virtual package splitting')\nassert __import__('ascii', Namespace(__package__=Package('encodings')), level=1) is ascii\n",
+      "sha256": "9da2be900af1add7a34d65c4521695408217d6d94fa86f200b42066c8fbc2745",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "",
+        "warnings": []
+      },
+      "actual": {
+        "exit": 0,
+        "output": "",
+        "status": "ok",
+        "reads": 0,
+        "warnings": []
+      },
+      "match": true
+    },
+    {
+      "name": "spec parent descriptors retain exceptions and retry with live metadata",
+      "source": "\nimport encodings.ascii as ascii\nevents = []\nfailure = ValueError('parent failure')\nclass Spec:\n    @property\n    def parent(self):\n        events.append('parent')\n        if len(events) == 1:\n            raise failure\n        return 'encodings'\nnamespace = {'__spec__': Spec()}\ntry:\n    __import__('ascii', namespace, level=1)\nexcept ValueError as caught:\n    assert caught is failure\nelse:\n    assert False\nassert __import__('ascii', namespace, level=1) is ascii\nassert events == ['parent', 'parent']\n",
+      "sha256": "7ef2c1df6e712fc6c28ec11a5a94d438eb3e9a54158b16b0ccf4bc27fdf0327f",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "",
+        "warnings": []
+      },
+      "actual": {
+        "exit": 0,
+        "output": "",
+        "status": "ok",
+        "reads": 0,
+        "warnings": []
+      },
+      "match": true
+    },
+    {
+      "name": "relative import validation preserves exact exception arguments",
+      "source": "\nclass Spec:\n    parent = 42\nfor namespace, level, kind, message in (\n    (None, 1, TypeError, 'globals must be a dict'),\n    ([], 1, TypeError, 'globals must be a dict'),\n    ({'__package__': 42}, 1, TypeError, 'package must be a string'),\n    ({'__spec__': Spec()}, 1, TypeError, '__spec__.parent must be a string'),\n    ({'__package__': ''}, 1, ImportError, 'attempted relative import with no known parent package'),\n    ({'__package__': 'encodings'}, 2, ImportError, 'attempted relative import beyond top-level package'),\n    ({'__package__': 'encodings'}, 2147483647, ImportError, 'attempted relative import beyond top-level package'),\n):\n    try:\n        __import__('ascii', namespace, level=level)\n    except kind as error:\n        assert error.args == (message,), error.args\n    else:\n        assert False\ntry:\n    __import__('missing_relative_codec', {'__package__': 'encodings'}, level=1)\nexcept ModuleNotFoundError as error:\n    assert error.name == 'encodings.missing_relative_codec'\n    assert error.args == (\"No module named 'encodings.missing_relative_codec'\",)\nelse:\n    assert False\n",
+      "sha256": "27cd38bba7b5a76707f48ad179233b809b36b28264edcd75c2415a11d5ac6f96",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "",
+        "warnings": []
+      },
+      "actual": {
+        "exit": 0,
+        "output": "",
+        "status": "ok",
+        "reads": 0,
+        "warnings": []
+      },
+      "match": true
+    },
+    {
+      "name": "package comparison uses guest equality before loading",
+      "source": "\nimport encodings.ascii as ascii\nevents = []\nclass Package(str):\n    def __eq__(self, other):\n        events.append(('compare', other))\n        return True\nclass Spec:\n    @property\n    def parent(self):\n        events.append('parent')\n        return 'different'\nassert __import__('ascii', {'__package__': Package('encodings'), '__spec__': Spec()}, level=1) is ascii\nassert events == ['parent', ('compare', 'different')]\n",
+      "sha256": "b9c83ce59e0c5f99ba444caaba0dfd641033e24b6c7d35b90014c598b90c0121",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "",
+        "warnings": []
+      },
+      "actual": {
+        "exit": 0,
+        "output": "",
+        "status": "ok",
+        "reads": 0,
+        "warnings": []
+      },
+      "match": true
+    },
+    {
+      "name": "name and level validation follow native argument precedence",
+      "source": "\nfor name, level, kind, message in (\n    (123, -1, TypeError, 'module name must be a string'),\n    (123, 2147483648, OverflowError, 'Python int too large to convert to C int'),\n    (123, -2147483649, OverflowError, 'Python int too large to convert to C int'),\n    ('', -1, ValueError, 'level must be >= 0'),\n    ('', 0, ValueError, 'Empty module name'),\n):\n    try:\n        __import__(name, level=level)\n    except kind as error:\n        assert error.args == (message,), error.args\n    else:\n        assert False\ntry:\n    __import__('ascii', level=1)\nexcept KeyError as error:\n    assert error.args == (\"'__name__' not in globals\",)\nelse:\n    assert False\n",
+      "sha256": "b087832531dce55e14eb504fcee23ede92f97c38284fed47d7a47e82a35f82d9",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "",
+        "warnings": []
+      },
+      "actual": {
+        "exit": 0,
+        "output": "",
+        "status": "ok",
+        "reads": 0,
+        "warnings": []
+      },
+      "match": true
+    },
+    {
+      "name": "package fallback uses native name and path presence",
+      "warnings": [
+        {
+          "category": "ImportWarning",
+          "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+        },
+        {
+          "category": "ImportWarning",
+          "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+        },
+        {
+          "category": "ImportWarning",
+          "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+        },
+        {
+          "category": "ImportWarning",
+          "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+        },
+        {
+          "category": "ImportWarning",
+          "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+        },
+        {
+          "category": "ImportWarning",
+          "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+        }
+      ],
+      "source": "\nimport encodings.ascii as ascii\nfor namespace in (\n    {'__name__': 'encodings.child'},\n    {'__name__': 'encodings', '__path__': None},\n    {'__package__': None, '__spec__': None, '__name__': 'encodings.child'},\n):\n    assert __import__('ascii', namespace, level=1) is ascii\nfor namespace, kind, message in (\n    ({}, KeyError, \"'__name__' not in globals\"),\n    ({'__name__': 42}, TypeError, '__name__ must be a string'),\n    ({'__name__': 'top'}, ImportError, 'attempted relative import with no known parent package'),\n    ({'__package__': '.'}, ImportError, 'attempted relative import beyond top-level package'),\n):\n    try:\n        __import__('ascii', namespace, level=3 if '__package__' in namespace else 1)\n    except kind as error:\n        assert error.args == (message,), error.args\n    else:\n        assert False\n",
+      "sha256": "26099610e0d9d5a8bd9fda094bc1eb3487345511240eb40967b54f185f8f9e6e",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "",
+        "warnings": [
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          }
+        ]
+      },
+      "actual": {
+        "exit": 0,
+        "output": "",
+        "status": "ok",
+        "reads": 0,
+        "warnings": [
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          },
+          {
+            "category": "ImportWarning",
+            "message": "can't resolve package from __spec__ or __package__, falling back on __name__ and __path__"
+          }
+        ]
+      },
+      "match": true
+    },
+    {
+      "name": "relative spec callbacks can perform service I/O",
+      "source": "\nimport encodings.ascii as ascii\nclass Spec:\n    @property\n    def parent(self):\n        print('parent')\n        return input()\nassert __import__('ascii', {'__spec__': Spec()}, level=1) is ascii\nprint('verified')\n",
+      "sha256": "ff6d2c1e61430505a348f3c7102c02a472dfa6b6b4abbae39d9d5f694c3b2dcf",
+      "input": "encodings\n",
+      "reference": {
+        "exit": 0,
+        "output": "parent\nverified\n",
+        "warnings": []
+      },
+      "actual": {
+        "exit": 0,
+        "output": "parent\nverified\n",
+        "status": "ok",
+        "reads": 1,
+        "warnings": []
+      },
+      "match": true
+    }
+  ],
+  "cancellation": {
+    "source": "\nimport encodings.ascii as ascii\nclass Spec:\n    @property\n    def parent(self):\n        print('parent')\n        return input()\nassert __import__('ascii', {'__spec__': Spec()}, level=1) is ascii\nprint('verified')\n",
+    "output": "parent\n",
+    "status": "terminated",
+    "reason": "cancelled",
+    "message": "execution cancelled",
+    "reads": 1,
+    "warnings": []
+  }
+}

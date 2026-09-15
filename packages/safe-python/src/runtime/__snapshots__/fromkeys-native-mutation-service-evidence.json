@@ -1,0 +1,777 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "adapter": "Explicit output adapter using writeSync/fsyncSync on an owned file descriptor; closed after replay.",
+  "output": {
+    "bytes": 5033,
+    "sha256": "52b18edc99a380044d62e78092cd04d58110d1ee3f6f06757f724ce50c93af8e",
+    "matches": true
+  },
+  "sourceHashes": {
+    "runtime/builtin-dictionary-fromkeys.ts": "07d3370dcb8a330dcf95930e8699cd4f9ae4b157022a3306a57eb2eba52e6a75",
+    "runtime/ordered-key-map.ts": "9b254d7c9c7f49abb34956f1cb0d699d744b7df6610b1fb8dc8f8d63e3c5a8a0",
+    "runtime/dictionary-entry-slots.ts": "f59257363e2e6aa540dfb4f416372eb30c712451f94c444a9a45b53f97079d2e"
+  },
+  "rows": [
+    {
+      "name": "fresh clear",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b')], [], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh delete unseen",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'tail')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh append",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'tail')], [a, b, tail], [a, b, tail], [True, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh clear refill",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'replacement')], [replacement], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh clear refill two",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh overwrite",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'b'), ('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh delete current",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'b'), ('eq', 'a', 'b')], [a], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh no mutation",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained clear",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a')], [], [seed, a], [False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained delete unseen",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('hash', 'tail'), ('eq', 'seed', 'b'), ('eq', 'a', 'b')], [a, b], [seed, a, b], [False, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained append",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('hash', 'tail'), ('eq', 'seed', 'b'), ('eq', 'a', 'b')], [a, b, tail], [seed, a, b, tail], [False, True, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained clear refill",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('hash', 'replacement')], [replacement], [seed, a], [False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained clear refill two",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail], [seed, a, tail], [False, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained overwrite",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('hash', 'b'), ('eq', 'a', 'b'), ('eq', 'seed', 'b'), ('eq', 'a', 'b')], [a, b], [seed, a, b], [False, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained delete current",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('hash', 'b'), ('eq', 'a', 'b')], [a], [seed, a], [False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained no mutation",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('eq', 'seed', 'b'), ('eq', 'a', 'b')], [a, b], [seed, a, b], [False, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b')], [b], [b], [True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self delete unseen",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'tail')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self append",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'tail')], [a, b, tail], [a, b, tail], [True, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear refill",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, False), [('eq', 'a', 'b'), ('hash', 'replacement')], [replacement, b], [replacement, b], [False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear refill two",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, False), [('eq', 'a', 'b'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail, b], [replacement, tail, b], [False, False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self overwrite",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'b'), ('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self delete current",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'b'), ('eq', 'a', 'b'), ('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self no mutation",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b')], [b], [b], [True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self append with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'tail')], [a, b, tail], [a, b, tail], [True, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear refill with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, False), [('eq', 'a', 'b'), ('hash', 'replacement')], [replacement, b], [replacement, b], [False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear refill two with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, False), [('eq', 'a', 'b'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail, b], [replacement, tail, b], [False, False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self overwrite with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'b'), ('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self delete current with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'b'), ('eq', 'a', 'b'), ('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self no mutation with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b')], [a, b], [a, b], [True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh clear refill three",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'a', 'b'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail, 42], [a, b, 42], [True, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained clear refill three",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('eq', 'seed', 'a'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail, 42], [seed, a, tail, 42], [False, True, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear refill three",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, False), [('eq', 'a', 'b'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail, 42, b], [replacement, tail, 42, b], [False, False, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self clear refill three with entry hole",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, False), [('eq', 'a', 'b'), ('hash', 'replacement'), ('hash', 'tail')], [replacement, tail, 42, b], [replacement, tail, 42, b], [False, False, True, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh equality raises",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ValueError', 'equality failed', ('equality failed',)), [('eq', 'a', 'b')], [a, b], [a], [True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "fresh source subclass iteration",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('iter', 'subclass'), ('hash', 'tail'), ('hash', 'tail'), ('iter', 'subclass')], [tail, tail], [tail], [True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained equality raises",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ValueError', 'equality failed', ('equality failed',)), [('eq', 'seed', 'a')], [a, b], [seed], [False])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "retained source subclass iteration",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, True), [('iter', 'subclass'), ('hash', 'tail'), ('hash', 'tail'), ('iter', 'subclass')], [tail, tail], [seed, tail], [False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self equality raises",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ValueError', 'equality failed', ('equality failed',)), [('eq', 'a', 'b')], [a, b], [a, b], [True, False])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "self source subclass iteration",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "(('ok', True, False), [('iter', 'subclass'), ('hash', 'tail'), ('hash', 'tail'), ('iter', 'subclass')], [tail, tail], [a, b, tail], [False, False, True])"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    },
+    {
+      "name": "canonical descriptor and inherited signature",
+      "oracleMatchesSnapshot": true,
+      "execution": {
+        "status": "ok"
+      },
+      "observation": {
+        "status": "ok",
+        "value": {
+          "kind": "str",
+          "primitive": "('classmethod_descriptor', True, 'fromkeys', 'dict.fromkeys', 'Create a new dictionary with keys from iterable and values set to value.', '($type, iterable, value=None, /)', True, '($type, iterable, value=None, /)', '($type, iterable, value=None, /)', '($type, iterable, value=None, /)')"
+        }
+      },
+      "printed": {
+        "status": "ok"
+      },
+      "match": true
+    }
+  ]
+}

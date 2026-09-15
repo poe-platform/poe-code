@@ -1,0 +1,5984 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "metadata": {
+    "a2b_qp": {
+      "doc": "Decode a string of qp-encoded data.",
+      "textSignature": "($module, /, data, header=False)"
+    },
+    "b2a_qp": {
+      "doc": "Encode a string using quoted-printable encoding.\n\nOn encoding, when istext is set, newlines are not encoded, and white\nspace at end of lines is.  When istext is not set, \\r and \\n (CR/LF)\nare both encoded.  When quotetabs is set, space and tabs are encoded.",
+      "textSignature": "($module, /, data, quotetabs=False, istext=True, header=False)"
+    }
+  },
+  "cases": [
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d20090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "61203d20090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d20090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": "61203d20090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": "61203d5f090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d20090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": "61203d20090d0a"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e20606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e20606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e20606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e20606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e20606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e20606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": "616263"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (5 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (6 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 keyword arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for a2b_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() got an unexpected keyword argument 'headr'. Did you mean 'header'?"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for a2b_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() got an unexpected keyword argument 'headr'. Did you mean 'header'?"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a2b_qp() takes at most 2 arguments (5 given)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "613d32303d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "615f3d33443d35463d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "613d32303d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": "615f3d33443d35463d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": "61203d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "613d32303d33445f3d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "61203d5f090d0a"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": "615f3d33443d35463d30390d0a"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d31463d32302122232425262728292a2b3d0a2c2d2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f70717273743d0a75767778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d0a3d39343d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d0a3d41443d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d0a3d43363d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d0a3d44463d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d0a3d46383d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d31465f2122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e3d3546606162636465666768696a6b6c6d6e6f70717273743d0a75767778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d0a3d39343d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d0a3d41443d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d0a3d43363d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d0a3d44463d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d0a3d46383d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d31463d32302122232425262728292a2b3d0a2c2d2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f70717273743d0a75767778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d0a3d39343d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d0a3d41443d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d0a3d43363d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d0a3d44463d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d0a3d46383d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d31465f2122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e3d3546606162636465666768696a6b6c6d6e6f70717273743d0a75767778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d0a3d39343d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d0a3d41443d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d0a3d43363d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d0a3d44463d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d0a3d46383d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d3146202122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475763d0a7778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d39343d0a3d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d41443d0a3d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d43363d0a3d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d44463d0a3d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d46383d0a3d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d31463d32302122232425262728292a2b3d0a2c2d2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f70717273743d0a75767778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d0a3d39343d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d0a3d41443d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d0a3d43363d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d0a3d44463d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d0a3d46383d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "hex": "3d30303d30313d30323d30333d30343d30353d30363d30373d30383d30390a3d30423d30430d3d30453d30463d31303d31313d31323d31333d31343d31353d31363d31373d31383d31393d31413d31423d31433d31443d31453d31465f2122232425262728292a2b2c2d3d0a2e2f303132333435363738393a3b3c3d33443e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e3d3546606162636465666768696a6b6c6d6e6f70717273743d0a75767778797a7b7c7d7e3d37463d38303d38313d38323d38333d38343d38353d38363d38373d38383d38393d38413d38423d38433d38443d38453d38463d39303d39313d39323d39333d0a3d39343d39353d39363d39373d39383d39393d39413d39423d39433d39443d39453d39463d41303d41313d41323d41333d41343d41353d41363d41373d41383d41393d41413d41423d41433d0a3d41443d41453d41463d42303d42313d42323d42333d42343d42353d42363d42373d42383d42393d42413d42423d42433d42443d42453d42463d43303d43313d43323d43333d43343d43353d0a3d43363d43373d43383d43393d43413d43423d43433d43443d43453d43463d44303d44313d44323d44333d44343d44353d44363d44373d44383d44393d44413d44423d44433d44443d44453d0a3d44463d45303d45313d45323d45333d45343d45353d45363d45373d45383d45393d45413d45423d45433d45443d45453d45463d46303d46313d46323d46333d46343d46353d46363d46373d0a3d46383d46393d46413d46423d46433d46443d46453d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "abc"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "abc"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "="
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "="
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "str",
+          "\u00e9"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "none"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "int",
+          "12"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "int",
+          "12"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "none"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "int",
+          "0"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "int",
+          "-1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "list"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "list"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "list"
+        ],
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "list"
+        ],
+        "header": [
+          "bytes",
+          "78"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() takes at most 4 arguments (5 given)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() takes at most 4 arguments (6 given)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'headr'. Did you mean 'header'?"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'headr'. Did you mean 'header'?"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "none"
+        ]
+      ],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "headr": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'headr'. Did you mean 'header'?"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          "int",
+          "1"
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() got an unexpected keyword argument 'x'"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          ""
+        ],
+        "x": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_qp() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {
+        "quotetabs": [
+          "int",
+          "1"
+        ],
+        "istext": [
+          "int",
+          "0"
+        ],
+        "header": [
+          "int",
+          "1"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_qp() takes at most 4 arguments (5 given)"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "6120093d30443d30413d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "615f093d30443d30413d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "61203d30390d0a3d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "615f3d30390d0a3d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "613d32303d30393d30443d30413d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "0"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "613d32303d30393d30443d30413d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "613d32303d30390d0a3d4646"
+      }
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          "bytes",
+          "6120090d0aff"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "613d32303d30390d0a3d4646"
+      }
+    }
+  ],
+  "sources": [
+    "\nevents=[]\nclass Flag:\n    def __init__(self, name): self.name=name\n    def __bool__(self):\n        events.append(self.name)\n        return True\nassert a2b_qp(b'a b', header=Flag('header')) == b'a b'\nassert events == ['header']",
+    "\nfailure=ValueError('truth failed')\nclass Flag:\n    def __bool__(self): raise failure\ntry:\n    a2b_qp(b'', header=Flag())\nexcept ValueError as error:\n    assert error is failure\nelse: assert False\n",
+    "\nfailure=ValueError('truth failed')\nclass Flag:\n    def __len__(self): raise failure\ntry:\n    a2b_qp(b'', header=Flag())\nexcept ValueError as error:\n    assert error is failure\nelse: assert False\n",
+    "\nclass Flag:\n    def __bool__(self): return 1\ntry:\n    a2b_qp(b'',header=Flag())\nexcept TypeError as error:\n    assert str(error) == '__bool__ should return bool, returned int'\nelse: assert False\n",
+    "\nevents=[]\nclass Flag:\n    def __init__(self, name): self.name=name\n    def __bool__(self):\n        events.append(self.name)\n        return True\nassert b2a_qp(b'a b', quotetabs=Flag('quotetabs'), istext=Flag('istext'), header=Flag('header')) == b'a=20b'\nassert events == ['quotetabs', 'istext', 'header']",
+    "\nfailure=ValueError('truth failed')\nclass Flag:\n    def __bool__(self): raise failure\ntry:\n    b2a_qp(b'', header=Flag())\nexcept ValueError as error:\n    assert error is failure\nelse: assert False\n",
+    "\nfailure=ValueError('truth failed')\nclass Flag:\n    def __len__(self): raise failure\ntry:\n    b2a_qp(b'', header=Flag())\nexcept ValueError as error:\n    assert error is failure\nelse: assert False\n",
+    "\nclass Flag:\n    def __bool__(self): return 1\ntry:\n    b2a_qp(b'',header=Flag())\nexcept TypeError as error:\n    assert str(error) == '__bool__ should return bool, returned int'\nelse: assert False\n"
+  ],
+  "generator": "import binascii,json,sys,unicodedata,platform,itertools\nnames=('a2b_qp','b2a_qp')\ndef spec(v):\n if isinstance(v,bytes): return ['bytes',v.hex()]\n if isinstance(v,str): return ['str',v]\n if v is None:return ['none']\n if isinstance(v,int):return ['int',str(v)]\n return ['list']\ncases=[]\ndef record(name,args,kwargs):\n try: result={'hex':getattr(binascii,name)(*args,**kwargs).hex()}\n except Exception as e:result={'error':type(e).__name__,'message':str(e)}\n cases.append(dict(name=name,args=list(map(spec,args)),kwargs={k:spec(v) for k,v in kwargs.items()},result=result))\nfor name in names:\n for data in (b'',b'a =_\\t\\r\\n',bytes(range(256)),'abc','=','\u00e9',None,12,[]):\n  for flag in (None,0,1,-1,[],b'',b'x'):\n   record(name,[data,flag],{})\n   record(name,[],{'data':data,'header':flag})\n for count in range(7):record(name,[b'']*count,{})\n for args in ([],[b''],[None],[b'',1]):\n  for kwargs in ({'x':1},{'header':1},{'data':b''},{'headr':1},{'header':1,'x':1},{'data':b'','x':1},{'quotetabs':1,'istext':0,'header':1}):record(name,args,kwargs)\n for flags in itertools.product((0,1),repeat=3):\n  if name=='b2a_qp':record(name,[b'a \\t\\r\\n\\xff',*flags],{})\nsources=[]\nfor name in names:\n options=['header'] if name=='a2b_qp' else ['quotetabs','istext','header']\n sources.append('''\nevents=[]\nclass Flag:\n    def __init__(self, name): self.name=name\n    def __bool__(self):\n        events.append(self.name)\n        return True\nassert '''+name+'''(b'a b', '''+', '.join(key+\"=Flag('\"+key+\"')\" for key in options)+''') == '''+repr(getattr(binascii,name)(b'a b',**dict.fromkeys(options,True)))+'''\nassert events == '''+repr(options))\n for method in ('__bool__','__len__'):\n  sources.append('''\nfailure=ValueError('truth failed')\nclass Flag:\n    def '''+method+'''(self): raise failure\ntry:\n    '''+name+'''(b'', header=Flag())\nexcept ValueError as error:\n    assert error is failure\nelse: assert False\n''')\n sources.append('''\nclass Flag:\n    def __bool__(self): return 1\ntry:\n    '''+name+'''(b'',header=Flag())\nexcept TypeError as error:\n    assert str(error) == '__bool__ should return bool, returned int'\nelse: assert False\n''')\nfor source in sources:exec(compile(source,'qp-binding-oracle.py','exec'),dict(vars(binascii)))\noutput=dict(reference=dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform()),metadata={n:dict(doc=getattr(binascii,n).__doc__,textSignature=getattr(binascii,n).__text_signature__) for n in names},cases=cases,sources=sources,generator=open(__file__).read())\nprint(json.dumps(output,indent=2))\n"
+}

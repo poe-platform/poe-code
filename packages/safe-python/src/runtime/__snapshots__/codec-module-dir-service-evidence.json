@@ -1,0 +1,135 @@
+{
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "adapter": "Node readSync(0)/writeSync(1); real public PythonSession; unchanged oracle programs",
+  "runs": [
+    {
+      "name": "directory descriptor metadata and bound argument diagnostics",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "directory descriptor metadata and bound argument diagnostics",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "visible dictionary and native dictionary subtype operations",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "visible dictionary and native dictionary subtype operations",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "dictionary validation and callback failure identity",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "dictionary validation and callback failure identity",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "overridden attribute lookup and dictionary errors",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "overridden attribute lookup and dictionary errors",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 0,
+      "matches": true
+    },
+    {
+      "name": "directory descriptor uses explicit input and output services",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 1,
+      "matches": true
+    },
+    {
+      "name": "directory descriptor uses explicit input and output services",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "stdout": "verified\n",
+      "exit": 0,
+      "status": "ok",
+      "reads": 1,
+      "matches": true
+    }
+  ],
+  "cancellation": {
+    "stdout": "",
+    "exit": 0,
+    "status": "terminated",
+    "reason": "cancelled",
+    "reads": 1,
+    "next": "terminated",
+    "nextReason": "cancelled"
+  }
+}

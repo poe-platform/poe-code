@@ -6,6 +6,7 @@ import {
   HttpError,
   UserError,
   createHttpError,
+  redactHttpBody,
   shouldEmitDiagnostic,
   type HandlerEnv,
   type HandlerFs,
@@ -14,7 +15,7 @@ import {
   type RuntimeLogger
 } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
-import { classifyNetworkError } from "./network-error.js";
+import { classifyNetworkError, isAbortError } from "./network-error.js";
 import { redactHeaders, redactHeaderValue, redactSensitiveQueryValues } from "./redaction.js";
 
 export { HttpError };
@@ -127,7 +128,8 @@ export async function requestJson<TResult = unknown>(
     options.bodyMode,
     options.contentType
   );
-  emitHttpDebug(options, `${method} ${url}`, { method, url });
+  const diagnosticUrl = redactSensitiveQueryValues(url);
+  emitHttpDebug(options, `${method} ${diagnosticUrl}`, { method, url: diagnosticUrl });
   emitHttpTrace(options, "HTTP request transcript", () =>
     formatVerboseRequestTranscript(method, url, headers, options.body)
   );
@@ -254,39 +256,46 @@ async function fetchWithRetries(
   const fetchImpl = options.fetch ?? globalThis.fetch;
   const retries = options.retries;
   const maxRetries = retries?.max ?? 0;
+  const diagnosticUrl = redactSensitiveQueryValues(url);
   let attempt = 0;
 
   while (true) {
+    assertRequestActive(options.signal, diagnosticUrl);
+    let response: Response;
     try {
-      const response = await fetchImpl(url, init);
-
-      if (
-        retries === undefined ||
-        attempt >= maxRetries ||
-        !shouldRetryStatus(response.status, retries.retryOn)
-      ) {
-        return response;
-      }
-
-      emitHttpDebug(options, `Retrying ${String(init.method ?? "GET")} ${url}`, {
-        attempt: attempt + 1,
-        status: response.status
-      });
-      await sleepBeforeRetry(response, retries, attempt);
-      attempt += 1;
+      response = await fetchImpl(url, init);
     } catch (error) {
+      assertRequestActive(options.signal, diagnosticUrl);
       const classified = classifyNetworkError(error, url) ?? error;
-      if (attempt >= maxRetries || retries === undefined) {
+      if (isAbortError(error) || attempt >= maxRetries || retries === undefined) {
         throw classified;
       }
 
-      emitHttpDebug(options, `Retrying ${String(init.method ?? "GET")} ${url}`, {
+      emitHttpDebug(options, `Retrying ${String(init.method ?? "GET")} ${diagnosticUrl}`, {
         attempt: attempt + 1,
         error: classified instanceof Error ? classified.message : String(classified)
       });
-      await sleepBeforeRetry(undefined, retries, attempt);
+      await sleepBeforeRetry(undefined, retries, attempt, options.signal, diagnosticUrl);
       attempt += 1;
+      continue;
     }
+
+    if (
+      retries === undefined ||
+      attempt >= maxRetries ||
+      !shouldRetryStatus(response.status, retries.retryOn)
+    ) {
+      return response;
+    }
+
+    await response.body?.cancel();
+    assertRequestActive(options.signal, diagnosticUrl);
+    emitHttpDebug(options, `Retrying ${String(init.method ?? "GET")} ${diagnosticUrl}`, {
+      attempt: attempt + 1,
+      status: response.status
+    });
+    await sleepBeforeRetry(response, retries, attempt, options.signal, diagnosticUrl);
+    attempt += 1;
   }
 }
 
@@ -330,11 +339,36 @@ function shouldRetryStatus(status: number, retryOn: readonly number[] | undefine
 async function sleepBeforeRetry(
   response: Response | undefined,
   retries: NonNullable<HttpRequestOptions["retries"]>,
-  attempt: number
+  attempt: number,
+  signal: AbortSignal | undefined,
+  diagnosticUrl: string
 ): Promise<void> {
+  assertRequestActive(signal, diagnosticUrl);
   const retryAfter = response?.headers.get("retry-after");
   const delay = parseRetryAfter(retryAfter) ?? calculateBackoffDelay(attempt, retries.random);
-  await (retries.sleep ?? defaultSleep)(delay);
+  assertRequestActive(signal, diagnosticUrl);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let onAbort: (() => void) | undefined;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      onAbort = () => reject(new UserError(`Request aborted: ${diagnosticUrl}.`, { cause: signal?.reason }));
+      signal?.addEventListener("abort", onAbort, { once: true });
+      if (retries.sleep === undefined) {
+        timer = setTimeout(resolve, delay);
+      } else {
+        retries.sleep(delay).then(resolve, reject);
+      }
+    });
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+    if (onAbort !== undefined) signal?.removeEventListener("abort", onAbort);
+  }
+}
+
+function assertRequestActive(signal: AbortSignal | undefined, diagnosticUrl: string): void {
+  if (signal?.aborted) {
+    throw new UserError(`Request aborted: ${diagnosticUrl}.`, { cause: signal.reason });
+  }
 }
 
 function parseRetryAfter(value: string | null | undefined): number | undefined {
@@ -358,10 +392,6 @@ function parseRetryAfter(value: string | null | undefined): number | undefined {
 function calculateBackoffDelay(attempt: number, random: (() => number) | undefined): number {
   const base = 100 * 2 ** attempt;
   return Math.floor(base * (random ?? Math.random)());
-}
-
-function defaultSleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function formatRawResponseResult<T>(
@@ -436,7 +466,7 @@ async function resolveMultipartSource(
   source: string,
   runtime: MultipartSourceRuntime
 ): Promise<MultipartBinaryValue> {
-  if (URL.canParse(source) && source.includes(":")) {
+  if (path.parse(source).root.length === 0 && URL.canParse(source) && source.includes(":")) {
     const sourceUrl = new URL(source);
     validateMultipartUrl(sourceUrl, runtime.field);
     return downloadMultipartSource(sourceUrl, runtime);
@@ -464,52 +494,74 @@ async function downloadMultipartSource(
   runtime: MultipartSourceRuntime
 ): Promise<MultipartFileInput> {
   let url = initialUrl;
-  const timeoutSignal = AbortSignal.timeout(MULTIPART_DOWNLOAD_TIMEOUT_MS);
-  const signal = runtime.signal === undefined
-    ? timeoutSignal
-    : AbortSignal.any([runtime.signal, timeoutSignal]);
-  for (let redirects = 0; redirects <= MULTIPART_REDIRECT_LIMIT; redirects += 1) {
-    validateMultipartUrl(url, runtime.field);
-    let response: Response;
-    try {
-      response = await runtime.fetch(url, { redirect: "manual", signal });
-    } catch {
-      throw new UserError(
-        `Could not download multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))}.`
-      );
-    }
+  const controller = new AbortController();
+  const abort = () => controller.abort(runtime.signal?.reason);
+  const timeout = setTimeout(() => {
+    controller.abort(new DOMException("Multipart source download timed out.", "TimeoutError"));
+  }, MULTIPART_DOWNLOAD_TIMEOUT_MS);
+  timeout.unref();
+  if (runtime.signal?.aborted) abort();
+  else runtime.signal?.addEventListener("abort", abort, { once: true });
+  try {
+    for (let redirects = 0; redirects <= MULTIPART_REDIRECT_LIMIT; redirects += 1) {
+      validateMultipartUrl(url, runtime.field);
+      let response: Response | undefined;
+      try {
+        try {
+          controller.signal.throwIfAborted();
+          response = await runtime.fetch(url, { redirect: "manual", signal: controller.signal });
+          controller.signal.throwIfAborted();
+        } catch {
+          throw new UserError(
+            `Could not download multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))}.`
+          );
+        }
 
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get("location");
-      if (location === null || redirects === MULTIPART_REDIRECT_LIMIT) {
-        throw new UserError(
-          `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(initialUrl))} exceeded the redirect limit.`
-        );
+        if (response.status >= 300 && response.status < 400) {
+          const location = response.headers.get("location");
+          if (location === null || redirects === MULTIPART_REDIRECT_LIMIT) {
+            throw new UserError(
+              `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(initialUrl))} exceeded the redirect limit.`
+            );
+          }
+          url = new URL(location, url);
+          continue;
+        }
+        if (!response.ok) {
+          throw new UserError(
+            `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))} returned HTTP ${response.status}.`
+          );
+        }
+
+        const declaredLength = Number(response.headers.get("content-length"));
+        if (Number.isFinite(declaredLength) && declaredLength > MULTIPART_FILE_BYTE_LIMIT) {
+          throw new UserError(
+            `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))} exceeds the 100 MiB file limit.`
+          );
+        }
+        const bytes = await readMultipartResponse(response, url, runtime);
+        controller.signal.throwIfAborted();
+        accountMultipartBytes(bytes.byteLength, redactMultipartUrl(url), runtime);
+        return {
+          data: Buffer.from(bytes).toString("base64"),
+          filename: selectRemoteFilename(response, url, runtime.field),
+          contentType: normalizeContentType(response.headers.get("content-type"))
+        };
+      } finally {
+        if (response?.body && !response.bodyUsed) {
+          try {
+            await response.body.cancel();
+          } catch {
+            controller.abort();
+          }
+        }
       }
-      url = new URL(location, url);
-      continue;
     }
-    if (!response.ok) {
-      throw new UserError(
-        `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))} returned HTTP ${response.status}.`
-      );
-    }
-
-    const declaredLength = Number(response.headers.get("content-length"));
-    if (Number.isFinite(declaredLength) && declaredLength > MULTIPART_FILE_BYTE_LIMIT) {
-      throw new UserError(
-        `Multipart field ${JSON.stringify(runtime.field)} source ${JSON.stringify(redactMultipartUrl(url))} exceeds the 100 MiB file limit.`
-      );
-    }
-    const bytes = await readMultipartResponse(response, url, runtime);
-    accountMultipartBytes(bytes.byteLength, redactMultipartUrl(url), runtime);
-    return {
-      data: Buffer.from(bytes).toString("base64"),
-      filename: selectRemoteFilename(response, url, runtime.field),
-      contentType: normalizeContentType(response.headers.get("content-type"))
-    };
+    throw new UserError("Unexpected multipart redirect state.");
+  } finally {
+    clearTimeout(timeout);
+    runtime.signal?.removeEventListener("abort", abort);
   }
-  throw new UserError("Unexpected multipart redirect state.");
 }
 
 async function readMultipartResponse(
@@ -647,8 +699,20 @@ function buildRequestUrl(options: HttpRequestOptions): string {
     ? baseUrl.pathname.slice(0, -1)
     : baseUrl.pathname;
   const normalizedPath = resolvedPath.startsWith("/") ? resolvedPath : `/${resolvedPath}`;
+  const requestedPath = `${normalizedBasePath}${normalizedPath}`;
+  const templatePath = options.path.replace(/\{([^}]+)\}/g, "_");
 
-  baseUrl.pathname = `${normalizedBasePath}${normalizedPath}`;
+  if (templatePath !== options.path) {
+    const pathShape = new URL(baseUrl);
+    pathShape.pathname = `${requestedPath}/_`;
+    const segmentCount = pathShape.pathname.split("/").length;
+    pathShape.pathname = `${normalizedBasePath}${templatePath.startsWith("/") ? "" : "/"}${templatePath}/_`;
+    if (segmentCount !== pathShape.pathname.split("/").length) {
+      throw new UserError("Path parameters must not form dot-only URL segments.");
+    }
+  }
+
+  baseUrl.pathname = requestedPath;
 
   for (const [key, value] of Object.entries(options.query ?? {})) {
     appendQueryValue(baseUrl.searchParams, key, value);
@@ -983,9 +1047,11 @@ function formatTranscriptLine(line: string): string {
 }
 
 function formatTranscriptBody(body: unknown): string {
-  const formatted = typeof body === "string" ? body : JSON.stringify(body, null, 2);
+  const serialized = typeof body === "string" ? body : JSON.stringify(body);
+  const redacted = redactHttpBody(serialized);
+  const formatted = typeof redacted === "string" ? redacted : JSON.stringify(redacted, null, 2);
 
-  return truncateTranscriptBody(formatted ?? String(body));
+  return truncateTranscriptBody(formatted ?? String(redacted));
 }
 
 function indentTranscriptBlock(value: string): string[] {

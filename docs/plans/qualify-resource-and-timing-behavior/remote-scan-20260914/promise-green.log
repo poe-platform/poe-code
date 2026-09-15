@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /private/tmp/poe-resource-delivery
+
+ ✓ packages/safe-js/src/interp/promise-symbol-retained-accounting.test.ts (2 tests) 4ms
+ ✓ packages/safe-js/src/interp/data-budget.test.ts (15 tests) 308ms
+ ✓ packages/safe-js/src/interp/promise-property-budgets.test.ts (8 tests) 362ms
+
+ Test Files  3 passed (3)
+      Tests  25 passed (25)
+   Start at  17:20:15
+   Duration  3.05s (transform 2.97s, setup 89ms, import 4.26s, tests 675ms, environment 0ms)
+

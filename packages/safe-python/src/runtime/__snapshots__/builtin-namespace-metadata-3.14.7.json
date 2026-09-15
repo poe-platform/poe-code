@@ -1,0 +1,184 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "rows": [
+    {
+      "name": "__name__",
+      "behavior": "value and type",
+      "source": "b = (lambda: None).__builtins__\nvalue = b[\"__name__\"]\nprint(repr((type(value).__name__, value)))",
+      "expected": "('str', 'builtins')\n",
+      "stderr": ""
+    },
+    {
+      "name": "__name__",
+      "behavior": "fallback and shadow",
+      "source": "g = {}\nexec('value = __name__', g)\nb = (lambda: None).__builtins__\nprint(repr((g['value'] == b[\"__name__\"], type(g['value']).__name__)))\ng[\"__name__\"] = 17\nexec('value = __name__', g)\nprint(repr(g['value']))",
+      "expected": "(True, 'str')\n17\n",
+      "stderr": ""
+    },
+    {
+      "name": "__name__",
+      "behavior": "live mutation and deletion",
+      "source": "b = (lambda: None).__builtins__\nkey = \"__name__\"\nsaved = b[key]\ng = {}\nexec('def read(): return __name__', g)\nb[key] = 42\nprint(repr(g['read']()))\ndel b[key]\ntry:\n    g['read']()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.name)))\nb[key] = saved\nprint(repr(g['read']() == saved))",
+      "expected": "42\n('NameError', \"name '__name__' is not defined\", '__name__')\nTrue\n",
+      "stderr": ""
+    },
+    {
+      "name": "__package__",
+      "behavior": "value and type",
+      "source": "b = (lambda: None).__builtins__\nvalue = b[\"__package__\"]\nprint(repr((type(value).__name__, value)))",
+      "expected": "('str', '')\n",
+      "stderr": ""
+    },
+    {
+      "name": "__package__",
+      "behavior": "fallback and shadow",
+      "source": "g = {}\nexec('value = __package__', g)\nb = (lambda: None).__builtins__\nprint(repr((g['value'] == b[\"__package__\"], type(g['value']).__name__)))\ng[\"__package__\"] = 17\nexec('value = __package__', g)\nprint(repr(g['value']))",
+      "expected": "(True, 'str')\n17\n",
+      "stderr": ""
+    },
+    {
+      "name": "__package__",
+      "behavior": "live mutation and deletion",
+      "source": "b = (lambda: None).__builtins__\nkey = \"__package__\"\nsaved = b[key]\ng = {}\nexec('def read(): return __package__', g)\nb[key] = 42\nprint(repr(g['read']()))\ndel b[key]\ntry:\n    g['read']()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.name)))\nb[key] = saved\nprint(repr(g['read']() == saved))",
+      "expected": "42\n('NameError', \"name '__package__' is not defined\", '__package__')\nTrue\n",
+      "stderr": ""
+    },
+    {
+      "name": "__doc__",
+      "behavior": "value and type",
+      "source": "b = (lambda: None).__builtins__\nvalue = b[\"__doc__\"]\nprint(repr((type(value).__name__, value)))",
+      "expected": "('str', \"Built-in functions, types, exceptions, and other objects.\\n\\nThis module provides direct access to all 'built-in'\\nidentifiers of Python; for example, builtins.len is\\nthe full name for the built-in function len().\\n\\nThis module is not normally accessed explicitly by most\\napplications, but can be useful in modules that provide\\nobjects with the same name as a built-in value, but in\\nwhich the built-in of that name is also needed.\")\n",
+      "stderr": ""
+    },
+    {
+      "name": "__doc__",
+      "behavior": "fallback and shadow",
+      "source": "g = {}\nexec('value = __doc__', g)\nb = (lambda: None).__builtins__\nprint(repr((g['value'] == b[\"__doc__\"], type(g['value']).__name__)))\ng[\"__doc__\"] = 17\nexec('value = __doc__', g)\nprint(repr(g['value']))",
+      "expected": "(True, 'str')\n17\n",
+      "stderr": ""
+    },
+    {
+      "name": "__doc__",
+      "behavior": "live mutation and deletion",
+      "source": "b = (lambda: None).__builtins__\nkey = \"__doc__\"\nsaved = b[key]\ng = {}\nexec('def read(): return __doc__', g)\nb[key] = 42\nprint(repr(g['read']()))\ndel b[key]\ntry:\n    g['read']()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.name)))\nb[key] = saved\nprint(repr(g['read']() == saved))",
+      "expected": "42\n('NameError', \"name '__doc__' is not defined\", '__doc__')\nTrue\n",
+      "stderr": ""
+    }
+  ],
+  "nameErrors": [
+    {
+      "source": "try:\n    missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    del missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    global missing\n    missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    global missing\n    del missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f(): return missing\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f():\n     global missing\n     del missing\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    class C:\n     missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    class C:\n     del missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    class C:\n     __missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name '_C__missing' is not defined\", (\"name '_C__missing' is not defined\",), '_C__missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    class C:\n     del __missing\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name '_C__missing' is not defined\", (\"name '_C__missing' is not defined\",), '_C__missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f():\n     print(x)\n     x=1\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('UnboundLocalError', \"cannot access local variable 'x' where it is not associated with a value\", (\"cannot access local variable 'x' where it is not associated with a value\",), None)\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f():\n     del x\n     x=1\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('UnboundLocalError', \"cannot access local variable 'x' where it is not associated with a value\", (\"cannot access local variable 'x' where it is not associated with a value\",), None)\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f():\n     def g(): return x\n     g()\n     x=1\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"cannot access free variable 'x' where it is not associated with a value in enclosing scope\", (\"cannot access free variable 'x' where it is not associated with a value in enclosing scope\",), 'x')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f():\n     def g():\n      nonlocal x\n      del x\n     g()\n     x=1\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"cannot access free variable 'x' where it is not associated with a value in enclosing scope\", (\"cannot access free variable 'x' where it is not associated with a value in enclosing scope\",), 'x')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f():\n     class C:\n      print(x)\n     x=1\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"cannot access free variable 'x' where it is not associated with a value in enclosing scope\", (\"cannot access free variable 'x' where it is not associated with a value in enclosing scope\",), 'x')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    def f():\n     class C:\n      nonlocal x\n      del x\n     x=1\n    f()\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"cannot access free variable 'x' where it is not associated with a value in enclosing scope\", (\"cannot access free variable 'x' where it is not associated with a value in enclosing scope\",), 'x')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    [missing for item in [1]]\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    list(missing for item in [1])\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', \"name 'missing' is not defined\", (\"name 'missing' is not defined\",), 'missing')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    raise NameError(\"manual\")\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', 'manual', ('manual',), None)\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    raise UnboundLocalError(\"manual\")\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('UnboundLocalError', 'manual', ('manual',), None)\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    raise NameError(\"manual\", name=\"chosen\")\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', 'manual', ('manual',), 'chosen')\n",
+      "stderr": ""
+    },
+    {
+      "source": "try:\n    b = (lambda:None).__builtins__\n    del b[\"__build_class__\"]\n    class C: pass\nexcept NameError as error:\n    print(repr((type(error).__name__, str(error), error.args, error.name)))",
+      "expected": "('NameError', '__build_class__ not found', ('__build_class__ not found',), None)\n",
+      "stderr": ""
+    }
+  ]
+}

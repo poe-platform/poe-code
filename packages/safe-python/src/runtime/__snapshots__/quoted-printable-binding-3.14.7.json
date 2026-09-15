@@ -1,0 +1,10913 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "generator": "import binascii,sys,unicodedata,json,platform,itertools,pathlib\nvalues=[None,False,True,0,1,-1,'A=FF_','\u00e9',b'A=FF_',b'',[],[1]]\ndef serial(x):\n if isinstance(x,bytes):return {'bytes':x.hex()}\n return x\nrows=[]\nfor name in ['a2b_qp','b2a_qp']:\n f=getattr(binascii,name)\n calls=[([],{}),([] ,{'unknown':True}),([] ,{'header':True})]\n for x in values:\n  calls.extend([([x],{}),([] ,{'data':x})])\n  for y in values:calls.extend([([x,y],{}),([x],{'header':y})])\n for n in range(6):\n  calls.append(([b'A']*n,{}))\n  for keys in [('data',),('header',),('data','header'),('bad',),('data','bad'),('data','quotetabs','istext','header'),('data','header','bad')]:\n   calls.append(([b'A']*n,dict.fromkeys(keys,True)))\n for args,kwargs in calls:\n  try:result=['ok',f(*args,**kwargs).hex()]\n  except Exception as e:result=['error',type(e).__name__,str(e)]\n  rows.append({'name':name,'args':[serial(x) for x in args],'kwargs':{k:serial(v) for k,v in kwargs.items()},'result':result})\nmetadata={name:{'doc':getattr(binascii,name).__doc__,'signature':getattr(binascii,name).__text_signature__} for name in ['a2b_qp','b2a_qp']}\nprint(json.dumps({'oracle':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':platform.platform(),'byteorder':sys.byteorder},'generator':pathlib.Path(__file__).read_text(),'metadata':metadata,'rows':rows},indent=2))\n",
+  "metadata": {
+    "a2b_qp": {
+      "doc": "Decode a string of qp-encoded data.",
+      "signature": "($module, /, data, header=False)"
+    },
+    "b2a_qp": {
+      "doc": "Encode a string using quoted-printable encoding.\n\nOn encoding, when istext is set, newlines are not encoded, and white\nspace at end of lines is.  When istext is not set, \\r and \\n (CR/LF)\nare both encoded.  When quotetabs is set, space and tabs are encoded.",
+      "signature": "($module, /, data, quotetabs=False, istext=True, header=False)"
+    }
+  },
+  "rows": [
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "unknown": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'int'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": "A=FF_"
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_",
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": "\u00e9"
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9",
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "ValueError",
+        "string argument should contain only ASCII characters"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "ok",
+        "41ff5f"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "ok",
+        "41ff20"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [],
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ],
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'list'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument should be bytes, buffer or ASCII string, not 'bool'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() got an unexpected keyword argument 'bad'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 keyword arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 keyword arguments (3 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for a2b_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (3 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() got an unexpected keyword argument 'bad'"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (3 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (3 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (3 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (3 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (3 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (4 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (8 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (9 given)"
+      ]
+    },
+    {
+      "name": "a2b_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a2b_qp() takes at most 2 arguments (8 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "unknown": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        null
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'NoneType'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        false
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        true
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        0
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        1
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1,
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        -1
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'int'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_",
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "A=FF_"
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9",
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        "\u00e9"
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'str'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        "413d334446463d3546"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "ok",
+        "413d334446463d3546"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "ok",
+        "413d334446463d3546"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "ok",
+        "413d334446463d3546"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "ok",
+        "413d334446463d3546"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "ok",
+        "413d334446463d3546"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        },
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "413d334446465f"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "ok",
+        "413d334446463d3546"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        },
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "ok",
+        ""
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [],
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        []
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        null
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": null
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        false
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": false
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        true
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        0
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": 0
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": 1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        -1
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": -1
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        "A=FF_"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": "A=FF_"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        "\u00e9"
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": "\u00e9"
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        {
+          "bytes": "413d46465f"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": "413d46465f"
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        {
+          "bytes": ""
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": {
+          "bytes": ""
+        }
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        []
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": []
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ],
+        [
+          1
+        ]
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        [
+          1
+        ]
+      ],
+      "kwargs": {
+        "header": [
+          1
+        ]
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'list'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() missing required argument 'data' (pos 1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() got an unexpected keyword argument 'bad'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "a bytes-like object is required, not 'bool'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() got an unexpected keyword argument 'bad'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() got an unexpected keyword argument 'bad'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() got an unexpected keyword argument 'bad'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "argument for b2a_qp() given by name ('data') and position (1)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() got an unexpected keyword argument 'bad'"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "ok",
+        "41"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (8 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {},
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (5 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (6 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (7 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "quotetabs": true,
+        "istext": true,
+        "header": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (9 given)"
+      ]
+    },
+    {
+      "name": "b2a_qp",
+      "args": [
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        },
+        {
+          "bytes": "41"
+        }
+      ],
+      "kwargs": {
+        "data": true,
+        "header": true,
+        "bad": true
+      },
+      "result": [
+        "error",
+        "TypeError",
+        "b2a_qp() takes at most 4 arguments (8 given)"
+      ]
+    }
+  ]
+}

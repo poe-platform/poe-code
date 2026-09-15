@@ -1,0 +1,295 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts (6 tests | 6 failed) 837ms
+   × selects the instance prototype after parameters (async=false) 62ms
+   × selects the instance prototype after parameters (async=true) 31ms
+   × uses the intrinsic fallback after parameters clear the prototype (async=false) 31ms
+   × uses the intrinsic fallback after parameters clear the prototype (async=true) 29ms
+   × retains the selected prototype across repeated replay (async=false) 371ms
+   × retains the selected prototype across repeated replay (async=true) 312ms
+FAIL packages/safe-js/src/interp/generator-allocation-order.test.ts > selects the instance prototype after parameters (async=false)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     false,
+-     true,
+      true,
++     false,
++     undefined,
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:9:29
+      7|   const source=`${async?'async ':''}function* g(a=(g.prototype={newPro…
+      8|     const old=g.prototype;const iterator=g();return [Object.getPrototy…
+      9|   expect(await run(source)).toMatchObject({ok:true,returnValue:[false,…
+       |                             ^
+     10| });
+     11|
+
+FAIL packages/safe-js/src/interp/generator-allocation-order.test.ts > selects the instance prototype after parameters (async=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     false,
+-     true,
+      true,
++     false,
++     undefined,
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:9:29
+      7|   const source=`${async?'async ':''}function* g(a=(g.prototype={newPro…
+      8|     const old=g.prototype;const iterator=g();return [Object.getPrototy…
+      9|   expect(await run(source)).toMatchObject({ok:true,returnValue:[false,…
+       |                             ^
+     10| });
+     11|
+
+FAIL packages/safe-js/src/interp/generator-allocation-order.test.ts > uses the intrinsic fallback after parameters clear the prototype (async=false)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     false,
+      true,
++     false,
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:15:29
+     13|   const source=`${async?'async ':''}function* g(a=(g.prototype=null)){}
+     14|     const old=g.prototype;const intrinsic=Object.getPrototypeOf(old);c…
+     15|   expect(await run(source)).toMatchObject({ok:true,returnValue:[false,…
+       |                             ^
+     16| });
+     17|
+
+FAIL packages/safe-js/src/interp/generator-allocation-order.test.ts > uses the intrinsic fallback after parameters clear the prototype (async=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     false,
+      true,
++     false,
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:15:29
+     13|   const source=`${async?'async ':''}function* g(a=(g.prototype=null)){}
+     14|     const old=g.prototype;const intrinsic=Object.getPrototypeOf(old);c…
+     15|   expect(await run(source)).toMatchObject({ok:true,returnValue:[false,…
+       |                             ^
+     16| });
+     17|
+
+FAIL packages/safe-js/src/interp/generator-allocation-order.test.ts > retains the selected prototype across repeated replay (async=false)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(6) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -7,11 +7,11 @@
+      },
+      {
+        "done": false,
+        "value": 4,
+      },
+-     7,
++     undefined,
+      1,
+      "function* g(a=(initialized++,g.prototype=Object.create(g.prototype,{tag:{value:7}}))){yield 3;yield 4}",
+      "undefined,undefined",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:28:47
+     26|   results.push(await pending);
+     27|   results.push(await run(source,{snapshot:restore(JSON.parse(await dum…
+     28|   for(const result of results){expect(result).toMatchObject({ok:true,r…
+       |                                               ^
+     29| });
+     30|
+
+FAIL packages/safe-js/src/interp/generator-allocation-order.test.ts > retains the selected prototype across repeated replay (async=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(6) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -7,11 +7,11 @@
+      },
+      {
+        "done": false,
+        "value": 4,
+      },
+-     7,
++     undefined,
+      1,
+      "async function* g(a=(initialized++,g.prototype=Object.create(g.prototype,{tag:{value:7}}))){yield 3;yield 4}",
+      "undefined,undefined",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:28:47
+     26|   results.push(await pending);
+     27|   results.push(await run(source,{snapshot:restore(JSON.parse(await dum…
+     28|   for(const result of results){expect(result).toMatchObject({ok:true,r…
+       |                                               ^
+     29| });
+     30|
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/generator-allocation-order.test.ts > selects the instance prototype after parameters (async=false)
+ FAIL  packages/safe-js/src/interp/generator-allocation-order.test.ts > selects the instance prototype after parameters (async=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     false,
+-     true,
+      true,
++     false,
++     undefined,
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:9:29
+      7|   const source=`${async?'async ':''}function* g(a=(g.prototype={newPro…
+      8|     const old=g.prototype;const iterator=g();return [Object.getPrototy…
+      9|   expect(await run(source)).toMatchObject({ok:true,returnValue:[false,…
+       |                             ^
+     10| });
+     11|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  packages/safe-js/src/interp/generator-allocation-order.test.ts > uses the intrinsic fallback after parameters clear the prototype (async=false)
+ FAIL  packages/safe-js/src/interp/generator-allocation-order.test.ts > uses the intrinsic fallback after parameters clear the prototype (async=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     false,
+      true,
++     false,
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:15:29
+     13|   const source=`${async?'async ':''}function* g(a=(g.prototype=null)){}
+     14|     const old=g.prototype;const intrinsic=Object.getPrototypeOf(old);c…
+     15|   expect(await run(source)).toMatchObject({ok:true,returnValue:[false,…
+       |                             ^
+     16| });
+     17|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  packages/safe-js/src/interp/generator-allocation-order.test.ts > retains the selected prototype across repeated replay (async=false)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(6) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -7,11 +7,11 @@
+      },
+      {
+        "done": false,
+        "value": 4,
+      },
+-     7,
++     undefined,
+      1,
+      "function* g(a=(initialized++,g.prototype=Object.create(g.prototype,{tag:{value:7}}))){yield 3;yield 4}",
+      "undefined,undefined",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:28:47
+     26|   results.push(await pending);
+     27|   results.push(await run(source,{snapshot:restore(JSON.parse(await dum…
+     28|   for(const result of results){expect(result).toMatchObject({ok:true,r…
+       |                                               ^
+     29| });
+     30|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  packages/safe-js/src/interp/generator-allocation-order.test.ts > retains the selected prototype across repeated replay (async=true)
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, returnValue: [ …(6) ] }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -7,11 +7,11 @@
+      },
+      {
+        "done": false,
+        "value": 4,
+      },
+-     7,
++     undefined,
+      1,
+      "async function* g(a=(initialized++,g.prototype=Object.create(g.prototype,{tag:{value:7}}))){yield 3;yield 4}",
+      "undefined,undefined",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/generator-allocation-order.test.ts:28:47
+     26|   results.push(await pending);
+     27|   results.push(await run(source,{snapshot:restore(JSON.parse(await dum…
+     28|   for(const result of results){expect(result).toMatchObject({ok:true,r…
+       |                                               ^
+     29| });
+     30|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed (6)
+   Start at  11:20:15
+   Duration  3.19s (transform 1.79s, setup 47ms, import 2.22s, tests 837ms, environment 0ms)
+

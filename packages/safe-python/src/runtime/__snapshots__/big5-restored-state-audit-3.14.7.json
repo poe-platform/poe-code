@@ -1,0 +1,7663 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "-1",
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "0",
+      "result": [
+        "ok"
+      ],
+      "saved": "0",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "1",
+      "result": [
+        "ok"
+      ],
+      "saved": "1",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              0,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "8",
+      "result": [
+        "ok"
+      ],
+      "saved": "8",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "9",
+      "result": [
+        "error",
+        "UnicodeError",
+        "pending buffer too large",
+        [
+          "pending buffer too large"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "255",
+      "result": [
+        "error",
+        "UnicodeError",
+        "pending buffer too large",
+        [
+          "pending buffer too large"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "87112285931760246646623899502532662132736",
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "87112285931760246646623899502532662132735",
+      "result": [
+        "error",
+        "UnicodeError",
+        "pending buffer too large",
+        [
+          "pending buffer too large"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "0",
+      "result": [
+        "ok"
+      ],
+      "saved": "0",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "4722366482869645213440",
+      "result": [
+        "ok"
+      ],
+      "saved": "4722366482869645213440",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "16641",
+      "result": [
+        "ok"
+      ],
+      "saved": "16641",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "1208925819614629174657281",
+      "result": [
+        "ok"
+      ],
+      "saved": "1208925819614629174657281",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "1333301441891638853896",
+      "result": [
+        "ok"
+      ],
+      "saved": "1333301441891638853896",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "87112285931760246643234834461554655772936",
+      "result": [
+        "ok"
+      ],
+      "saved": "87112285931760246643234834461554655772936",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "65281",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+        [
+          "utf-8",
+          [
+            255
+          ],
+          0,
+          1,
+          "invalid start byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "1208925819614629174705921",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+        [
+          "utf-8",
+          [
+            255
+          ],
+          0,
+          1,
+          "invalid start byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "49665",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: unexpected end of data",
+        [
+          "utf-8",
+          [
+            194
+          ],
+          0,
+          1,
+          "unexpected end of data"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "1208925819614629174690305",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: unexpected end of data",
+        [
+          "utf-8",
+          [
+            194
+          ],
+          0,
+          1,
+          "unexpected end of data"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "4309506",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            194,
+            65
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "309485009821345068712313346",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            194,
+            65
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "2158030083",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xed in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            237,
+            160,
+            128
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "79228162514264337591407013123",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xed in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            237,
+            160,
+            128
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "2914575363",
+      "result": [
+        "ok"
+      ],
+      "saved": "2914575363",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              164,
+              164,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "79228162514264337592163558403",
+      "result": [
+        "ok"
+      ],
+      "saved": "79228162514264337592163558403",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              164,
+              164,
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "608016789508",
+      "result": [
+        "ok"
+      ],
+      "saved": "608016789508",
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeEncodeError",
+            "'big5' codec can't encode character '\\U0001f40d' in position 0: illegal multibyte sequence",
+            [
+              "big5",
+              [
+                128013,
+                65,
+                20013
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          "608016789508"
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "20282409603651670423455756447748",
+      "result": [
+        "ok"
+      ],
+      "saved": "20282409603651670423455756447748",
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeEncodeError",
+            "'big5' codec can't encode character '\\U0001f40d' in position 0: illegal multibyte sequence",
+            [
+              "big5",
+              [
+                128013,
+                65,
+                20013
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          "20282409603651670423455756447748"
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "big5",
+      "operation": "encode",
+      "state": "43556142965880123323311949751266333841921",
+      "result": [
+        "ok"
+      ],
+      "saved": "2775553",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "10752"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "10752"
+        ]
+      ],
+      "reset": "10752"
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'big5' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "big5",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'big5' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "big5",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'big5' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "big5",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'big5' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "big5",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'big5' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "big5",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'big5' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "big5",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'big5' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "big5",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'big5' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "big5",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "big5",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "-1",
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "0",
+      "result": [
+        "ok"
+      ],
+      "saved": "0",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "1",
+      "result": [
+        "ok"
+      ],
+      "saved": "1",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              0,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "8",
+      "result": [
+        "ok"
+      ],
+      "saved": "8",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "9",
+      "result": [
+        "error",
+        "UnicodeError",
+        "pending buffer too large",
+        [
+          "pending buffer too large"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "255",
+      "result": [
+        "error",
+        "UnicodeError",
+        "pending buffer too large",
+        [
+          "pending buffer too large"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "87112285931760246646623899502532662132736",
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "87112285931760246646623899502532662132735",
+      "result": [
+        "error",
+        "UnicodeError",
+        "pending buffer too large",
+        [
+          "pending buffer too large"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "0",
+      "result": [
+        "ok"
+      ],
+      "saved": "0",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "4722366482869645213440",
+      "result": [
+        "ok"
+      ],
+      "saved": "4722366482869645213440",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "16641",
+      "result": [
+        "ok"
+      ],
+      "saved": "16641",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "1208925819614629174657281",
+      "result": [
+        "ok"
+      ],
+      "saved": "1208925819614629174657281",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "1333301441891638853896",
+      "result": [
+        "ok"
+      ],
+      "saved": "1333301441891638853896",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "87112285931760246643234834461554655772936",
+      "result": [
+        "ok"
+      ],
+      "saved": "87112285931760246643234834461554655772936",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "65281",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+        [
+          "utf-8",
+          [
+            255
+          ],
+          0,
+          1,
+          "invalid start byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "1208925819614629174705921",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xff in position 0: invalid start byte",
+        [
+          "utf-8",
+          [
+            255
+          ],
+          0,
+          1,
+          "invalid start byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "49665",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: unexpected end of data",
+        [
+          "utf-8",
+          [
+            194
+          ],
+          0,
+          1,
+          "unexpected end of data"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "1208925819614629174690305",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: unexpected end of data",
+        [
+          "utf-8",
+          [
+            194
+          ],
+          0,
+          1,
+          "unexpected end of data"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "4309506",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            194,
+            65
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "309485009821345068712313346",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xc2 in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            194,
+            65
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "2158030083",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xed in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            237,
+            160,
+            128
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "79228162514264337591407013123",
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'utf-8' codec can't decode byte 0xed in position 0: invalid continuation byte",
+        [
+          "utf-8",
+          [
+            237,
+            160,
+            128
+          ],
+          0,
+          1,
+          "invalid continuation byte"
+        ]
+      ],
+      "saved": "6511105",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "25344"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "25344"
+        ]
+      ],
+      "reset": "25344"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "2914575363",
+      "result": [
+        "ok"
+      ],
+      "saved": "2914575363",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              164,
+              164,
+              65,
+              164,
+              164
+            ]
+          ],
+          "0"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "79228162514264337592163558403",
+      "result": [
+        "ok"
+      ],
+      "saved": "79228162514264337592163558403",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              164,
+              164,
+              65,
+              164,
+              164
+            ]
+          ],
+          "4722366482869645213440"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "608016789508",
+      "result": [
+        "ok"
+      ],
+      "saved": "608016789508",
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeEncodeError",
+            "'cp950' codec can't encode character '\\U0001f40d' in position 0: illegal multibyte sequence",
+            [
+              "cp950",
+              [
+                128013,
+                65,
+                20013
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          "608016789508"
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          "0"
+        ]
+      ],
+      "reset": "0"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "20282409603651670423455756447748",
+      "result": [
+        "ok"
+      ],
+      "saved": "20282409603651670423455756447748",
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeEncodeError",
+            "'cp950' codec can't encode character '\\U0001f40d' in position 0: illegal multibyte sequence",
+            [
+              "cp950",
+              [
+                128013,
+                65,
+                20013
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          "20282409603651670423455756447748"
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          "4722366482869645213440"
+        ]
+      ],
+      "reset": "4722366482869645213440"
+    },
+    {
+      "name": "cp950",
+      "operation": "encode",
+      "state": "43556142965880123323311949751266333841921",
+      "result": [
+        "ok"
+      ],
+      "saved": "2775553",
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              65,
+              164,
+              164
+            ]
+          ],
+          "10752"
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          "10752"
+        ]
+      ],
+      "reset": "10752"
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'cp950' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "cp950",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'cp950' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "cp950",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'cp950' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "cp950",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          255
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "error",
+            "UnicodeDecodeError",
+            "'cp950' codec can't decode byte 0xff in position 0: illegal multibyte sequence",
+            [
+              "cp950",
+              [
+                255,
+                164,
+                65
+              ],
+              0,
+              1,
+              "illegal multibyte sequence"
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        255
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          164
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              20013,
+              65
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        164
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "0"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "0"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "ok"
+      ],
+      "saved": [
+        [
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72
+        ],
+        "18446744073709551615"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              20057
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "18446744073709551615"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "18446744073709551615"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "-1",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "-1",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "can't convert negative int to unsigned",
+        [
+          "can't convert negative int to unsigned"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "0",
+      "final": false,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'cp950' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "cp950",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "0",
+      "final": true,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'cp950' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "cp950",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551615",
+      "final": false,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'cp950' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "cp950",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551615",
+      "final": true,
+      "result": [
+        "error",
+        "UnicodeDecodeError",
+        "'cp950' codec can't decode bytes in position 0-8: pending buffer too large",
+        [
+          "cp950",
+          [
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73
+          ],
+          0,
+          9,
+          "pending buffer too large"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551616",
+      "final": false,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    },
+    {
+      "name": "cp950",
+      "operation": "decode",
+      "pending": [
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73
+      ],
+      "state": "18446744073709551616",
+      "final": true,
+      "result": [
+        "error",
+        "OverflowError",
+        "int too big to convert",
+        [
+          "int too big to convert"
+        ]
+      ],
+      "saved": [
+        [
+          90
+        ],
+        "99"
+      ],
+      "steps": [
+        [
+          [
+            "ok",
+            [
+              90,
+              20057
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65533
+            ]
+          ],
+          [
+            [],
+            "99"
+          ]
+        ]
+      ],
+      "reset": [
+        [],
+        "99"
+      ]
+    }
+  ],
+  "source": "\nimport codecs, json, sys, unicodedata\nassert sys.version_info[:3] == (3, 14, 7)\nassert unicodedata.unidata_version == '16.0.0'\ndef failure(e):\n    args = list(e.args)\n    if isinstance(e, (UnicodeDecodeError, UnicodeEncodeError)):\n        args[1] = list(e.object) if isinstance(e.object, bytes) else list(map(ord, e.object))\n    return ['error', type(e).__name__, str(e), args]\ndef packed(data, flags=0):\n    return int.from_bytes(bytes([len(data)]) + data + flags.to_bytes(8, 'little'), 'little')\nrows = []\nencoder_states = [-1, 0, 1, 8, 9, 255, 1 << 136, (1 << 136) - 1]\nencoder_states += [packed(data, flags) for data in (b'', b'A', b'ABCDEFGH', b'\\xff', b'\\xc2', b'\\xc2A', b'\\xed\\xa0\\x80', '\u4e2d'.encode(), '\ud83d\udc0d'.encode()) for flags in (0, (1 << 64) - 1)]\nencoder_states += [packed(b'Z', 42) | (1 << 135)]\nfor name in ('big5', 'cp950'):\n    for state in encoder_states:\n        encoder = codecs.getincrementalencoder(name)()\n        encoder.setstate(packed(b'Z', 99))\n        try:\n            encoder.setstate(state)\n            result = ['ok']\n        except Exception as e:\n            result = failure(e)\n        saved = str(encoder.getstate())\n        steps = []\n        for errors, text, final in (('strict', 'A\u4e2d', False), ('replace', '\ud83d\udc0d', True)):\n            encoder.errors = errors\n            try: step = ['ok', list(encoder.encode(text, final))]\n            except Exception as e: step = failure(e)\n            steps.append([step, str(encoder.getstate())])\n        encoder.reset()\n        rows.append(dict(name=name, operation='encode', state=str(state), result=result, saved=saved, steps=steps, reset=str(encoder.getstate())))\n    for pending in (b'', b'\\xa4', b'\\xff', b'ABC\\xa4', b'ABCDEFGH', b'ABCDEFGHI'):\n        for flags in (-1, 0, (1 << 64) - 1, 1 << 64):\n            for final in (False, True):\n                decoder = codecs.getincrementaldecoder(name)()\n                decoder.setstate((b'Z', 99))\n                try:\n                    decoder.setstate((pending, flags))\n                    result = ['ok']\n                except Exception as e: result = failure(e)\n                def decoder_state():\n                    data, value = decoder.getstate()\n                    return [list(data), str(value)]\n                saved = decoder_state()\n                steps = []\n                for errors, data, flush in (('strict', b'\\xa4A', final), ('replace', b'\\xff', True)):\n                    decoder.errors = errors\n                    try: step = ['ok', list(map(ord, decoder.decode(data, flush)))]\n                    except Exception as e: step = failure(e)\n                    steps.append([step, decoder_state()])\n                decoder.reset()\n                rows.append(dict(name=name, operation='decode', pending=list(pending), state=str(flags), final=final, result=result, saved=saved, steps=steps, reset=decoder_state()))\nprint(json.dumps(dict(oracle=dict(version=sys.version, unicode=unicodedata.unidata_version, platform=sys.platform, byteorder=sys.byteorder), cases=rows)))\n"
+}

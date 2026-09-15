@@ -1,0 +1,5 @@
+{
+  "exit": 0,
+  "stdout": "audited 15 packages in 0s\n\n15 packages have verified registry signatures\n\n10 packages have verified attestations\n\n",
+  "stderr": ""
+}

@@ -1,0 +1,80 @@
+{
+  "initialRed": "\n> @poe-code/safe-python@0.0.0-dev test:unit\n> vitest run --config vitest.config.ts iso2022-jis-revision --maxWorkers=2\n\n\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-3/packages/safe-python\n\n ❯ src/runtime/iso2022-jis-revision.test.ts (0 test)\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/runtime/iso2022-jis-revision.test.ts [ src/runtime/iso2022-jis-revision.test.ts ]\nError: Cannot find module './iso2022-jis-revision-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jis-revision.test.ts\n ❯ src/runtime/iso2022-jis-revision.test.ts:4:1\n      2| import {describe,expect,it} from 'vitest';\n      3| import oracle from './__snapshots__/iso2022-jis-revision-oracle.json';\n      4| import {iso2022Jp3Codec,iso2022Jp2004Codec} from './iso2022-jis-revisi…\n       | ^\n      5| import {CodePointString} from './code-point-string.js';\n      6| import {DoubleByteIncrementalEncoder} from './double-byte-incremental-…\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n\n Test Files  1 failed (1)\n      Tests  no tests\n   Start at  03:26:19\n   Duration  143ms (transform 24ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)\n\nnpm error Lifecycle script `test:unit` failed with error:\nnpm error code 1\nnpm error path /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error workspace @poe-code/safe-python@0.0.0-dev\nnpm error location /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error command failed\nnpm error command sh -c vitest run --config vitest.config.ts iso2022-jis-revision --maxWorkers=2\n",
+  "runs": {
+    "green": {
+      "passed": 3929,
+      "failed": 1,
+      "pending": 0,
+      "files": 1,
+      "slowestMs": 18.81779199999994,
+      "failures": [
+        {
+          "name": "iso2022_jp_3 matches designated byte matrix 80/125",
+          "messages": [
+            "AssertionError: expected 'd3c06cd3af086253e5ee42ad1f6e5a20dff43…' to be 'e251c5dbf64c37017c4d53f44381048f4a28a…' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jis-revision.test.ts:39:34\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2025:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    "regression": {
+      "passed": 14089,
+      "failed": 4,
+      "pending": 0,
+      "files": 13,
+      "slowestMs": 77.19254099999989,
+      "failures": [
+        {
+          "name": "native codec slots: 'hash inheritance failure 1'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "native codec slots: 'hash inheritance failure 2'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "native codec slots: 'hash inheritance failure 3'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "name": "retains caller and codec frames with pinned instruction positions",
+          "messages": [
+            "AssertionError: expected '' to be '<module> 3 66\\nencode 204 12\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-traceback.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        }
+      ]
+    },
+    "expanded": {
+      "passed": 5802,
+      "failed": 0,
+      "pending": 0,
+      "files": 1,
+      "slowestMs": 15.450249999999983,
+      "failures": []
+    },
+    "consumers": {
+      "passed": 837,
+      "failed": 0,
+      "pending": 0,
+      "files": 9,
+      "slowestMs": 832.5136669999999,
+      "failures": []
+    }
+  },
+  "checks": {
+    "typecheck": "npm run typecheck --workspace=@poe-code/safe-python: exit 0",
+    "eslint": "npx eslint packages/safe-python/src/runtime/iso2022-jis-revision-codec.ts packages/safe-python/src/runtime/iso2022-jis-revision.test.ts packages/safe-python/src/runtime/iso2022-jp-codec.ts packages/safe-python/src/runtime/double-byte-codec.ts: exit 0"
+  },
+  "sha256": {
+    "iso2022-jis-revision-codec.ts": "bbb507cc3910d6f625d9b8497aa3c0b0b3d9a7edf97771c233c09d541d2cef95",
+    "iso2022-jis-revision.test.ts": "992fcbdbdedd23db8527897c771d8f2b6edeb4982629f343eb36d7f92e7ca2ae",
+    "iso2022-jp-codec.ts": "cc26c413942440e688e9fa046e1b361b152fae3468aec59b36ebfeb5334b279f",
+    "double-byte-codec.ts": "cce3a01fba4e565453774d0c6b7724a60b8d6a2c946904ed9c17272f1f460dfc",
+    "__snapshots__/iso2022-jis-revision-oracle.json": "c3e28e215074e755bdb4a72c667fe6c7886f1e47d6f1c464ffbb650e2b9b45e8"
+  }
+}

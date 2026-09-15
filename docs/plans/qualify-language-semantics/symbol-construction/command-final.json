@@ -1,0 +1,14 @@
+[
+  "node",
+  "--import",
+  "tsx",
+  "packages/safe-js/test/conformance/command.ts",
+  "--corpus",
+  "/tmp/safejs-baseline-test262-419d3e0",
+  "--report",
+  "docs/plans/qualify-language-semantics/symbol-construction/upstream-final.jsonl",
+  "--include",
+  "language/statements/class/subclass/builtin-objects/Symbol/new-symbol-with-super-throws.js",
+  "--include",
+  "language/statements/class/subclass/builtin-objects/Symbol/symbol-valid-as-extends-value.js"
+]

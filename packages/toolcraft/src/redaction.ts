@@ -19,34 +19,46 @@ export function isSensitiveName(name: string): boolean {
 function redactSecretLikeFieldsValue(
   value: unknown,
   name: string,
-  seen: WeakSet<object>
+  seen: WeakSet<object>,
+  applyToJSON = true
 ): unknown {
   if (name.length > 0 && isSensitiveName(name)) {
     return REDACTED_VALUE;
   }
 
-  if (Array.isArray(value)) {
-    if (seen.has(value)) {
-      return "[Circular]";
-    }
-    seen.add(value);
-    return value.map((entry) => redactSecretLikeFieldsValue(entry, name, seen));
+  if ((typeof value !== "object" || value === null) && typeof value !== "function") {
+    return value;
   }
 
-  if (isPlainObject(value)) {
-    if (seen.has(value)) {
-      return "[Circular]";
+  if (seen.has(value)) {
+    return "[Circular]";
+  }
+  seen.add(value);
+
+  const toJSON = applyToJSON ? (value as { toJSON?: unknown }).toJSON : undefined;
+  if (typeof toJSON === "function") {
+    const serialized = toJSON.call(value, name);
+    if (serialized !== value) {
+      const redacted = redactSecretLikeFieldsValue(serialized, name, seen, false);
+      seen.delete(value);
+      return redacted;
     }
-    seen.add(value);
-    return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [
-        key,
-        redactSecretLikeFieldsValue(entry, key, seen)
-      ])
-    );
   }
 
-  return value;
+  if (typeof value === "function") {
+    seen.delete(value);
+    return undefined;
+  }
+
+  const redacted = Array.isArray(value)
+    ? value.map((entry, index) => redactSecretLikeFieldsValue(entry, String(index), seen))
+    : Object.fromEntries(
+        Object.entries(value)
+          .filter(([key, entry]) => key !== "toJSON" || typeof entry !== "function")
+          .map(([key, entry]) => [key, redactSecretLikeFieldsValue(entry, key, seen)])
+      );
+  seen.delete(value);
+  return redacted;
 }
 
 export function redactSecretLikeFields(value: unknown, name = ""): unknown {
@@ -80,7 +92,7 @@ export function redactHttpHeaderValue(name: string, value: string): string {
   const normalized = normalizeName(name);
 
   if (AUTHORIZATION_HEADER_NAMES.has(normalized)) {
-    return "Bearer ****";
+    return value.startsWith("Bearer ") ? "Bearer ****" : "****";
   }
 
   if (SECRET_HEADER_NAMES.has(normalized) || isSensitiveName(name)) {

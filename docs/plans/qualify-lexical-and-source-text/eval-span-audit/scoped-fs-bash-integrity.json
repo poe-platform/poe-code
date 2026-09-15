@@ -1,0 +1,165 @@
+{
+  "observedAt": "2026-09-13T07:31:43.383088+00:00",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-fs",
+      "version": "0.1.566",
+      "registryMetadata": {
+        "name": "@poe-platform/safe-fs",
+        "version": "0.1.566",
+        "dist": {
+          "integrity": "sha512-AXfweVKd2bXhWE7jkfymfY96WrD7t1PWkYGJGur14JX8FnJIv2rc84dwsZRrAGXYJhCvfymeAdjKtokq7qGUyA==",
+          "shasum": "64bf04eff85a1af4edbf05cb4c165549ab414ee8",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-fs/-/safe-fs-0.1.566.tgz",
+          "fileCount": 141,
+          "unpackedSize": 717171,
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.566",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "signatures": [
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEQCIDPthjOeL4XuS3nugnsoTBbO+5+MQQ67xykC+q1pcdWUAiAWK3ukdF2hhGEa5FoeeyxPV2ql5PO8n+mXIAoEwx5YIA=="
+            }
+          ]
+        }
+      },
+      "downloadedBytes": 141473,
+      "verifiedIntegrity": "sha512-AXfweVKd2bXhWE7jkfymfY96WrD7t1PWkYGJGur14JX8FnJIv2rc84dwsZRrAGXYJhCvfymeAdjKtokq7qGUyA==",
+      "sha256": "4b7e6e12e2cb3be23e1f0ed1a2f88065cf8cc295713044f68ebb99016c7e2821",
+      "provenanceStatements": [
+        {
+          "_type": "https://in-toto.io/Statement/v1",
+          "subject": [
+            {
+              "name": "pkg:npm/%40poe-platform/safe-fs@0.1.566",
+              "digest": {
+                "sha512": "0177f079529dd9b5e1584ee391fca67d8f7a5ab0fbb753d69181891aeaf5e095fc167248bf6adcf38770b1946b0065d82610af7f299e01d8cab6892aeea194c8"
+              }
+            }
+          ],
+          "predicateType": "https://slsa.dev/provenance/v1",
+          "predicate": {
+            "buildDefinition": {
+              "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+              "externalParameters": {
+                "workflow": {
+                  "ref": "refs/heads/main",
+                  "repository": "https://github.com/poe-platform/poe-code",
+                  "path": ".github/workflows/release-safe.yml"
+                }
+              },
+              "internalParameters": {
+                "github": {
+                  "event_name": "push",
+                  "repository_id": "1078492326",
+                  "repository_owner_id": "129537891"
+                }
+              },
+              "resolvedDependencies": [
+                {
+                  "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+                  "digest": {
+                    "gitCommit": "bf590b214af3cef6827b93fe0b60e00dd810b4fe"
+                  }
+                }
+              ]
+            },
+            "runDetails": {
+              "builder": {
+                "id": "https://github.com/actions/runner/github-hosted"
+              },
+              "metadata": {
+                "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34745114622/attempts/1"
+              }
+            }
+          }
+        }
+      ],
+      "sourceContainsRepairs": true
+    },
+    {
+      "name": "@poe-platform/safe-bash",
+      "version": "0.1.566",
+      "registryMetadata": {
+        "name": "@poe-platform/safe-bash",
+        "version": "0.1.566",
+        "dist": {
+          "integrity": "sha512-MfJ7muvo5WiJdX7rGvx0RPcmVT/e/qfOfBFhwm78BSrdEmt6jfn6rCf+qPUYl9LGVJ2+lWb32GI1/EsdC3qj/g==",
+          "shasum": "8dc26dae2daad53e41e9be8de1f033b83416c727",
+          "tarball": "https://registry.npmjs.org/@poe-platform/safe-bash/-/safe-bash-0.1.566.tgz",
+          "fileCount": 1645,
+          "unpackedSize": 26143278,
+          "attestations": {
+            "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.566",
+            "provenance": {
+              "predicateType": "https://slsa.dev/provenance/v1"
+            }
+          },
+          "signatures": [
+            {
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+              "sig": "MEUCIGYpQXPN37GtK/s2T6GwzXM6QxMkc69cUp+5WPI0cr4pAiEAhoGYPgvJAaznkzdGlVpVHCS0/vaXAh/U0jHTa13Ny88="
+            }
+          ]
+        }
+      },
+      "downloadedBytes": 4463601,
+      "verifiedIntegrity": "sha512-MfJ7muvo5WiJdX7rGvx0RPcmVT/e/qfOfBFhwm78BSrdEmt6jfn6rCf+qPUYl9LGVJ2+lWb32GI1/EsdC3qj/g==",
+      "sha256": "214710a78c593fe22ee2af74e3d7d2644acdc5601a920edf09bc02333e603287",
+      "provenanceStatements": [
+        {
+          "_type": "https://in-toto.io/Statement/v1",
+          "subject": [
+            {
+              "name": "pkg:npm/%40poe-platform/safe-bash@0.1.566",
+              "digest": {
+                "sha512": "31f27b9aebe8e56889757eeb1afc7444f726553fdefea7ce7c1161c26efc052add126b7a8df9faac27fea8f51897d2c6549dbe9566f7d86235fc4b1d0b7aa3fe"
+              }
+            }
+          ],
+          "predicateType": "https://slsa.dev/provenance/v1",
+          "predicate": {
+            "buildDefinition": {
+              "buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+              "externalParameters": {
+                "workflow": {
+                  "ref": "refs/heads/main",
+                  "repository": "https://github.com/poe-platform/poe-code",
+                  "path": ".github/workflows/release-safe.yml"
+                }
+              },
+              "internalParameters": {
+                "github": {
+                  "event_name": "push",
+                  "repository_id": "1078492326",
+                  "repository_owner_id": "129537891"
+                }
+              },
+              "resolvedDependencies": [
+                {
+                  "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
+                  "digest": {
+                    "gitCommit": "bf590b214af3cef6827b93fe0b60e00dd810b4fe"
+                  }
+                }
+              ]
+            },
+            "runDetails": {
+              "builder": {
+                "id": "https://github.com/actions/runner/github-hosted"
+              },
+              "metadata": {
+                "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34745114622/attempts/1"
+              }
+            }
+          }
+        }
+      ],
+      "sourceContainsRepairs": true
+    }
+  ]
+}

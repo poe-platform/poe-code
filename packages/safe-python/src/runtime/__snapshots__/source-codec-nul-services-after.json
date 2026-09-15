@@ -1,0 +1,1694 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "driver": "import {openSync,closeSync,readSync,writeSync,fsyncSync,readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst reference=JSON.parse(readFileSync(root+'source-codec-nul-3.14.7.json','utf8'));\nconst directory=mkdtempSync(join(tmpdir(),'source-nul-'));\nconst records=[];\ntry {\n for(const row of reference.cases){\n  const service=row.name==='filename services and argument failures precede NUL source validation';\n  for(const cancelAt of service?[0,1,2]:[0]){\n   const path=join(directory,'output'),fd=openSync(path,'w');\n   const inputPath=join(directory,'input');writeFileSync(inputPath,'ready\\nready\\n');\n   const inputFd=openSync(inputPath,'r');\n   let writes=0,reads=0,result,retry;\n   const controller=new AbortController();\n   try {\n    const session=new PythonSession({hashSeed:[1n,2n],signal:controller.signal,limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},\n     input:{readLine(){const buffer=Buffer.alloc(6);const count=readSync(inputFd,buffer,0,6,null);reads++;if(reads===cancelAt)controller.abort();return count===0?null:buffer.subarray(0,count).toString('utf8');}},\n     output:{write(text){writes++;writeSync(fd,text);},flush(){fsyncSync(fd);}}});\n    const executed=session.exec(row.source);\n    if(executed.status==='exception'){\n     session.globals.set('failure',executed.exception);\n     const detail=session.eval('str(failure)');\n     result={status:executed.status,detail:detail.status==='ok'?detail.value.primitive:detail.status};\n    }else result=executed;\n    if(cancelAt)retry=session.exec('pass');\n    fsyncSync(fd);\n   } finally {closeSync(fd);closeSync(inputFd);}\n   const output=readFileSync(path,'utf8');\n   const expected={status:'terminated',reason:'cancelled',message:'execution cancelled'};\n   const matches=cancelAt?JSON.stringify(result)===JSON.stringify(expected)&&JSON.stringify(retry)===JSON.stringify(expected)&&reads===cancelAt&&output==='':result.status==='ok'&&output===row.stdout;\n   records.push({name:row.name,source:row.source,cancelAt,result,retry,output,reads,writes,matches});\n  }\n }\n} finally {rmSync(directory,{recursive:true,force:true});}\nwriteFileSync(root+'source-codec-nul-services-after.json',JSON.stringify({oracle:reference.oracle,driver:readFileSync('/tmp/source-codec-nul-services.mts','utf8'),adapters:'Explicit Node readSync/writeSync/fsyncSync file descriptor adapters; external driver only.',records},null,2)+'\\n');\nconsole.log({matched:records.filter(row=>row.matches).length,failed:records.filter(row=>!row.matches).length,reads:records.reduce((sum,row)=>sum+row.reads,0),writes:records.reduce((sum,row)=>sum+row.writes,0)});\n",
+  "adapters": "Explicit Node readSync/writeSync/fsyncSync file descriptor adapters; external driver only.",
+  "records": [
+    {
+      "name": "compile(source, 'nul.py', 'exec') str \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') str  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = ' \\t\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') str # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# comment\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') str 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '1\\x00+2'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') str # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: absent\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') str # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: utf8\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') str # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: latin-1\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') str \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b' \\t\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# comment\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'1\\x00+2'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: absent\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: utf8\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: latin-1\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') bytes \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text(' \\t\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# comment\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('1\\x00+2')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: absent\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: utf8\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: latin-1\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Text \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b' \\t\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# comment\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'1\\x00+2')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: absent\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: utf8\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: latin-1\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'exec') Data \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'exec')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = ' \\t\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# comment\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '1\\x00+2'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: absent\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: utf8\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: latin-1\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') str \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b' \\t\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# comment\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'1\\x00+2'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: absent\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: utf8\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: latin-1\\n#\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') bytes \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text(' \\t\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# comment\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('1\\x00+2')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: absent\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: utf8\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: latin-1\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Text \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b' \\t\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# comment\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'1\\x00+2')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: absent\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: utf8\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: latin-1\\n#\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "compile(source, 'nul.py', 'eval') Data \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    compile(source, 'nul.py', 'eval')\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = ' \\t\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# comment\\n\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '1\\x00+2'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: absent\\n\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: utf8\\n#\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: latin-1\\n#\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) str \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b' \\t\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# comment\\n\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'1\\x00+2'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: absent\\n\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: utf8\\n#\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: latin-1\\n#\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) bytes \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text(' \\t\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# comment\\n\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('1\\x00+2')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: absent\\n\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: utf8\\n#\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: latin-1\\n#\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Text \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b' \\t\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# comment\\n\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'1\\x00+2')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: absent\\n\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: utf8\\n#\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: latin-1\\n#\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "eval(source) Data \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    eval(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = ' \\t\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# comment\\n\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '1\\x00+2'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: absent\\n\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: utf8\\n#\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '# coding: latin-1\\n#\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) str \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = '\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b' \\t\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# comment\\n\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'1\\x00+2'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: absent\\n\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: utf8\\n#\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'# coding: latin-1\\n#\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) bytes \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00'\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text(' \\t\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# comment\\n\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('1\\x00+2')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: absent\\n\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: utf8\\n#\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('# coding: latin-1\\n#\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Text \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Text('\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data \\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data  \\t\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b' \\t\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data # comment\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# comment\\n\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data 1\\x00+2",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'1\\x00+2')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data # coding: absent\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: absent\\n\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data # coding: utf8\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: utf8\\n#\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data # coding: latin-1\\n#\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'# coding: latin-1\\n#\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "exec(source) Data \\xef\\xbb\\xbf# coding: ascii\\n\\x00",
+      "source": "\nimport _codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\ndef search(name):\n    raise AssertionError('codec lookup before NUL validation')\n_codecs.register(search)\nsource = Data(b'\\xef\\xbb\\xbf# coding: ascii\\n\\x00')\ntry:\n    exec(source)\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.args == ('source code string cannot contain null bytes',), error.args\n    assert error.msg == error.args[0]\n    assert (error.filename, error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (None,) * 6\n    assert error.__cause__ is None and error.__context__ is None\n    assert not hasattr(error, '__notes__')\n    print(type(error).__name__, error.args, str(error))\nelse:\n    raise AssertionError('NUL source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError ('source code string cannot contain null bytes',) source code string cannot contain null bytes\n",
+      "reads": 0,
+      "writes": 6,
+      "matches": true
+    },
+    {
+      "name": "str UTF-8 validation precedes NUL \\x00\\ud800",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nsource = '\\x00\\ud800'\nfor operation in (lambda: compile(source, 'nul.py', 'exec'), lambda: eval(source), lambda: exec(source)):\n    try:\n        operation()\n    except UnicodeEncodeError as error:\n        assert error.object is source\n        print(error.args, error.start, error.end, error.reason)\n    else:\n        raise AssertionError('surrogate source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed') 1 2 surrogates not allowed\n('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed') 1 2 surrogates not allowed\n('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed') 1 2 surrogates not allowed\n",
+      "reads": 0,
+      "writes": 24,
+      "matches": true
+    },
+    {
+      "name": "str UTF-8 validation precedes NUL \\udfff\\x00",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nsource = '\\udfff\\x00'\nfor operation in (lambda: compile(source, 'nul.py', 'exec'), lambda: eval(source), lambda: exec(source)):\n    try:\n        operation()\n    except UnicodeEncodeError as error:\n        assert error.object is source\n        print(error.args, error.start, error.end, error.reason)\n    else:\n        raise AssertionError('surrogate source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "('utf-8', '\\udfff\\x00', 0, 1, 'surrogates not allowed') 0 1 surrogates not allowed\n('utf-8', '\\udfff\\x00', 0, 1, 'surrogates not allowed') 0 1 surrogates not allowed\n('utf-8', '\\udfff\\x00', 0, 1, 'surrogates not allowed') 0 1 surrogates not allowed\n",
+      "reads": 0,
+      "writes": 24,
+      "matches": true
+    },
+    {
+      "name": "str UTF-8 validation precedes NUL  \\t\\x00\\ud800\\udfff",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nsource = ' \\t\\x00\\ud800\\udfff'\nfor operation in (lambda: compile(source, 'nul.py', 'exec'), lambda: eval(source), lambda: exec(source)):\n    try:\n        operation()\n    except UnicodeEncodeError as error:\n        assert error.object is source\n        print(error.args, error.start, error.end, error.reason)\n    else:\n        raise AssertionError('surrogate source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "('utf-8', ' \\t\\x00\\ud800\\udfff', 3, 5, 'surrogates not allowed') 3 5 surrogates not allowed\n('utf-8', ' \\t\\x00\\ud800\\udfff', 3, 5, 'surrogates not allowed') 3 5 surrogates not allowed\n('utf-8', ' \\t\\x00\\ud800\\udfff', 3, 5, 'surrogates not allowed') 3 5 surrogates not allowed\n",
+      "reads": 0,
+      "writes": 24,
+      "matches": true
+    },
+    {
+      "name": "Text UTF-8 validation precedes NUL \\x00\\ud800",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nsource = Text('\\x00\\ud800')\nfor operation in (lambda: compile(source, 'nul.py', 'exec'), lambda: eval(source), lambda: exec(source)):\n    try:\n        operation()\n    except UnicodeEncodeError as error:\n        assert error.object is source\n        print(error.args, error.start, error.end, error.reason)\n    else:\n        raise AssertionError('surrogate source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed') 1 2 surrogates not allowed\n('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed') 1 2 surrogates not allowed\n('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed') 1 2 surrogates not allowed\n",
+      "reads": 0,
+      "writes": 24,
+      "matches": true
+    },
+    {
+      "name": "Text UTF-8 validation precedes NUL \\udfff\\x00",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nsource = Text('\\udfff\\x00')\nfor operation in (lambda: compile(source, 'nul.py', 'exec'), lambda: eval(source), lambda: exec(source)):\n    try:\n        operation()\n    except UnicodeEncodeError as error:\n        assert error.object is source\n        print(error.args, error.start, error.end, error.reason)\n    else:\n        raise AssertionError('surrogate source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "('utf-8', '\\udfff\\x00', 0, 1, 'surrogates not allowed') 0 1 surrogates not allowed\n('utf-8', '\\udfff\\x00', 0, 1, 'surrogates not allowed') 0 1 surrogates not allowed\n('utf-8', '\\udfff\\x00', 0, 1, 'surrogates not allowed') 0 1 surrogates not allowed\n",
+      "reads": 0,
+      "writes": 24,
+      "matches": true
+    },
+    {
+      "name": "Text UTF-8 validation precedes NUL  \\t\\x00\\ud800\\udfff",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\nsource = Text(' \\t\\x00\\ud800\\udfff')\nfor operation in (lambda: compile(source, 'nul.py', 'exec'), lambda: eval(source), lambda: exec(source)):\n    try:\n        operation()\n    except UnicodeEncodeError as error:\n        assert error.object is source\n        print(error.args, error.start, error.end, error.reason)\n    else:\n        raise AssertionError('surrogate source was accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "('utf-8', ' \\t\\x00\\ud800\\udfff', 3, 5, 'surrogates not allowed') 3 5 surrogates not allowed\n('utf-8', ' \\t\\x00\\ud800\\udfff', 3, 5, 'surrogates not allowed') 3 5 surrogates not allowed\n('utf-8', ' \\t\\x00\\ud800\\udfff', 3, 5, 'surrogates not allowed') 3 5 surrogates not allowed\n",
+      "reads": 0,
+      "writes": 24,
+      "matches": true
+    },
+    {
+      "name": "Text valid source ignores conversion and buffer overrides",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __buffer__(self, flags):\n        raise AssertionError('str buffer override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\n    def __buffer__(self, flags):\n        raise AssertionError('bytes buffer override')\nexpression = Text('6 * 7')\nsuite = Text('answer = 6 * 7')\nassert eval(expression) == 42\ncode = compile(expression, 'subtype.py', 'eval')\nassert code.co_filename == 'subtype.py'\nassert eval(code) == 42\nnamespace = {}\nexec(suite, namespace)\nassert namespace['answer'] == 42\nnamespace = {}\nexec(compile(suite, 'subtype.py', 'exec'), namespace)\nassert namespace['answer'] == 42\nprint('subtype source accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "subtype source accepted\n",
+      "reads": 0,
+      "writes": 2,
+      "matches": true
+    },
+    {
+      "name": "Data valid source ignores conversion and buffer overrides",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __buffer__(self, flags):\n        raise AssertionError('str buffer override')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('bytes override')\n    def __buffer__(self, flags):\n        raise AssertionError('bytes buffer override')\nexpression = Data(b'6 * 7')\nsuite = Data(b'answer = 6 * 7')\nassert eval(expression) == 42\ncode = compile(expression, 'subtype.py', 'eval')\nassert code.co_filename == 'subtype.py'\nassert eval(code) == 42\nnamespace = {}\nexec(suite, namespace)\nassert namespace['answer'] == 42\nnamespace = {}\nexec(compile(suite, 'subtype.py', 'exec'), namespace)\nassert namespace['answer'] == 42\nprint('subtype source accepted')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "subtype source accepted\n",
+      "reads": 0,
+      "writes": 2,
+      "matches": true
+    },
+    {
+      "name": "filename services and argument failures precede NUL source validation",
+      "source": "\nfailure = ValueError('filename failed')\nevents = []\nclass Path:\n    def __fspath__(self):\n        events.append('path')\n        assert input() == 'ready'\n        if fail:\n            raise failure\n        return 'service.py'\nfor fail in (True, False):\n    try:\n        compile(b'# coding: absent\\n\\x00', Path(), 'exec')\n    except ValueError as error:\n        assert fail and error is failure\n    except SyntaxError as error:\n        assert not fail\n        assert error.args == ('source code string cannot contain null bytes',)\n        assert error.filename is None\n    else:\n        raise AssertionError('invalid source accepted')\nassert events == ['path', 'path']\nfor flags, expected in ((-1, 'compile(): unrecognised flags'), (0, 'compile(): invalid optimize value')):\n    try:\n        compile('\\x00', 'precedence.py', 'exec', flags, optimize=3)\n    except ValueError as error:\n        assert error.args == (expected,)\n    else:\n        raise AssertionError('invalid arguments accepted')\nprint('source validation ordered')\n",
+      "cancelAt": 0,
+      "result": {
+        "status": "ok"
+      },
+      "output": "source validation ordered\n",
+      "reads": 2,
+      "writes": 2,
+      "matches": true
+    },
+    {
+      "name": "filename services and argument failures precede NUL source validation",
+      "source": "\nfailure = ValueError('filename failed')\nevents = []\nclass Path:\n    def __fspath__(self):\n        events.append('path')\n        assert input() == 'ready'\n        if fail:\n            raise failure\n        return 'service.py'\nfor fail in (True, False):\n    try:\n        compile(b'# coding: absent\\n\\x00', Path(), 'exec')\n    except ValueError as error:\n        assert fail and error is failure\n    except SyntaxError as error:\n        assert not fail\n        assert error.args == ('source code string cannot contain null bytes',)\n        assert error.filename is None\n    else:\n        raise AssertionError('invalid source accepted')\nassert events == ['path', 'path']\nfor flags, expected in ((-1, 'compile(): unrecognised flags'), (0, 'compile(): invalid optimize value')):\n    try:\n        compile('\\x00', 'precedence.py', 'exec', flags, optimize=3)\n    except ValueError as error:\n        assert error.args == (expected,)\n    else:\n        raise AssertionError('invalid arguments accepted')\nprint('source validation ordered')\n",
+      "cancelAt": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "matches": true
+    },
+    {
+      "name": "filename services and argument failures precede NUL source validation",
+      "source": "\nfailure = ValueError('filename failed')\nevents = []\nclass Path:\n    def __fspath__(self):\n        events.append('path')\n        assert input() == 'ready'\n        if fail:\n            raise failure\n        return 'service.py'\nfor fail in (True, False):\n    try:\n        compile(b'# coding: absent\\n\\x00', Path(), 'exec')\n    except ValueError as error:\n        assert fail and error is failure\n    except SyntaxError as error:\n        assert not fail\n        assert error.args == ('source code string cannot contain null bytes',)\n        assert error.filename is None\n    else:\n        raise AssertionError('invalid source accepted')\nassert events == ['path', 'path']\nfor flags, expected in ((-1, 'compile(): unrecognised flags'), (0, 'compile(): invalid optimize value')):\n    try:\n        compile('\\x00', 'precedence.py', 'exec', flags, optimize=3)\n    except ValueError as error:\n        assert error.args == (expected,)\n    else:\n        raise AssertionError('invalid arguments accepted')\nprint('source validation ordered')\n",
+      "cancelAt": 2,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retry": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "reads": 2,
+      "writes": 0,
+      "matches": true
+    }
+  ]
+}

@@ -49,6 +49,12 @@
       "types": "./dist/contracts/*.d.ts",
       "import": "./dist/contracts/*.js"
     },
+    "./commands/op": {
+      "types": "./dist/commands/op/index.d.ts",
+      "import": "./dist/commands/op/index.js",
+      "workerd": "./dist/commands/op/index.browser.js",
+      "browser": "./dist/commands/op/index.browser.js"
+    },
     "./commands/network": {
       "types": {
         "workerd": "./dist/commands/network/public.d.ts",
@@ -266,6 +272,7 @@
     "pako": "3.0.1"
   },
   "devDependencies": {
+    "@poe-platform/op": "*",
     "@types/node": "^22.20.1",
     "memfs": "4.56.10",
     "poe-code": "file:../..",

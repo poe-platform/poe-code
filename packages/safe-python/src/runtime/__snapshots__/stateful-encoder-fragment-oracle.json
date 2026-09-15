@@ -1,0 +1,81 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "seed": 3147,
+  "alphabet": [
+    0,
+    10,
+    14,
+    15,
+    27,
+    65,
+    92,
+    126,
+    127,
+    128,
+    165,
+    233,
+    769,
+    12363,
+    12442,
+    19968,
+    20108,
+    40869,
+    44032,
+    65377,
+    65398,
+    55296,
+    56448,
+    65535,
+    128013,
+    131083,
+    1114111
+  ],
+  "cases": [
+    {
+      "name": "iso2022_jp",
+      "count": 2000,
+      "digest": "a74e9ed822cf1271814a8e162b38428a7819e4876146fc7ccee5787754b116d6"
+    },
+    {
+      "name": "iso2022_jp_1",
+      "count": 2000,
+      "digest": "ddd2356b8fdb7103267eb558de526739c39929608522f879618b43d5fa39daa3"
+    },
+    {
+      "name": "iso2022_jp_2",
+      "count": 2000,
+      "digest": "f618d0c099a597b0a390c56566e93900f1175f00bafc37a931e836cdbabcc6d9"
+    },
+    {
+      "name": "iso2022_jp_3",
+      "count": 2000,
+      "digest": "edf5fd256e7ca0450e2c1b738677183bd5c6b8738201f29159b29186016da55e"
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "count": 2000,
+      "digest": "1a595a005ddde4d0e08c6ef39e24c2b662adb20bff0cc0e43e265f61fde4da42"
+    },
+    {
+      "name": "iso2022_jp_ext",
+      "count": 2000,
+      "digest": "47dae7070103a085d6de15a316abbef2b005f536cb9c9d3a41947835f44a9d64"
+    },
+    {
+      "name": "iso2022_kr",
+      "count": 2000,
+      "digest": "d5deaf47f87c42e90735ff44a4f57e5b40f25b2acd8bb46f3bda1b719925d913"
+    },
+    {
+      "name": "hz",
+      "count": 2000,
+      "digest": "89179f0f64773da778bd0c7232a8dfc42efcfcd33fc68cee1de812c934049dc1"
+    }
+  ],
+  "generator": "import codecs, hashlib, json, platform, sys, unicodedata\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\nnames=['iso2022_jp','iso2022_jp_1','iso2022_jp_2','iso2022_jp_3','iso2022_jp_2004','iso2022_jp_ext','iso2022_kr','hz']\nalphabet=[0,10,14,15,27,65,92,126,127,128,165,233,0x301,0x304b,0x309a,0x4e00,0x4e8c,0x9fa5,0xac00,0xff61,0xff76,0xd800,0xdc80,0xffff,0x1f40d,0x2000b,0x10ffff]\nseed=3147\ncount=2000\nrows=[]\nfor name in names:\n    state=seed\n    def next_value():\n        global state\n        state=(state*1664525+1013904223)&0xffffffff\n        return state>>8\n    digest=hashlib.sha256()\n    for index in range(count):\n        data=[alphabet[next_value()%len(alphabet)] for _ in range(1+next_value()%19)]\n        policy=['strict','ignore','replace'][next_value()%3]\n        split=next_value()%(len(data)+1)\n        encoder=codecs.getincrementalencoder(name)(policy)\n        steps=[]\n        for part,final in [(data[:split],False),(data[split:],False),([],True),([0x304b],False),([0x309a,65],True)]:\n            try: result=['ok',list(encoder.encode(''.join(map(chr,part)),final))]\n            except UnicodeEncodeError as error: result=['error',type(error).__name__,error.encoding,list(map(ord,error.object)),error.start,error.end,error.reason]\n            except Exception as error: result=['error',type(error).__name__,str(error)]\n            saved=encoder.getstate()\n            steps.append([result,str(saved)])\n            restored=codecs.getincrementalencoder(name)(policy)\n            restored.setstate(saved)\n            encoder=restored\n        encoder.reset()\n        steps.append(str(encoder.getstate()))\n        digest.update((json.dumps([data,policy,split,steps],separators=(',',':'))+'\\n').encode())\n    rows.append({'name':name,'count':count,'digest':digest.hexdigest()})\nprint(json.dumps({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':platform.platform(),'byteorder':sys.byteorder},'seed':seed,'alphabet':alphabet,'cases':rows}))\n"
+}

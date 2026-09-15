@@ -1,0 +1,82 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapters": {
+    "input": "readSync on owned input descriptor",
+    "output": "complete writeSync loops and fsyncSync on owned output descriptor",
+    "cleanup": "close descriptors and remove owned temporary directory in finally"
+  },
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100,
+    "hashSeed": [
+      "1",
+      "2"
+    ]
+  },
+  "rows": [
+    {
+      "name": "iso2022_jp",
+      "source": "import codecs\ntext = input()\nprint('input', text)\ninfo = codecs.lookup('iso2022_jp')\ndata = info.encode(text)[0]\ndecoder = info.incrementaldecoder()\nprint(repr(data))\nprint(repr(decoder.decode(data[:1])), decoder.getstate())\nprint(repr(decoder.decode(data[1:], True)), decoder.getstate())\n",
+      "input": "A日本\n",
+      "oracle": {
+        "status": 0,
+        "stderr": "",
+        "stdout": "input A日本\nb'A\\x1b$BF|K\\\\\\x1b(B'\n'A' (b'', 4342338)\n'日本' (b'', 4342338)\n"
+      },
+      "actual": {
+        "status": "exception",
+        "error": "LookupError: unknown encoding: iso2022_jp",
+        "stdout": "input A日本\n",
+        "reads": 1,
+        "writes": 4
+      }
+    },
+    {
+      "name": "iso2022_jp_2",
+      "source": "import codecs\ntext = input()\nprint('input', text)\ninfo = codecs.lookup('iso2022_jp_2')\ndata = info.encode(text)[0]\ndecoder = info.incrementaldecoder()\nprint(repr(data))\nprint(repr(decoder.decode(data[:1])), decoder.getstate())\nprint(repr(decoder.decode(data[1:], True)), decoder.getstate())\n",
+      "input": "A日本\n",
+      "oracle": {
+        "status": 0,
+        "stderr": "",
+        "stdout": "input A日本\nb'A\\x1b$BF|K\\\\\\x1b(B'\n'A' (b'', 4342338)\n'日本' (b'', 4342338)\n"
+      },
+      "actual": {
+        "status": "exception",
+        "error": "LookupError: unknown encoding: iso2022_jp_2",
+        "stdout": "input A日本\n",
+        "reads": 1,
+        "writes": 4
+      }
+    },
+    {
+      "name": "iso2022_kr",
+      "source": "import codecs\ntext = input()\nprint('input', text)\ninfo = codecs.lookup('iso2022_kr')\ndata = info.encode(text)[0]\ndecoder = info.incrementaldecoder()\nprint(repr(data))\nprint(repr(decoder.decode(data[:1])), decoder.getstate())\nprint(repr(decoder.decode(data[1:], True)), decoder.getstate())\n",
+      "input": "A日本\n",
+      "oracle": {
+        "status": 0,
+        "stderr": "",
+        "stdout": "input A日本\nb'A\\x1b$)C\\x0elm\\\\b\\x0f'\n'A' (b'', 4342338)\n'日本' (b'', 4375362)\n"
+      },
+      "actual": {
+        "status": "exception",
+        "error": "LookupError: unknown encoding: iso2022_kr",
+        "stdout": "input A日本\n",
+        "reads": 1,
+        "writes": 4
+      }
+    }
+  ],
+  "invalidState": {
+    "source": "import codecs\nd = codecs.getincrementaldecoder('iso2022_jp')()\nd.setstate((b'', 0))\nd.decode(b'A', True)\n",
+    "status": null,
+    "signal": "SIGSEGV",
+    "stdout": "",
+    "stderr": ""
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "adapter": "Real opened input descriptors; bytewise readSync with finally cleanup; abort after read returns/throws",
+  "results": [
+    {
+      "field": "start",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true
+    },
+    {
+      "field": "start",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true
+    },
+    {
+      "field": "end",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true
+    },
+    {
+      "field": "end",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true
+    },
+    {
+      "field": "reason",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true
+    },
+    {
+      "field": "reason",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true
+    }
+  ]
+}

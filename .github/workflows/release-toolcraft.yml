@@ -23,6 +23,7 @@ on:
       - "packages/tiny-mcp-client/**"
       - "scripts/toolcraft-standalone-bundle.mjs"
       - "scripts/manage-bundled-workspace-deps.mjs"
+      - "scripts/npm-command.mjs"
       - "scripts/prepare-published-workspace-version.mjs"
       - "scripts/verify-toolcraft-cli-bundle.mjs"
       - "scripts/verify-toolcraft-standalone.mjs"
@@ -90,6 +91,7 @@ jobs:
             packages/tiny-mcp-client
             scripts/toolcraft-standalone-bundle.mjs
             scripts/manage-bundled-workspace-deps.mjs
+            scripts/npm-command.mjs
             scripts/prepare-published-workspace-version.mjs
             scripts/verify-toolcraft-cli-bundle.mjs
             scripts/verify-toolcraft-standalone.mjs

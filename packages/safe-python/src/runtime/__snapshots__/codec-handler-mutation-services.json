@@ -1,0 +1,1422 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "adapter": "Node node:fs.readSync(0) and writeSync(1), real subprocess stdin/stdout pipes",
+  "sessions": [
+    {
+      "name": "ascii_encode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_encode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "latin_1_encode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "latin_1_encode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_encode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_encode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_encode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_encode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_encode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_encode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_encode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_encode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_encode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_encode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_7_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_7_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "unicode_escape_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "unicode_escape_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "raw_unicode_escape_decode: replace during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "raw_unicode_escape_decode: remove during recovery",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "latin_1_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_7_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "raw_unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "latin_1_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_8_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "ascii_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_8_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_7_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "raw_unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "ascii_encode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_encode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "latin_1_encode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "latin_1_encode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_encode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_encode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_encode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_encode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_encode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_encode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_encode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_encode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_encode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_encode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_7_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_7_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "unicode_escape_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "unicode_escape_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "raw_unicode_escape_decode: replace during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 32,
+      "status": "ok"
+    },
+    {
+      "name": "raw_unicode_escape_decode: remove during recovery",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 0,
+      "writes": 36,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "latin_1_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_8_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_7_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_16_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "utf_32_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "raw_unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "reads": 1,
+      "writes": 10,
+      "status": "ok"
+    },
+    {
+      "name": "ascii_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "latin_1_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_8_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_le_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_be_encode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "ascii_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_8_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_7_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_16_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_le_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "utf_32_be_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    },
+    {
+      "name": "raw_unicode_escape_decode: serviced failure after handler replacement",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "reads": 1,
+      "writes": 0,
+      "status": "terminated"
+    }
+  ],
+  "expectedBytes": 34026,
+  "actualBytes": 34026,
+  "expectedSha256": "ccfcfa22a1f74d580a2f6f889a8df14ba6ce45d12b9dd53e0a28a86e53f33f5f",
+  "actualSha256": "ccfcfa22a1f74d580a2f6f889a8df14ba6ce45d12b9dd53e0a28a86e53f33f5f"
+}

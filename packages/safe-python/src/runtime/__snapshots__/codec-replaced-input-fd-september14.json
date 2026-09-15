@@ -1,0 +1,353 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapter": "Owned real temporary filesystem descriptors; bytewise readSync, complete writeSync loops, fsyncSync, close and cleanup in finally. CPython is an external differential oracle only.",
+  "rows": [
+    {
+      "name": "utf_7",
+      "mode": "return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'AB'\n        return -1\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_7_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'AB'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf7 b'\\xff' 0 1 unexpected special character\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "ok",
+      "stdout": "utf7 b'\\xff' 0 1 unexpected special character\n('?B', 1)\n",
+      "reads": 1,
+      "writes": 12,
+      "matched": true
+    },
+    {
+      "name": "utf_7",
+      "mode": "cancel-return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'AB'\n        return -1\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_7_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'AB'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf7 b'\\xff' 0 1 unexpected special character\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf7 b'\\xff' 0 1 unexpected special character\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_7",
+      "mode": "cancel-throw",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'AB'\n        return -1\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_7_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'AB'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf7 b'\\xff' 0 1 unexpected special character\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf7 b'\\xff' 0 1 unexpected special character\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_8",
+      "mode": "return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'AB'\n        return -1\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_8_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'AB'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 b'\\xff' 0 1 invalid start byte\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "ok",
+      "stdout": "utf-8 b'\\xff' 0 1 invalid start byte\n('?B', 1)\n",
+      "reads": 1,
+      "writes": 12,
+      "matched": true
+    },
+    {
+      "name": "utf_8",
+      "mode": "cancel-return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'AB'\n        return -1\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_8_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'AB'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 b'\\xff' 0 1 invalid start byte\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-8 b'\\xff' 0 1 invalid start byte\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_8",
+      "mode": "cancel-throw",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'AB'\n        return -1\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_8_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'AB'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 b'\\xff' 0 1 invalid start byte\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-8 b'\\xff' 0 1 invalid start byte\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_16_le",
+      "mode": "return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'A\\x00B\\x00'\n        return -2\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_16_le_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'A\\x00B\\x00'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "ok",
+      "stdout": "utf-16-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+      "reads": 1,
+      "writes": 12,
+      "matched": true
+    },
+    {
+      "name": "utf_16_le",
+      "mode": "cancel-return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'A\\x00B\\x00'\n        return -2\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_16_le_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'A\\x00B\\x00'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-16-le b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_16_le",
+      "mode": "cancel-throw",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'A\\x00B\\x00'\n        return -2\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_16_le_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'A\\x00B\\x00'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-16-le b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_16_be",
+      "mode": "return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'\\x00A\\x00B'\n        return -2\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_16_be_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'\\x00A\\x00B'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "ok",
+      "stdout": "utf-16-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+      "reads": 1,
+      "writes": 12,
+      "matched": true
+    },
+    {
+      "name": "utf_16_be",
+      "mode": "cancel-return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'\\x00A\\x00B'\n        return -2\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_16_be_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'\\x00A\\x00B'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-16-be b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_16_be",
+      "mode": "cancel-throw",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'\\x00A\\x00B'\n        return -2\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_16_be_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'\\x00A\\x00B'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-16-be b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_32_le",
+      "mode": "return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'A\\x00\\x00\\x00B\\x00\\x00\\x00'\n        return -4\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_32_le_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'A\\x00\\x00\\x00B\\x00\\x00\\x00'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "ok",
+      "stdout": "utf-32-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+      "reads": 1,
+      "writes": 12,
+      "matched": true
+    },
+    {
+      "name": "utf_32_le",
+      "mode": "cancel-return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'A\\x00\\x00\\x00B\\x00\\x00\\x00'\n        return -4\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_32_le_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'A\\x00\\x00\\x00B\\x00\\x00\\x00'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-32-le b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_32_le",
+      "mode": "cancel-throw",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'A\\x00\\x00\\x00B\\x00\\x00\\x00'\n        return -4\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_32_le_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'A\\x00\\x00\\x00B\\x00\\x00\\x00'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-32-le b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_32_be",
+      "mode": "return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'\\x00\\x00\\x00A\\x00\\x00\\x00B'\n        return -4\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_32_be_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'\\x00\\x00\\x00A\\x00\\x00\\x00B'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "ok",
+      "stdout": "utf-32-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+      "reads": 1,
+      "writes": 12,
+      "matched": true
+    },
+    {
+      "name": "utf_32_be",
+      "mode": "cancel-return",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'\\x00\\x00\\x00A\\x00\\x00\\x00B'\n        return -4\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_32_be_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'\\x00\\x00\\x00A\\x00\\x00\\x00B'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-32-be b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    },
+    {
+      "name": "utf_32_be",
+      "mode": "cancel-throw",
+      "source": "import _codecs\nretained = None\nclass Position:\n    def __index__(self):\n        assert input() == 'resume'\n        retained.object = b'\\x00\\x00\\x00A\\x00\\x00\\x00B'\n        return -4\ndef handler(error):\n    global retained\n    retained = error\n    assert error.__traceback__ is None\n    print(error.encoding, error.object, error.start, error.end, error.reason)\n    return ('?', Position())\n_codecs.register_error('fd-replace', handler)\nresult = _codecs.utf_32_be_decode(b'\\xff', 'fd-replace', True)\nassert result == ('?B', 1)\nassert retained.object == b'\\x00\\x00\\x00A\\x00\\x00\\x00B'\nassert retained.args[1] == b'\\xff'\nprint(result)\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be b'\\xff' 0 1 truncated data\n('?B', 1)\n",
+        "stderr": ""
+      },
+      "status": "terminated",
+      "reason": "cancelled",
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "utf-32-be b'\\xff' 0 1 truncated data\n",
+      "reads": 1,
+      "writes": 10,
+      "matched": true
+    }
+  ]
+}

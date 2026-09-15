@@ -1,0 +1,1107 @@
+{
+  "executable": "/opt/homebrew/bin/python3.14",
+  "args": [
+    "-I",
+    "-"
+  ],
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "exec/text: \"x =\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\"",
+      "source": "source = bytes([120,32,61])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x =\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, 'x =\\n', 2, 5))\ninvalid syntax missing.py 2 4 'x =\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\n\"",
+      "source": "source = bytes([120,32,61,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x =\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, 'x =\\n', 2, 5))\ninvalid syntax missing.py 2 4 'x =\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\r\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\r\"",
+      "source": "source = bytes([120,32,61,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x =\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, 'x =\\n', 2, 5))\ninvalid syntax missing.py 2 4 'x =\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x =\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x =\\r\\n\"",
+      "source": "source = bytes([120,32,61,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'x =\\n', 1, 5))\ninvalid syntax missing.py 1 4 'x =\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x =\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, 'x =\\n', 2, 5))\ninvalid syntax missing.py 2 4 'x =\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \"",
+      "source": "source = bytes([120,32,61,32])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = \\n', 2, 6))\ninvalid syntax missing.py 2 5 'x = \\n' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\n\"",
+      "source": "source = bytes([120,32,61,32,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = \\n', 2, 6))\ninvalid syntax missing.py 2 5 'x = \\n' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\r\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\r\"",
+      "source": "source = bytes([120,32,61,32,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = \\n', 2, 6))\ninvalid syntax missing.py 2 5 'x = \\n' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = \\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = \\r\\n\"",
+      "source": "source = bytes([120,32,61,32,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = \\n', 1, 6))\ninvalid syntax missing.py 1 5 'x = \\n' 1 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = \\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = \\n', 2, 6))\ninvalid syntax missing.py 2 5 'x = \\n' 2 6\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = # café\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = # café\"",
+      "source": "source = bytes([120,32,61,32,35,32,99,97,102,195,169])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = # café\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = # café\\n', 2, 12))\ninvalid syntax missing.py 2 5 'x = # café\\n' 2 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = # café\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = # café\\n\"",
+      "source": "source = bytes([120,32,61,32,35,32,99,97,102,195,169,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = # café\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = # café\\n', 2, 12))\ninvalid syntax missing.py 2 5 'x = # café\\n' 2 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = # café\\r\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = # café\\r\"",
+      "source": "source = bytes([120,32,61,32,35,32,99,97,102,195,169,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = # café\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = # café\\n', 2, 12))\ninvalid syntax missing.py 2 5 'x = # café\\n' 2 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = # café\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = # café\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,35,32,99,97,102,195,169,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, 'x = # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 'x = # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = # café\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, 'x = # café\\n', 2, 12))\ninvalid syntax missing.py 2 5 'x = # café\\n' 2 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"if True:\\n    x =\"",
+      "source": "source = ''.join(chr(point) for point in [105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"if True:\\n    x =\"",
+      "source": "source = bytes([105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"if True:\\n    x =\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 3, 8, '    x =\\n', 3, 9))\ninvalid syntax missing.py 3 8 '    x =\\n' 3 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"if True:\\n    x =\\n\"",
+      "source": "source = ''.join(chr(point) for point in [105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"if True:\\n    x =\\n\"",
+      "source": "source = bytes([105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"if True:\\n    x =\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 3, 8, '    x =\\n', 3, 9))\ninvalid syntax missing.py 3 8 '    x =\\n' 3 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"if True:\\n    x =\\r\"",
+      "source": "source = ''.join(chr(point) for point in [105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"if True:\\n    x =\\r\"",
+      "source": "source = bytes([105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"if True:\\n    x =\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 3, 8, '    x =\\n', 3, 9))\ninvalid syntax missing.py 3 8 '    x =\\n' 3 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"if True:\\n    x =\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"if True:\\n    x =\\r\\n\"",
+      "source": "source = bytes([105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, '    x =\\n', 2, 9))\ninvalid syntax missing.py 2 8 '    x =\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"if True:\\n    x =\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,105,102,32,84,114,117,101,58,10,32,32,32,32,120,32,61,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 3, 8, '    x =\\n', 3, 9))\ninvalid syntax missing.py 3 8 '    x =\\n' 3 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"é = 1 +\"",
+      "source": "source = ''.join(chr(point) for point in [233,32,61,32,49,32,43])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"é = 1 +\"",
+      "source": "source = bytes([195,169,32,61,32,49,32,43])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"é = 1 +\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,233,32,61,32,49,32,43])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, 'é = 1 +\\n', 2, 9))\ninvalid syntax missing.py 2 8 'é = 1 +\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"é = 1 +\\n\"",
+      "source": "source = ''.join(chr(point) for point in [233,32,61,32,49,32,43,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"é = 1 +\\n\"",
+      "source": "source = bytes([195,169,32,61,32,49,32,43,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"é = 1 +\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,233,32,61,32,49,32,43,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, 'é = 1 +\\n', 2, 9))\ninvalid syntax missing.py 2 8 'é = 1 +\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"é = 1 +\\r\"",
+      "source": "source = ''.join(chr(point) for point in [233,32,61,32,49,32,43,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"é = 1 +\\r\"",
+      "source": "source = bytes([195,169,32,61,32,49,32,43,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"é = 1 +\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,233,32,61,32,49,32,43,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, 'é = 1 +\\n', 2, 9))\ninvalid syntax missing.py 2 8 'é = 1 +\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"é = 1 +\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [233,32,61,32,49,32,43,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"é = 1 +\\r\\n\"",
+      "source": "source = bytes([195,169,32,61,32,49,32,43,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 8, 'é = 1 +\\n', 1, 9))\ninvalid syntax missing.py 1 8 'é = 1 +\\n' 1 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"é = 1 +\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,233,32,61,32,49,32,43,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 8, 'é = 1 +\\n', 2, 9))\ninvalid syntax missing.py 2 8 'é = 1 +\\n' 2 9\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = 1 + # note\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,43,32,35,32,110,111,116,101])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = 1 + # note\"",
+      "source": "source = bytes([120,32,61,32,49,32,43,32,35,32,110,111,116,101])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = 1 + # note\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,49,32,43,32,35,32,110,111,116,101])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 9, 'x = 1 + # note\\n', 2, 16))\ninvalid syntax missing.py 2 9 'x = 1 + # note\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = 1 + # note\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,43,32,35,32,110,111,116,101,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = 1 + # note\\n\"",
+      "source": "source = bytes([120,32,61,32,49,32,43,32,35,32,110,111,116,101,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = 1 + # note\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,49,32,43,32,35,32,110,111,116,101,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 9, 'x = 1 + # note\\n', 2, 16))\ninvalid syntax missing.py 2 9 'x = 1 + # note\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = 1 + # note\\r\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,43,32,35,32,110,111,116,101,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = 1 + # note\\r\"",
+      "source": "source = bytes([120,32,61,32,49,32,43,32,35,32,110,111,116,101,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = 1 + # note\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,49,32,43,32,35,32,110,111,116,101,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 9, 'x = 1 + # note\\n', 2, 16))\ninvalid syntax missing.py 2 9 'x = 1 + # note\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"x = 1 + # note\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [120,32,61,32,49,32,43,32,35,32,110,111,116,101,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"x = 1 + # note\\r\\n\"",
+      "source": "source = bytes([120,32,61,32,49,32,43,32,35,32,110,111,116,101,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 9, 'x = 1 + # note\\n', 1, 16))\ninvalid syntax missing.py 1 9 'x = 1 + # note\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"x = 1 + # note\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,120,32,61,32,49,32,43,32,35,32,110,111,116,101,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 9, 'x = 1 + # note\\n', 2, 16))\ninvalid syntax missing.py 2 9 'x = 1 + # note\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 15, '1 if True else\\n', 2, 16))\nexpected expression after 'else', but statement is given missing.py 2 15 '1 if True else\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 15, '1 if True else\\n', 2, 16))\nexpected expression after 'else', but statement is given missing.py 2 15 '1 if True else\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else\\r\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else\\r\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 15, '1 if True else\\n', 2, 16))\nexpected expression after 'else', but statement is given missing.py 2 15 '1 if True else\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else\\r\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 15, '1 if True else\\n', 2, 16))\nexpected expression after 'else', but statement is given missing.py 2 15 '1 if True else\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else # café\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else # café\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else # café\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 16, '1 if True else # café\\n', 2, 23))\nexpected expression after 'else', but statement is given missing.py 2 16 '1 if True else # café\\n' 2 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else # café\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else # café\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else # café\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 16, '1 if True else # café\\n', 2, 23))\nexpected expression after 'else', but statement is given missing.py 2 16 '1 if True else # café\\n' 2 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else # café\\r\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else # café\\r\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else # café\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 16, '1 if True else # café\\n', 2, 23))\nexpected expression after 'else', but statement is given missing.py 2 16 '1 if True else # café\\n' 2 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/text: \"1 if True else # café\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/utf8: \"1 if True else # café\\r\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "exec/latin1: \"1 if True else # café\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 16, '1 if True else # café\\n', 2, 23))\nexpected expression after 'else', but statement is given missing.py 2 16 '1 if True else # café\\n' 2 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 +\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 0, '1 +', 1, 0))\ninvalid syntax missing.py 1 0 '1 +' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 +\"",
+      "source": "source = bytes([49,32,43])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 0, '1 +', 1, 0))\ninvalid syntax missing.py 1 0 '1 +' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 +\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 0, '1 +', 2, 0))\ninvalid syntax missing.py 2 0 '1 +' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 +\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, '1 +\\n', 1, 5))\ninvalid syntax missing.py 1 4 '1 +\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 +\\n\"",
+      "source": "source = bytes([49,32,43,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, '1 +\\n', 1, 5))\ninvalid syntax missing.py 1 4 '1 +\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 +\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, '1 +\\n', 2, 5))\ninvalid syntax missing.py 2 4 '1 +\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 +\\r\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, '1 +\\n', 1, 5))\ninvalid syntax missing.py 1 4 '1 +\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 +\\r\"",
+      "source": "source = bytes([49,32,43,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, '1 +\\n', 1, 5))\ninvalid syntax missing.py 1 4 '1 +\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 +\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, '1 +\\n', 2, 5))\ninvalid syntax missing.py 2 4 '1 +\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 +\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, '1 +\\n', 1, 5))\ninvalid syntax missing.py 1 4 '1 +\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 +\\r\\n\"",
+      "source": "source = bytes([49,32,43,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, '1 +\\n', 1, 5))\ninvalid syntax missing.py 1 4 '1 +\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 +\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, '1 +\\n', 2, 5))\ninvalid syntax missing.py 2 4 '1 +\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"not\"",
+      "source": "source = ''.join(chr(point) for point in [110,111,116])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 0, 'not', 1, 0))\ninvalid syntax missing.py 1 0 'not' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"not\"",
+      "source": "source = bytes([110,111,116])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 0, 'not', 1, 0))\ninvalid syntax missing.py 1 0 'not' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"not\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,110,111,116])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 0, 'not', 2, 0))\ninvalid syntax missing.py 2 0 'not' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"not\\n\"",
+      "source": "source = ''.join(chr(point) for point in [110,111,116,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'not\\n', 1, 5))\ninvalid syntax missing.py 1 4 'not\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"not\\n\"",
+      "source": "source = bytes([110,111,116,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'not\\n', 1, 5))\ninvalid syntax missing.py 1 4 'not\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"not\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,110,111,116,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, 'not\\n', 2, 5))\ninvalid syntax missing.py 2 4 'not\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"not\\r\"",
+      "source": "source = ''.join(chr(point) for point in [110,111,116,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'not\\n', 1, 5))\ninvalid syntax missing.py 1 4 'not\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"not\\r\"",
+      "source": "source = bytes([110,111,116,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'not\\n', 1, 5))\ninvalid syntax missing.py 1 4 'not\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"not\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,110,111,116,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, 'not\\n', 2, 5))\ninvalid syntax missing.py 2 4 'not\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"not\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [110,111,116,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'not\\n', 1, 5))\ninvalid syntax missing.py 1 4 'not\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"not\\r\\n\"",
+      "source": "source = bytes([110,111,116,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 4, 'not\\n', 1, 5))\ninvalid syntax missing.py 1 4 'not\\n' 1 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"not\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,110,111,116,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 4, 'not\\n', 2, 5))\ninvalid syntax missing.py 2 4 'not\\n' 2 5\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 + # café\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 0, '1 + # café', 1, 0))\ninvalid syntax missing.py 1 0 '1 + # café' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 + # café\"",
+      "source": "source = bytes([49,32,43,32,35,32,99,97,102,195,169])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 0, '1 + # café', 1, 0))\ninvalid syntax missing.py 1 0 '1 + # café' 1 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 + # café\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 0, '1 + # café', 2, 0))\ninvalid syntax missing.py 2 0 '1 + # café' 2 0\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 + # café\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, '1 + # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 '1 + # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 + # café\\n\"",
+      "source": "source = bytes([49,32,43,32,35,32,99,97,102,195,169,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, '1 + # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 '1 + # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 + # café\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, '1 + # café\\n', 2, 12))\ninvalid syntax missing.py 2 5 '1 + # café\\n' 2 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 + # café\\r\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, '1 + # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 '1 + # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 + # café\\r\"",
+      "source": "source = bytes([49,32,43,32,35,32,99,97,102,195,169,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, '1 + # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 '1 + # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 + # café\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, '1 + # café\\n', 2, 12))\ninvalid syntax missing.py 2 5 '1 + # café\\n' 2 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 + # café\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,43,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, '1 + # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 '1 + # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 + # café\\r\\n\"",
+      "source": "source = bytes([49,32,43,32,35,32,99,97,102,195,169,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 1, 5, '1 + # café\\n', 1, 12))\ninvalid syntax missing.py 1 5 '1 + # café\\n' 1 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 + # café\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,43,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError ('invalid syntax', ('missing.py', 2, 5, '1 + # café\\n', 2, 12))\ninvalid syntax missing.py 2 5 '1 + # café\\n' 2 12\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 14, '1 if True else', 1, -1))\nexpected expression after 'else', but statement is given missing.py 1 14 '1 if True else' 1 -1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 14, '1 if True else', 1, -1))\nexpected expression after 'else', but statement is given missing.py 1 14 '1 if True else' 1 -1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 14, '1 if True else', 2, -1))\nexpected expression after 'else', but statement is given missing.py 2 14 '1 if True else' 2 -1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 15, '1 if True else\\n', 2, 16))\nexpected expression after 'else', but statement is given missing.py 2 15 '1 if True else\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else\\r\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else\\r\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 15, '1 if True else\\n', 2, 16))\nexpected expression after 'else', but statement is given missing.py 2 15 '1 if True else\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else\\r\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 15, '1 if True else\\n', 1, 16))\nexpected expression after 'else', but statement is given missing.py 1 15 '1 if True else\\n' 1 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 15, '1 if True else\\n', 2, 16))\nexpected expression after 'else', but statement is given missing.py 2 15 '1 if True else\\n' 2 16\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else # café\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 21, '1 if True else # café', 1, -1))\nexpected expression after 'else', but statement is given missing.py 1 21 '1 if True else # café' 1 -1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else # café\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 21, '1 if True else # café', 1, -1))\nexpected expression after 'else', but statement is given missing.py 1 21 '1 if True else # café' 1 -1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else # café\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 21, '1 if True else # café', 2, -1))\nexpected expression after 'else', but statement is given missing.py 2 21 '1 if True else # café' 2 -1\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else # café\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else # café\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else # café\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 16, '1 if True else # café\\n', 2, 23))\nexpected expression after 'else', but statement is given missing.py 2 16 '1 if True else # café\\n' 2 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else # café\\r\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else # café\\r\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else # café\\r\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 16, '1 if True else # café\\n', 2, 23))\nexpected expression after 'else', but statement is given missing.py 2 16 '1 if True else # café\\n' 2 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/text: \"1 if True else # café\\r\\n\"",
+      "source": "source = ''.join(chr(point) for point in [49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/utf8: \"1 if True else # café\\r\\n\"",
+      "source": "source = bytes([49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,195,169,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 1, 16, '1 if True else # café\\n', 1, 23))\nexpected expression after 'else', but statement is given missing.py 1 16 '1 if True else # café\\n' 1 23\n",
+      "stderr": ""
+    },
+    {
+      "name": "eval/latin1: \"1 if True else # café\\r\\n\"",
+      "source": "source = bytes([35,32,99,111,100,105,110,103,58,32,108,97,116,105,110,45,49,10,49,32,105,102,32,84,114,117,101,32,101,108,115,101,32,35,32,99,97,102,233,13,10])\ntry:\n    compile(source, 'missing.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, repr(error.args))\n    print(error.msg, error.filename, error.lineno, error.offset, repr(error.text), error.end_lineno, error.end_offset)\nelse:\n    raise AssertionError('missing expression accepted')\n",
+      "status": 0,
+      "stdout": "SyntaxError (\"expected expression after 'else', but statement is given\", ('missing.py', 2, 16, '1 if True else # café\\n', 2, 23))\nexpected expression after 'else', but statement is given missing.py 2 16 '1 if True else # café\\n' 2 23\n",
+      "stderr": ""
+    }
+  ]
+}

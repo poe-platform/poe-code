@@ -1,12 +1,12 @@
 import { Budget } from "./budget.js";
 import type { SandboxObject } from "./values.js";
+import { cloneSharedBufferWrapper } from "#safe-js-platform";
 
 export const sharedArrayBufferPrototypes = new WeakMap<Budget,SandboxObject>();
 
 const readByteLength = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"byteLength")!.get!;
 const readMaxByteLength = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"maxByteLength")?.get;
 const readGrowable = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype,"growable")?.get;
-const cloneStorage = structuredClone;
 // A block record deliberately does not retain any wrapper or its guest properties.
 // Different wrappers can refer to the same native shared memory.
 const sharedBlocks = new WeakMap<SharedArrayBuffer, object>();
@@ -43,7 +43,7 @@ export function sharedArrayBufferStorage(value: SharedArrayBuffer): {
 export function cloneSharedArrayBufferStorage(value: SharedArrayBuffer): SharedArrayBuffer {
   const block = sharedBlocks.get(value);
   if (block === undefined) throw new TypeError("Shared storage is not owned by the sandbox.");
-  const copy = cloneStorage(value);
+  const copy = cloneSharedBufferWrapper(value);
   sharedBlocks.set(copy,block);
   return copy;
 }

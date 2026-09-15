@@ -1,0 +1,373 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts (10 tests | 9 failed) 220ms
+   × creates a guest SyntaxError for restricted global declaration let undefined; 36ms
+   × creates a guest SyntaxError for restricted global declaration const NaN=0; 21ms
+   × creates a guest SyntaxError for restricted global declaration class Infinity {} 19ms
+   × creates a guest SyntaxError for restricted global declaration "use strict";let undefined; 20ms
+   × preserves guest error identity after an earlier Script: var x; 22ms
+   × preserves guest error identity after an earlier Script: function x(){} 17ms
+   × preserves guest error identity after an earlier Script: let x; 23ms
+   ✓ keeps forged error names and fatal budgets distinct from declaration errors 25ms
+   × keeps non-extensible global declaration TypeErrors in the guest realm: var added; 19ms
+   × keeps non-extensible global declaration TypeErrors in the guest realm: function added(){} 17ms
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration let undefined;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'undefined'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:11:80
+      9|   try{
+     10|     const result=await realm.evaluate(source);
+     11|     expect(classifyScriptOutcome(result,{phase:"runtime",type:"SyntaxE…
+       |                                                                                ^
+     12|     expect(result).toMatchObject({status:"throw",phase:"runtime"});
+     13|     if(result.status!=="throw")throw new Error("Expected throw");
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration const NaN=0;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'NaN'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:11:80
+      9|   try{
+     10|     const result=await realm.evaluate(source);
+     11|     expect(classifyScriptOutcome(result,{phase:"runtime",type:"SyntaxE…
+       |                                                                                ^
+     12|     expect(result).toMatchObject({status:"throw",phase:"runtime"});
+     13|     if(result.status!=="throw")throw new Error("Expected throw");
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration class Infinity {}
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'Infinity'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:11:80
+      9|   try{
+     10|     const result=await realm.evaluate(source);
+     11|     expect(classifyScriptOutcome(result,{phase:"runtime",type:"SyntaxE…
+       |                                                                                ^
+     12|     expect(result).toMatchObject({status:"throw",phase:"runtime"});
+     13|     if(result.status!=="throw")throw new Error("Expected throw");
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration "use strict";let undefined;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'undefined'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:11:80
+      9|   try{
+     10|     const result=await realm.evaluate(source);
+     11|     expect(classifyScriptOutcome(result,{phase:"runtime",type:"SyntaxE…
+       |                                                                                ^
+     12|     expect(result).toMatchObject({status:"throw",phase:"runtime"});
+     13|     if(result.status!=="throw")throw new Error("Expected throw");
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > preserves guest error identity after an earlier Script: var x;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'x'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:24:102
+     22|   try{
+     23|     expect(await realm.evaluate("let x=7;")).toMatchObject({status:"no…
+     24|     expect(classifyScriptOutcome(await realm.evaluate(source),{phase:"…
+       |                                                                                                      ^
+     25|     expect(await realm.evaluate("x")).toMatchObject({status:"normal",v…
+     26|   }finally{await realm.dispose();}
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > preserves guest error identity after an earlier Script: function x(){}
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'x'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:24:102
+     22|   try{
+     23|     expect(await realm.evaluate("let x=7;")).toMatchObject({status:"no…
+     24|     expect(classifyScriptOutcome(await realm.evaluate(source),{phase:"…
+       |                                                                                                      ^
+     25|     expect(await realm.evaluate("x")).toMatchObject({status:"normal",v…
+     26|   }finally{await realm.dispose();}
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > preserves guest error identity after an earlier Script: let x;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'x'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:24:102
+     22|   try{
+     23|     expect(await realm.evaluate("let x=7;")).toMatchObject({status:"no…
+     24|     expect(classifyScriptOutcome(await realm.evaluate(source),{phase:"…
+       |                                                                                                      ^
+     25|     expect(await realm.evaluate("x")).toMatchObject({status:"normal",v…
+     26|   }finally{await realm.dispose();}
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > keeps non-extensible global declaration TypeErrors in the guest realm: var added;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot declare global 'added'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:41:100
+     39|   try{
+     40|     expect(await realm.evaluate("Object.preventExtensions(globalThis)"…
+     41|     expect(classifyScriptOutcome(await realm.evaluate(source),{phase:"…
+       |                                                                                                    ^
+     42|   }finally{await realm.dispose();}
+     43| });
+
+FAIL packages/safe-js/test/conformance/script-declaration-errors.test.ts > keeps non-extensible global declaration TypeErrors in the guest realm: function added(){}
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot declare global 'added'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:41:100
+     39|   try{
+     40|     expect(await realm.evaluate("Object.preventExtensions(globalThis)"…
+     41|     expect(classifyScriptOutcome(await realm.evaluate(source),{phase:"…
+       |                                                                                                    ^
+     42|   }finally{await realm.dispose();}
+     43| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration let undefined;
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration "use strict";let undefined;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'undefined'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:11:80
+      9|   try{
+     10|     const result=await realm.evaluate(source);
+     11|     expect(classifyScriptOutcome(result,{phase:"runtime",type:"SyntaxE…
+       |                                                                                ^
+     12|     expect(result).toMatchObject({status:"throw",phase:"runtime"});
+     13|     if(result.status!=="throw")throw new Error("Expected throw");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration const NaN=0;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'NaN'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:11:80
+      9|   try{
+     10|     const result=await realm.evaluate(source);
+     11|     expect(classifyScriptOutcome(result,{phase:"runtime",type:"SyntaxE…
+       |                                                                                ^
+     12|     expect(result).toMatchObject({status:"throw",phase:"runtime"});
+     13|     if(result.status!=="throw")throw new Error("Expected throw");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > creates a guest SyntaxError for restricted global declaration class Infinity {}
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'Infinity'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:11:80
+      9|   try{
+     10|     const result=await realm.evaluate(source);
+     11|     expect(classifyScriptOutcome(result,{phase:"runtime",type:"SyntaxE…
+       |                                                                                ^
+     12|     expect(result).toMatchObject({status:"throw",phase:"runtime"});
+     13|     if(result.status!=="throw")throw new Error("Expected throw");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > preserves guest error identity after an earlier Script: var x;
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > preserves guest error identity after an earlier Script: function x(){}
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > preserves guest error identity after an earlier Script: let x;
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot redeclare global 'x'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:24:102
+     22|   try{
+     23|     expect(await realm.evaluate("let x=7;")).toMatchObject({status:"no…
+     24|     expect(classifyScriptOutcome(await realm.evaluate(source),{phase:"…
+       |                                                                                                      ^
+     25|     expect(await realm.evaluate("x")).toMatchObject({status:"normal",v…
+     26|   }finally{await realm.dispose();}
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > keeps non-extensible global declaration TypeErrors in the guest realm: var added;
+ FAIL  packages/safe-js/test/conformance/script-declaration-errors.test.ts > keeps non-extensible global declaration TypeErrors in the guest realm: function added(){}
+AssertionError: expected { status: 'failed', …(2) } to deeply equal { status: 'passed' }
+
+- Expected
++ Received
+
+  {
+-   "status": "passed",
++   "detail": {
++     "message": "Cannot declare global 'added'.",
++     "phase": "runtime",
++   },
++   "reason": "wrong-error-type",
++   "status": "failed",
+  }
+
+ ❯ packages/safe-js/test/conformance/script-declaration-errors.test.ts:41:100
+     39|   try{
+     40|     expect(await realm.evaluate("Object.preventExtensions(globalThis)"…
+     41|     expect(classifyScriptOutcome(await realm.evaluate(source),{phase:"…
+       |                                                                                                    ^
+     42|   }finally{await realm.dispose();}
+     43| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 1 passed (10)
+   Start at  11:30:56
+   Duration  3.05s (transform 2.10s, setup 44ms, import 2.69s, tests 220ms, environment 0ms)
+

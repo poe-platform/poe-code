@@ -1,0 +1,39 @@
+{
+  "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-bash-consumer-i96bx212",
+  "package": "@poe-platform/safe-bash",
+  "version": "0.1.592",
+  "install": {
+    "exitCode": 0,
+    "output": "\nadded 6 packages in 1s\n"
+  },
+  "module": "import assert from 'node:assert/strict';\nimport {Shell,agentCommands} from '@poe-platform/safe-bash';\nimport {createMemoryFileSystem} from '@poe-platform/safe-fs';\nconst fs=createMemoryFileSystem();\nawait fs.writeFile('/probe',new TextEncoder().encode('verified'));\nconst shell=new Shell({fs,cwd:'/'}).use(agentCommands());\ntry {const result=await shell.exec('cat /probe');assert.equal(result.exitCode,0);assert.equal(result.stdout,'verified');console.log(JSON.stringify({package:'@poe-platform/safe-bash',shell:true,sharedFs:true}));}\nfinally {await shell.dispose();}\n",
+  "smokes": [
+    {
+      "command": [
+        "node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"package\":\"@poe-platform/safe-bash\",\"shell\":true,\"sharedFs\":true}\n"
+    },
+    {
+      "command": [
+        "npm",
+        "exec",
+        "--yes",
+        "--package=bun@1.4.2",
+        "--",
+        "bun",
+        "run",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "{\"package\":\"@poe-platform/safe-bash\",\"shell\":true,\"sharedFs\":true}\n"
+    }
+  ],
+  "signatures": {
+    "exitCode": 0,
+    "output": "audited 6 packages in 0s\n\n6 packages have verified registry signatures\n\n4 packages have verified attestations\n\n"
+  },
+  "initialSmokeDisposition": "Two manual setup errors corrected: MemoryFS requires explicit writeFile; bare Shell requires explicit agentCommands registration. No assertion or implementation was changed."
+}

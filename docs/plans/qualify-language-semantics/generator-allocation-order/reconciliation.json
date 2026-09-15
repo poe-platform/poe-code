@@ -1,0 +1,360 @@
+{
+  "sourceSHA": "157e590f51abf048fa9214dcb662f63008b23a24",
+  "patch": "diff --git a/packages/safe-js/src/interp/async.ts b/packages/safe-js/src/interp/async.ts\nindex 11dc29cd7..56d5a5c31 100644\n--- a/packages/safe-js/src/interp/async.ts\n+++ b/packages/safe-js/src/interp/async.ts\n@@ -362,10 +362,11 @@ function createGeneratorClosure(\n     ...(node.id === undefined ? { name: context.inferredName } : { name: node.id.name }),\n     retainedValues: () => [...context.scope.retainedDataRoots(), context.functionEnvironment?.homeObject, context.functionEnvironment?.newTarget],\n     call: async (args, callContext) => {\n-      // Native generators select their instance prototype before initializing parameters.\n-      const candidate = prototypes === undefined ? undefined : getGuestFunctionProperty(closure, \"prototype\");\n-      const prototype = typeof candidate === \"object\" && candidate !== null ? candidate : prototypes?.instancePrototype;\n-      const releasePrototype = prototype === undefined ? undefined : retainValues(context.budget, () => [prototype]);\n+      let prototype: Extract<SandboxValue, object> | undefined;\n+      // Parameter initializers may replace the prototype; retain the current value\n+      // without selecting the generator instance's prototype before they finish.\n+      const releasePrototype = prototypes === undefined ? undefined\n+        : retainValues(context.budget, () => [prototype ?? getGuestFunctionProperty(closure, \"prototype\")]);\n       try {\n         const closureContext = {\n           ...context,\n@@ -381,6 +382,8 @@ function createGeneratorClosure(\n           closureContext,\n           evaluateNode\n         );\n+        const candidate = prototypes === undefined ? undefined : getGuestFunctionProperty(closure, \"prototype\");\n+        prototype = typeof candidate === \"object\" && candidate !== null ? candidate : prototypes?.instancePrototype;\n         const channel = createGeneratorChannel((generatorYield) => {\n           const execute = async () => {\n             const result = await evaluateNode(node.body, {\ndiff --git a/packages/safe-js/src/interp/generator-intrinsic-prototypes.test.ts b/packages/safe-js/src/interp/generator-intrinsic-prototypes.test.ts\nindex 1e1b50b8a..3991b660e 100644\n--- a/packages/safe-js/src/interp/generator-intrinsic-prototypes.test.ts\n+++ b/packages/safe-js/src/interp/generator-intrinsic-prototypes.test.ts\n@@ -32,8 +32,8 @@ it.each([\n it.each([\n   \"function* f(){} const p=Object.getPrototypeOf(f);const g=Object.getPrototypeOf(f.prototype);return [typeof p,Object.getPrototypeOf(p)===Object.getPrototypeOf(function(){}),p.prototype===g,g.constructor===p,Object.hasOwn(f.prototype,'constructor'),Object.getPrototypeOf(g)===Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]())),Object.prototype.toString.call(f)]\",\n   \"async function* f(){} const p=Object.getPrototypeOf(f);const g=Object.getPrototypeOf(f.prototype);return [typeof p,Object.getPrototypeOf(p)===Object.getPrototypeOf(function(){}),p.prototype===g,g.constructor===p,Object.hasOwn(f.prototype,'constructor'),Object.prototype.toString.call(f)]\",\n-  \"function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]\",\n-  \"async function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]\",\n+  { source: \"function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]\", expected: [false, true] },\n+  { source: \"async function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]\", expected: [false, true] },\n   \"function* f(){} const p=Object.getPrototypeOf(f);const bound=f.bind(null);return [Object.hasOwn(bound,'prototype'),Object.getPrototypeOf(bound)===p,bound.prototype===p.prototype,Object.getPrototypeOf(bound())===f.prototype]\",\n   \"function* f(){} const d=Object.getOwnPropertyDescriptor(f,'prototype');return [d.writable,d.enumerable,d.configurable,Object.getOwnPropertyNames(d.value)]\",\n   \"function* f(){} const shared=Object.getPrototypeOf(f.prototype);f.prototype=null;return Object.getPrototypeOf(f())===shared\",\n@@ -49,8 +49,11 @@ it.each([\n   \"const it=(function*(){})();delete Object.getPrototypeOf(Object.getPrototypeOf(it))[Symbol.toStringTag];return Object.prototype.toString.call(it)\",\n   \"const it=(async function*(){})();delete Object.getPrototypeOf(Object.getPrototypeOf(it))[Symbol.toStringTag];return Object.prototype.toString.call(it)\",\n   \"const it=(function*(){yield 1})();delete Object.getPrototypeOf(Object.getPrototypeOf(Object.getPrototypeOf(it)))[Symbol.iterator];try{Array.from(it);return 'array-like'}catch(e){return e.name}\"\n-])(\"preserves generator graph semantics: %s\", async source => {\n-  expect(await run(source)).toMatchObject({ ok: true, returnValue: runInNewContext(`(function(){${source}})()`) });\n+])(\"preserves generator graph semantics: %s\", async testCase => {\n+  const source = typeof testCase === \"string\" ? testCase : testCase.source;\n+  // Pinned ECMA-262 initializes parameters before selecting the instance prototype.\n+  const expected = typeof testCase === \"string\" ? runInNewContext(`(function(){${source}})()`) : testCase.expected;\n+  expect(await run(source)).toMatchObject({ ok: true, returnValue: expected });\n });\n \n it.each([\"next\", \"return\", \"throw\"])(\"brand-checks borrowed %s methods\", async method => {\n@@ -78,9 +81,10 @@ it.each([\n   \"async function* f(){yield 1;yield 2}const value=f();const next=value.next;const first=await next.call(value);await pause();return [first,next===value.next,Object.getPrototypeOf(value)===f.prototype,await next.call(value)]\",\n   \"function* f(){}const value=f();const prototype=Object.getPrototypeOf(f.prototype);prototype.next=function(){return {done:true,value:this.extra}};value.extra=7;Object.freeze(f.prototype);await pause();return [value.next(),Object.isFrozen(f.prototype),Object.getPrototypeOf(value)===f.prototype]\",\n   \"const it=(async function*(){})();const factory=it[Symbol.asyncIterator];const prototype=Object.getPrototypeOf(Object.getPrototypeOf(it));delete prototype[Symbol.toStringTag];await pause();return [factory===it[Symbol.asyncIterator],factory.call(it)===it,Object.prototype.toString.call(it)]\",\n-  \"function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra\",\n-  \"async function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra\"\n-])(\"preserves generator intrinsic graphs across a pending effect: %s\", async source => {\n+  { source: \"function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra\", expected: undefined },\n+  { source: \"async function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra\", expected: undefined }\n+])(\"preserves generator intrinsic graphs across a pending effect: %s\", async testCase => {\n+  const source = typeof testCase === \"string\" ? testCase : testCase.source;\n   let release!: () => void;\n   let signalEntered!: () => void;\n   const pending = new Promise<void>(resolve => { release = resolve; });\n@@ -93,7 +97,7 @@ it.each([\n     await Promise.race([entered, execution]);\n     serialized = await dump(execution, { mode: \"replay\" });\n   } finally { release(); }\n-  const expected = await runInNewContext(`(async function(){const pause=async()=>{};${source}})()`);\n+  const expected = typeof testCase === \"string\" ? await runInNewContext(`(async function(){const pause=async()=>{};${source}})()`) : testCase.expected;\n   expect(await execution).toMatchObject({ok:true,returnValue:expected});\n   expect(await run(source, { snapshot: restore(JSON.parse(serialized), { source }),\n     bindings: { pause: declareHostOperation(async () => undefined, \"re-issue\") } })).toMatchObject({ok:true,returnValue:expected});\n@@ -125,11 +129,11 @@ it(\"keeps generator dynamic-source constructors inside the guest realm\", async (\n     .toMatchObject({ok:true,returnValue:[\"undefined\",\"undefined\",\"GeneratorFunction\",\"AsyncGeneratorFunction\",true,true,\"undefined\",\"undefined\"]});\n });\n \n-it.each([false, true])(\"retains the selected prototype during parameter initialization (async=%s)\", async async => {\n+it.each([false, true])(\"retains the replacement prototype during parameter initialization (async=%s)\", async async => {\n   const budget = new Budget({dataSize:100000});\n   let retained = 0;\n   const inspect = declareHostOperation(() => { retained = measureSandboxData(budget.retainedValues()); }, \"re-issue\");\n-  const source = `${async ? \"async \" : \"\"}function* f(x=(f.prototype={},inspect())){}f.prototype.extra='x'.repeat(10000);const value=f();return Object.getPrototypeOf(value).extra.length`;\n+  const source = `${async ? \"async \" : \"\"}function* f(x=(f.prototype={extra:'x'.repeat(10000)},inspect())){}const value=f();return Object.getPrototypeOf(value).extra.length`;\n   expect(await run(source, {budget,bindings:{inspect}})).toMatchObject({ok:true,returnValue:10000});\n   expect(retained).toBeGreaterThan(10000);\n });\n",
+  "header": {
+    "type": "header",
+    "manifestId": "2701401238c127eeebb6cd7f79d6fe407ee2592f6dd441e9d982c2eb6eaac5df",
+    "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+    "sourceSha": "157e590f51abf048fa9214dcb662f63008b23a24",
+    "sourceHash": "3fa53d4ecbeef95b661df1747468be2d1bf2acb18f4fa6ed40997f08266a42a4",
+    "runtime": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "v8": "12.4.254.21-node.56",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "execution": {
+      "timeoutMs": 3000,
+      "budget": {},
+      "effectiveBudget": {
+        "maxSteps": "unlimited",
+        "maxCallDepth": "unlimited",
+        "stringLength": "unlimited",
+        "arrayLength": "unlimited",
+        "dataSize": "unlimited"
+      },
+      "deadline": "per-variant timeout",
+      "isolation": {
+        "kind": "persistent-child-process",
+        "startupTimeoutMs": 10000,
+        "wallTimeoutMs": 3000,
+        "timerStarts": "before-dispatch",
+        "recovery": "kill-and-replace-without-retrying-variant"
+      }
+    },
+    "selected": [
+      "language/expressions/async-generator/expression-yield-star-before-newline.js",
+      "language/expressions/async-generator/generator-created-after-decl-inst.js",
+      "language/expressions/generators/eval-body-proto-realm.js",
+      "language/expressions/generators/eval-var-scope-syntax-err.js",
+      "language/expressions/generators/generator-created-after-decl-inst.js",
+      "language/statements/async-generator/escaped-async.js",
+      "language/statements/async-generator/eval-var-scope-syntax-err.js",
+      "language/statements/async-generator/generator-created-after-decl-inst.js",
+      "language/statements/generators/dflt-params-trailing-comma.js",
+      "language/statements/generators/eval-var-scope-syntax-err.js",
+      "language/statements/generators/generator-created-after-decl-inst.js"
+    ],
+    "command": [
+      "--corpus",
+      "/tmp/safejs-baseline-test262-419d3e0",
+      "--report",
+      "docs/plans/qualify-language-semantics/generator-allocation-order/upstream-built.jsonl",
+      "--include",
+      "language/expressions/async-generator/expression-yield-star-before-newline.js",
+      "--include",
+      "language/expressions/async-generator/generator-created-after-decl-inst.js",
+      "--include",
+      "language/expressions/generators/eval-body-proto-realm.js",
+      "--include",
+      "language/expressions/generators/eval-var-scope-syntax-err.js",
+      "--include",
+      "language/expressions/generators/generator-created-after-decl-inst.js",
+      "--include",
+      "language/statements/async-generator/escaped-async.js",
+      "--include",
+      "language/statements/async-generator/eval-var-scope-syntax-err.js",
+      "--include",
+      "language/statements/async-generator/generator-created-after-decl-inst.js",
+      "--include",
+      "language/statements/generators/dflt-params-trailing-comma.js",
+      "--include",
+      "language/statements/generators/eval-var-scope-syntax-err.js",
+      "--include",
+      "language/statements/generators/generator-created-after-decl-inst.js"
+    ],
+    "startedAt": "2026-09-13T16:24:04.644Z"
+  },
+  "summary": {
+    "type": "summary",
+    "complete": true,
+    "manifestId": "2701401238c127eeebb6cd7f79d6fe407ee2592f6dd441e9d982c2eb6eaac5df",
+    "selected": [
+      "language/expressions/async-generator/expression-yield-star-before-newline.js",
+      "language/expressions/async-generator/generator-created-after-decl-inst.js",
+      "language/expressions/generators/eval-body-proto-realm.js",
+      "language/expressions/generators/eval-var-scope-syntax-err.js",
+      "language/expressions/generators/generator-created-after-decl-inst.js",
+      "language/statements/async-generator/escaped-async.js",
+      "language/statements/async-generator/eval-var-scope-syntax-err.js",
+      "language/statements/async-generator/generator-created-after-decl-inst.js",
+      "language/statements/generators/dflt-params-trailing-comma.js",
+      "language/statements/generators/eval-var-scope-syntax-err.js",
+      "language/statements/generators/generator-created-after-decl-inst.js"
+    ],
+    "revision": "419d3e0a2273ba01a3bfcbec423f2801425b8e93",
+    "runtime": {
+      "node": "v22.23.2",
+      "icu": "78.2",
+      "v8": "12.4.254.21-node.56",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "execution": {
+      "timeoutMs": 3000,
+      "budget": {},
+      "effectiveBudget": {
+        "maxSteps": "unlimited",
+        "maxCallDepth": "unlimited",
+        "stringLength": "unlimited",
+        "arrayLength": "unlimited",
+        "dataSize": "unlimited"
+      },
+      "deadline": "per-variant timeout",
+      "isolation": {
+        "kind": "persistent-child-process",
+        "startupTimeoutMs": 10000,
+        "wallTimeoutMs": 3000,
+        "timerStarts": "before-dispatch",
+        "recovery": "kill-and-replace-without-retrying-variant"
+      }
+    },
+    "selections": [
+      "language/expressions/async-generator/expression-yield-star-before-newline.js",
+      "language/expressions/async-generator/generator-created-after-decl-inst.js",
+      "language/expressions/generators/eval-body-proto-realm.js",
+      "language/expressions/generators/eval-var-scope-syntax-err.js",
+      "language/expressions/generators/generator-created-after-decl-inst.js",
+      "language/statements/async-generator/escaped-async.js",
+      "language/statements/async-generator/eval-var-scope-syntax-err.js",
+      "language/statements/async-generator/generator-created-after-decl-inst.js",
+      "language/statements/generators/dflt-params-trailing-comma.js",
+      "language/statements/generators/eval-var-scope-syntax-err.js",
+      "language/statements/generators/generator-created-after-decl-inst.js"
+    ],
+    "counts": {
+      "files": 11,
+      "fixtures": 0,
+      "metadataErrors": 0,
+      "executionErrors": 0,
+      "variants": 19,
+      "passed": 19,
+      "failed": 0,
+      "unsupported": 0
+    },
+    "harnessHashes": {
+      "assert.js": "206e274ca325eb8a652e3911c3fbd090e2480d11ed7579dc17a5d17a2360ed48",
+      "assertRelativeDateMs.js": "5113bc0c6d87018bb372da7eb589ca5912b0b7664563262169e3336ad96ad3cc",
+      "asyncHelpers.js": "9afd9a18e080f30b998fa3b9c3e2303fc85fb1ebae664a532a58d56d86d3bcc9",
+      "atomicsHelper.js": "9486ad9ca3bef4672180553a5ba66e2d44d33139905c48629c080ff590db6cca",
+      "byteConversionValues.js": "33d19f8bec615dcaf7a99298035df4f7155fe371ff33e54fef2fdb78b658c3da",
+      "compareArray.js": "3330423fe116cd96db70077d194471319ae9767ba1c8e2f73d7c133c5204509d",
+      "compareIterator.js": "ce41ebea8f4a3514d2412aea139e2961521a6c4534215a37d664fc93c8d311d3",
+      "dateConstants.js": "f7cafff2ac96601232c801568bb357eff1a515b849211b230e1b16a41bc786ce",
+      "decimalToHexString.js": "bc8786436987220b53cbc28443697f1fb61d5818fbf4f0741fd80a736d1d4ff5",
+      "deepEqual.js": "b884b27b927d91c62eb9fc7d2ff9d76050d524d8179b9993eda3d5a2d9f86525",
+      "detachArrayBuffer.js": "d487a9c3c7d51b7e9d66c5fce89929ab3d09a6341d21a833e38f9caba6bf2e0e",
+      "doneprintHandle.js": "01282de15feb05d865dfc2cdfc68f59d8e760eb7d81a14ade3bc08cbc8520add",
+      "features.yml": "53227230ea262fa4584fd798f0d798e13f09a1165d181f86a1d01526df65a0e6",
+      "fnGlobalObject.js": "c1cdfdd80333c70a2567377331788555c10fefc50c4cb0c573170baa8864ac1a",
+      "isConstructor.js": "68e1a3e4565a8d33ea7fc918627fbbf446bcf14d7a939777616b2b545a5e7d32",
+      "iteratorZipUtils.js": "225712bd535058c9e60000dbda45759be56b8e1e1d3999a531e44254ae46c94f",
+      "nans.js": "cfc08a1415d798879d544b58e11bee1e368f7ca52e1bbf3652c77737050bc90d",
+      "nativeErrors.js": "601b5841cc3df18b72c3b5ce35c4d737acb3843c733b786991461ec5a6184508",
+      "nativeFunctionMatcher.js": "277e156a46d4f200e92c0f0d89aebbf5c6e94ca3eae8638f7802365819db0954",
+      "promiseHelper.js": "76cf933b2a7069dc22fcff70d6d4f082ab777b3485e08b79ab4d6a18aef9df9c",
+      "propertyHelper.js": "08bc29114d804c4f24f906bac950ee4dc9c93c659d93258e7b44a54283ba9bb8",
+      "proxyTrapsHelper.js": "0fb687804ab799e320c5dc4a0d4316162e6a14c286873405d881a151cb15787a",
+      "regExpUtils.js": "76d46c1f38486ae94c4757646cefa64716b03fce3df7576be4c87d37b88c02f5",
+      "resizableArrayBufferUtils.js": "029aa552050861eb85fe9d848a52716dfd24747dcaf06f2a8937cb510ab31f50",
+      "sm/assertThrowsValue.js": "101f426e0b86f2b833248b509f09c55894865ea8aee41dc53748768ddab31b1a",
+      "sm/non262-Date-shell.js": "0e99cd29d9dfd26172a733cb336921bd9212667778f745702ff4c382febdfc5d",
+      "sm/non262-expressions-shell.js": "b7ebfbcdef5dcfe18994441efea440b26b45ba9a21ac167c6bf35b73371a568f",
+      "sm/non262-generators-shell.js": "a489ee0e718066080dae7766f4884e1f69ede4e6391b1372f022818e6c90bad6",
+      "sm/non262-JSON-shell.js": "6e044b591f99d9e7db383c58d2c9d68010aa613c97c06a72f5f0f839bde4204c",
+      "sm/non262-Math-shell.js": "79dea1172236685567e09da8c9e868e0f84686bf40cff728785223c5b43f5e7b",
+      "sm/non262-Reflect-shell.js": "aa9579bc7040fff7c7313becf5ad528d64b3e550497ff761dd3a3a4b6e1c3116",
+      "sm/non262-Set-shell.js": "b6cf757b362036e7768c0b29b0b6a4cc68a7d34a67dee57fed0e0fdb277e5ce6",
+      "sm/non262-strict-shell.js": "fe77ba782cbddebef6bc7f86f354f48c9b435557222ab585c6b2ee1b6c6804b6",
+      "sm/non262-Temporal-PlainMonthDay-shell.js": "00418c0b37f9eb472c49730ea149fda95db0cf8bbc2f42aee3f6d369e8b2bf8c",
+      "sm/non262-TypedArray-shell.js": "3798d277ac8f105b65ad26602b500b497af7f3361fd14a169c58a601c605bb2e",
+      "sta.js": "1930c54af79455c484799f43e9a28e2b2f15c40d0917c9941ca54e26db243f35",
+      "tcoHelper.js": "a533b07378e41044c98199e250e1c78a28610a783ad0814cb467e9ea2f5de8fa",
+      "temporalHelpers.js": "4585c97b969b4a29cec0387a4981de7d0d210375c2a8a9a8360d6c18d3a9f359",
+      "testAtomics.js": "ebc1ca5e35a70941015a764968d46746ed51a6e37de6840e90d71efd4b7121df",
+      "testIntl.js": "dee1aeb19883536773990cb39a47e49b58511a6dc8ffe5952a4a2875e2f95d74",
+      "testIntlNumberFormat.js": "d2e52c1e2f37d67b3dce488e7da63d32ce35b9a0adb594fc060e6a0c4e03bd74",
+      "testTypedArray.js": "51eb50e53e6215f31f14d64d249bea2d08ad943c77835f63ba52ec694de2189a",
+      "typeCoercion.js": "b0864a0ead1fe13939a1dfa57986af004d0b7bf13f3ffd56060f36e9841b1e51",
+      "wellKnownIntrinsicObjects.js": "bf52f7cca33e62937a9f800b67f6c9d4e4a0bc5819115223f6782f8cb84536a4"
+    },
+    "completedAt": "2026-09-13T16:24:09.062Z"
+  },
+  "results": [
+    {
+      "type": "result",
+      "filename": "language/expressions/async-generator/expression-yield-star-before-newline.js",
+      "sourceHash": "132be8c5e0a2cb71ea0002aea93800829ce5487e4717a215b66bf9ac87240ab2",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/expressions/async-generator/generator-created-after-decl-inst.js",
+      "sourceHash": "0d47c2d617b6897535920cd4be93bc7c8c06e91f9bfda037a87a7db2448395cf",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/expressions/generators/eval-body-proto-realm.js",
+      "sourceHash": "7d6320e7ec53e14dc44e685a92fb89685168ce5fb61b96b6a95652735f6bf5c4",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/expressions/generators/eval-var-scope-syntax-err.js",
+      "sourceHash": "55f96bc7485c947506b3aa75f8218dec5f1782cbaa8e6e641d3506319cd7c69c",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/expressions/generators/generator-created-after-decl-inst.js",
+      "sourceHash": "a6bdb8d0cf09651c17984c0c6e52518743b6d84ee34e6298a76fdefebe6e3770",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statements/async-generator/escaped-async.js",
+      "sourceHash": "9d2e5c938320d3e54dd01f4eaa36fabc9628f42990f9aab400af484e9107ec9c",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statements/async-generator/eval-var-scope-syntax-err.js",
+      "sourceHash": "313142a9d1d12bf4155928aaf6e5ef7771a7a39b0070caf4903f44d31d3b9599",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statements/async-generator/generator-created-after-decl-inst.js",
+      "sourceHash": "ce82c756d9e86f0563a1b4dac394aafdc5949daf6b7c0270b0e750b1e127aab4",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statements/generators/dflt-params-trailing-comma.js",
+      "sourceHash": "88b21e6094b79eb1150d3ba336b0f6ef88e126e31373141abeb769a6f9d96b35",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statements/generators/eval-var-scope-syntax-err.js",
+      "sourceHash": "68635098aab3060cec3a28b0409542a0360393a2b0aba6aedd7478f3a3897a07",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "type": "result",
+      "filename": "language/statements/generators/generator-created-after-decl-inst.js",
+      "sourceHash": "3c0ff2531fa65b11ba340c728566d7a63b01cbb61101b8125f1899cd34e9b13a",
+      "kind": "test",
+      "results": [
+        {
+          "mode": "sloppy",
+          "status": "passed"
+        },
+        {
+          "mode": "strict",
+          "status": "passed"
+        }
+      ]
+    }
+  ]
+}

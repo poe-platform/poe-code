@@ -1,0 +1,106 @@
+{
+  "metadata": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "results": [
+    {
+      "name": "source.decode('decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert source.decode('decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "source.decode('decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert source.decode('decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "bytes.decode(source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert bytes.decode(source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "bytes.decode(source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert bytes.decode(source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str(source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str(source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str(source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str(source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str.__new__(str, source, 'decoder-contract'): omitted errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str.__new__(str, source, 'decoder-contract') is result\nassert len(seen) == 1\nassert len(seen[0]) == 1\n\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    },
+    {
+      "name": "str.__new__(str, source, 'decoder-contract'): explicit errors and memoryview input",
+      "source": "\nimport _codecs\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes conversion')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str conversion')\nclass Pair(tuple):\n    def __len__(self):\n        raise AssertionError('virtual tuple length')\n    def __getitem__(self, index):\n        raise AssertionError('virtual tuple indexing')\nsource = Data(b'input')\nresult = Text('decoded')\nseen = []\ndef decode(*args):\n    seen.append(args)\n    return Pair((result, object()))\ndef search(name):\n    assert name == 'decoder_contract'\n    return (None, decode, None, None)\n_codecs.register(search)\nassert str.__new__(str, source, 'decoder-contract', 'custom') is result\nassert len(seen) == 1\nassert len(seen[0]) == 2\nassert seen[0][1] == 'custom'\nview = seen[0][0]\nassert type(view) is memoryview\nassert view.obj is None and view.readonly is True\nassert (view.format, view.itemsize, view.ndim) == ('B', 1, 1)\nassert (view.shape, view.strides, view.suboffsets) == ((5,), (1,), ())\nassert view.nbytes == 5\nassert view.contiguous and view.c_contiguous and view.f_contiguous\nassert view.tobytes() == b'input'\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    assert error.args == ('operation forbidden on released memoryview object',)\nelse:\n    assert False\n",
+      "oracle": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "interpreter": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: decoder-contract"
+      }
+    }
+  ]
+}

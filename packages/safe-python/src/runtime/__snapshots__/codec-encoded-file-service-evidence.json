@@ -1,0 +1,48 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "adapter": "Explicit synchronous file descriptors: readSync, partial-write-aware writeSync, fsyncSync; descriptor ownership outside interpreter; temporary files removed in finally.",
+  "rows": [
+    {
+      "name": "EncodedFile transcodes reads and writes through the registered stream codecs",
+      "sourceSha256": "19503139a48cb72a3bd3bcadbec38bdbe58293e484ac28d553a5908777954bc7",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "stdout": "finished\n"
+    },
+    {
+      "name": "EncodedFile observes live lookup, descriptors and StreamRecoder replacement in order",
+      "sourceSha256": "1298a3f16f3b3f9310118796d8c4eb3967fae83024453281cbe9e8bb337014c1",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "stdout": "finished\n"
+    },
+    {
+      "name": "EncodedFile preserves lookup and stream constructor failures and partial effects",
+      "sourceSha256": "6f0caa3e6b466eeb3997a07c988ff2c26fe478ba5452063bec55ff8c43fd9732",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "stdout": "finished\n"
+    },
+    {
+      "name": "EncodedFile lookup service callback",
+      "sourceSha256": "fd5b99a6e83f900bc5748fe3ef78334d65d342fdd62659754006c1358426495d",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "reads": 1,
+      "stdout": "encoded\nfinished\n"
+    }
+  ]
+}

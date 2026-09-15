@@ -1,0 +1,336 @@
+{
+  "provenance": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\n",
+  "adapter": "Real owned file descriptors; bytewise readSync, complete writeSync loops, fsyncSync; close and cleanup in finally. CPython is external oracle only.",
+  "rows": [
+    {
+      "operation": "encode",
+      "value": "-1",
+      "message": "character mapping must be in range(256)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return -1\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(256)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "normal",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "verified\n",
+        "status": "ok",
+        "reads": 1,
+        "writes": 2
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "-1",
+      "message": "character mapping must be in range(256)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return -1\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(256)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "-1",
+      "message": "character mapping must be in range(256)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return -1\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(256)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "256",
+      "message": "character mapping must be in range(256)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 256\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(256)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "normal",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "verified\n",
+        "status": "ok",
+        "reads": 1,
+        "writes": 2
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "256",
+      "message": "character mapping must be in range(256)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 256\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(256)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "256",
+      "message": "character mapping must be in range(256)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 256\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(256)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "'invalid'",
+      "message": "character mapping must return integer, bytes or None, not str",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 'invalid'\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must return integer, bytes or None, not str\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "normal",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "verified\n",
+        "status": "ok",
+        "reads": 1,
+        "writes": 2
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "'invalid'",
+      "message": "character mapping must return integer, bytes or None, not str",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 'invalid'\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must return integer, bytes or None, not str\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "encode",
+      "value": "'invalid'",
+      "message": "character mapping must return integer, bytes or None, not str",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 'invalid'\ntry:\n    _codecs.charmap_encode('A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must return integer, bytes or None, not str\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "-1",
+      "message": "character mapping must be in range(0x110000)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return -1\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(0x110000)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "normal",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "verified\n",
+        "status": "ok",
+        "reads": 1,
+        "writes": 2
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "-1",
+      "message": "character mapping must be in range(0x110000)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return -1\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(0x110000)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "-1",
+      "message": "character mapping must be in range(0x110000)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return -1\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(0x110000)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "0x110000",
+      "message": "character mapping must be in range(0x110000)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 0x110000\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(0x110000)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "normal",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "verified\n",
+        "status": "ok",
+        "reads": 1,
+        "writes": 2
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "0x110000",
+      "message": "character mapping must be in range(0x110000)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 0x110000\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(0x110000)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "0x110000",
+      "message": "character mapping must be in range(0x110000)",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 0x110000\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must be in range(0x110000)\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "1.5",
+      "message": "character mapping must return integer, None or str",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 1.5\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must return integer, None or str\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "normal",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "verified\n",
+        "status": "ok",
+        "reads": 1,
+        "writes": 2
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "1.5",
+      "message": "character mapping must return integer, None or str",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 1.5\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must return integer, None or str\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    },
+    {
+      "operation": "decode",
+      "value": "1.5",
+      "message": "character mapping must return integer, None or str",
+      "source": "\nimport _codecs\ncalls = []\nclass Mapping:\n    def __getitem__(self, key):\n        calls.append(key)\n        assert input() == 'ready'\n        return 1.5\ntry:\n    _codecs.charmap_decode(b'A', 'strict', Mapping())\nexcept TypeError as error:\n    assert error.args == (\"character mapping must return integer, None or str\",)\nelse:\n    raise AssertionError('mapping accepted')\nassert calls == [65]\nprint('verified')\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "stdout": "verified\n",
+        "status": 0
+      },
+      "actual": {
+        "stdout": "",
+        "status": "terminated",
+        "reason": "cancelled",
+        "reads": 1,
+        "writes": 0,
+        "retryReason": "cancelled"
+      }
+    }
+  ]
+}

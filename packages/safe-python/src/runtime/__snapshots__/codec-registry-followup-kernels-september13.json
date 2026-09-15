@@ -1,0 +1,27 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "standard": {
+    "seed": 3147,
+    "count": 36000
+  },
+  "recovery": {
+    "seed": 20260913,
+    "count": 10800
+  },
+  "generator": "LCG uint32: seed = imul(seed,1664525)+1013904223; byte=next()>>>24. Exact iteration order and manual procedure retained in docs/plans/safe-python.md.",
+  "inputSha256": "1705c954e574f0f25a29acc07f378fcd785699316e3210ca682683b1cebe7f9c",
+  "oracleSha256": "a841769d19695abcfaa1a2bf36317767d00efda19eee28d064a9285e5bffde05",
+  "actualSha256": "a841769d19695abcfaa1a2bf36317767d00efda19eee28d064a9285e5bffde05",
+  "implementations": {
+    "utf7.ts": "f6884328072cf3a76a5c745399b51eb8fd1296bfab6c77eae11418e4bb83942a",
+    "utf8-decode.ts": "03c17ff2f8bba275c985f21eabcc8d8fef57a24343436e7ec4c188ac85a2a0d6",
+    "utf-wide.ts": "368ebafeaa0b531756e351bc5357d48b1fc88b58af68ec2a2a0c69e91d244dd5",
+    "code-point-string.ts": "5153526a5b109bbce9b137028d2d6e61493cff24d4c1536a0fc3784767688565"
+  },
+  "failures": []
+}

@@ -1,0 +1,179 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "cases": [
+    {
+      "name": "removing the current search entry advances through live slots",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninfo = (None, None, None, None)\ndef first(name):\n    events.append('first')\n    codecs.unregister(first)\ndef skipped(name):\n    events.append('skipped')\n    return info\ndef last(name):\n    events.append('last')\n    return info\nfor callback in (first, skipped, last):\n    codecs.register(callback)\nassert codecs.lookup('live-slots') is info\nassert events == ['first', 'last']\nassert codecs.lookup('LIVE SLOTS') is info\nassert events == ['first', 'last']\nprint('live slots verified')\n",
+      "output": "live slots verified\n",
+      "input": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "live slots verified\n",
+        "stderr": ""
+      },
+      "replays": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "status": 0,
+          "stdout": "live slots verified\n",
+          "stderr": ""
+        },
+        {
+          "seed": [
+            17,
+            23
+          ],
+          "status": 0,
+          "stdout": "live slots verified\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "shrinking a search path preserves native indexing failure and retry",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninfo = (None, None, None, None)\ndef first(name):\n    events.append('first')\n    codecs.unregister(last)\ndef last(name):\n    events.append('last')\n    return info\ncodecs.register(first)\ncodecs.register(last)\ntry:\n    codecs.lookup('shrinking-path')\nexcept IndexError as error:\n    assert error.args == ('list index out of range',)\nelse:\n    assert False\nassert events == ['first']\ncodecs.unregister(first)\ncodecs.register(last)\nassert codecs.lookup('shrinking-path') is info\nassert events == ['first', 'last']\nprint('shrinking path verified')\n",
+      "output": "shrinking path verified\n",
+      "input": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "shrinking path verified\n",
+        "stderr": ""
+      },
+      "replays": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "status": 0,
+          "stdout": "shrinking path verified\n",
+          "stderr": ""
+        },
+        {
+          "seed": [
+            17,
+            23
+          ],
+          "status": 0,
+          "stdout": "shrinking path verified\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "recursive cache publication is overwritten by the outer successful lookup",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ninner = (1, 2, 3, 4)\nouter = (5, 6, 7, 8)\nevents = []\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('recursive-name') is inner\n    assert codecs.lookup('RECURSIVE NAME') is inner\n    return outer\ncodecs.register(search)\nassert codecs.lookup('recursive_name') is outer\nassert codecs.lookup('recursive-name') is outer\nassert events == ['recursive_name', 'recursive_name']\nprint('recursive publication verified')\n",
+      "output": "recursive publication verified\n",
+      "input": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recursive publication verified\n",
+        "stderr": ""
+      },
+      "replays": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "status": 0,
+          "stdout": "recursive publication verified\n",
+          "stderr": ""
+        },
+        {
+          "seed": [
+            17,
+            23
+          ],
+          "status": 0,
+          "stdout": "recursive publication verified\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "a failing outer callback retains a successfully published recursive result",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ninfo = (None, None, None, None)\nfailure = ValueError('outer failure')\nevents = []\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return info\n    active = True\n    assert codecs.lookup(name) is info\n    raise failure\ncodecs.register(search)\ntry:\n    codecs.lookup('nested-failure')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert codecs.lookup('nested_failure') is info\nassert events == ['nested_failure', 'nested_failure']\nprint('recursive failure verified')\n",
+      "output": "recursive failure verified\n",
+      "input": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recursive failure verified\n",
+        "stderr": ""
+      },
+      "replays": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "status": 0,
+          "stdout": "recursive failure verified\n",
+          "stderr": ""
+        },
+        {
+          "seed": [
+            17,
+            23
+          ],
+          "status": 0,
+          "stdout": "recursive failure verified\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "registration during search uses the original length and survives a service callback",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninfo = (None, None, None, None)\ndef appended(name):\n    events.append('appended')\n    return info\ndef first(name):\n    events.append('first')\n    assert input() == 'continue'\n    codecs.register(appended)\ncodecs.register(first)\ntry:\n    codecs.lookup('append-during-search')\nexcept LookupError as error:\n    assert error.args == ('unknown encoding: append-during-search',)\nelse:\n    assert False\nassert events == ['first']\nassert codecs.lookup('append-during-search') is info\nassert events == ['first', 'first', 'appended']\nprint('appended search verified')\n",
+      "output": "appended search verified\n",
+      "input": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "appended search verified\n",
+        "stderr": ""
+      },
+      "replays": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "status": 0,
+          "stdout": "appended search verified\n",
+          "stderr": ""
+        },
+        {
+          "seed": [
+            17,
+            23
+          ],
+          "status": 0,
+          "stdout": "appended search verified\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "cancellation": {
+    "input": "continue\n",
+    "stdout": "",
+    "reads": 1,
+    "result": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    },
+    "next": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    }
+  }
+}

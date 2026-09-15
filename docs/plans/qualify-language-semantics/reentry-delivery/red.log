@@ -1,0 +1,40 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/interp/generator-reentry-qualification.test.ts (4 tests | 4 failed) 97ms
+   × keeps executing-generator next errors catchable without completing the generator 41ms
+   × keeps executing-generator return errors catchable without completing the generator 18ms
+   × keeps executing-generator throw errors catchable without completing the generator 19ms
+   × keeps executing-generator iterate errors catchable without completing the generator 18ms
+FAIL packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator next errors catchable without completing the generator
+SandboxError: Sandbox object is already running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'reentry', budget: undefined, current: undefined, limit: undefined, span: { start: { line: 2, column: 26, offset: 51 }, end: { line: 2, column: 43, offset: 68 } } }
+FAIL packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator return errors catchable without completing the generator
+SandboxError: Sandbox object is already running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'reentry', budget: undefined, current: undefined, limit: undefined, span: { start: { line: 2, column: 26, offset: 51 }, end: { line: 2, column: 45, offset: 70 } } }
+FAIL packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator throw errors catchable without completing the generator
+SandboxError: Sandbox object is already running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'reentry', budget: undefined, current: undefined, limit: undefined, span: { start: { line: 2, column: 26, offset: 51 }, end: { line: 2, column: 44, offset: 69 } } }
+FAIL packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator iterate errors catchable without completing the generator
+SandboxError: Sandbox object is already running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'reentry', budget: undefined, current: undefined, limit: undefined, span: { start: { line: 2, column: 26, offset: 51 }, end: { line: 2, column: 61, offset: 86 } } }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator next errors catchable without completing the generator
+ FAIL  packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator return errors catchable without completing the generator
+ FAIL  packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator throw errors catchable without completing the generator
+ FAIL  packages/safe-js/src/interp/generator-reentry-qualification.test.ts > keeps executing-generator iterate errors catchable without completing the generator
+SandboxError: Sandbox object is already running.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  10:41:47
+   Duration  1.81s (transform 1.27s, setup 33ms, import 1.61s, tests 97ms, environment 0ms)
+

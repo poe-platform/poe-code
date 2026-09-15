@@ -68,6 +68,10 @@ export interface OpenApiTagObject {
 
 export interface OpenApiDocument {
   openapi?: string;
+  swagger?: string;
+  host?: string;
+  schemes?: string[];
+  basePath?: string;
   info?: {
     title?: string;
     version?: string;
@@ -87,6 +91,7 @@ export interface OpenApiDocument {
 
 export interface OpenApiPathItemObject extends OpenApiOperationMap {
   parameters?: OpenApiParameter[];
+  servers?: OpenApiServerObject[];
 }
 
 export interface OpenApiOperationObject {
@@ -167,6 +172,7 @@ export interface OpenApiReferenceObject {
 interface OpenApiServerObject {
   url: string;
   description?: string;
+  variables?: Record<string, { default: string; enum?: string[]; description?: string }>;
 }
 
 type OpenApiSecurityRequirementObject = Record<string, string[]>;
@@ -724,7 +730,7 @@ function createGeneratedCommand(
 ): GeneratedCommand {
   const operation = expectOperation(document, entry.operation, entry.method, entry.path);
   const operationId = operation.operationId ?? `${entry.method.toUpperCase()} ${entry.path}`;
-  const operationBaseUrl = resolveOperationBaseUrl(operation, operationId);
+  const operationBaseUrl = resolveOperationBaseUrl(operation.servers ?? entry.pathItem.servers, operationId);
   const auth = getOperationAuthMode(document, operation, operationId);
   const response = resolveSuccessResponse(document, operation, operationId);
   const noun = createSafeGeneratedNoun(deriveNoun(operation, entry.path, operationId));
@@ -816,15 +822,15 @@ function collectPathPositionals(
 }
 
 function resolveOperationBaseUrl(
-  operation: OpenApiOperationObject,
+  servers: OpenApiServerObject[] | undefined,
   operationId: string
 ): string | undefined {
-  if (operation.servers === undefined) {
+  if (servers === undefined) {
     return undefined;
   }
 
-  const [server] = operation.servers;
-  if (operation.servers.length !== 1 || server === undefined || server.url.includes("{")) {
+  const [server] = servers;
+  if (servers.length !== 1 || server === undefined || server.url.includes("{")) {
     throw new UserError(
       `Operation ${JSON.stringify(operationId)} must define exactly one fixed per-operation server URL in v1.`
     );

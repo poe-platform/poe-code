@@ -1,0 +1,42 @@
+{
+  "source": "import codecs\nfor value in (None, 1, 'invalid'):\n    for operation in (0, 1):\n        try:\n            if operation == 0:\n                codecs.register(value)\n            else:\n                codecs.register_error('custom', value)\n        except TypeError as error:\n            print(type(error).__name__, error.args)\nprint(input())\n",
+  "provenance": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\nlittle\n",
+  "oracle": {
+    "status": 0,
+    "stdout": "TypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\ncontinue\n",
+    "stderr": ""
+  },
+  "runs": [
+    {
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "TypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\ncontinue\n",
+      "reads": 1,
+      "verified": true
+    },
+    {
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "TypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\n",
+      "reads": 1,
+      "verified": true
+    },
+    {
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "TypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\nTypeError ('argument must be callable',)\nTypeError ('handler must be callable',)\n",
+      "reads": 1,
+      "verified": true
+    }
+  ]
+}

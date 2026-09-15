@@ -1,0 +1,2973 @@
+{
+  "externalLockEntriesIdentical": true,
+  "originalLockHash": "1a03e62c540bb267fb1435572b250494cf284e2ebcc3cd2111ee3ac4096477bb",
+  "deliveryLockHash": "0e47d4bb10a62c53b02c9d927078c0e668f82e7d84038fda15665de779e5807b",
+  "strategy": "External installed dependencies shared by symlink; original workspace symlink targets recreated relative to the delivery node_modules. Not a fresh npm ci. Original node_modules unchanged.",
+  "workspaceSafeFsResolution": "/Users/kjopek/Workspace/poe-code-language-delivery/packages/safe-fs",
+  "links": [
+    {
+      "destination": "node_modules/pkce-challenge",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pkce-challenge"
+    },
+    {
+      "destination": "node_modules/pako",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pako"
+    },
+    {
+      "destination": "node_modules/queue-microtask",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/queue-microtask"
+    },
+    {
+      "destination": "node_modules/import-from-esm",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/import-from-esm"
+    },
+    {
+      "destination": "node_modules/is-plain-obj",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-plain-obj"
+    },
+    {
+      "destination": "node_modules/is-docker",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-docker"
+    },
+    {
+      "destination": "node_modules/find-up-simple",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/find-up-simple"
+    },
+    {
+      "destination": "node_modules/tinyglobby",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tinyglobby"
+    },
+    {
+      "destination": "node_modules/callsites",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/callsites"
+    },
+    {
+      "destination": "node_modules/is-inside-container",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-inside-container"
+    },
+    {
+      "destination": "node_modules/is-extendable",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-extendable"
+    },
+    {
+      "destination": "node_modules/zod",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/zod"
+    },
+    {
+      "destination": "node_modules/ts-morph",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ts-morph"
+    },
+    {
+      "destination": "node_modules/fast-wrap-ansi",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-wrap-ansi"
+    },
+    {
+      "destination": "node_modules/reusify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/reusify"
+    },
+    {
+      "destination": "node_modules/java-properties",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/java-properties"
+    },
+    {
+      "destination": "node_modules/obug",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/obug"
+    },
+    {
+      "destination": "node_modules/hosted-git-info",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/hosted-git-info"
+    },
+    {
+      "destination": "node_modules/@types/normalize-package-data",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/normalize-package-data"
+    },
+    {
+      "destination": "node_modules/@types/express-serve-static-core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/express-serve-static-core"
+    },
+    {
+      "destination": "node_modules/@types/chai",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/chai"
+    },
+    {
+      "destination": "node_modules/@types/range-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/range-parser"
+    },
+    {
+      "destination": "node_modules/@types/express",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/express"
+    },
+    {
+      "destination": "node_modules/@types/turndown",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/turndown"
+    },
+    {
+      "destination": "node_modules/@types/qs",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/qs"
+    },
+    {
+      "destination": "node_modules/@types/mustache",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/mustache"
+    },
+    {
+      "destination": "node_modules/@types/deep-eql",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/deep-eql"
+    },
+    {
+      "destination": "node_modules/@types/semver",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/semver"
+    },
+    {
+      "destination": "node_modules/@types/http-errors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/http-errors"
+    },
+    {
+      "destination": "node_modules/@types/body-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/body-parser"
+    },
+    {
+      "destination": "node_modules/@types/shell-quote",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/shell-quote"
+    },
+    {
+      "destination": "node_modules/@types/serve-static",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/serve-static"
+    },
+    {
+      "destination": "node_modules/@types/estree",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/estree"
+    },
+    {
+      "destination": "node_modules/@types/node",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/node"
+    },
+    {
+      "destination": "node_modules/@types/connect",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/connect"
+    },
+    {
+      "destination": "node_modules/@types/send",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/send"
+    },
+    {
+      "destination": "node_modules/@types/json-schema",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@types/json-schema"
+    },
+    {
+      "destination": "node_modules/globals",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/globals"
+    },
+    {
+      "destination": "node_modules/tiny-http-mcp-server",
+      "target": "../packages/tiny-http-mcp-server"
+    },
+    {
+      "destination": "node_modules/p-reduce",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-reduce"
+    },
+    {
+      "destination": "node_modules/toolcraft-design",
+      "target": "../packages/toolcraft-design"
+    },
+    {
+      "destination": "node_modules/process-nextick-args",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/process-nextick-args"
+    },
+    {
+      "destination": "node_modules/shebang-regex",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/shebang-regex"
+    },
+    {
+      "destination": "node_modules/tiny-stdio-mcp-test-server",
+      "target": "../packages/tiny-stdio-mcp-test-server"
+    },
+    {
+      "destination": "node_modules/eventsource",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/eventsource"
+    },
+    {
+      "destination": "node_modules/thenify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/thenify"
+    },
+    {
+      "destination": "node_modules/tiny-oauth-test-server",
+      "target": "../packages/tiny-oauth-test-server"
+    },
+    {
+      "destination": "node_modules/lodash.uniqby",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lodash.uniqby"
+    },
+    {
+      "destination": "node_modules/@mixmark-io/domino",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@mixmark-io/domino"
+    },
+    {
+      "destination": "node_modules/json-parse-even-better-errors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/json-parse-even-better-errors"
+    },
+    {
+      "destination": "node_modules/normalize-package-data",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/normalize-package-data"
+    },
+    {
+      "destination": "node_modules/is-wsl",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-wsl"
+    },
+    {
+      "destination": "node_modules/fast-check",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-check"
+    },
+    {
+      "destination": "node_modules/tiny-http-mcp-oauth-test-server",
+      "target": "../packages/tiny-http-mcp-oauth-test-server"
+    },
+    {
+      "destination": "node_modules/duplexer2",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/duplexer2"
+    },
+    {
+      "destination": "node_modules/.bin/is-docker",
+      "target": "../is-docker/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/is-inside-container",
+      "target": "../is-inside-container/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/tiny-http-mcp-server",
+      "target": "../tiny-http-mcp-server/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/tiny-stdio-mcp-test-server",
+      "target": "../tiny-stdio-mcp-test-server/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/tiny-oauth-test-server",
+      "target": "../tiny-oauth-test-server/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/tiny-http-mcp-oauth-test-server",
+      "target": "../tiny-http-mcp-oauth-test-server/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/poe",
+      "target": "../poe-code/dist/bin.cjs"
+    },
+    {
+      "destination": "node_modules/.bin/bats",
+      "target": "../bats/bin/bats"
+    },
+    {
+      "destination": "node_modules/.bin/poe-agent",
+      "target": "../poe-code/dist/bin/poe-agent.js"
+    },
+    {
+      "destination": "node_modules/.bin/braintrust",
+      "target": "../braintrust/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/tsserver",
+      "target": "../typescript/bin/tsserver"
+    },
+    {
+      "destination": "node_modules/.bin/poe-code",
+      "target": "../poe-code/dist/bin.cjs"
+    },
+    {
+      "destination": "node_modules/.bin/node-gyp-build-optional-packages-optional",
+      "target": "../node-gyp-build-optional-packages/optional.js"
+    },
+    {
+      "destination": "node_modules/.bin/esvalidate",
+      "target": "../esprima/bin/esvalidate.js"
+    },
+    {
+      "destination": "node_modules/.bin/nanoid",
+      "target": "../nanoid/bin/nanoid.cjs"
+    },
+    {
+      "destination": "node_modules/.bin/acorn",
+      "target": "../acorn/bin/acorn"
+    },
+    {
+      "destination": "node_modules/.bin/highlight",
+      "target": "../cli-highlight/bin/highlight"
+    },
+    {
+      "destination": "node_modules/.bin/prettier",
+      "target": "../prettier/bin/prettier.cjs"
+    },
+    {
+      "destination": "node_modules/.bin/turbo",
+      "target": "../turbo/bin/turbo"
+    },
+    {
+      "destination": "node_modules/.bin/poe-package-lint",
+      "target": "../@poe-code/package-lint/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/uglifyjs",
+      "target": "../uglify-js/bin/uglifyjs"
+    },
+    {
+      "destination": "node_modules/.bin/vitest",
+      "target": "../vitest/vitest.mjs"
+    },
+    {
+      "destination": "node_modules/.bin/node-which",
+      "target": "../which/bin/node-which"
+    },
+    {
+      "destination": "node_modules/.bin/tokenfill",
+      "target": "../tokenfill/dist/bin.js"
+    },
+    {
+      "destination": "node_modules/.bin/esparse",
+      "target": "../esprima/bin/esparse.js"
+    },
+    {
+      "destination": "node_modules/.bin/marked",
+      "target": "../marked/bin/marked.js"
+    },
+    {
+      "destination": "node_modules/.bin/tsx",
+      "target": "../tsx/dist/cli.mjs"
+    },
+    {
+      "destination": "node_modules/.bin/toolcraft-openapi-generate",
+      "target": "../toolcraft-openapi/dist/bin/generate.js"
+    },
+    {
+      "destination": "node_modules/.bin/tsc",
+      "target": "../typescript/bin/tsc"
+    },
+    {
+      "destination": "node_modules/.bin/terminal-png-mcp",
+      "target": "../terminal-png-mcp/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/js-yaml",
+      "target": "../js-yaml/bin/js-yaml.js"
+    },
+    {
+      "destination": "node_modules/.bin/conventional-changelog-writer",
+      "target": "../conventional-changelog-writer/dist/cli/index.js"
+    },
+    {
+      "destination": "node_modules/.bin/poe-safejs",
+      "target": "../@poe-code/safe-js/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/mustache",
+      "target": "../mustache/bin/mustache"
+    },
+    {
+      "destination": "node_modules/.bin/proxy-server",
+      "target": "../@poe-code/e2e-test-runner/dist/proxy-cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/parser",
+      "target": "../@babel/parser/bin/babel-parser.js"
+    },
+    {
+      "destination": "node_modules/.bin/astring",
+      "target": "../astring/bin/astring"
+    },
+    {
+      "destination": "node_modules/.bin/terminal-pilot-mcp",
+      "target": "../terminal-pilot-mcp/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/node-gyp-build-optional-packages",
+      "target": "../node-gyp-build-optional-packages/bin.js"
+    },
+    {
+      "destination": "node_modules/.bin/poe-safe-js",
+      "target": "../@poe-code/safe-js/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/semver",
+      "target": "../semver/bin/semver.js"
+    },
+    {
+      "destination": "node_modules/.bin/vite",
+      "target": "../vite/bin/vite.js"
+    },
+    {
+      "destination": "node_modules/.bin/handlebars",
+      "target": "../handlebars/bin/handlebars"
+    },
+    {
+      "destination": "node_modules/.bin/agent-stash",
+      "target": "../agent-stash/dist/bin.js"
+    },
+    {
+      "destination": "node_modules/.bin/terminal-png",
+      "target": "../terminal-png/bin/terminal-png"
+    },
+    {
+      "destination": "node_modules/.bin/bt",
+      "target": "../braintrust/bin/bt"
+    },
+    {
+      "destination": "node_modules/.bin/rollup",
+      "target": "../rollup/dist/bin/rollup"
+    },
+    {
+      "destination": "node_modules/.bin/terminal-pilot",
+      "target": "../terminal-pilot/dist/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/conventional-commits-parser",
+      "target": "../conventional-commits-parser/dist/cli/index.js"
+    },
+    {
+      "destination": "node_modules/.bin/semantic-release",
+      "target": "../semantic-release/bin/semantic-release.js"
+    },
+    {
+      "destination": "node_modules/.bin/yaml",
+      "target": "../yaml/bin.mjs"
+    },
+    {
+      "destination": "node_modules/.bin/mime",
+      "target": "../mime/bin/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/download-msgpackr-prebuilds",
+      "target": "../msgpackr-extract/bin/download-prebuilds.js"
+    },
+    {
+      "destination": "node_modules/.bin/eslint-config-prettier",
+      "target": "../eslint-config-prettier/bin/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/eslint",
+      "target": "../eslint/bin/eslint.js"
+    },
+    {
+      "destination": "node_modules/.bin/husky",
+      "target": "../husky/bin.js"
+    },
+    {
+      "destination": "node_modules/.bin/why-is-node-running",
+      "target": "../why-is-node-running/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/esbuild",
+      "target": "../esbuild/bin/esbuild"
+    },
+    {
+      "destination": "node_modules/.bin/poe-superintendent-mcp",
+      "target": "../@poe-code/superintendent/dist/mcp.js"
+    },
+    {
+      "destination": "node_modules/.bin/uuid",
+      "target": "../uuid/dist/esm/bin/uuid"
+    },
+    {
+      "destination": "node_modules/.bin/npx",
+      "target": "../npm/bin/npx-cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/rc",
+      "target": "../rc/cli.js"
+    },
+    {
+      "destination": "node_modules/.bin/node-gyp-build-optional-packages-test",
+      "target": "../node-gyp-build-optional-packages/build-test.js"
+    },
+    {
+      "destination": "node_modules/.bin/npm",
+      "target": "../npm/bin/npm-cli.js"
+    },
+    {
+      "destination": "node_modules/semifies",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/semifies"
+    },
+    {
+      "destination": "node_modules/temporal-spec",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/temporal-spec"
+    },
+    {
+      "destination": "node_modules/supports-hyperlinks",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/supports-hyperlinks"
+    },
+    {
+      "destination": "node_modules/bats",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/bats"
+    },
+    {
+      "destination": "node_modules/spdx-exceptions",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/spdx-exceptions"
+    },
+    {
+      "destination": "node_modules/opencode-poe-auth",
+      "target": "../packages/opencode-poe-auth"
+    },
+    {
+      "destination": "node_modules/toidentifier",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/toidentifier"
+    },
+    {
+      "destination": "node_modules/ts-api-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ts-api-utils"
+    },
+    {
+      "destination": "node_modules/path-type",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/path-type"
+    },
+    {
+      "destination": "node_modules/argv-formatter",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/argv-formatter"
+    },
+    {
+      "destination": "node_modules/make-dir",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/make-dir"
+    },
+    {
+      "destination": "node_modules/mimic-fn",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/mimic-fn"
+    },
+    {
+      "destination": "node_modules/strip-ansi",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/strip-ansi"
+    },
+    {
+      "destination": "node_modules/lightningcss-darwin-arm64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lightningcss-darwin-arm64"
+    },
+    {
+      "destination": "node_modules/content-type",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/content-type"
+    },
+    {
+      "destination": "node_modules/before-after-hook",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/before-after-hook"
+    },
+    {
+      "destination": "node_modules/.vite-temp",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/.vite-temp"
+    },
+    {
+      "destination": "node_modules/istanbul-reports",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/istanbul-reports"
+    },
+    {
+      "destination": "node_modules/eventsource-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/eventsource-parser"
+    },
+    {
+      "destination": "node_modules/tempy",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tempy"
+    },
+    {
+      "destination": "node_modules/flatted",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/flatted"
+    },
+    {
+      "destination": "node_modules/conventional-commits-filter",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/conventional-commits-filter"
+    },
+    {
+      "destination": "node_modules/braintrust",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/braintrust"
+    },
+    {
+      "destination": "node_modules/es-errors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/es-errors"
+    },
+    {
+      "destination": "node_modules/is-obj",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-obj"
+    },
+    {
+      "destination": "node_modules/unique-string",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/unique-string"
+    },
+    {
+      "destination": "node_modules/poe-code",
+      "target": ".."
+    },
+    {
+      "destination": "node_modules/@noble/hashes",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@noble/hashes"
+    },
+    {
+      "destination": "node_modules/@opencode-ai/plugin",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@opencode-ai/plugin"
+    },
+    {
+      "destination": "node_modules/@opencode-ai/sdk",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@opencode-ai/sdk"
+    },
+    {
+      "destination": "node_modules/agent-base",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/agent-base"
+    },
+    {
+      "destination": "node_modules/bundle-name",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/bundle-name"
+    },
+    {
+      "destination": "node_modules/toolcraft-openapi",
+      "target": "../packages/toolcraft-openapi"
+    },
+    {
+      "destination": "node_modules/node-addon-api",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/node-addon-api"
+    },
+    {
+      "destination": "node_modules/ms",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ms"
+    },
+    {
+      "destination": "node_modules/gray-matter",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/gray-matter"
+    },
+    {
+      "destination": "node_modules/strip-final-newline",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/strip-final-newline"
+    },
+    {
+      "destination": "node_modules/content-disposition",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/content-disposition"
+    },
+    {
+      "destination": "node_modules/math-intrinsics",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/math-intrinsics"
+    },
+    {
+      "destination": "node_modules/lodash-es",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lodash-es"
+    },
+    {
+      "destination": "node_modules/prelude-ls",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/prelude-ls"
+    },
+    {
+      "destination": "node_modules/dotenv",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/dotenv"
+    },
+    {
+      "destination": "node_modules/wordwrap",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/wordwrap"
+    },
+    {
+      "destination": "node_modules/escape-string-regexp",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/escape-string-regexp"
+    },
+    {
+      "destination": "node_modules/lodash.isstring",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lodash.isstring"
+    },
+    {
+      "destination": "node_modules/indent-string",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/indent-string"
+    },
+    {
+      "destination": "node_modules/std-env",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/std-env"
+    },
+    {
+      "destination": "node_modules/nerf-dart",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/nerf-dart"
+    },
+    {
+      "destination": "node_modules/mz",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/mz"
+    },
+    {
+      "destination": "node_modules/array-ify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/array-ify"
+    },
+    {
+      "destination": "node_modules/strip-json-comments",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/strip-json-comments"
+    },
+    {
+      "destination": "node_modules/lru-cache",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lru-cache"
+    },
+    {
+      "destination": "node_modules/imurmurhash",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/imurmurhash"
+    },
+    {
+      "destination": "node_modules/url-join",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/url-join"
+    },
+    {
+      "destination": "node_modules/node-pty",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/node-pty"
+    },
+    {
+      "destination": "node_modules/eslint-scope",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/eslint-scope"
+    },
+    {
+      "destination": "node_modules/find-my-way-ts",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/find-my-way-ts"
+    },
+    {
+      "destination": "node_modules/chownr",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/chownr"
+    },
+    {
+      "destination": "node_modules/type-fest",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/type-fest"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-fsa",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-fsa"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-core"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/buffers",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/buffers"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-node-builtins",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-node-builtins"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/util",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/util"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/json-pack",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/json-pack"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/base64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/base64"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-print",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-print"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/json-pointer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/json-pointer"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/codegen",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/codegen"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-node-to-fsa",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-node-to-fsa"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-node-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-node-utils"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-snapshot",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-snapshot"
+    },
+    {
+      "destination": "node_modules/@jsonjoy.com/fs-node",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jsonjoy.com/fs-node"
+    },
+    {
+      "destination": "node_modules/commander",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/commander"
+    },
+    {
+      "destination": "node_modules/cli-progress",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cli-progress"
+    },
+    {
+      "destination": "node_modules/punycode",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/punycode"
+    },
+    {
+      "destination": "node_modules/require-directory",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/require-directory"
+    },
+    {
+      "destination": "node_modules/proxy-addr",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/proxy-addr"
+    },
+    {
+      "destination": "node_modules/depd",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/depd"
+    },
+    {
+      "destination": "node_modules/core-util-is",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/core-util-is"
+    },
+    {
+      "destination": "node_modules/jetbrains-mono",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/jetbrains-mono"
+    },
+    {
+      "destination": "node_modules/estree-walker",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/estree-walker"
+    },
+    {
+      "destination": "node_modules/escalade",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/escalade"
+    },
+    {
+      "destination": "node_modules/@ts-morph/common",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@ts-morph/common"
+    },
+    {
+      "destination": "node_modules/ip-address",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ip-address"
+    },
+    {
+      "destination": "node_modules/chai",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/chai"
+    },
+    {
+      "destination": "node_modules/range-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/range-parser"
+    },
+    {
+      "destination": "node_modules/side-channel-list",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/side-channel-list"
+    },
+    {
+      "destination": "node_modules/fast-json-stable-stringify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-json-stable-stringify"
+    },
+    {
+      "destination": "node_modules/error-ex",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/error-ex"
+    },
+    {
+      "destination": "node_modules/multipasta",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/multipasta"
+    },
+    {
+      "destination": "node_modules/@sec-ant/readable-stream",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@sec-ant/readable-stream"
+    },
+    {
+      "destination": "node_modules/@poe-code/package-lint",
+      "target": "../../packages/package-lint"
+    },
+    {
+      "destination": "node_modules/@poe-code/cached-resource",
+      "target": "../../packages/cached-resource"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-harness",
+      "target": "../../packages/agent-harness"
+    },
+    {
+      "destination": "node_modules/@poe-code/plan-browser",
+      "target": "../../packages/plan-browser"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-trace-viewer",
+      "target": "../../packages/agent-trace-viewer"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-hook-config",
+      "target": "../../packages/agent-hook-config"
+    },
+    {
+      "destination": "node_modules/@poe-code/pipeline",
+      "target": "../../packages/pipeline"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-defs",
+      "target": "../../packages/agent-defs"
+    },
+    {
+      "destination": "node_modules/@poe-code/poe-agent",
+      "target": "../../packages/poe-agent"
+    },
+    {
+      "destination": "node_modules/@poe-code/braintrust",
+      "target": "../../packages/braintrust"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-eval",
+      "target": "../../packages/agent-eval"
+    },
+    {
+      "destination": "node_modules/@poe-code/acp-telemetry",
+      "target": "../../packages/acp-telemetry"
+    },
+    {
+      "destination": "node_modules/@poe-code/memory",
+      "target": "../../packages/memory"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-harness-tools",
+      "target": "../../packages/agent-harness-tools"
+    },
+    {
+      "destination": "node_modules/@poe-code/safe-js",
+      "target": "../../packages/safe-js"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-mcp-config",
+      "target": "../../packages/agent-mcp-config"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-gaslight",
+      "target": "../../packages/agent-gaslight"
+    },
+    {
+      "destination": "node_modules/@poe-code/superintendent",
+      "target": "../../packages/superintendent"
+    },
+    {
+      "destination": "node_modules/@poe-code/maestro",
+      "target": "../../packages/maestro"
+    },
+    {
+      "destination": "node_modules/@poe-code/providers",
+      "target": "../../packages/providers"
+    },
+    {
+      "destination": "node_modules/@poe-code/process-runner",
+      "target": "../../packages/process-runner"
+    },
+    {
+      "destination": "node_modules/@poe-code/worktree",
+      "target": "../../packages/worktree"
+    },
+    {
+      "destination": "node_modules/@poe-code/task-list",
+      "target": "../../packages/task-list"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-human-in-loop",
+      "target": "../../packages/agent-human-in-loop"
+    },
+    {
+      "destination": "node_modules/@poe-code/ralph",
+      "target": "../../packages/ralph"
+    },
+    {
+      "destination": "node_modules/@poe-code/frontmatter",
+      "target": "../../packages/frontmatter"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-skill-config",
+      "target": "../../packages/agent-skill-config"
+    },
+    {
+      "destination": "node_modules/@poe-code/py-poe-spawn",
+      "target": "../../packages/py-poe-spawn"
+    },
+    {
+      "destination": "node_modules/@poe-code/e2e-test-runner",
+      "target": "../../packages/e2e-test-runner"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-traces",
+      "target": "../../packages/agent-traces"
+    },
+    {
+      "destination": "node_modules/@poe-code/maestro-tui",
+      "target": "../../packages/maestro-tui"
+    },
+    {
+      "destination": "node_modules/@poe-code/markdown-reader",
+      "target": "../../packages/markdown-reader"
+    },
+    {
+      "destination": "node_modules/@poe-code/safe-fs",
+      "target": "../../packages/safe-fs"
+    },
+    {
+      "destination": "node_modules/@poe-code/workspace-resolver",
+      "target": "../../packages/workspace-resolver"
+    },
+    {
+      "destination": "node_modules/@poe-code/poe-acp-client",
+      "target": "../../packages/poe-acp-client"
+    },
+    {
+      "destination": "node_modules/@poe-code/config-mutations",
+      "target": "../../packages/config-mutations"
+    },
+    {
+      "destination": "node_modules/@poe-code/github-workflows",
+      "target": "../../packages/github-workflows"
+    },
+    {
+      "destination": "node_modules/@poe-code/process-launcher",
+      "target": "../../packages/process-launcher"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-spawn",
+      "target": "../../packages/agent-spawn"
+    },
+    {
+      "destination": "node_modules/@poe-code/experiment-loop",
+      "target": "../../packages/experiment-loop"
+    },
+    {
+      "destination": "node_modules/@poe-code/agent-child-process",
+      "target": "../../packages/agent-child-process"
+    },
+    {
+      "destination": "node_modules/@poe-code/user-error",
+      "target": "../../packages/user-error"
+    },
+    {
+      "destination": "node_modules/@poe-code/poe-code-config",
+      "target": "../../packages/poe-code-config"
+    },
+    {
+      "destination": "node_modules/@poe-code/config-extends",
+      "target": "../../packages/config-extends"
+    },
+    {
+      "destination": "node_modules/deep-extend",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/deep-extend"
+    },
+    {
+      "destination": "node_modules/detect-libc",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/detect-libc"
+    },
+    {
+      "destination": "node_modules/balanced-match",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/balanced-match"
+    },
+    {
+      "destination": "node_modules/path-exists",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/path-exists"
+    },
+    {
+      "destination": "node_modules/@petamoriken/float16",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@petamoriken/float16"
+    },
+    {
+      "destination": "node_modules/bytes",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/bytes"
+    },
+    {
+      "destination": "node_modules/memfs",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/memfs"
+    },
+    {
+      "destination": "node_modules/char-regex",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/char-regex"
+    },
+    {
+      "destination": "node_modules/@eslint/config-array",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint/config-array"
+    },
+    {
+      "destination": "node_modules/@eslint/config-helpers",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint/config-helpers"
+    },
+    {
+      "destination": "node_modules/@eslint/core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint/core"
+    },
+    {
+      "destination": "node_modules/@eslint/js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint/js"
+    },
+    {
+      "destination": "node_modules/@eslint/object-schema",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint/object-schema"
+    },
+    {
+      "destination": "node_modules/@eslint/plugin-kit",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint/plugin-kit"
+    },
+    {
+      "destination": "node_modules/@eslint/eslintrc",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint/eslintrc"
+    },
+    {
+      "destination": "node_modules/index-to-position",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/index-to-position"
+    },
+    {
+      "destination": "node_modules/call-bind-apply-helpers",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/call-bind-apply-helpers"
+    },
+    {
+      "destination": "node_modules/define-lazy-prop",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/define-lazy-prop"
+    },
+    {
+      "destination": "node_modules/base64-js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/base64-js"
+    },
+    {
+      "destination": "node_modules/env-ci",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/env-ci"
+    },
+    {
+      "destination": "node_modules/parse-json",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/parse-json"
+    },
+    {
+      "destination": "node_modules/nanoid",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/nanoid"
+    },
+    {
+      "destination": "node_modules/node-api-headers",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/node-api-headers"
+    },
+    {
+      "destination": "node_modules/acorn",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/acorn"
+    },
+    {
+      "destination": "node_modules/file-entry-cache",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/file-entry-cache"
+    },
+    {
+      "destination": "node_modules/spawn-error-forwarder",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/spawn-error-forwarder"
+    },
+    {
+      "destination": "node_modules/express",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/express"
+    },
+    {
+      "destination": "node_modules/@nodelib/fs.walk",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@nodelib/fs.walk"
+    },
+    {
+      "destination": "node_modules/@nodelib/fs.stat",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@nodelib/fs.stat"
+    },
+    {
+      "destination": "node_modules/@nodelib/fs.scandir",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@nodelib/fs.scandir"
+    },
+    {
+      "destination": "node_modules/encodeurl",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/encodeurl"
+    },
+    {
+      "destination": "node_modules/signal-exit",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/signal-exit"
+    },
+    {
+      "destination": "node_modules/glob-to-regex.js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/glob-to-regex.js"
+    },
+    {
+      "destination": "node_modules/wrap-ansi",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/wrap-ansi"
+    },
+    {
+      "destination": "node_modules/y18n",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/y18n"
+    },
+    {
+      "destination": "node_modules/once",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/once"
+    },
+    {
+      "destination": "node_modules/prettier",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/prettier"
+    },
+    {
+      "destination": "node_modules/toolcraft-landing-page",
+      "target": "../packages/toolcraft-landing-page"
+    },
+    {
+      "destination": "node_modules/typescript-eslint",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/typescript-eslint"
+    },
+    {
+      "destination": "node_modules/ignore",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ignore"
+    },
+    {
+      "destination": "node_modules/turbo",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/turbo"
+    },
+    {
+      "destination": "node_modules/extend-shallow",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/extend-shallow"
+    },
+    {
+      "destination": "node_modules/normalize-url",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/normalize-url"
+    },
+    {
+      "destination": "node_modules/sisteransi",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/sisteransi"
+    },
+    {
+      "destination": "node_modules/mcp-oauth-server",
+      "target": "../packages/mcp-oauth-server"
+    },
+    {
+      "destination": "node_modules/vitest",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/vitest"
+    },
+    {
+      "destination": "node_modules/assertion-error",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/assertion-error"
+    },
+    {
+      "destination": "node_modules/esrecurse",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/esrecurse"
+    },
+    {
+      "destination": "node_modules/spdx-correct",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/spdx-correct"
+    },
+    {
+      "destination": "node_modules/string_decoder",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/string_decoder"
+    },
+    {
+      "destination": "node_modules/kubernetes-types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/kubernetes-types"
+    },
+    {
+      "destination": "node_modules/merge-descriptors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/merge-descriptors"
+    },
+    {
+      "destination": "node_modules/@hono/node-server",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@hono/node-server"
+    },
+    {
+      "destination": "node_modules/tslib",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tslib"
+    },
+    {
+      "destination": "node_modules/poe-oauth",
+      "target": "../packages/poe-oauth"
+    },
+    {
+      "destination": "node_modules/magic-string",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/magic-string"
+    },
+    {
+      "destination": "node_modules/ajv-formats",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ajv-formats"
+    },
+    {
+      "destination": "node_modules/argparse",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/argparse"
+    },
+    {
+      "destination": "node_modules/tokenfill",
+      "target": "../packages/tokenfill"
+    },
+    {
+      "destination": "node_modules/picomatch",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/picomatch"
+    },
+    {
+      "destination": "node_modules/safe-buffer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/safe-buffer"
+    },
+    {
+      "destination": "node_modules/pure-rand",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pure-rand"
+    },
+    {
+      "destination": "node_modules/stream-combiner2",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/stream-combiner2"
+    },
+    {
+      "destination": "node_modules/function-bind",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/function-bind"
+    },
+    {
+      "destination": "node_modules/is-glob",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-glob"
+    },
+    {
+      "destination": "node_modules/npm-run-path",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/npm-run-path"
+    },
+    {
+      "destination": "node_modules/cli-table3",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cli-table3"
+    },
+    {
+      "destination": "node_modules/marked",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/marked"
+    },
+    {
+      "destination": "node_modules/read-package-up",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/read-package-up"
+    },
+    {
+      "destination": "node_modules/termi-link",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/termi-link"
+    },
+    {
+      "destination": "node_modules/ee-first",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ee-first"
+    },
+    {
+      "destination": "node_modules/tsx",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tsx"
+    },
+    {
+      "destination": "node_modules/is-fullwidth-code-point",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-fullwidth-code-point"
+    },
+    {
+      "destination": "node_modules/env-paths",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/env-paths"
+    },
+    {
+      "destination": "node_modules/tree-dump",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tree-dump"
+    },
+    {
+      "destination": "node_modules/typescript",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/typescript"
+    },
+    {
+      "destination": "node_modules/flat-cache",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/flat-cache"
+    },
+    {
+      "destination": "node_modules/yargs-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/yargs-parser"
+    },
+    {
+      "destination": "node_modules/inherits",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/inherits"
+    },
+    {
+      "destination": "node_modules/jsonfile",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/jsonfile"
+    },
+    {
+      "destination": "node_modules/dir-glob",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/dir-glob"
+    },
+    {
+      "destination": "node_modules/turndown",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/turndown"
+    },
+    {
+      "destination": "node_modules/temporal-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/temporal-utils"
+    },
+    {
+      "destination": "node_modules/iconv-lite",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/iconv-lite"
+    },
+    {
+      "destination": "node_modules/smol-toml",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/smol-toml"
+    },
+    {
+      "destination": "node_modules/color-name",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/color-name"
+    },
+    {
+      "destination": "node_modules/es-define-property",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/es-define-property"
+    },
+    {
+      "destination": "node_modules/config-chain",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/config-chain"
+    },
+    {
+      "destination": "node_modules/postcss",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/postcss"
+    },
+    {
+      "destination": "node_modules/p-locate",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-locate"
+    },
+    {
+      "destination": "node_modules/fresh",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fresh"
+    },
+    {
+      "destination": "node_modules/@rollup/rollup-darwin-arm64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@rollup/rollup-darwin-arm64"
+    },
+    {
+      "destination": "node_modules/undici",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/undici"
+    },
+    {
+      "destination": "node_modules/get-intrinsic",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/get-intrinsic"
+    },
+    {
+      "destination": "node_modules/keyv",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/keyv"
+    },
+    {
+      "destination": "node_modules/path-browserify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/path-browserify"
+    },
+    {
+      "destination": "node_modules/toolcraft-codemode",
+      "target": "../packages/toolcraft-codemode"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/project-service",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/project-service"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/tsconfig-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/tsconfig-utils"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/types"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/typescript-estree",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/typescript-estree"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/utils"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/parser"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/type-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/type-utils"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/scope-manager",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/scope-manager"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/eslint-plugin",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/eslint-plugin"
+    },
+    {
+      "destination": "node_modules/@typescript-eslint/visitor-keys",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@typescript-eslint/visitor-keys"
+    },
+    {
+      "destination": "node_modules/find-versions",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/find-versions"
+    },
+    {
+      "destination": "node_modules/zod-to-json-schema",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/zod-to-json-schema"
+    },
+    {
+      "destination": "node_modules/issue-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/issue-parser"
+    },
+    {
+      "destination": "node_modules/semver-regex",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/semver-regex"
+    },
+    {
+      "destination": "node_modules/terminal-png-mcp",
+      "target": "../packages/terminal-png-mcp"
+    },
+    {
+      "destination": "node_modules/qs",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/qs"
+    },
+    {
+      "destination": "node_modules/js-yaml",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/js-yaml"
+    },
+    {
+      "destination": "node_modules/eslint-visitor-keys",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/eslint-visitor-keys"
+    },
+    {
+      "destination": "node_modules/conventional-changelog-writer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/conventional-changelog-writer"
+    },
+    {
+      "destination": "node_modules/effect",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/effect"
+    },
+    {
+      "destination": "node_modules/call-bound",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/call-bound"
+    },
+    {
+      "destination": "node_modules/proto-list",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/proto-list"
+    },
+    {
+      "destination": "node_modules/pify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pify"
+    },
+    {
+      "destination": "node_modules/temporal-polyfill",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/temporal-polyfill"
+    },
+    {
+      "destination": "node_modules/import-meta-resolve",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/import-meta-resolve"
+    },
+    {
+      "destination": "node_modules/parent-module",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/parent-module"
+    },
+    {
+      "destination": "node_modules/@humanwhocodes/retry",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@humanwhocodes/retry"
+    },
+    {
+      "destination": "node_modules/@humanwhocodes/module-importer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@humanwhocodes/module-importer"
+    },
+    {
+      "destination": "node_modules/function-timeout",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/function-timeout"
+    },
+    {
+      "destination": "node_modules/pluralize",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pluralize"
+    },
+    {
+      "destination": "node_modules/@colors/colors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@colors/colors"
+    },
+    {
+      "destination": "node_modules/cli-highlight",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cli-highlight"
+    },
+    {
+      "destination": "node_modules/dunder-proto",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/dunder-proto"
+    },
+    {
+      "destination": "node_modules/path-to-regexp",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/path-to-regexp"
+    },
+    {
+      "destination": "node_modules/hasown",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/hasown"
+    },
+    {
+      "destination": "node_modules/safer-buffer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/safer-buffer"
+    },
+    {
+      "destination": "node_modules/side-channel-weakmap",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/side-channel-weakmap"
+    },
+    {
+      "destination": "node_modules/is-promise",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-promise"
+    },
+    {
+      "destination": "node_modules/fast-string-truncated-width",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-string-truncated-width"
+    },
+    {
+      "destination": "node_modules/run-parallel",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/run-parallel"
+    },
+    {
+      "destination": "node_modules/p-limit",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-limit"
+    },
+    {
+      "destination": "node_modules/diff",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/diff"
+    },
+    {
+      "destination": "node_modules/mime-types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/mime-types"
+    },
+    {
+      "destination": "node_modules/undici-types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/undici-types"
+    },
+    {
+      "destination": "node_modules/p-each-series",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-each-series"
+    },
+    {
+      "destination": "node_modules/wsl-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/wsl-utils"
+    },
+    {
+      "destination": "node_modules/strip-bom",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/strip-bom"
+    },
+    {
+      "destination": "node_modules/json-schema-traverse",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/json-schema-traverse"
+    },
+    {
+      "destination": "node_modules/pkg-conf",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pkg-conf"
+    },
+    {
+      "destination": "node_modules/virtual-bash",
+      "target": "../packages/safe-bash"
+    },
+    {
+      "destination": "node_modules/@turbo/darwin-arm64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@turbo/darwin-arm64"
+    },
+    {
+      "destination": "node_modules/@isaacs/fs-minipass",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@isaacs/fs-minipass"
+    },
+    {
+      "destination": "node_modules/natural-compare",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/natural-compare"
+    },
+    {
+      "destination": "node_modules/type-is",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/type-is"
+    },
+    {
+      "destination": "node_modules/minimist",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/minimist"
+    },
+    {
+      "destination": "node_modules/mustache",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/mustache"
+    },
+    {
+      "destination": "node_modules/code-block-writer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/code-block-writer"
+    },
+    {
+      "destination": "node_modules/is-stream",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-stream"
+    },
+    {
+      "destination": "node_modules/xtend",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/xtend"
+    },
+    {
+      "destination": "node_modules/split2",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/split2"
+    },
+    {
+      "destination": "node_modules/universalify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/universalify"
+    },
+    {
+      "destination": "node_modules/onetime",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/onetime"
+    },
+    {
+      "destination": "node_modules/esutils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/esutils"
+    },
+    {
+      "destination": "node_modules/find-up",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/find-up"
+    },
+    {
+      "destination": "node_modules/chalk",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/chalk"
+    },
+    {
+      "destination": "node_modules/json-with-bigint",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/json-with-bigint"
+    },
+    {
+      "destination": "node_modules/@braintrust/bt-darwin-arm64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@braintrust/bt-darwin-arm64"
+    },
+    {
+      "destination": "node_modules/ansi-regex",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ansi-regex"
+    },
+    {
+      "destination": "node_modules/astring",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/astring"
+    },
+    {
+      "destination": "node_modules/esprima",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/esprima"
+    },
+    {
+      "destination": "node_modules/tiny-mcp-client",
+      "target": "../packages/tiny-mcp-client"
+    },
+    {
+      "destination": "node_modules/jose",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/jose"
+    },
+    {
+      "destination": "node_modules/make-asynchronous",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/make-asynchronous"
+    },
+    {
+      "destination": "node_modules/siginfo",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/siginfo"
+    },
+    {
+      "destination": "node_modules/has-flag",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/has-flag"
+    },
+    {
+      "destination": "node_modules/supports-color",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/supports-color"
+    },
+    {
+      "destination": "node_modules/html-escaper",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/html-escaper"
+    },
+    {
+      "destination": "node_modules/vary",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/vary"
+    },
+    {
+      "destination": "node_modules/fs-extra",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fs-extra"
+    },
+    {
+      "destination": "node_modules/color-convert",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/color-convert"
+    },
+    {
+      "destination": "node_modules/path-key",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/path-key"
+    },
+    {
+      "destination": "node_modules/merge-stream",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/merge-stream"
+    },
+    {
+      "destination": "node_modules/super-regex",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/super-regex"
+    },
+    {
+      "destination": "node_modules/msgpackr-extract",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/msgpackr-extract"
+    },
+    {
+      "destination": "node_modules/tinybench",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tinybench"
+    },
+    {
+      "destination": "node_modules/istanbul-lib-report",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/istanbul-lib-report"
+    },
+    {
+      "destination": "node_modules/spdx-license-ids",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/spdx-license-ids"
+    },
+    {
+      "destination": "node_modules/json-parse-better-errors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/json-parse-better-errors"
+    },
+    {
+      "destination": "node_modules/unpipe",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/unpipe"
+    },
+    {
+      "destination": "node_modules/bottleneck",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/bottleneck"
+    },
+    {
+      "destination": "node_modules/brace-expansion",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/brace-expansion"
+    },
+    {
+      "destination": "node_modules/fill-range",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fill-range"
+    },
+    {
+      "destination": "node_modules/json-stable-stringify-without-jsonify",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/json-stable-stringify-without-jsonify"
+    },
+    {
+      "destination": "node_modules/registry-auth-token",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/registry-auth-token"
+    },
+    {
+      "destination": "node_modules/git-log-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/git-log-parser"
+    },
+    {
+      "destination": "node_modules/tunnel",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tunnel"
+    },
+    {
+      "destination": "node_modules/get-caller-file",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/get-caller-file"
+    },
+    {
+      "destination": "node_modules/util-deprecate",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/util-deprecate"
+    },
+    {
+      "destination": "node_modules/meriyah",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/meriyah"
+    },
+    {
+      "destination": "node_modules/terminal-pilot-mcp",
+      "target": "../packages/terminal-pilot-mcp"
+    },
+    {
+      "destination": "node_modules/word-wrap",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/word-wrap"
+    },
+    {
+      "destination": "node_modules/time-span",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/time-span"
+    },
+    {
+      "destination": "node_modules/unicode-emoji-modifier-base",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/unicode-emoji-modifier-base"
+    },
+    {
+      "destination": "node_modules/json-schema-typed",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/json-schema-typed"
+    },
+    {
+      "destination": "node_modules/has-symbols",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/has-symbols"
+    },
+    {
+      "destination": "node_modules/@formatjs/intl-durationformat",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@formatjs/intl-durationformat"
+    },
+    {
+      "destination": "node_modules/@formatjs/bigdecimal",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@formatjs/bigdecimal"
+    },
+    {
+      "destination": "node_modules/@formatjs/intl-numberformat",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@formatjs/intl-numberformat"
+    },
+    {
+      "destination": "node_modules/@formatjs/intl-pluralrules",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@formatjs/intl-pluralrules"
+    },
+    {
+      "destination": "node_modules/@formatjs/fast-memoize",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@formatjs/fast-memoize"
+    },
+    {
+      "destination": "node_modules/@formatjs/intl-localematcher",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@formatjs/intl-localematcher"
+    },
+    {
+      "destination": "node_modules/compare-func",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/compare-func"
+    },
+    {
+      "destination": "node_modules/load-json-file",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/load-json-file"
+    },
+    {
+      "destination": "node_modules/kind-of",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/kind-of"
+    },
+    {
+      "destination": "node_modules/mcp-oauth",
+      "target": "../packages/mcp-oauth"
+    },
+    {
+      "destination": "node_modules/picocolors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/picocolors"
+    },
+    {
+      "destination": "node_modules/.package-lock.json",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/.package-lock.json"
+    },
+    {
+      "destination": "node_modules/node-gyp-build-optional-packages",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/node-gyp-build-optional-packages"
+    },
+    {
+      "destination": "node_modules/ieee754",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ieee754"
+    },
+    {
+      "destination": "node_modules/toolcraft-schema",
+      "target": "../packages/toolcraft-schema"
+    },
+    {
+      "destination": "node_modules/json-buffer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/json-buffer"
+    },
+    {
+      "destination": "node_modules/default-browser-id",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/default-browser-id"
+    },
+    {
+      "destination": "node_modules/raw-body",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/raw-body"
+    },
+    {
+      "destination": "node_modules/@apm-js-collab/code-transformer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@apm-js-collab/code-transformer"
+    },
+    {
+      "destination": "node_modules/safe-bash-playground",
+      "target": "../packages/safe-bash-playground"
+    },
+    {
+      "destination": "node_modules/minizlib",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/minizlib"
+    },
+    {
+      "destination": "node_modules/lines-and-columns",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lines-and-columns"
+    },
+    {
+      "destination": "node_modules/semver",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/semver"
+    },
+    {
+      "destination": "node_modules/unplugin",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/unplugin"
+    },
+    {
+      "destination": "node_modules/ini",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ini"
+    },
+    {
+      "destination": "node_modules/hono",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/hono"
+    },
+    {
+      "destination": "node_modules/istanbul-lib-coverage",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/istanbul-lib-coverage"
+    },
+    {
+      "destination": "node_modules/http-errors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/http-errors"
+    },
+    {
+      "destination": "node_modules/through2",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/through2"
+    },
+    {
+      "destination": "node_modules/vite",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/vite"
+    },
+    {
+      "destination": "node_modules/strip-bom-string",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/strip-bom-string"
+    },
+    {
+      "destination": "node_modules/@jspm/core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jspm/core"
+    },
+    {
+      "destination": "node_modules/clean-stack",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/clean-stack"
+    },
+    {
+      "destination": "node_modules/emojilib",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/emojilib"
+    },
+    {
+      "destination": "node_modules/minimatch",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/minimatch"
+    },
+    {
+      "destination": "node_modules/@actions/core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@actions/core"
+    },
+    {
+      "destination": "node_modules/@actions/io",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@actions/io"
+    },
+    {
+      "destination": "node_modules/@actions/http-client",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@actions/http-client"
+    },
+    {
+      "destination": "node_modules/@actions/exec",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@actions/exec"
+    },
+    {
+      "destination": "node_modules/@modelcontextprotocol/sdk",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@modelcontextprotocol/sdk"
+    },
+    {
+      "destination": "node_modules/crypto-random-string",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/crypto-random-string"
+    },
+    {
+      "destination": "node_modules/highlight.js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/highlight.js"
+    },
+    {
+      "destination": "node_modules/accepts",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/accepts"
+    },
+    {
+      "destination": "node_modules/tiktoken",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tiktoken"
+    },
+    {
+      "destination": "node_modules/@sindresorhus/merge-streams",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@sindresorhus/merge-streams"
+    },
+    {
+      "destination": "node_modules/@sindresorhus/is",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@sindresorhus/is"
+    },
+    {
+      "destination": "node_modules/estraverse",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/estraverse"
+    },
+    {
+      "destination": "node_modules/@simple-git/argv-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@simple-git/argv-parser"
+    },
+    {
+      "destination": "node_modules/@simple-git/args-pathspec",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@simple-git/args-pathspec"
+    },
+    {
+      "destination": "node_modules/@simple-libs/stream-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@simple-libs/stream-utils"
+    },
+    {
+      "destination": "node_modules/ansi-styles",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ansi-styles"
+    },
+    {
+      "destination": "node_modules/aggregate-error",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/aggregate-error"
+    },
+    {
+      "destination": "node_modules/fast-uri",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-uri"
+    },
+    {
+      "destination": "node_modules/cookie-signature",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cookie-signature"
+    },
+    {
+      "destination": "node_modules/p-filter",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-filter"
+    },
+    {
+      "destination": "node_modules/forwarded",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/forwarded"
+    },
+    {
+      "destination": "node_modules/handlebars",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/handlebars"
+    },
+    {
+      "destination": "node_modules/@semantic-release/release-notes-generator",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@semantic-release/release-notes-generator"
+    },
+    {
+      "destination": "node_modules/@semantic-release/github",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@semantic-release/github"
+    },
+    {
+      "destination": "node_modules/@semantic-release/error",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@semantic-release/error"
+    },
+    {
+      "destination": "node_modules/@semantic-release/npm",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@semantic-release/npm"
+    },
+    {
+      "destination": "node_modules/@semantic-release/commit-analyzer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@semantic-release/commit-analyzer"
+    },
+    {
+      "destination": "node_modules/js-tokens",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/js-tokens"
+    },
+    {
+      "destination": "node_modules/negotiator",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/negotiator"
+    },
+    {
+      "destination": "node_modules/body-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/body-parser"
+    },
+    {
+      "destination": "node_modules/acorn-jsx",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/acorn-jsx"
+    },
+    {
+      "destination": "node_modules/tiny-stdio-mcp-server",
+      "target": "../packages/tiny-stdio-mcp-server"
+    },
+    {
+      "destination": "node_modules/@babel/helper-string-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@babel/helper-string-parser"
+    },
+    {
+      "destination": "node_modules/@babel/types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@babel/types"
+    },
+    {
+      "destination": "node_modules/@babel/parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@babel/parser"
+    },
+    {
+      "destination": "node_modules/@babel/helper-validator-identifier",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@babel/helper-validator-identifier"
+    },
+    {
+      "destination": "node_modules/@babel/code-frame",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@babel/code-frame"
+    },
+    {
+      "destination": "node_modules/agent-stash",
+      "target": "../packages/agent-stash"
+    },
+    {
+      "destination": "node_modules/validate-npm-package-license",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/validate-npm-package-license"
+    },
+    {
+      "destination": "node_modules/is-number",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-number"
+    },
+    {
+      "destination": "node_modules/@msgpackr-extract/msgpackr-extract-darwin-arm64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@msgpackr-extract/msgpackr-extract-darwin-arm64"
+    },
+    {
+      "destination": "node_modules/@humanfs/types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@humanfs/types"
+    },
+    {
+      "destination": "node_modules/@humanfs/core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@humanfs/core"
+    },
+    {
+      "destination": "node_modules/@humanfs/node",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@humanfs/node"
+    },
+    {
+      "destination": "node_modules/express-rate-limit",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/express-rate-limit"
+    },
+    {
+      "destination": "node_modules/levn",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/levn"
+    },
+    {
+      "destination": "node_modules/terminal-png",
+      "target": "../packages/terminal-png"
+    },
+    {
+      "destination": "node_modules/shell-quote",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/shell-quote"
+    },
+    {
+      "destination": "node_modules/get-east-asian-width",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/get-east-asian-width"
+    },
+    {
+      "destination": "node_modules/yocto-queue",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/yocto-queue"
+    },
+    {
+      "destination": "node_modules/lodash.merge",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lodash.merge"
+    },
+    {
+      "destination": "node_modules/figures",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/figures"
+    },
+    {
+      "destination": "node_modules/rollup",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/rollup"
+    },
+    {
+      "destination": "node_modules/terminal-pilot",
+      "target": "../packages/terminal-pilot"
+    },
+    {
+      "destination": "node_modules/side-channel",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/side-channel"
+    },
+    {
+      "destination": "node_modules/concat-map",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/concat-map"
+    },
+    {
+      "destination": "node_modules/@resvg/resvg-js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@resvg/resvg-js"
+    },
+    {
+      "destination": "node_modules/@resvg/resvg-js-darwin-arm64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@resvg/resvg-js-darwin-arm64"
+    },
+    {
+      "destination": "node_modules/cors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cors"
+    },
+    {
+      "destination": "node_modules/get-stream",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/get-stream"
+    },
+    {
+      "destination": "node_modules/yoctocolors",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/yoctocolors"
+    },
+    {
+      "destination": "node_modules/sprintf-js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/sprintf-js"
+    },
+    {
+      "destination": "node_modules/expect-type",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/expect-type"
+    },
+    {
+      "destination": "node_modules/es-module-lexer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/es-module-lexer"
+    },
+    {
+      "destination": "node_modules/serve-static",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/serve-static"
+    },
+    {
+      "destination": "node_modules/conventional-commits-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/conventional-commits-parser"
+    },
+    {
+      "destination": "node_modules/thenify-all",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/thenify-all"
+    },
+    {
+      "destination": "node_modules/parse-duration",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/parse-duration"
+    },
+    {
+      "destination": "node_modules/optionator",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/optionator"
+    },
+    {
+      "destination": "node_modules/@standard-schema/spec",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@standard-schema/spec"
+    },
+    {
+      "destination": "node_modules/toolcraft",
+      "target": "../packages/toolcraft"
+    },
+    {
+      "destination": "node_modules/lodash.isplainobject",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lodash.isplainobject"
+    },
+    {
+      "destination": "node_modules/convert-source-map",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/convert-source-map"
+    },
+    {
+      "destination": "node_modules/uri-js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/uri-js"
+    },
+    {
+      "destination": "node_modules/is-arrayish",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-arrayish"
+    },
+    {
+      "destination": "node_modules/spdx-expression-parse",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/spdx-expression-parse"
+    },
+    {
+      "destination": "node_modules/any-promise",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/any-promise"
+    },
+    {
+      "destination": "node_modules/hook-std",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/hook-std"
+    },
+    {
+      "destination": "node_modules/cliui",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cliui"
+    },
+    {
+      "destination": "node_modules/parse-ms",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/parse-ms"
+    },
+    {
+      "destination": "node_modules/object-assign",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/object-assign"
+    },
+    {
+      "destination": "node_modules/environment",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/environment"
+    },
+    {
+      "destination": "node_modules/semantic-release",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/semantic-release"
+    },
+    {
+      "destination": "node_modules/lodash.escaperegexp",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lodash.escaperegexp"
+    },
+    {
+      "destination": "node_modules/get-proto",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/get-proto"
+    },
+    {
+      "destination": "node_modules/yaml",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/yaml"
+    },
+    {
+      "destination": "node_modules/tagged-tag",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tagged-tag"
+    },
+    {
+      "destination": "node_modules/cross-spawn",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cross-spawn"
+    },
+    {
+      "destination": "node_modules/ansi-escapes",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ansi-escapes"
+    },
+    {
+      "destination": "node_modules/p-event",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-event"
+    },
+    {
+      "destination": "node_modules/mime",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/mime"
+    },
+    {
+      "destination": "node_modules/@pnpm/npm-conf",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@pnpm/npm-conf"
+    },
+    {
+      "destination": "node_modules/@pnpm/network.ca-file",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@pnpm/network.ca-file"
+    },
+    {
+      "destination": "node_modules/@pnpm/config.env-replace",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@pnpm/config.env-replace"
+    },
+    {
+      "destination": "node_modules/convert-hrtime",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/convert-hrtime"
+    },
+    {
+      "destination": "node_modules/parse5-htmlparser2-tree-adapter",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/parse5-htmlparser2-tree-adapter"
+    },
+    {
+      "destination": "node_modules/yargs",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/yargs"
+    },
+    {
+      "destination": "node_modules/@vitest/spy",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/spy"
+    },
+    {
+      "destination": "node_modules/@vitest/snapshot",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/snapshot"
+    },
+    {
+      "destination": "node_modules/@vitest/coverage-v8",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/coverage-v8"
+    },
+    {
+      "destination": "node_modules/@vitest/runner",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/runner"
+    },
+    {
+      "destination": "node_modules/@vitest/utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/utils"
+    },
+    {
+      "destination": "node_modules/@vitest/mocker",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/mocker"
+    },
+    {
+      "destination": "node_modules/@vitest/pretty-format",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/pretty-format"
+    },
+    {
+      "destination": "node_modules/@vitest/expect",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vitest/expect"
+    },
+    {
+      "destination": "node_modules/traverse",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/traverse"
+    },
+    {
+      "destination": "node_modules/section-matter",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/section-matter"
+    },
+    {
+      "destination": "node_modules/eslint-config-prettier",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/eslint-config-prettier"
+    },
+    {
+      "destination": "node_modules/@octokit/plugin-paginate-rest",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/plugin-paginate-rest"
+    },
+    {
+      "destination": "node_modules/@octokit/request-error",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/request-error"
+    },
+    {
+      "destination": "node_modules/@octokit/auth-token",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/auth-token"
+    },
+    {
+      "destination": "node_modules/@octokit/types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/types"
+    },
+    {
+      "destination": "node_modules/@octokit/core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/core"
+    },
+    {
+      "destination": "node_modules/@octokit/openapi-types",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/openapi-types"
+    },
+    {
+      "destination": "node_modules/@octokit/plugin-throttling",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/plugin-throttling"
+    },
+    {
+      "destination": "node_modules/@octokit/plugin-retry",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/plugin-retry"
+    },
+    {
+      "destination": "node_modules/@octokit/graphql",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/graphql"
+    },
+    {
+      "destination": "node_modules/@octokit/endpoint",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/endpoint"
+    },
+    {
+      "destination": "node_modules/@octokit/request",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@octokit/request"
+    },
+    {
+      "destination": "node_modules/ipaddr.js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ipaddr.js"
+    },
+    {
+      "destination": "node_modules/espree",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/espree"
+    },
+    {
+      "destination": "node_modules/marked-terminal",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/marked-terminal"
+    },
+    {
+      "destination": "node_modules/cldr-units-full",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cldr-units-full"
+    },
+    {
+      "destination": "node_modules/eslint",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/eslint"
+    },
+    {
+      "destination": "node_modules/esquery",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/esquery"
+    },
+    {
+      "destination": "node_modules/import-fresh",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/import-fresh"
+    },
+    {
+      "destination": "node_modules/cookie",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cookie"
+    },
+    {
+      "destination": "node_modules/fast-levenshtein",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-levenshtein"
+    },
+    {
+      "destination": "node_modules/neo-async",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/neo-async"
+    },
+    {
+      "destination": "node_modules/husky",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/husky"
+    },
+    {
+      "destination": "node_modules/to-regex-range",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/to-regex-range"
+    },
+    {
+      "destination": "node_modules/@kwsites/file-exists",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@kwsites/file-exists"
+    },
+    {
+      "destination": "node_modules/@kwsites/promise-deferred",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@kwsites/promise-deferred"
+    },
+    {
+      "destination": "node_modules/meow",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/meow"
+    },
+    {
+      "destination": "node_modules/node-emoji",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/node-emoji"
+    },
+    {
+      "destination": "node_modules/source-map",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/source-map"
+    },
+    {
+      "destination": "node_modules/default-browser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/default-browser"
+    },
+    {
+      "destination": "node_modules/module-details-from-path",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/module-details-from-path"
+    },
+    {
+      "destination": "node_modules/simple-wcswidth",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/simple-wcswidth"
+    },
+    {
+      "destination": "node_modules/@next/env",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@next/env"
+    },
+    {
+      "destination": "node_modules/fast-string-width",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-string-width"
+    },
+    {
+      "destination": "node_modules/cosmiconfig",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cosmiconfig"
+    },
+    {
+      "destination": "node_modules/gopd",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/gopd"
+    },
+    {
+      "destination": "node_modules/rollup-plugin-dts",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/rollup-plugin-dts"
+    },
+    {
+      "destination": "node_modules/is-unicode-supported",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-unicode-supported"
+    },
+    {
+      "destination": "node_modules/escape-html",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/escape-html"
+    },
+    {
+      "destination": "node_modules/jsonc-parser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/jsonc-parser"
+    },
+    {
+      "destination": "node_modules/@vercel/functions",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@vercel/functions"
+    },
+    {
+      "destination": "node_modules/run-applescript",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/run-applescript"
+    },
+    {
+      "destination": "node_modules/uglify-js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/uglify-js"
+    },
+    {
+      "destination": "node_modules/why-is-node-running",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/why-is-node-running"
+    },
+    {
+      "destination": "node_modules/statuses",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/statuses"
+    },
+    {
+      "destination": "node_modules/https-proxy-agent",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/https-proxy-agent"
+    },
+    {
+      "destination": "node_modules/signale",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/signale"
+    },
+    {
+      "destination": "node_modules/string-width",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/string-width"
+    },
+    {
+      "destination": "node_modules/dc-browser",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/dc-browser"
+    },
+    {
+      "destination": "node_modules/esbuild",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/esbuild"
+    },
+    {
+      "destination": "node_modules/minipass",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/minipass"
+    },
+    {
+      "destination": "node_modules/execa",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/execa"
+    },
+    {
+      "destination": "node_modules/yallist",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/yallist"
+    },
+    {
+      "destination": "node_modules/stackback",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/stackback"
+    },
+    {
+      "destination": "node_modules/parseurl",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/parseurl"
+    },
+    {
+      "destination": "node_modules/@jridgewell/sourcemap-codec",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jridgewell/sourcemap-codec"
+    },
+    {
+      "destination": "node_modules/@jridgewell/trace-mapping",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jridgewell/trace-mapping"
+    },
+    {
+      "destination": "node_modules/@jridgewell/gen-mapping",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jridgewell/gen-mapping"
+    },
+    {
+      "destination": "node_modules/@jridgewell/resolve-uri",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jridgewell/resolve-uri"
+    },
+    {
+      "destination": "node_modules/@jridgewell/remapping",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@jridgewell/remapping"
+    },
+    {
+      "destination": "node_modules/etag",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/etag"
+    },
+    {
+      "destination": "node_modules/msgpackr",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/msgpackr"
+    },
+    {
+      "destination": "node_modules/p-try",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-try"
+    },
+    {
+      "destination": "node_modules/isarray",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/isarray"
+    },
+    {
+      "destination": "node_modules/magicast",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/magicast"
+    },
+    {
+      "destination": "node_modules/micromatch",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/micromatch"
+    },
+    {
+      "destination": "node_modules/wrappy",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/wrappy"
+    },
+    {
+      "destination": "node_modules/hyperdyperid",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/hyperdyperid"
+    },
+    {
+      "destination": "node_modules/http-proxy-agent",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/http-proxy-agent"
+    },
+    {
+      "destination": "node_modules/fast-glob",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-glob"
+    },
+    {
+      "destination": "node_modules/resolve-from",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/resolve-from"
+    },
+    {
+      "destination": "node_modules/proxy-agent-negotiate",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/proxy-agent-negotiate"
+    },
+    {
+      "destination": "node_modules/lodash.capitalize",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lodash.capitalize"
+    },
+    {
+      "destination": "node_modules/send",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/send"
+    },
+    {
+      "destination": "node_modules/is-extglob",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/is-extglob"
+    },
+    {
+      "destination": "node_modules/uuid",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/uuid"
+    },
+    {
+      "destination": "node_modules/tinyexec",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tinyexec"
+    },
+    {
+      "destination": "node_modules/fastq",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fastq"
+    },
+    {
+      "destination": "node_modules/finalhandler",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/finalhandler"
+    },
+    {
+      "destination": "node_modules/pathe",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pathe"
+    },
+    {
+      "destination": "node_modules/.cache",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/.cache"
+    },
+    {
+      "destination": "node_modules/rc",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/rc"
+    },
+    {
+      "destination": "node_modules/parse5",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/parse5"
+    },
+    {
+      "destination": "node_modules/@bcoe/v8-coverage",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@bcoe/v8-coverage"
+    },
+    {
+      "destination": "node_modules/tar",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tar"
+    },
+    {
+      "destination": "node_modules/merge2",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/merge2"
+    },
+    {
+      "destination": "node_modules/deep-is",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/deep-is"
+    },
+    {
+      "destination": "node_modules/console-table-printer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/console-table-printer"
+    },
+    {
+      "destination": "node_modules/webpack-virtual-modules",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/webpack-virtual-modules"
+    },
+    {
+      "destination": "node_modules/braces",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/braces"
+    },
+    {
+      "destination": "node_modules/agent-code-review",
+      "target": "../packages/agent-code-review"
+    },
+    {
+      "destination": "node_modules/auth-store",
+      "target": "../packages/auth-store"
+    },
+    {
+      "destination": "node_modules/npm",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/npm"
+    },
+    {
+      "destination": "node_modules/which",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/which"
+    },
+    {
+      "destination": "node_modules/side-channel-map",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/side-channel-map"
+    },
+    {
+      "destination": "node_modules/ajv",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ajv"
+    },
+    {
+      "destination": "node_modules/emoji-regex",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/emoji-regex"
+    },
+    {
+      "destination": "node_modules/open",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/open"
+    },
+    {
+      "destination": "node_modules/object-inspect",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/object-inspect"
+    },
+    {
+      "destination": "node_modules/web-worker",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/web-worker"
+    },
+    {
+      "destination": "node_modules/@eslint-community/eslint-utils",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint-community/eslint-utils"
+    },
+    {
+      "destination": "node_modules/@eslint-community/regexpp",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@eslint-community/regexpp"
+    },
+    {
+      "destination": "node_modules/readable-stream",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/readable-stream"
+    },
+    {
+      "destination": "node_modules/tinyrainbow",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/tinyrainbow"
+    },
+    {
+      "destination": "node_modules/universal-user-agent",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/universal-user-agent"
+    },
+    {
+      "destination": "node_modules/type-check",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/type-check"
+    },
+    {
+      "destination": "node_modules/locate-path",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/locate-path"
+    },
+    {
+      "destination": "node_modules/.vite",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/.vite"
+    },
+    {
+      "destination": "node_modules/github-review",
+      "target": "../packages/github-review"
+    },
+    {
+      "destination": "node_modules/graceful-fs",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/graceful-fs"
+    },
+    {
+      "destination": "node_modules/on-finished",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/on-finished"
+    },
+    {
+      "destination": "node_modules/conventional-changelog-angular",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/conventional-changelog-angular"
+    },
+    {
+      "destination": "node_modules/temp-dir",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/temp-dir"
+    },
+    {
+      "destination": "node_modules/human-signals",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/human-signals"
+    },
+    {
+      "destination": "node_modules/fsevents",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fsevents"
+    },
+    {
+      "destination": "node_modules/p-timeout",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-timeout"
+    },
+    {
+      "destination": "node_modules/fast-deep-equal",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/fast-deep-equal"
+    },
+    {
+      "destination": "node_modules/openai",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/openai"
+    },
+    {
+      "destination": "node_modules/shebang-command",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/shebang-command"
+    },
+    {
+      "destination": "node_modules/require-from-string",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/require-from-string"
+    },
+    {
+      "destination": "node_modules/simple-git",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/simple-git"
+    },
+    {
+      "destination": "node_modules/debug",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/debug"
+    },
+    {
+      "destination": "node_modules/dot-prop",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/dot-prop"
+    },
+    {
+      "destination": "node_modules/glob-parent",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/glob-parent"
+    },
+    {
+      "destination": "node_modules/lightningcss",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/lightningcss"
+    },
+    {
+      "destination": "node_modules/source-map-js",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/source-map-js"
+    },
+    {
+      "destination": "node_modules/thingies",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/thingies"
+    },
+    {
+      "destination": "node_modules/read-pkg",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/read-pkg"
+    },
+    {
+      "destination": "node_modules/media-typer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/media-typer"
+    },
+    {
+      "destination": "node_modules/p-map",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/p-map"
+    },
+    {
+      "destination": "node_modules/ast-v8-to-istanbul",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/ast-v8-to-istanbul"
+    },
+    {
+      "destination": "node_modules/buffer",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/buffer"
+    },
+    {
+      "destination": "node_modules/mime-db",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/mime-db"
+    },
+    {
+      "destination": "node_modules/cldr-core",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/cldr-core"
+    },
+    {
+      "destination": "node_modules/isexe",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/isexe"
+    },
+    {
+      "destination": "node_modules/unicorn-magic",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/unicorn-magic"
+    },
+    {
+      "destination": "node_modules/es-object-atoms",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/es-object-atoms"
+    },
+    {
+      "destination": "node_modules/@esbuild/darwin-arm64",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/@esbuild/darwin-arm64"
+    },
+    {
+      "destination": "node_modules/skin-tone",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/skin-tone"
+    },
+    {
+      "destination": "node_modules/router",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/router"
+    },
+    {
+      "destination": "node_modules/pretty-ms",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/pretty-ms"
+    },
+    {
+      "destination": "node_modules/setprototypeof",
+      "target": "/Users/kjopek/Workspace/poe-code/node_modules/setprototypeof"
+    }
+  ]
+}

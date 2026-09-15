@@ -1,0 +1,69 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/parse/template-regex-boundaries.test.ts (13 tests) 252ms
+ ❯ packages/safe-js/src/parse/block-regexp-goal.test.ts (17 tests | 1 failed) 667ms
+   ✓ recognizes a regexp statement after {} 60ms
+   ✓ recognizes a regexp statement after {0;} 38ms
+   ✓ recognizes a regexp statement after {{}} 32ms
+   ✓ recognizes a regexp statement after 0;{} 33ms
+   ✓ recognizes a regexp statement after {}{} 32ms
+   ✓ recognizes a regexp statement after if(true){} 29ms
+   ✓ recognizes a regexp statement after while(false){} 35ms
+   ✓ recognizes a regexp statement after try{}finally{} 30ms
+   × recognizes a regexp statement after switch(0){} 3ms
+   ✓ preserves expression-ending braces: return ({valueOf(){return 8}})/2; 15ms
+   ✓ preserves expression-ending braces: return `${{valueOf(){return 8}}/2}`; 16ms
+   ✓ preserves expression-ending braces: const value=function(){} /2;return Number.isNaN(value); 15ms
+   ✓ preserves expression-ending braces: const value=(()=>{})/2;return Number.isNaN(value); 16ms
+   ✓ preserves expression-ending braces: const value=true?{}:{};return Number.isNaN(value/2); 15ms
+   ✓ keeps the legacy expression parser's object division goal 0ms
+   ✓ recognizes brace-containing regexps after blocks inside template substitutions 15ms
+   ✓ preserves regexp source and authority through repeated replay 279ms
+FAIL packages/safe-js/src/parse/block-regexp-goal.test.ts > recognizes a regexp statement after switch(0){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 12."
+
+ ❯ packages/safe-js/src/parse/block-regexp-goal.test.ts:9:43
+      7| it.each(["{}", "{0;}", "{{}}", "0;{}", "{}{}", "if(true){}", "while(fa…
+      8|   const source=prefix+'/x/.test("x");';
+      9|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     10|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     11|   expect(await run(prefix+'return /x/.test("x");')).toMatchObject({ok:…
+
+ ✓ packages/safe-js/src/parse/tokenizer.test.ts (25 tests) 14ms
+ ✓ packages/safe-js/src/parse/lexical-regexp-qualification.test.ts (22 tests) 80ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/block-regexp-goal.test.ts > recognizes a regexp statement after switch(0){}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'/\' a…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token '/' at line 1, column 12."
+
+ ❯ packages/safe-js/src/parse/block-regexp-goal.test.ts:9:43
+      7| it.each(["{}", "{0;}", "{{}}", "0;{}", "{}{}", "if(true){}", "while(fa…
+      8|   const source=prefix+'/x/.test("x");';
+      9|   expect(()=>parseEvalScript(source)).not.toThrow();
+       |                                           ^
+     10|   expect(()=>parseEvalScript('"use strict";'+source)).not.toThrow();
+     11|   expect(await run(prefix+'return /x/.test("x");')).toMatchObject({ok:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 76 passed (77)
+   Start at  11:45:24
+   Duration  2.71s (transform 2.80s, setup 79ms, import 3.96s, tests 1.01s, environment 0ms)
+

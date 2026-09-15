@@ -593,6 +593,9 @@ export function generatorIterator(generator: SandboxGenerator, budget?: Budget, 
     method: "next" | "return" | "throw",
     value?: SandboxValue
   ): Promise<IteratorResult<SandboxValue>> => {
+    // GeneratorValidate is a language error; it must precede the host channel
+    // guard and must not change the executing generator's state.
+    if (generator.state === "running") throw new TypeError("Generator is already executing.");
     const leaveRunning = enterRunningState(generator);
     generator.state = "running";
     try {

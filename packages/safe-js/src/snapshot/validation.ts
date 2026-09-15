@@ -1,3 +1,4 @@
+import { retainedAccessorClosures } from "../interp/accessors.js";
 import { replaceErrorStack, sandboxErrorNames, type SandboxErrorName } from "../error/shape.js";
 import { validateBigIntData } from "./bigint.js";
 import { validateRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
@@ -17,6 +18,7 @@ import { restoreDateTime } from "../interp/date.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState, isGuestClosure } from "../interp/object-model.js";
 import { getIntrinsicIdentity } from "../interp/intrinsics.js";
+import { isSandboxModuleNamespace } from "../interp/module-namespace.js";
 import { isSandboxClosure, snapshotRuntimeGetters } from "../interp/values.js";
 import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-validation.js";
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
@@ -139,7 +141,7 @@ export function validateDumpEnvelope(
   const semantics = semanticsDescriptor?.value;
   if (
     options.resume === true &&
-    semantics !== EXECUTION_SEMANTICS && semantics !== "jobs-v6" && semantics !== "jobs-v7" &&
+    semantics !== EXECUTION_SEMANTICS && semantics !== "jobs-v6" && semantics !== "jobs-v7" && semantics !== "jobs-v8" &&
     (semantics !== undefined || ["promiseReplay", "replay", "initialInputs"].some(key => {
       const descriptor = Object.getOwnPropertyDescriptor(root, key);
       return descriptor !== undefined && (!("value" in descriptor) || descriptor.value !== undefined);
@@ -1013,11 +1015,13 @@ function validateGenericValue(
   depth: number,
   state: ValidationState
 ): void {
-  if (types.isProxy(value) && (state.dataPropertiesOnly || getIntrinsicIdentity(value as object) === undefined)) {
+  if (types.isProxy(value) && (state.dataPropertiesOnly ||
+      (getIntrinsicIdentity(value as object) === undefined && !isSandboxModuleNamespace(value)))) {
     fail("invalidType", path, "proxy objects are not snapshot data");
   }
   if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
-      !(state.allowHostFunctionState && isSandboxClosure(value) && !isGuestClosure(value))) {
+      !(state.allowHostFunctionState && (isSandboxModuleNamespace(value) ||
+        (isSandboxClosure(value) && !isGuestClosure(value))))) {
     fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
   }
   if (depth > state.limits.maxDepth)
@@ -1093,6 +1097,30 @@ function validateGenericValue(
     fail("budgetExceeded", path, `exceeds aggregate data limit ${state.limits.maxDataSize}`);
 }
 
+// A guest-state fallback must not discard active caller data that occurs after
+// the first value requiring portable serialization. Inspect descriptors without
+// following cycles or consulting caller Proxy traps before conversion begins.
+export function validateRuntimeSnapshotDescriptors(snapshot: object): void {
+  const pending = [{ value: snapshot, path: "$", depth: 0 }];
+  const seen = new WeakSet<object>();
+  let entries = 0;
+  while (pending.length > 0) {
+    const { value, path, depth } = pending.pop()!;
+    if (types.isProxy(value) && getIntrinsicIdentity(value) === undefined && !isSandboxModuleNamespace(value))
+      fail("invalidType", path, "proxy objects are not snapshot data");
+    if (seen.has(value)) continue;
+    seen.add(value);
+    if (depth > MAX_DATA_DEPTH)
+      fail("budgetExceeded", path, `exceeds nesting limit ${MAX_DATA_DEPTH}`);
+    for (const [key, entry] of ownSnapshotDataEntries(value, path, true, true)) {
+      if (++entries > DEFAULT_MAX_ENTRIES)
+        fail("budgetExceeded", path, `exceeds aggregate entry limit ${DEFAULT_MAX_ENTRIES}`);
+      if (entry !== null && typeof entry === "object")
+        pending.push({ value: entry, path: `${path}${formatKey(key)}`, depth: depth + 1 });
+    }
+  }
+}
+
 function snapshotDataEntries(value: object, path: string, checkedPrototypes?: WeakSet<object>): Array<[string, unknown]> {
   const prototype = Object.getPrototypeOf(value);
   if (
@@ -1114,7 +1142,7 @@ function snapshotDataEntries(value: object, path: string, checkedPrototypes?: We
   return ownSnapshotDataEntries(value, path);
 }
 
-function ownSnapshotDataEntries(value: object, path: string, runtime = false): Array<[string, unknown]> {
+function ownSnapshotDataEntries(value: object, path: string, runtime = false, guestDescriptors = false): Array<[string, unknown]> {
   const entries: Array<[string, unknown]> = [];
   for (const key of Object.getOwnPropertyNames(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
@@ -1122,6 +1150,16 @@ function ownSnapshotDataEntries(value: object, path: string, runtime = false): A
     // Caller accessors, including non-enumerable ones, never gain that authority.
     const runtimeGetter = runtime && descriptor.get !== undefined &&
       descriptor.set === undefined && snapshotRuntimeGetters.has(descriptor.get);
+    if (guestDescriptors && !("value" in descriptor) && !runtimeGetter) {
+      const closures = retainedAccessorClosures(descriptor);
+      const adapters = [descriptor.get, descriptor.set].filter(adapter => adapter !== undefined);
+      if (closures.length > 0 && closures.length === adapters.length) {
+        // Only private engine-registered identities have this authority.
+        // Inspect retained closures without executing the accessor adapters.
+        closures.forEach((closure, index) => entries.push([`${key}.accessor${index}`, closure]));
+        continue;
+      }
+    }
     if (!("value" in descriptor) && !runtimeGetter)
       fail("invalidType", `${path}${formatKey(key)}`, "must be a data property; snapshot data must not have accessors");
     if (!runtime || descriptor.enumerable)

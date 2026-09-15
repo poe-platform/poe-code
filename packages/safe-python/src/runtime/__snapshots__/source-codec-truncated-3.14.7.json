@@ -1,0 +1,906 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "utf8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "stdout": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

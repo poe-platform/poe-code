@@ -1,0 +1,322 @@
+{
+  "__new__": {
+    "kind": "builtin_function_or_method",
+    "doc": "Create and return a new object.  See help(type) for accurate signature.",
+    "signature": "($type, *args, **kwargs)"
+  },
+  "__repr__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return repr(self).",
+    "signature": "($self, /)"
+  },
+  "__hash__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return hash(self).",
+    "signature": "($self, /)"
+  },
+  "__str__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return str(self).",
+    "signature": "($self, /)"
+  },
+  "__lt__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self<value.",
+    "signature": "($self, value, /)"
+  },
+  "__le__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self<=value.",
+    "signature": "($self, value, /)"
+  },
+  "__eq__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self==value.",
+    "signature": "($self, value, /)"
+  },
+  "__ne__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self!=value.",
+    "signature": "($self, value, /)"
+  },
+  "__gt__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self>value.",
+    "signature": "($self, value, /)"
+  },
+  "__ge__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self>=value.",
+    "signature": "($self, value, /)"
+  },
+  "__iter__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Implement iter(self).",
+    "signature": "($self, /)"
+  },
+  "__buffer__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return a buffer object that exposes the underlying memory of the object.",
+    "signature": "($self, flags, /)"
+  },
+  "__mod__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self%value.",
+    "signature": "($self, value, /)"
+  },
+  "__rmod__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return value%self.",
+    "signature": "($self, value, /)"
+  },
+  "__len__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return len(self).",
+    "signature": "($self, /)"
+  },
+  "__getitem__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self[key].",
+    "signature": "($self, key, /)"
+  },
+  "__add__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self+value.",
+    "signature": "($self, value, /)"
+  },
+  "__mul__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return self*value.",
+    "signature": "($self, value, /)"
+  },
+  "__rmul__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return value*self.",
+    "signature": "($self, value, /)"
+  },
+  "__contains__": {
+    "kind": "wrapper_descriptor",
+    "doc": "Return bool(key in self).",
+    "signature": "($self, key, /)"
+  },
+  "__getnewargs__": {
+    "kind": "method_descriptor",
+    "doc": null,
+    "signature": "($self, /)"
+  },
+  "__bytes__": {
+    "kind": "method_descriptor",
+    "doc": "Convert this value to exact type bytes.",
+    "signature": "($self, /)"
+  },
+  "capitalize": {
+    "kind": "method_descriptor",
+    "doc": "B.capitalize() -> copy of B\n\nReturn a copy of B with only its first character capitalized (ASCII)\nand the rest lower-cased.",
+    "signature": "($self, /)"
+  },
+  "center": {
+    "kind": "method_descriptor",
+    "doc": "Return a centered string of length width.\n\nPadding is done using the specified fill character.",
+    "signature": "($self, width, fillchar=b' ', /)"
+  },
+  "count": {
+    "kind": "method_descriptor",
+    "doc": "Return the number of non-overlapping occurrences of subsection 'sub' in bytes B[start:end].\n\n  start\n    Optional start position. Default: start of the bytes.\n  end\n    Optional stop position. Default: end of the bytes.",
+    "signature": "($self, sub[, start[, end]], /)"
+  },
+  "decode": {
+    "kind": "method_descriptor",
+    "doc": "Decode the bytes using the codec registered for encoding.\n\n  encoding\n    The encoding with which to decode the bytes.\n  errors\n    The error handling scheme to use for the handling of decoding\n    errors.  The default is 'strict' meaning that decoding errors\n    raise a UnicodeDecodeError.  Other possible values are 'ignore'\n    and 'replace' as well as any other name registered with\n    codecs.register_error that can handle UnicodeDecodeErrors.",
+    "signature": "($self, /, encoding='utf-8', errors='strict')"
+  },
+  "endswith": {
+    "kind": "method_descriptor",
+    "doc": "Return True if the bytes ends with the specified suffix, False otherwise.\n\n  suffix\n    A bytes or a tuple of bytes to try.\n  start\n    Optional start position. Default: start of the bytes.\n  end\n    Optional stop position. Default: end of the bytes.",
+    "signature": "($self, suffix[, start[, end]], /)"
+  },
+  "expandtabs": {
+    "kind": "method_descriptor",
+    "doc": "Return a copy where all tab characters are expanded using spaces.\n\nIf tabsize is not given, a tab size of 8 characters is assumed.",
+    "signature": "($self, /, tabsize=8)"
+  },
+  "find": {
+    "kind": "method_descriptor",
+    "doc": "Return the lowest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\n\n  start\n    Optional start position. Default: start of the bytes.\n  end\n    Optional stop position. Default: end of the bytes.\n\nReturn -1 on failure.",
+    "signature": "($self, sub[, start[, end]], /)"
+  },
+  "fromhex": {
+    "kind": "classmethod_descriptor",
+    "doc": "Create a bytes object from a string of hexadecimal numbers.\n\nSpaces between two numbers are accepted.\nExample: bytes.fromhex('B9 01EF') -> b'\\\\xb9\\\\x01\\\\xef'.",
+    "signature": "($type, string, /)"
+  },
+  "hex": {
+    "kind": "method_descriptor",
+    "doc": "Create a string of hexadecimal numbers from a bytes object.\n\n  sep\n    An optional single character or byte to separate hex bytes.\n  bytes_per_sep\n    How many bytes between separators.  Positive values count from\n    the right, negative values count from the left.\n\nExample:\n>>> value = b'\\xb9\\x01\\xef'\n>>> value.hex()\n'b901ef'\n>>> value.hex(':')\n'b9:01:ef'\n>>> value.hex(':', 2)\n'b9:01ef'\n>>> value.hex(':', -2)\n'b901:ef'",
+    "signature": "($self, /, sep=<unrepresentable>, bytes_per_sep=1)"
+  },
+  "index": {
+    "kind": "method_descriptor",
+    "doc": "Return the lowest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\n\n  start\n    Optional start position. Default: start of the bytes.\n  end\n    Optional stop position. Default: end of the bytes.\n\nRaise ValueError if the subsection is not found.",
+    "signature": "($self, sub[, start[, end]], /)"
+  },
+  "isalnum": {
+    "kind": "method_descriptor",
+    "doc": "B.isalnum() -> bool\n\nReturn True if all characters in B are alphanumeric\nand there is at least one character in B, False otherwise.",
+    "signature": "($self, /)"
+  },
+  "isalpha": {
+    "kind": "method_descriptor",
+    "doc": "B.isalpha() -> bool\n\nReturn True if all characters in B are alphabetic\nand there is at least one character in B, False otherwise.",
+    "signature": "($self, /)"
+  },
+  "isascii": {
+    "kind": "method_descriptor",
+    "doc": "B.isascii() -> bool\n\nReturn True if B is empty or all characters in B are ASCII,\nFalse otherwise.",
+    "signature": "($self, /)"
+  },
+  "isdigit": {
+    "kind": "method_descriptor",
+    "doc": "B.isdigit() -> bool\n\nReturn True if all characters in B are digits\nand there is at least one character in B, False otherwise.",
+    "signature": "($self, /)"
+  },
+  "islower": {
+    "kind": "method_descriptor",
+    "doc": "B.islower() -> bool\n\nReturn True if all cased characters in B are lowercase and there is\nat least one cased character in B, False otherwise.",
+    "signature": "($self, /)"
+  },
+  "isspace": {
+    "kind": "method_descriptor",
+    "doc": "B.isspace() -> bool\n\nReturn True if all characters in B are whitespace\nand there is at least one character in B, False otherwise.",
+    "signature": "($self, /)"
+  },
+  "istitle": {
+    "kind": "method_descriptor",
+    "doc": "B.istitle() -> bool\n\nReturn True if B is a titlecased string and there is at least one\ncharacter in B, i.e. uppercase characters may only follow uncased\ncharacters and lowercase characters only cased ones. Return False\notherwise.",
+    "signature": "($self, /)"
+  },
+  "isupper": {
+    "kind": "method_descriptor",
+    "doc": "B.isupper() -> bool\n\nReturn True if all cased characters in B are uppercase and there is\nat least one cased character in B, False otherwise.",
+    "signature": "($self, /)"
+  },
+  "join": {
+    "kind": "method_descriptor",
+    "doc": "Concatenate any number of bytes objects.\n\nThe bytes whose method is called is inserted in between each pair.\n\nThe result is returned as a new bytes object.\n\nExample: b'.'.join([b'ab', b'pq', b'rs']) -> b'ab.pq.rs'.",
+    "signature": "($self, iterable_of_bytes, /)"
+  },
+  "ljust": {
+    "kind": "method_descriptor",
+    "doc": "Return a left-justified string of length width.\n\nPadding is done using the specified fill character.",
+    "signature": "($self, width, fillchar=b' ', /)"
+  },
+  "lower": {
+    "kind": "method_descriptor",
+    "doc": "B.lower() -> copy of B\n\nReturn a copy of B with all ASCII characters converted to lowercase.",
+    "signature": "($self, /)"
+  },
+  "lstrip": {
+    "kind": "method_descriptor",
+    "doc": "Strip leading bytes contained in the argument.\n\nIf the argument is omitted or None, strip leading  ASCII whitespace.",
+    "signature": "($self, bytes=None, /)"
+  },
+  "maketrans": {
+    "kind": "staticmethod",
+    "doc": "Convert a function to be a static method.\n\nA static method does not receive an implicit first argument.\nTo declare a static method, use this idiom:\n\n     class C:\n         @staticmethod\n         def f(arg1, arg2, argN):\n             ...\n\nIt can be called either on the class (e.g. C.f()) or on an instance\n(e.g. C().f()). Both the class and the instance are ignored, and\nneither is passed implicitly as the first argument to the method.\n\nStatic methods in Python are similar to those found in Java or C++.\nFor a more advanced concept, see the classmethod builtin.",
+    "signature": null
+  },
+  "partition": {
+    "kind": "method_descriptor",
+    "doc": "Partition the bytes into three parts using the given separator.\n\nThis will search for the separator sep in the bytes.  If the\nseparator is found, returns a 3-tuple containing the part before the\nseparator, the separator itself, and the part after it.\n\nIf the separator is not found, returns a 3-tuple containing the\noriginal bytes object and two empty bytes objects.",
+    "signature": "($self, sep, /)"
+  },
+  "replace": {
+    "kind": "method_descriptor",
+    "doc": "Return a copy with all occurrences of substring old replaced by new.\n\n  count\n    Maximum number of occurrences to replace.\n    -1 (the default value) means replace all occurrences.\n\nIf the optional argument count is given, only the first count occurrences are\nreplaced.",
+    "signature": "($self, old, new, count=-1, /)"
+  },
+  "removeprefix": {
+    "kind": "method_descriptor",
+    "doc": "Return a bytes object with the given prefix string removed if present.\n\nIf the bytes starts with the prefix string, return\nbytes[len(prefix):].  Otherwise, return a copy of the original\nbytes.",
+    "signature": "($self, prefix, /)"
+  },
+  "removesuffix": {
+    "kind": "method_descriptor",
+    "doc": "Return a bytes object with the given suffix string removed if present.\n\nIf the bytes ends with the suffix string and that suffix is not\nempty, return bytes[:-len(prefix)].  Otherwise, return a copy of the\noriginal bytes.",
+    "signature": "($self, suffix, /)"
+  },
+  "rfind": {
+    "kind": "method_descriptor",
+    "doc": "Return the highest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\n\n  start\n    Optional start position. Default: start of the bytes.\n  end\n    Optional stop position. Default: end of the bytes.\n\nReturn -1 on failure.",
+    "signature": "($self, sub[, start[, end]], /)"
+  },
+  "rindex": {
+    "kind": "method_descriptor",
+    "doc": "Return the highest index in B where subsection 'sub' is found, such that 'sub' is contained within B[start,end].\n\n  start\n    Optional start position. Default: start of the bytes.\n  end\n    Optional stop position. Default: end of the bytes.\n\nRaise ValueError if the subsection is not found.",
+    "signature": "($self, sub[, start[, end]], /)"
+  },
+  "rjust": {
+    "kind": "method_descriptor",
+    "doc": "Return a right-justified string of length width.\n\nPadding is done using the specified fill character.",
+    "signature": "($self, width, fillchar=b' ', /)"
+  },
+  "rpartition": {
+    "kind": "method_descriptor",
+    "doc": "Partition the bytes into three parts using the given separator.\n\nThis will search for the separator sep in the bytes, starting at the\nend.  If the separator is found, returns a 3-tuple containing the\npart before the separator, the separator itself, and the part after\nit.\n\nIf the separator is not found, returns a 3-tuple containing two\nempty bytes objects and the original bytes object.",
+    "signature": "($self, sep, /)"
+  },
+  "rsplit": {
+    "kind": "method_descriptor",
+    "doc": "Return a list of the sections in the bytes, using sep as the delimiter.\n\n  sep\n    The delimiter according which to split the bytes.\n    None (the default value) means split on ASCII whitespace\n    characters (space, tab, return, newline, formfeed, vertical tab).\n  maxsplit\n    Maximum number of splits to do.\n    -1 (the default value) means no limit.\n\nSplitting is done starting at the end of the bytes and working to\nthe front.",
+    "signature": "($self, /, sep=None, maxsplit=-1)"
+  },
+  "rstrip": {
+    "kind": "method_descriptor",
+    "doc": "Strip trailing bytes contained in the argument.\n\nIf the argument is omitted or None, strip trailing ASCII whitespace.",
+    "signature": "($self, bytes=None, /)"
+  },
+  "split": {
+    "kind": "method_descriptor",
+    "doc": "Return a list of the sections in the bytes, using sep as the delimiter.\n\n  sep\n    The delimiter according which to split the bytes.\n    None (the default value) means split on ASCII whitespace\n    characters (space, tab, return, newline, formfeed, vertical tab).\n  maxsplit\n    Maximum number of splits to do.\n    -1 (the default value) means no limit.",
+    "signature": "($self, /, sep=None, maxsplit=-1)"
+  },
+  "splitlines": {
+    "kind": "method_descriptor",
+    "doc": "Return a list of the lines in the bytes, breaking at line boundaries.\n\nLine breaks are not included in the resulting list unless keepends\nis given and true.",
+    "signature": "($self, /, keepends=False)"
+  },
+  "startswith": {
+    "kind": "method_descriptor",
+    "doc": "Return True if the bytes starts with the specified prefix, False otherwise.\n\n  prefix\n    A bytes or a tuple of bytes to try.\n  start\n    Optional start position. Default: start of the bytes.\n  end\n    Optional stop position. Default: end of the bytes.",
+    "signature": "($self, prefix[, start[, end]], /)"
+  },
+  "strip": {
+    "kind": "method_descriptor",
+    "doc": "Strip leading and trailing bytes contained in the argument.\n\nIf the argument is omitted or None, strip leading and trailing ASCII\nwhitespace.",
+    "signature": "($self, bytes=None, /)"
+  },
+  "swapcase": {
+    "kind": "method_descriptor",
+    "doc": "B.swapcase() -> copy of B\n\nReturn a copy of B with uppercase ASCII characters converted\nto lowercase ASCII and vice versa.",
+    "signature": "($self, /)"
+  },
+  "title": {
+    "kind": "method_descriptor",
+    "doc": "B.title() -> copy of B\n\nReturn a titlecased version of B, i.e. ASCII words start with\nuppercase characters, all remaining cased characters have lowercase.",
+    "signature": "($self, /)"
+  },
+  "translate": {
+    "kind": "method_descriptor",
+    "doc": "Return a copy with each character mapped by the given translation table.\n\n  table\n    Translation table, which must be a bytes object of length 256.\n\nAll characters occurring in the optional argument delete are\nremoved.  The remaining characters are mapped through the given\ntranslation table.",
+    "signature": "($self, table, /, delete=b'')"
+  },
+  "upper": {
+    "kind": "method_descriptor",
+    "doc": "B.upper() -> copy of B\n\nReturn a copy of B with all ASCII characters converted to uppercase.",
+    "signature": "($self, /)"
+  },
+  "zfill": {
+    "kind": "method_descriptor",
+    "doc": "Pad a numeric string with zeros on the left, to fill a field of the given width.\n\nThe original string is never truncated.",
+    "signature": "($self, width, /)"
+  }
+}

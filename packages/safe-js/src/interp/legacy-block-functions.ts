@@ -6,19 +6,20 @@ import type { Scope } from "./scope.js";
 export const legacyBlockFunctions = new WeakSet<FunctionDeclaration>();
 const declarations = new WeakMap<FunctionNode, Set<FunctionDeclaration>>();
 
-export function prepareLegacyBlockFunctions(node: FunctionNode, scope: Scope): void {
+export function prepareLegacyBlockFunctions(node: FunctionNode, scope: Scope, needsArguments: boolean): void {
   if (functionStrictness.get(node) !== false || node.body.type !== "BlockStatement") return;
   let functions = declarations.get(node);
   if (functions === undefined) {
     functions = new Set();
     const parameters = new Set(node.params.flatMap(parameter => [...boundIdentifiers(parameter)].map(id => id.name)));
+    if (needsArguments) parameters.add("arguments");
     collectStatementList(node.body.body, parameters, functions, true);
     declarations.set(node, functions);
     for (const declaration of functions) legacyBlockFunctions.add(declaration);
   }
   for (const declaration of functions) {
     const name = declaration.id!.name;
-    if (name !== "arguments" && !scope.hasOwnBinding(name)) scope.declareVar(name);
+    if (!scope.hasOwnBinding(name)) scope.declareVar(name);
   }
 }
 

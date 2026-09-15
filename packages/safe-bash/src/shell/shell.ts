@@ -1,3 +1,4 @@
+import { BackgroundExecution, BackgroundJobs } from "./background-jobs.js";
 import { writeDiagnostic } from "../escaping.js";
 import { createDeviceFileSystem } from "poe-code/safe-fs/core";
 import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
@@ -234,6 +235,7 @@ export class Shell implements PluginHost {
       stdinIsDefault: options.stdin === undefined,
       stdout: sink(stdout, options.stdout), stderr: sink(stderr, options.stderr),
     };
+    const background = new BackgroundExecution(scope, () => budget.tick());
     let exitCode: number;
     let failed = false;
     try {
@@ -252,6 +254,7 @@ export class Shell implements PluginHost {
         variables.OPTIND = "1";
         variables.OPTERR = "1";
         const state: State = {
+          backgroundJobs: new BackgroundJobs(background),
           cwd, variables, exported, functions: new Map(), positional: [], getopts: { cursor: { index: 0 }, integer: true },
           directoryStack: { entries: [], bytes: 0 },
           dotglob: false,
@@ -306,7 +309,10 @@ export class Shell implements PluginHost {
     } catch (error) { failed = true; throw error; }
     finally {
       if (failed) await stdin?.close().catch(() => {});
-      else await stdin?.close();
+      else {
+        try { await interruptible(background.drain(), budget.signal); }
+        finally { await stdin?.close(); }
+      }
     }
     const stdoutBytes = stdout.takeBytes();
     const stderrBytes = stderr.takeBytes();

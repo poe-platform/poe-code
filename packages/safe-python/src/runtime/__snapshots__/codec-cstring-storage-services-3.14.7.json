@@ -1,0 +1,1845 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "services": "Owned file descriptors; complete writeSync loops; readSync lines; fsync and readback; finally cleanup. Oracle source unchanged.",
+  "cases": [
+    {
+      "name": "codec-error-name-cache-services-3.14.7:0",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\noriginal = codecs.lookup_error('strict')\nseen = []\nname = ''.join(['custom', '\\ud800'])\ndef strict(error):\n    assert error.object is name\n    seen.append('encode')\n    return (b'_recovered', error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(name, handler)\ncodecs.register_error('strict', original)\nassert codecs.lookup_error(name) is handler\nassert codecs.encode('\\ud800', 'utf8', name) == b'?'\nassert codecs.decode(b'\\xff', 'utf8', name) == '?'\nassert _codecs._unregister_error(name) is True\nassert _codecs._unregister_error(name) is False\nassert seen == ['encode']\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:1",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nseen = []\nname = '\\ud800'\ndef strict(error):\n    seen.append(type(error).__name__)\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\xff', error.end)\n    return ('\\ud801', error.end)\ncodecs.register_error('strict', strict)\ntry:\n    codecs.register_error(name, None)\nexcept TypeError as error:\n    assert str(error) == 'handler must be callable'\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError']\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(name, handler)\nassert codecs.lookup_error(name) is handler\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError', 'UnicodeDecodeError']\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:2",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nseen = []\nname = '\\ud800'\ndef strict(error):\n    seen.append(type(error).__name__)\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\xff', error.end)\n    return ('custom', error.end)\ncodecs.register_error('strict', strict)\ncodecs.register_error('custom', lambda error: ('?', error.end))\nassert codecs.utf_8_encode('x', name) == (b'x', 1)\nassert codecs.utf_16_le_encode('x', name) == (b'x\\x00', 1)\nassert seen == ['UnicodeEncodeError']\nfor operation in [lambda: codecs.ascii_encode('\\u0100', name), lambda: codecs.utf_16_le_encode('\\ud801', name)]:\n    try:\n        operation()\n    except LookupError as error:\n        assert str(error) == \"unknown error handler name '\\ufffd'\"\n    else:\n        assert False\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError', 'UnicodeDecodeError']\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:3",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nerrors = 'ign\\ud801'\nseen = []\ndef strict(error):\n    seen.append(error.object)\n    return (b'8' if error.object is name else b'ore', error.end)\ncodecs.register_error('strict', strict)\nassert codecs.lookup(name).name == 'utf-8'\nassert '\\ud800'.encode(name, errors) == b''\ncodecs.register_error('strict', original)\nassert b'\\xff'.decode(name, errors) == ''\nassert bytes('\\ud800', name, errors) == b''\nassert str(b'\\xff', name, errors) == ''\nassert seen == [name, errors]\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:4",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\ndef strict(error):\n    return (b'\\xff', error.end) if isinstance(error, UnicodeEncodeError) else ('missing', error.end)\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept LookupError as error:\n    assert str(error) == \"unknown error handler name '\\ufffd'\"\nelse:\n    assert False\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:5",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'abc\\x00def', error.end)\ncodecs.register_error('strict', strict)\nassert codecs.readbuffer_encode(name) == (b'abc\\x00def', 7)\ncodecs.register_error('strict', original)\nassert codecs.escape_decode(name) == (b'abc\\x00def', 7)\nassert codecs.unicode_escape_decode(name) == ('abc\\x00def', 7)\nassert codecs.raw_unicode_escape_decode(name) == ('abc\\x00def', 7)\ntry:\n    codecs.readbuffer_encode(b'x', name)\nexcept ValueError as error:\n    assert str(error) == 'embedded null character'\nelse:\n    assert False\nassert seen == [True]\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:6",
+      "mode": "ordinary",
+      "source": "\nimport codecs\ncodecs.register_error('strict', lambda error: (input(), error.end))\ncodecs.register_error('\\ud800', lambda error: ('?', error.end))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:7",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nclass Name(str):\n    def __str__(self):\n        raise AssertionError('str hook')\n    def encode(self, *args):\n        raise AssertionError('encode hook')\nname = Name('custom\\ud800')\nother = Name('custom\\ud800')\nseen = []\nsentinel = ValueError('retry')\ndef fail(error):\n    assert error.object is name\n    seen.append('fail')\n    raise sentinel\ncodecs.register_error('strict', fail)\nfor attempt in range(2):\n    try:\n        codecs.lookup_error(name)\n    except ValueError as error:\n        assert error is sentinel\n    else:\n        assert False\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'_name' if error.object is name else b'_other', error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(name, handler)\ncodecs.register_error(other, handler)\nsearch = lambda name: None\ncodecs.register(search)\ncodecs.unregister(search)\nassert codecs.lookup_error(name) is handler\nassert codecs.lookup_error(other) is handler\nassert _codecs._unregister_error(name)\nassert codecs.lookup_error(other) is handler\nassert seen == ['fail', 'fail', True, False]\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "",
+      "actual": "",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:8",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\ncodecs.register_error(name, lambda error: ('?', error.end))\ncodecs.register_error('strict', original)\nprint(codecs.utf_8_encode('\\ud800', name))\nprint('\\ud800'.encode('utf8', name))\nprint(seen)\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'custom', 1)\nb'custom'\n['UnicodeEncodeError']\n",
+      "actual": "(b'custom', 1)\nb'custom'\n['UnicodeEncodeError']\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 6,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:9",
+      "mode": "cancel-return",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\ncodecs.register_error(name, lambda error: ('?', error.end))\ncodecs.register_error('strict', original)\nprint(codecs.utf_8_encode('\\ud800', name))\nprint('\\ud800'.encode('utf8', name))\nprint(seen)\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'custom', 1)\nb'custom'\n['UnicodeEncodeError']\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codec-error-name-cache-services-3.14.7:10",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\ncodecs.register_error(name, lambda error: ('?', error.end))\ncodecs.register_error('strict', original)\nprint(codecs.utf_8_encode('\\ud800', name))\nprint('\\ud800'.encode('utf8', name))\nprint(seen)\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'custom', 1)\nb'custom'\n['UnicodeEncodeError']\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:0",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'x'\nb'x'\n[True]\n",
+      "actual": "b'x'\nb'x'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:1",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'\\xff', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'x'\nb'x'\n[True]\n",
+      "actual": "b'x'\nb'x'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:2",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8\\x00', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "actual": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 10,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:3",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (input(), error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'x'\nb'x'\n[True]\n",
+      "actual": "b'x'\nb'x'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 6,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:4",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'x'\n'x'\n[True]\n",
+      "actual": "'x'\n'x'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:5",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'\\xff', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'x'\n'x'\n[True]\n",
+      "actual": "'x'\n'x'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:6",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8\\x00', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "actual": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 10,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-native-name-cache-services-3.14.7:7",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (input(), error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'x'\n'x'\n[True]\n",
+      "actual": "'x'\n'x'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 6,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codec-lookup-byte-cache-services-3.14.7:0",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'8', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "search 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\nsearch 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\n[True]\n",
+      "actual": "search 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\nsearch 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-lookup-byte-cache-services-3.14.7:1",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xff', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-lookup-byte-cache-services-3.14.7:2",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xc3\\xa9', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-lookup-byte-cache-services-3.14.7:3",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xed\\xa0\\x80', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-lookup-byte-cache-services-3.14.7:4",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xf0\\x90', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-lookup-byte-cache-services-3.14.7:5",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'8\\x00tail', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "actual": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 10,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codec-lookup-byte-cache-services-3.14.7:6",
+      "mode": "ordinary",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\ndef strict(error):\n    assert error.object is name\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nassert codecs.lookup_error('surrogatepass')(UnicodeEncodeError(name, '\\ud800', 0, 1, 'x')) == (b'\\xed\\xa0\\x80', 1)\ncodecs.register_error('strict', original)\nprint(codecs.lookup(name).name)\n",
+      "input": "8\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "utf-8\n",
+      "actual": "utf-8\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "unregister raw alias of strict",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'\\x80', error.end) if isinstance(error, UnicodeEncodeError) else ('strict', error.end)\ncodecs.register_error('strict', strict)\nassert _codecs._unregister_error(name) is True\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\ntry:\n    _codecs._unregister_error('strict')\nexcept ValueError as error:\n    assert str(error) == \"cannot un-register built-in error handler 'strict'\"\nelse:\n    assert False\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "unregister raw alias of ignore",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'\\x80', error.end) if isinstance(error, UnicodeEncodeError) else ('ignore', error.end)\ncodecs.register_error('strict', strict)\nassert _codecs._unregister_error(name) is True\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\ntry:\n    _codecs._unregister_error('ignore')\nexcept ValueError as error:\n    assert str(error) == \"cannot un-register built-in error handler 'ignore'\"\nelse:\n    assert False\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "unregister raw alias of replace",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'\\x80', error.end) if isinstance(error, UnicodeEncodeError) else ('replace', error.end)\ncodecs.register_error('strict', strict)\nassert _codecs._unregister_error(name) is True\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\ntry:\n    _codecs._unregister_error('replace')\nexcept ValueError as error:\n    assert str(error) == \"cannot un-register built-in error handler 'replace'\"\nelse:\n    assert False\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "unregister raw alias of surrogatepass",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'\\x80', error.end) if isinstance(error, UnicodeEncodeError) else ('surrogatepass', error.end)\ncodecs.register_error('strict', strict)\nassert _codecs._unregister_error(name) is True\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\ntry:\n    _codecs._unregister_error('surrogatepass')\nexcept ValueError as error:\n    assert str(error) == \"cannot un-register built-in error handler 'surrogatepass'\"\nelse:\n    assert False\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "raw diagnostic b'\\x80' * 401",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'\\x80' * 401, error.end) if isinstance(error, UnicodeEncodeError) else ('missing', len(error.object))\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept LookupError as error:\n    assert str(error) == \"unknown error handler name '\" + '\\ufffd' * 400 + \"'\"\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "raw diagnostic b'a' * 399 + b'\\xe2\\x82\\xac'",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'a' * 399 + b'\\xe2\\x82\\xac', error.end) if isinstance(error, UnicodeEncodeError) else ('missing', len(error.object))\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept LookupError as error:\n    assert str(error) == \"unknown error handler name '\" + 'a' * 399 + \"'\"\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError']\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "raw diagnostic b'a' * 399 + b'\\xff'",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'a' * 399 + b'\\xff', error.end) if isinstance(error, UnicodeEncodeError) else ('missing', len(error.object))\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept LookupError as error:\n    assert str(error) == \"unknown error handler name '\" + 'a' * 399 + '\\ufffd' + \"'\"\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "raw diagnostic b'a' * 398 + b'\\xf0\\x9f\\x98\\x80'",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'a' * 398 + b'\\xf0\\x9f\\x98\\x80', error.end) if isinstance(error, UnicodeEncodeError) else ('missing', len(error.object))\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept LookupError as error:\n    assert str(error) == \"unknown error handler name '\" + 'a' * 398 + \"'\"\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError']\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "raw diagnostic b'a' * 399 + b'\\xe2'",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'a' * 399 + b'\\xe2', error.end) if isinstance(error, UnicodeEncodeError) else ('missing', len(error.object))\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept LookupError as error:\n    assert str(error) == \"unknown error handler name '\" + 'a' * 399 + \"'\"\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "raw diagnostic b'a' * 398 + b'\\xe2'",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'a' * 398 + b'\\xe2', error.end) if isinstance(error, UnicodeEncodeError) else ('missing', len(error.object))\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept LookupError as error:\n    assert str(error) == \"unknown error handler name '\" + 'a' * 398 + '\\ufffd' + \"'\"\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError', 'UnicodeDecodeError']\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "raw diagnostic b'a' * 399 + b'\\xe2\\x00'",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\nseen = []\ndef strict(error):\n    seen.append(type(error).__name__)\n    return (b'a' * 399 + b'\\xe2\\x00', error.end) if isinstance(error, UnicodeEncodeError) else ('missing', len(error.object))\ncodecs.register_error('strict', strict)\ntry:\n    codecs.lookup_error(name)\nexcept ValueError as error:\n    assert str(error) == 'embedded null character'\nelse:\n    assert False\nassert seen == ['UnicodeEncodeError']\nprint('ok')\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "ok\n",
+      "actual": "ok\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "80 replaced by \"custom\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"custom\"\ndef strict(error):\n    return (bytes.fromhex('80'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'custom' True False True True True True\nb'custom'\n'custom' True 'custom' True\n{'custom': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'custom' True False True True True True\nb'custom'\n'custom' True 'custom' True\n{'custom': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "80 replaced by \"x\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"x\"\ndef strict(error):\n    return (bytes.fromhex('80'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'x' True False True True True True\nb'x'\n'x' True 'x' True\n{'x': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'x' True False True True True True\nb'x'\n'x' True 'x' True\n{'x': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "80 replaced by \"\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\"\ndef strict(error):\n    return (bytes.fromhex('80'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "80 replaced by \"Ā\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"Ā\"\ndef strict(error):\n    return (bytes.fromhex('80'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'Ā' True False True True True False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'Ā' True False True True True False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "80 replaced by \"\\ud800\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\\ud800\"\ndef strict(error):\n    return (bytes.fromhex('80'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '\\ud800' True False True True True False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '\\ud800' True False True True True False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c2 replaced by \"custom\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"custom\"\ndef strict(error):\n    return (bytes.fromhex('c2'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'custom' True False True True True False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'custom' True False True True True False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c2 replaced by \"x\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"x\"\ndef strict(error):\n    return (bytes.fromhex('c2'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'x' True False True True True True\nb'x'\n'x' True 'x' True\n{'x': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'x' True False True True True True\nb'x'\n'x' True 'x' True\n{'x': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c2 replaced by \"\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\"\ndef strict(error):\n    return (bytes.fromhex('c2'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c2 replaced by \"Ā\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"Ā\"\ndef strict(error):\n    return (bytes.fromhex('c2'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'Ā' True False True True True False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'Ā' True False True True True False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c2 replaced by \"\\ud800\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\\ud800\"\ndef strict(error):\n    return (bytes.fromhex('c2'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '\\ud800' True False True True True False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '\\ud800' True False True True True False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c4 replaced by \"custom\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"custom\"\ndef strict(error):\n    return (bytes.fromhex('c4'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'custom' False True True True False False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'recovered', 'custom': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'custom' False True True True False False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'recovered', 'custom': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c4 replaced by \"x\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"x\"\ndef strict(error):\n    return (bytes.fromhex('c4'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'x' False True True True False False\nb'x'\n'x' True 'x' True\n{'x': 'recovered', 'x': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'x' False True True True False False\nb'x'\n'x' True 'x' True\n{'x': 'recovered', 'x': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c4 replaced by \"\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\"\ndef strict(error):\n    return (bytes.fromhex('c4'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c4 replaced by \"Ā\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"Ā\"\ndef strict(error):\n    return (bytes.fromhex('c4'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'Ā' True False True True True False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'Ā' True False True True True False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c4 replaced by \"\\ud800\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\\ud800\"\ndef strict(error):\n    return (bytes.fromhex('c4'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '\\ud800' True False True True True False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '\\ud800' True False True True True False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "f0 replaced by \"custom\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"custom\"\ndef strict(error):\n    return (bytes.fromhex('f0'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'custom' False True True True False False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'recovered', 'custom': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'custom' False True True True False False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'recovered', 'custom': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "f0 replaced by \"x\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"x\"\ndef strict(error):\n    return (bytes.fromhex('f0'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'x' False True True True False False\nb'x'\n'x' True 'x' True\n{'x': 'recovered', 'x': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'x' False True True True False False\nb'x'\n'x' True 'x' True\n{'x': 'recovered', 'x': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "f0 replaced by \"\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\"\ndef strict(error):\n    return (bytes.fromhex('f0'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "f0 replaced by \"Ā\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"Ā\"\ndef strict(error):\n    return (bytes.fromhex('f0'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'Ā' False True True True False False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'recovered', 'Ā': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'Ā' False True True True False False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'recovered', 'Ā': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "f0 replaced by \"\\ud800\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\\ud800\"\ndef strict(error):\n    return (bytes.fromhex('f0'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '\\ud800' False True True True False False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'recovered', '\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '\\ud800' False True True True False False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'recovered', '\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "ff replaced by \"custom\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"custom\"\ndef strict(error):\n    return (bytes.fromhex('ff'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'custom' False True True True False False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'recovered', 'custom': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'custom' False True True True False False\nb'custom'\n'custom' True 'custom' True\n{'custom': 'recovered', 'custom': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "ff replaced by \"x\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"x\"\ndef strict(error):\n    return (bytes.fromhex('ff'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'x' False True True True False False\nb'x'\n'x' True 'x' True\n{'x': 'recovered', 'x': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'x' False True True True False False\nb'x'\n'x' True 'x' True\n{'x': 'recovered', 'x': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "ff replaced by \"\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\"\ndef strict(error):\n    return (bytes.fromhex('ff'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '' True False True True True True\nb''\n'' True '' True\n{'': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "ff replaced by \"Ā\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"Ā\"\ndef strict(error):\n    return (bytes.fromhex('ff'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str 'Ā' False True True True False False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'recovered', 'Ā': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "actual": "str 'Ā' False True True True False False\nb'\\xc4\\x80'\n'Ā' True 'Ā' True\n{'Ā': 'recovered', 'Ā': 'canonical'}\nLookupError unknown error handler name '�'\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "ff replaced by \"\\ud800\"",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\nreplacement = \"\\ud800\"\ndef strict(error):\n    return (bytes.fromhex('ff'), error.end) if isinstance(error, UnicodeEncodeError) else (replacement, error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    print(type(errors).__name__, repr(errors), errors == replacement, errors != replacement, errors <= replacement, errors >= replacement, hash(errors) == hash(replacement), errors.isascii())\n    print(repr(errors.encode('utf8', 'surrogatepass')))\n    print(repr(errors[:]), errors[:] == errors, repr(str(errors)), str(errors) is errors)\n    print({errors: 'recovered', replacement: 'canonical'})\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error(replacement, handler)\ntry:\n    print('canonical lookup', codecs.lookup_error(name) is handler)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\ncodecs.register_error(name, handler)\nprint('recovered lookup', codecs.lookup_error(name) is handler)\nprint('unregister', _codecs._unregister_error(name))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "str '\\ud800' False True True True False False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'recovered', '\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "actual": "str '\\ud800' False True True True False False\nb'\\xed\\xa0\\x80'\n'\\ud800' True '\\ud800' True\n{'\\ud800': 'recovered', '\\ud800': 'canonical'}\ncanonical lookup True\nrecovered lookup True\nunregister True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 40,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c2 recovered string operations",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\ndef strict(error):\n    return (bytes.fromhex('c2'), error.end) if isinstance(error, UnicodeEncodeError) else ('abc', error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    for text, canonical in [(errors * 2, 'abcabc'), (errors + 'x', 'abcx'), ('x' + errors, 'xabc'), (','.join([errors, 'x']), 'abc,x'), (errors.join(['x', 'y']), 'xabcy'), (errors.ljust(5), 'abc  '), (errors.replace('a', 'x'), 'xbc'), (errors[1:], 'bc'), (errors.upper(), 'ABC')]:\n        print(repr(text), text == canonical, hash(text) == hash(canonical), text.isascii(), repr(text.encode()))\n    for text, canonical in [(errors.replace(errors, 'x'), 'x'), ('abc'.replace(errors, 'x'), 'abc'), (errors.replace('abc', ''), ''), (errors.replace('abc', errors), 'abc')]:\n        print(repr(text), text == canonical, hash(text) == hash(canonical), text.isascii())\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'abcabc' True True False b'abcabc'\n'abcx' True True False b'abcx'\n'xabc' True True False b'xabc'\n'abc,x' True True False b'abc,x'\n'xabcy' True True False b'xabcy'\n'abc  ' True True False b'abc  '\n'xbc' True True False b'xbc'\n'bc' True True True b'bc'\n'ABC' True True True b'ABC'\n'x' True True True\n'abc' True True True\n'' True True True\n'abc' True True False\n",
+      "actual": "'abcabc' True True False b'abcabc'\n'abcx' True True False b'abcx'\n'xabc' True True False b'xabc'\n'abc,x' True True False b'abc,x'\n'xabcy' True True False b'xabcy'\n'abc  ' True True False b'abc  '\n'xbc' True True False b'xbc'\n'bc' True True True b'bc'\n'ABC' True True True b'ABC'\n'x' True True True\n'abc' True True True\n'' True True True\n'abc' True True False\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 122,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "c4 recovered string operations",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\ndef strict(error):\n    return (bytes.fromhex('c4'), error.end) if isinstance(error, UnicodeEncodeError) else ('abc', error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    for text, canonical in [(errors * 2, 'abcabc'), (errors + 'x', 'abcx'), ('x' + errors, 'xabc'), (','.join([errors, 'x']), 'abc,x'), (errors.join(['x', 'y']), 'xabcy'), (errors.ljust(5), 'abc  '), (errors.replace('a', 'x'), 'xbc'), (errors[1:], 'bc'), (errors.upper(), 'ABC')]:\n        print(repr(text), text == canonical, hash(text) == hash(canonical), text.isascii(), repr(text.encode()))\n    for text, canonical in [(errors.replace(errors, 'x'), 'x'), ('abc'.replace(errors, 'x'), 'abc'), (errors.replace('abc', ''), ''), (errors.replace('abc', errors), 'abc')]:\n        print(repr(text), text == canonical, hash(text) == hash(canonical), text.isascii())\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'abcabc' False False False b'abcabc'\n'abcx' False False False b'abcx'\n'xabc' False False False b'xabc'\n'abc,x' False False False b'abc,x'\n'xabcy' False False False b'xabcy'\n'abc  ' False False False b'abc  '\n'xbc' False False False b'xbc'\n'bc' True True True b'bc'\n'ABC' True True True b'ABC'\n'x' True True True\n'abc' True True True\n'' True True True\n'abc' False False False\n",
+      "actual": "'abcabc' False False False b'abcabc'\n'abcx' False False False b'abcx'\n'xabc' False False False b'xabc'\n'abc,x' False False False b'abc,x'\n'xabcy' False False False b'xabcy'\n'abc  ' False False False b'abc  '\n'xbc' False False False b'xbc'\n'bc' True True True b'bc'\n'ABC' True True True b'ABC'\n'x' True True True\n'abc' True True True\n'' True True True\n'abc' False False False\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 122,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "f0 recovered string operations",
+      "mode": "ordinary",
+      "source": "\nimport codecs\nname = '\\ud800'\ndef strict(error):\n    return (bytes.fromhex('f0'), error.end) if isinstance(error, UnicodeEncodeError) else ('abc', error.end)\ncodecs.register_error('strict', strict)\ndef capture(value, errors):\n    for text, canonical in [(errors * 2, 'abcabc'), (errors + 'x', 'abcx'), ('x' + errors, 'xabc'), (','.join([errors, 'x']), 'abc,x'), (errors.join(['x', 'y']), 'xabcy'), (errors.ljust(5), 'abc  '), (errors.replace('a', 'x'), 'xbc'), (errors[1:], 'bc'), (errors.upper(), 'ABC')]:\n        print(repr(text), text == canonical, hash(text) == hash(canonical), text.isascii(), repr(text.encode()))\n    for text, canonical in [(errors.replace(errors, 'x'), 'x'), ('abc'.replace(errors, 'x'), 'abc'), (errors.replace('abc', ''), ''), (errors.replace('abc', errors), 'abc')]:\n        print(repr(text), text == canonical, hash(text) == hash(canonical), text.isascii())\n    return (value, 0)\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'capture' else None)\ncodecs.encode('value', 'capture', name)\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'abcabc' False False False b'abcabc'\n'abcx' False False False b'abcx'\n'xabc' False False False b'xabc'\n'abc,x' False False False b'abc,x'\n'xabcy' False False False b'xabcy'\n'abc  ' False False False b'abc  '\n'xbc' False False False b'xbc'\n'bc' True True True b'bc'\n'ABC' True True True b'ABC'\n'x' True True True\n'abc' True True True\n'' True True True\n'abc' False False False\n",
+      "actual": "'abcabc' False False False b'abcabc'\n'abcx' False False False b'abcx'\n'xabc' False False False b'xabc'\n'abc,x' False False False b'abc,x'\n'xabcy' False False False b'xabcy'\n'abc  ' False False False b'abc  '\n'xbc' False False False b'xbc'\n'bc' True True True b'bc'\n'ABC' True True True b'ABC'\n'x' True True True\n'abc' True True True\n'' True True True\n'abc' False False False\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 0,
+      "writes": 122,
+      "flushes": 0,
+      "match": true
+    },
+    {
+      "name": "codecs.lookup_error(name) is handler",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.lookup_error(name) is handler))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "True\n",
+      "actual": "True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.register_error(name, handler)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.register_error(name, handler)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "None\n",
+      "actual": "None\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "_codecs._unregister_error(name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(_codecs._unregister_error(name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "True\n",
+      "actual": "True\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.encode('Ā', 'ascii', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.encode('Ā', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "b'?'\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.decode(b'\\xff', 'ascii', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.decode(b'\\xff', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "'?'\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.ascii_encode('Ā', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.ascii_encode('Ā', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'?', 1)\n",
+      "actual": "(b'?', 1)\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.utf_16_le_encode('\\ud801', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.utf_16_le_encode('\\ud801', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'?\\x00', 1)\n",
+      "actual": "(b'?\\x00', 1)\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "'Ā'.encode('ascii', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr('Ā'.encode('ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "b'?'\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "b'\\xff'.decode('ascii', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(b'\\xff'.decode('ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "'?'\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "bytes('Ā', 'ascii', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(bytes('Ā', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "b'?'\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "str(b'\\xff', 'ascii', name)",
+      "mode": "ordinary",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(str(b'\\xff', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "'?'\n",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.lookup_error(name) is handler",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.lookup_error(name) is handler))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "True\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.lookup_error(name) is handler",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.lookup_error(name) is handler))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "True\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.register_error(name, handler)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.register_error(name, handler)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "None\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.register_error(name, handler)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.register_error(name, handler)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "None\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "_codecs._unregister_error(name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(_codecs._unregister_error(name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "True\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "_codecs._unregister_error(name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(_codecs._unregister_error(name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "True\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.encode('Ā', 'ascii', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.encode('Ā', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.encode('Ā', 'ascii', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.encode('Ā', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.decode(b'\\xff', 'ascii', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.decode(b'\\xff', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.decode(b'\\xff', 'ascii', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.decode(b'\\xff', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.ascii_encode('Ā', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.ascii_encode('Ā', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'?', 1)\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.ascii_encode('Ā', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.ascii_encode('Ā', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'?', 1)\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.utf_16_le_encode('\\ud801', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.utf_16_le_encode('\\ud801', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'?\\x00', 1)\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "codecs.utf_16_le_encode('\\ud801', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(codecs.utf_16_le_encode('\\ud801', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "(b'?\\x00', 1)\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "'Ā'.encode('ascii', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr('Ā'.encode('ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "'Ā'.encode('ascii', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr('Ā'.encode('ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "b'\\xff'.decode('ascii', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(b'\\xff'.decode('ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "b'\\xff'.decode('ascii', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(b'\\xff'.decode('ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "bytes('Ā', 'ascii', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(bytes('Ā', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "bytes('Ā', 'ascii', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(bytes('Ā', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "b'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "str(b'\\xff', 'ascii', name)",
+      "mode": "cancel-return",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(str(b'\\xff', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    },
+    {
+      "name": "str(b'\\xff', 'ascii', name)",
+      "mode": "cancel-throw",
+      "source": "\nimport codecs, _codecs\nname = '\\ud800'\ndef strict(error):\n    if isinstance(error, UnicodeEncodeError):\n        return (b'\\x80', error.end)\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nhandler = lambda error: ('?', error.end)\ncodecs.register_error('custom', handler)\nassert codecs.readbuffer_encode(name) == (b'\\x80', 1)\nprint(repr(str(b'\\xff', 'ascii', name)))\n",
+      "input": "custom\n",
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "expected": "'?'\n",
+      "actual": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "match": true
+    }
+  ]
+}

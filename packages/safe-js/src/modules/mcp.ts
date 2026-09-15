@@ -47,9 +47,10 @@ export type McpModuleClient = {
   toolBatch(calls: McpModuleToolCall[]): Promise<McpModuleToolBatchResult[]>;
 };
 
-type McpConnection = {
-  listTools(): Promise<{
+export type McpConnection = {
+  listTools(params?: { cursor?: string }): Promise<{
     tools: unknown[];
+    nextCursor?: string;
   }>;
   callTool(params: { name: string; arguments?: unknown }): Promise<unknown>;
   callToolBatch?(

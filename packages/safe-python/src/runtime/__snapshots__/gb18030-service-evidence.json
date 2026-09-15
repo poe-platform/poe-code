@@ -1,0 +1,45 @@
+{
+  "target": "CPython 3.14.7 / Unicode 16.0.0",
+  "scope": "Existing public ASCII registry/service regression only; GB18030 publication remains blocked.",
+  "source": "import codecs\ndef handler(error):\n    return (input(), -1)\ncodecs.register_error('serviced', handler)\nprint(('\\ud800' + 'A').encode('ascii', 'serviced'))\n",
+  "stdin": "?\n",
+  "driver": "import {readSync,writeSync} from \"node:fs\";\nimport {strict as assert} from \"node:assert\";\nimport {PythonSession} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts\";\nconst task=JSON.parse(process.argv[2]);\nconst controller=new AbortController();\nlet reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:2000000,maxAllocatedBytes:24000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\n  input:{readLine(){\n    reads++;\n    const bytes:number[]=[];\n    const byte=Buffer.alloc(1);\n    while(readSync(0,byte,0,1,null)!==0){bytes.push(byte[0]);if(byte[0]===10)break;}\n    if(task.cancel){controller.abort();if(task.cancel===\"throw\")throw Error(\"service failure\");}\n    return bytes.length===0?null:Buffer.from(bytes).toString(\"utf8\");\n  }},\n  output:{write(text){writes++;writeSync(1,text);},flush(){}}\n});\nconst result=session.exec(task.source);\nif(task.cancel){\n  const expected={status:\"terminated\",reason:\"cancelled\",message:\"execution cancelled\"};\n  assert.deepEqual(result,expected);assert.deepEqual(session.eval(\"1\"),expected);\n  assert.equal(reads,1);assert.equal(writes,0);\n}else{\n  if(result.status===\"exception\"){\n    session.globals.set(\"failure\",result.exception);\n    throw Error(JSON.stringify(session.eval(\"str(failure)\")));\n  }\n  assert.equal(result.status,\"ok\");assert.equal(reads,task.reads);\n}\n",
+  "native": {
+    "status": 0,
+    "stdout": "b'?A'\n",
+    "stderr": ""
+  },
+  "results": [
+    {
+      "mode": "normal",
+      "status": 0,
+      "stdout": "b'?A'\n",
+      "stderr": ""
+    },
+    {
+      "mode": "return",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "mode": "throw",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "publication": {
+    "source": "import codecs\ntry:\n    print(codecs.lookup('gb18030').name)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\n",
+    "native": {
+      "status": 0,
+      "stdout": "gb18030\n",
+      "stderr": ""
+    },
+    "session": {
+      "status": 0,
+      "stdout": "LookupError unknown encoding: gb18030\n",
+      "stderr": ""
+    }
+  }
+}

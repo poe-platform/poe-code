@@ -11,6 +11,13 @@ export interface MemoryFs extends HandlerFs {
   changes(): FsChange[];
 }
 
+const writeModes = new Map([
+  ...["r", "rs", "sr"].map((flag) => [flag, "read"] as const),
+  ...["r+", "rs+", "sr+"].map((flag) => [flag, "update"] as const),
+  ...["w", "w+", "wx", "xw", "wx+", "xw+"].map((flag) => [flag, "replace"] as const),
+  ...["a", "a+", "ax", "xa", "ax+", "xa+", "as", "sa", "as+", "sa+"].map((flag) => [flag, "append"] as const)
+]);
+
 function missingFileError(
   syscall: string,
   path: string,
@@ -45,7 +52,40 @@ export function createMemoryFs(files: Record<string, string> = {}): MemoryFs {
       return value.toString(encoding);
     },
     async writeFile(path, value, options) {
-      contents.set(path, Buffer.from(value, options?.encoding ?? "utf8"));
+      const bytes = Buffer.from(value, options?.encoding ?? "utf8");
+      const flag = options?.flag || "w";
+      const mode = writeModes.get(flag);
+      if (mode === undefined) {
+        throw Object.assign(new TypeError(`The argument 'flags' is invalid. Received '${flag}'`), {
+          code: "ERR_INVALID_ARG_VALUE"
+        });
+      }
+      const previous = contents.get(path);
+      if (flag.includes("x") && previous !== undefined) {
+        throw Object.assign(new Error(`EEXIST: file already exists, open '${path}'`), {
+          code: "EEXIST",
+          errno: -17,
+          syscall: "open",
+          path
+        });
+      }
+      if ((mode === "read" || mode === "update") && previous === undefined) {
+        throw missingFileError("open", path);
+      }
+      if (mode === "read" && bytes.length > 0) {
+        throw Object.assign(new Error("EBADF: bad file descriptor, write"), {
+          code: "EBADF",
+          errno: -9,
+          syscall: "write"
+        });
+      }
+      if (mode === "append" && previous !== undefined) {
+        contents.set(path, Buffer.concat([previous, bytes]));
+      } else if (mode === "update" && previous !== undefined) {
+        contents.set(path, Buffer.concat([bytes, previous.subarray(bytes.length)]));
+      } else if (mode !== "read") {
+        contents.set(path, bytes);
+      }
       changeLog.push({ op: "writeFile", path });
     },
     async exists(path) {

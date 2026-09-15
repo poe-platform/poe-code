@@ -1,0 +1,457 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapter": "PythonSession output through explicitly opened Node fs.writeSync/fsyncSync descriptors, verified by fs.readFileSync",
+  "rows": [
+    {
+      "name": "remove_self; miss; duplicate=false",
+      "sourceSha256": "3cdd23511f0b32aee15bd89ec82fe703d8701927723925adcaeaf351518e6af7",
+      "stdoutSha256": "d4e38a6e36d5710a074c82fe70c6af4c25e2baa4c05f48d874eba5e1fb73bb8c"
+    },
+    {
+      "name": "remove_self; miss; duplicate=true",
+      "sourceSha256": "49d90dba9c7fb156ef4d5b2f295d2edba43c8f56c8c143834995d899bf1341fd",
+      "stdoutSha256": "714c16e43bbc6ad3f45e57fe746876338397ce2a597d33af8c72dd2767ee7aeb"
+    },
+    {
+      "name": "remove_self; success; duplicate=false",
+      "sourceSha256": "41f3042edf2dd5648f57d289dc4e74b03197c36da180cb8d5f8d966f9e32fbeb",
+      "stdoutSha256": "4cba30359d3959124aeab781aefeb764e057b2d279c633b58441bd685046db1e"
+    },
+    {
+      "name": "remove_self; success; duplicate=true",
+      "sourceSha256": "9a54dce3b8223cd15ad4b316a2583c85a626055b3e0adacde6c925045df67641",
+      "stdoutSha256": "de005f53ba96d1cfadeed1363314b9956ae0795fa5f171ad901ed71603e569d5"
+    },
+    {
+      "name": "remove_self; invalid; duplicate=false",
+      "sourceSha256": "250d25b868820b5435141ee41491d07d2f8b8c579bd08b3cddd282be6cd6252f",
+      "stdoutSha256": "6c963511836636d2ae7f211da456495564e0c538d9aef79fcb48cdd2578079d3"
+    },
+    {
+      "name": "remove_self; invalid; duplicate=true",
+      "sourceSha256": "77b5e60ea91c54c94540aa88443669e8e01a0945696cc7ce19c5747460eda925",
+      "stdoutSha256": "bd22e26e5a1b51933247b583f24d9ed7b39e3f5a160d006c04f01275f904f35d"
+    },
+    {
+      "name": "remove_self; failure; duplicate=false",
+      "sourceSha256": "927d407bd25f93531e0be6fc605ab3137bc87915169af2c902acf9eccc7145c7",
+      "stdoutSha256": "bfe518a1f54fa6d82452087169e8d3cc0ec23b40be55678bd8d1776d73491e66"
+    },
+    {
+      "name": "remove_self; failure; duplicate=true",
+      "sourceSha256": "d9a5a0248b22b6a91c2f2cd6dea624320a7a930b7c4dc120daadc91a208e58b0",
+      "stdoutSha256": "1e7699b6d26e759471f335222e08752a88eda0ff2473f8245c6fd8adbce35880"
+    },
+    {
+      "name": "remove_next; miss; duplicate=false",
+      "sourceSha256": "9a9f482b144e166232c4a05f3381ac0880b3ac828bc29ff216e25a58aab5cdef",
+      "stdoutSha256": "0e554b9303a8e4837d9eaef4a2da4283ac902b29ddcf5bd360b3ed4865cd3eaa"
+    },
+    {
+      "name": "remove_next; miss; duplicate=true",
+      "sourceSha256": "9ce763a057b8896cfca32c07008f23b2a5e05ffa630af80799588420c738d052",
+      "stdoutSha256": "3a9f2ae75336de4c75f3393452bc64e668e6da64c3033aec4a06e43cfa5749ed"
+    },
+    {
+      "name": "remove_next; success; duplicate=false",
+      "sourceSha256": "be6172f366bbf6d0e6661887af0ea07c1d7bbc82f483fb1b555c42ac51c87731",
+      "stdoutSha256": "de005f53ba96d1cfadeed1363314b9956ae0795fa5f171ad901ed71603e569d5"
+    },
+    {
+      "name": "remove_next; success; duplicate=true",
+      "sourceSha256": "5310b49a4e3ef00f928fc6f7c4a58e02e01a496c8b303c09eca97dc95e117f59",
+      "stdoutSha256": "de005f53ba96d1cfadeed1363314b9956ae0795fa5f171ad901ed71603e569d5"
+    },
+    {
+      "name": "remove_next; invalid; duplicate=false",
+      "sourceSha256": "df8c9a78eca852f2ffaf7404b9cb5b5b04d570a27e79b4b9366cf8f09e34e7b3",
+      "stdoutSha256": "bd22e26e5a1b51933247b583f24d9ed7b39e3f5a160d006c04f01275f904f35d"
+    },
+    {
+      "name": "remove_next; invalid; duplicate=true",
+      "sourceSha256": "74a6eeae39063e0a4070a2df21383403f757c89181d4b4f568622197327c11da",
+      "stdoutSha256": "bd22e26e5a1b51933247b583f24d9ed7b39e3f5a160d006c04f01275f904f35d"
+    },
+    {
+      "name": "remove_next; failure; duplicate=false",
+      "sourceSha256": "812120184113132b55a5a6343bad8e978a37bdf2bd04612086615f6cecbf3775",
+      "stdoutSha256": "1e7699b6d26e759471f335222e08752a88eda0ff2473f8245c6fd8adbce35880"
+    },
+    {
+      "name": "remove_next; failure; duplicate=true",
+      "sourceSha256": "cc852c3063826252b8b49da555e32c6d843bd03413e1b66dce2a5f336c481996",
+      "stdoutSha256": "1e7699b6d26e759471f335222e08752a88eda0ff2473f8245c6fd8adbce35880"
+    },
+    {
+      "name": "remove_previous; miss; duplicate=false",
+      "sourceSha256": "e36ff4b3b36608062b6fc7ac3dd2a051d43cc6cf7bad46fe17d2e5b0cdf02352",
+      "stdoutSha256": "78eb6113cf18594f53215b6181c40a05ae65e521b067d387182b903030f8e096"
+    },
+    {
+      "name": "remove_previous; miss; duplicate=true",
+      "sourceSha256": "9fb5b9ac146b60c84158382ba38d47ca641b55254cd08049d95ff030668696c9",
+      "stdoutSha256": "9cc30d31be15b3c8584c7a611eb1ec90e1501da6cfd67b67b47c52526e2e1b4a"
+    },
+    {
+      "name": "remove_previous; success; duplicate=false",
+      "sourceSha256": "3ba88a7d950c3b75f411af11e29d760109f1ad99ca2d5567ec06dfb23b9aec14",
+      "stdoutSha256": "1ef725b3355a92b5508942279463af129d7044ab70326dacdc942d6714598b0a"
+    },
+    {
+      "name": "remove_previous; success; duplicate=true",
+      "sourceSha256": "245f70c1c0bb69fc4d12d29823297de0703b79f9224408a15dd568d647a93287",
+      "stdoutSha256": "1ef725b3355a92b5508942279463af129d7044ab70326dacdc942d6714598b0a"
+    },
+    {
+      "name": "remove_previous; invalid; duplicate=false",
+      "sourceSha256": "e316885a8c77cc972a460dba79b80d9bd393c6c32dbe1a70b4dca9dd68a80504",
+      "stdoutSha256": "37f205efb0f124d3d69c1bdf3ef6db4e13f8d08187c1297145c5d4afb0619e19"
+    },
+    {
+      "name": "remove_previous; invalid; duplicate=true",
+      "sourceSha256": "e44c3330967c88bd3a56ed824efbe1d2e87250b068f8615936c83a16f1e6e853",
+      "stdoutSha256": "37f205efb0f124d3d69c1bdf3ef6db4e13f8d08187c1297145c5d4afb0619e19"
+    },
+    {
+      "name": "remove_previous; failure; duplicate=false",
+      "sourceSha256": "ed2f76233b6de53d015656596a79981ce1b491ddabc152f77029fc2bc95a7312",
+      "stdoutSha256": "1f9b3ecd388fbc2922d5539dc3bd13e46e0522391515f4ba454043a7c7715728"
+    },
+    {
+      "name": "remove_previous; failure; duplicate=true",
+      "sourceSha256": "973eedd05a4ff817d326f1270060472085ee2f2c9becd581c345385504379fb1",
+      "stdoutSha256": "1f9b3ecd388fbc2922d5539dc3bd13e46e0522391515f4ba454043a7c7715728"
+    },
+    {
+      "name": "append; miss; duplicate=false",
+      "sourceSha256": "1f8ed702d06bddef66ab73fd5ca430c2c916b4185457acc03b748c4550862f93",
+      "stdoutSha256": "714c16e43bbc6ad3f45e57fe746876338397ce2a597d33af8c72dd2767ee7aeb"
+    },
+    {
+      "name": "append; miss; duplicate=true",
+      "sourceSha256": "3a0c71ecef45455190c49fcc850e4f212dfc1480234eb7237e5626a1f08fa065",
+      "stdoutSha256": "c8ff1c64e8ca826e5393bdbba7579a81bcbecf808f63490248f37ab4ba9209d4"
+    },
+    {
+      "name": "append; success; duplicate=false",
+      "sourceSha256": "74b55ed234b3697ccfb4a7a2f28d117aede6d8143252f55e6f1b92abd5aa2fad",
+      "stdoutSha256": "de005f53ba96d1cfadeed1363314b9956ae0795fa5f171ad901ed71603e569d5"
+    },
+    {
+      "name": "append; success; duplicate=true",
+      "sourceSha256": "bdb84c51dbcb33695e0d72b8b31d482f1af6c2645228f31e3ec35f763cd87c05",
+      "stdoutSha256": "de005f53ba96d1cfadeed1363314b9956ae0795fa5f171ad901ed71603e569d5"
+    },
+    {
+      "name": "append; invalid; duplicate=false",
+      "sourceSha256": "9c56a173faf331b28ef6ea84287f89236ea0e802138dd94d13ba252343bd1d9f",
+      "stdoutSha256": "bd22e26e5a1b51933247b583f24d9ed7b39e3f5a160d006c04f01275f904f35d"
+    },
+    {
+      "name": "append; invalid; duplicate=true",
+      "sourceSha256": "7f3819c0aca903587a726ada0361160e92f2027b14ce5d12e1373a42ae104e03",
+      "stdoutSha256": "bd22e26e5a1b51933247b583f24d9ed7b39e3f5a160d006c04f01275f904f35d"
+    },
+    {
+      "name": "append; failure; duplicate=false",
+      "sourceSha256": "38fb445fcc9713579c42658a141baccdee54cb089f28c67b9e01e6dd9be10bf4",
+      "stdoutSha256": "1e7699b6d26e759471f335222e08752a88eda0ff2473f8245c6fd8adbce35880"
+    },
+    {
+      "name": "append; failure; duplicate=true",
+      "sourceSha256": "d0c984e74ee7f15399c6b90495a0f04eafca31a7855a9eb8fd5f069f2ac17a01",
+      "stdoutSha256": "1e7699b6d26e759471f335222e08752a88eda0ff2473f8245c6fd8adbce35880"
+    },
+    {
+      "name": "replace; miss; duplicate=false",
+      "sourceSha256": "1fcbf6fbb35ff9ef7d2e4f397692cc82ee93d599f94d8fdf95e7460ae0a704d3",
+      "stdoutSha256": "11fd1ae64b55586d41de9a742ac5d0bc92664411e5c211e715bdab6ddc2ff523"
+    },
+    {
+      "name": "replace; miss; duplicate=true",
+      "sourceSha256": "2cf8caeab94447171b2681ce2215184f0c661b0d320942ae233112c85ac26123",
+      "stdoutSha256": "714c16e43bbc6ad3f45e57fe746876338397ce2a597d33af8c72dd2767ee7aeb"
+    },
+    {
+      "name": "replace; success; duplicate=false",
+      "sourceSha256": "30046bdb41734bf366929cd84a81767f9b1d1478a0ec5c3ec0883c61bbb39732",
+      "stdoutSha256": "4cba30359d3959124aeab781aefeb764e057b2d279c633b58441bd685046db1e"
+    },
+    {
+      "name": "replace; success; duplicate=true",
+      "sourceSha256": "812bd8d457d007406b792cd6db452c200eb77d8d9302fb63a7ffcb95e0b4ca98",
+      "stdoutSha256": "de005f53ba96d1cfadeed1363314b9956ae0795fa5f171ad901ed71603e569d5"
+    },
+    {
+      "name": "replace; invalid; duplicate=false",
+      "sourceSha256": "f3453528b6d55e88d442a4e9c959cc222b2cb02b161593f8c6c23caa8f946acb",
+      "stdoutSha256": "6c963511836636d2ae7f211da456495564e0c538d9aef79fcb48cdd2578079d3"
+    },
+    {
+      "name": "replace; invalid; duplicate=true",
+      "sourceSha256": "e3214f961690ce691040ed4cfe51d2de4b5c5d318f5df8b3ef000c287fbbdbb7",
+      "stdoutSha256": "bd22e26e5a1b51933247b583f24d9ed7b39e3f5a160d006c04f01275f904f35d"
+    },
+    {
+      "name": "replace; failure; duplicate=false",
+      "sourceSha256": "3d283d67e194fa343f613d65b92e788534c90bcaa5696170c5d68642aea38873",
+      "stdoutSha256": "bfe518a1f54fa6d82452087169e8d3cc0ec23b40be55678bd8d1776d73491e66"
+    },
+    {
+      "name": "replace; failure; duplicate=true",
+      "sourceSha256": "0f0f777fefd677659678c5f24240ad8b23f92d2ab91a44cd29b1d4ccb92e8a2e",
+      "stdoutSha256": "1e7699b6d26e759471f335222e08752a88eda0ff2473f8245c6fd8adbce35880"
+    },
+    {
+      "name": "clear; miss; duplicate=false",
+      "sourceSha256": "d98bb51aaa33f0b4861330f79f8de7b6e6e0f71414fd8d2a3f4d45a13c81dcd2",
+      "stdoutSha256": "c75c1f0a1421d9567d72bd684792ae7d7c4b454443fcfd189915c8232e788f66"
+    },
+    {
+      "name": "clear; miss; duplicate=true",
+      "sourceSha256": "6a94363b2f0be90eafeaca936a37e0d267114b617baa7d31d4484de5fceb9557",
+      "stdoutSha256": "c75c1f0a1421d9567d72bd684792ae7d7c4b454443fcfd189915c8232e788f66"
+    },
+    {
+      "name": "clear; success; duplicate=false",
+      "sourceSha256": "3ff0f83c13b64ffb4ba5164c02d97478660a0baed684a66a756ec7507f0488fb",
+      "stdoutSha256": "2d077f0a21a363925a10d0f74b8fbd3e1dff220827384399b692d62b85ec743c"
+    },
+    {
+      "name": "clear; success; duplicate=true",
+      "sourceSha256": "3809dee680778b80419034632c267bb35c775e20a2f165c8002a53cb6c990782",
+      "stdoutSha256": "2d077f0a21a363925a10d0f74b8fbd3e1dff220827384399b692d62b85ec743c"
+    },
+    {
+      "name": "clear; invalid; duplicate=false",
+      "sourceSha256": "6c0ceb7f3540daf144c5bb3783cdef3a10f6677aaf60e69ce87cf141cd1e7e62",
+      "stdoutSha256": "0fe6cc8493eba49feddaf82020f9d42b69c4773df04c0f8351ca1c10383699a2"
+    },
+    {
+      "name": "clear; invalid; duplicate=true",
+      "sourceSha256": "c69ae29e16bce3ba41dc243fa44e8657bb6636bc131c128a1b7cd4d0646e1d05",
+      "stdoutSha256": "0fe6cc8493eba49feddaf82020f9d42b69c4773df04c0f8351ca1c10383699a2"
+    },
+    {
+      "name": "clear; failure; duplicate=false",
+      "sourceSha256": "df164e2f5e7d66c5d140a4363412eb82e6eb06d6cddc966255e75993ff7b0c6b",
+      "stdoutSha256": "081f28755951f6d29e10e2dcf2dff45dc6b5b27452dbaa1ac52afd3536c708a3"
+    },
+    {
+      "name": "clear; failure; duplicate=true",
+      "sourceSha256": "af84a446798bd393ea7fe148aa6a6f70b40933e34cd65080801e9f6a00fcbf05",
+      "stdoutSha256": "081f28755951f6d29e10e2dcf2dff45dc6b5b27452dbaa1ac52afd3536c708a3"
+    },
+    {
+      "name": "nested; miss; duplicate=false",
+      "sourceSha256": "9ae69123c1b270f63c715dbfbeeddfc9e360f163a6f1fd55c34fb5955f2cc187",
+      "stdoutSha256": "b980ccc04db7e219217c9a430dd2ce96ac72cb6fd2195851b75ab37371151562"
+    },
+    {
+      "name": "nested; miss; duplicate=true",
+      "sourceSha256": "966cadca056e260ebb804d425dac133f60f15867a48aacc1cddb1d25d208e036",
+      "stdoutSha256": "cf10dceb462422bbdd3c3bc26ae5117f40cda8ff675324ddfe60c529a196fa13"
+    },
+    {
+      "name": "nested; success; duplicate=false",
+      "sourceSha256": "1d3f8770481c4510a77dffa905bcf9b383df4820c10534750052c691704264bd",
+      "stdoutSha256": "934c82e331926e983a704d345543c40e6d08f376c59383996e218940efcc0e61"
+    },
+    {
+      "name": "nested; success; duplicate=true",
+      "sourceSha256": "4c5378175f67f64319f13ac2c59bc19fcf81e6c400aa27414b32fbf4f6cbcba6",
+      "stdoutSha256": "934c82e331926e983a704d345543c40e6d08f376c59383996e218940efcc0e61"
+    },
+    {
+      "name": "nested; invalid; duplicate=false",
+      "sourceSha256": "a1260aaba7fc6ca002c060e3d71a52c6c0b3afbe6b8fb03cb009a0f695b70abe",
+      "stdoutSha256": "5690a79d4b62c0824d7d3fa188d6861a7f64933dd89087673b8ab3eded1c6522"
+    },
+    {
+      "name": "nested; invalid; duplicate=true",
+      "sourceSha256": "d4f7206ca57ce92fc257b34fbe712f6e91562cbc733e834a5acfde00064c8baa",
+      "stdoutSha256": "5690a79d4b62c0824d7d3fa188d6861a7f64933dd89087673b8ab3eded1c6522"
+    },
+    {
+      "name": "nested; failure; duplicate=false",
+      "sourceSha256": "9ca0089c197160d92e21f7ff84c18c1b9839fa9bd3524e2934e857bf99065344",
+      "stdoutSha256": "731d4acb86a0d63e76d91f3130217a617db63c80ebf271e1a9708028458b1c2d"
+    },
+    {
+      "name": "nested; failure; duplicate=true",
+      "sourceSha256": "7cd504daf10e441e5be1d34f3e907598649090d75d8e11e1f2eb5a06929fe252",
+      "stdoutSha256": "731d4acb86a0d63e76d91f3130217a617db63c80ebf271e1a9708028458b1c2d"
+    }
+  ],
+  "writes": 2720,
+  "bytes": 27393,
+  "flushes": 0,
+  "driver": "import {openSync,writeSync,readFileSync,closeSync,fsyncSync,mkdtempSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/';\nconst oracle=JSON.parse(readFileSync(root+'packages/safe-python/src/runtime/__snapshots__/codec-search-lifecycle-user-oracle.json','utf8'));\nconst directory=mkdtempSync(join(tmpdir(),'safe-python-search-lifecycle-'));\nconst rows=[];let writes=0,bytes=0,flushes=0;\nconst hash=(value:string)=>createHash('sha256').update(value).digest('hex');\ntry {\n for(const [index,row] of oracle.cases.entries()){\n  const path=join(directory,String(index)),fd=openSync(path,'w');\n  try {\n   const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],output:{write(text){const buffer=Buffer.from(text);let offset=0;while(offset<buffer.length){offset+=writeSync(fd,buffer,offset,buffer.length-offset);writes++;}bytes+=buffer.length;},flush(){fsyncSync(fd);flushes++;}}});\n   const result=session.exec(row.source);if(result.status!=='ok')throw new Error(JSON.stringify(result));\n  }finally{closeSync(fd);}\n  const output=readFileSync(path,'utf8');if(output!==row.stdout)throw new Error('mismatch: '+row.name);\n  rows.push({name:row.name,sourceSha256:hash(row.source),stdoutSha256:hash(output)});\n }\n const fd=openSync(root+'packages/safe-python/src/runtime/__snapshots__/codec-search-lifecycle-user-evidence.json','w');\n try{writeSync(fd,JSON.stringify({reference:oracle.reference,adapter:'PythonSession output through explicitly opened Node fs.writeSync/fsyncSync descriptors, verified by fs.readFileSync',rows,writes,bytes,flushes,driver:readFileSync('/tmp/safe-python-search-lifecycle-services.mts','utf8')},null,2)+'\\n');}finally{closeSync(fd);}\n console.log(JSON.stringify({programs:rows.length,writes,bytes,flushes}));\n}finally{rmSync(directory,{recursive:true,force:true});}\n",
+  "checks": {
+    "initial": {
+      "passed": 56,
+      "failed": 0,
+      "pending": 0,
+      "files": 1,
+      "slowestMs": 39.61683300000004,
+      "failures": []
+    },
+    "focused": {
+      "passed": 354,
+      "failed": 0,
+      "pending": 0,
+      "files": 10,
+      "slowestMs": 124.36412500000006,
+      "failures": []
+    },
+    "blockers": {
+      "passed": 0,
+      "failed": 18,
+      "pending": 0,
+      "files": 2,
+      "slowestMs": 51.95100000000002,
+      "failures": [
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 registry and module API'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 incremental encoder state and …'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 every incremental split and st…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 stream adapters BOM and reset'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 registry and module API'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 incremental encoder state and …'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 every incremental split and st…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 stream adapters BOM and reset'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    "typecheck": {
+      "command": "npm run typecheck --workspace=@poe-code/safe-python",
+      "exitCode": 0
+    },
+    "eslint": {
+      "command": "npx eslint packages/safe-python/src/codec-search-lifecycle-user-cases.ts packages/safe-python/src/session-codec-search-lifecycle-user.test.ts",
+      "exitCode": 0
+    }
+  },
+  "oracleSha256": "e1260963253db5409ff824e4de8d50155432787c478635746f776c0d4ada0c0c"
+}

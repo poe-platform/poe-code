@@ -1,0 +1,2728 @@
+{
+  "driver": "import codecs, json, sys, unicodedata\nassert sys.version_info[:3] == (3, 14, 7)\nassert unicodedata.unidata_version == '16.0.0'\npoints = [[], [65], [0], [0x10000], [0xd800], [0xdc00], [0xd800,0xdc00], [0xd800,0xd800,0xdc00,0xdc00], [0x10000,0xd800,0xdc00,0], [39,34,92,10,0xd800,0xdc00]]\nrows = []\nfault = None\ndef decode(data, errors='strict'):\n    raise fault\ncodecs.register(lambda name: (None, decode, None, None) if name == 'point_fault' else None)\nfor name in ['ValueError', 'UnicodeError', 'LookupError', 'IndexError', 'KeyError', 'TypeError']:\n    for index, scalars in enumerate(points):\n        message = ''.join(chr(point) for point in scalars)\n        for mode in ['exec', 'eval']:\n            fault = getattr(__builtins__, name)(message)\n            try:\n                compile(b'# coding: point-fault\\n1', 'point-fault.py', mode)\n            except BaseException as error:\n                expected = {'type': type(error).__name__, 'points': list(map(ord,error.args[0])), 'same': error is fault}\n                if isinstance(error, SyntaxError):\n                    expected.update(filename=error.filename, line=error.lineno, offset=error.offset, text=error.text, msgAlias=error.msg is error.args[0])\n                rows.append(dict(name=name,index=index,points=scalars,mode=mode,expected=expected))\nprint(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=sys.platform,rows=rows)))\n",
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "darwin",
+  "rows": [
+    {
+      "name": "ValueError",
+      "index": 0,
+      "points": [],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 0,
+      "points": [],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "ValueError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 0,
+      "points": [],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 0,
+      "points": [],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "UnicodeError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 0,
+      "points": [],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 0,
+      "points": [],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "LookupError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 0,
+      "points": [],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 0,
+      "points": [],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "IndexError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 0,
+      "points": [],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 0,
+      "points": [],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          65536,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          92,
+          120,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "KeyError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "SyntaxError",
+        "points": [
+          39,
+          92,
+          39,
+          34,
+          92,
+          92,
+          92,
+          110,
+          92,
+          117,
+          100,
+          56,
+          48,
+          48,
+          92,
+          117,
+          100,
+          99,
+          48,
+          48,
+          39
+        ],
+        "same": false,
+        "filename": "point-fault.py",
+        "line": 0,
+        "offset": -1,
+        "text": null,
+        "msgAlias": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 0,
+      "points": [],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 0,
+      "points": [],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 1,
+      "points": [
+        65
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 2,
+      "points": [
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          0
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 3,
+      "points": [
+        65536
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 4,
+      "points": [
+        55296
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 5,
+      "points": [
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          56320
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 6,
+      "points": [
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          56320
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 7,
+      "points": [
+        55296,
+        55296,
+        56320,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          55296,
+          55296,
+          56320,
+          56320
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 8,
+      "points": [
+        65536,
+        55296,
+        56320,
+        0
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          65536,
+          55296,
+          56320,
+          0
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "exec",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      }
+    },
+    {
+      "name": "TypeError",
+      "index": 9,
+      "points": [
+        39,
+        34,
+        92,
+        10,
+        55296,
+        56320
+      ],
+      "mode": "eval",
+      "expected": {
+        "type": "TypeError",
+        "points": [
+          39,
+          34,
+          92,
+          10,
+          55296,
+          56320
+        ],
+        "same": true
+      }
+    }
+  ]
+}

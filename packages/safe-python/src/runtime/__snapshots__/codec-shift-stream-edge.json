@@ -1,0 +1,517 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "seed": 941731,
+  "rows": 12000,
+  "alphabet": [
+    0,
+    10,
+    13,
+    14,
+    15,
+    27,
+    32,
+    33,
+    36,
+    40,
+    41,
+    42,
+    46,
+    64,
+    65,
+    66,
+    67,
+    68,
+    73,
+    74,
+    78,
+    79,
+    92,
+    95,
+    96,
+    123,
+    125,
+    126,
+    127,
+    128,
+    255
+  ],
+  "blocks": [
+    {
+      "offset": 0,
+      "count": 128,
+      "sha256": "d4d8915b0fbb048347feab82e20804a8ee8bb72a4447637efcef0aa1ee9c6f26"
+    },
+    {
+      "offset": 128,
+      "count": 128,
+      "sha256": "f7f52d68e5b3539e53a607192f9a2162f8c85487e288d3adfffb7191b6a82f55"
+    },
+    {
+      "offset": 256,
+      "count": 128,
+      "sha256": "c393dd9a5121cf3f7129123fa5b5b68b7ebc8e2f8bd92cff3700fedd8cfb66c8"
+    },
+    {
+      "offset": 384,
+      "count": 128,
+      "sha256": "efe7bf7f8d4a43d508c14f88136f243d340b5186dc784b85072e857ed6ed6e27"
+    },
+    {
+      "offset": 512,
+      "count": 128,
+      "sha256": "7917742f1b4d266afd356bc3efe0e341282bc6388f60608c31b871c5214263fe"
+    },
+    {
+      "offset": 640,
+      "count": 128,
+      "sha256": "139d9d3a79c7e40d26059117e94e1f4752c57cddacad794fc27d9ba3de9c51ad"
+    },
+    {
+      "offset": 768,
+      "count": 128,
+      "sha256": "b2abc0f84e7d84aba6e17e6c7cf8b158bce15bd5505eec8707ab6e9384f11761"
+    },
+    {
+      "offset": 896,
+      "count": 128,
+      "sha256": "0153261c4a3aca124e28296829317de06dc8a67e5280809ba997f6dd1ddee063"
+    },
+    {
+      "offset": 1024,
+      "count": 128,
+      "sha256": "9ee2f2e796d5271ac95930cdef2598f817b4cb8452a6c06c90459ade5fd77e2c"
+    },
+    {
+      "offset": 1152,
+      "count": 128,
+      "sha256": "07a58eba6526b796c5ac56403020d0d3c7144be3da6eee18f3b16880faf08a97"
+    },
+    {
+      "offset": 1280,
+      "count": 128,
+      "sha256": "ca93b4a017b4cb11e0c67415f638eabbd00de23a6ac9220ef05781a86de515e7"
+    },
+    {
+      "offset": 1408,
+      "count": 128,
+      "sha256": "97bc97604d8529de94ad24974f0014db0795d5daf8474b0997ade0b297c73682"
+    },
+    {
+      "offset": 1536,
+      "count": 128,
+      "sha256": "a339d146aa899c4f69e3f4ac1ecbd4e9dced5b376927ea557688266e1cce36ba"
+    },
+    {
+      "offset": 1664,
+      "count": 128,
+      "sha256": "165b232202c58886d9ea1afa7bcc0eebe53e3dd05ff4d12e7d10504646458fd9"
+    },
+    {
+      "offset": 1792,
+      "count": 128,
+      "sha256": "ebf8bbf229fa51cc6848b5979a29631ac0eef3fabe9f46b54f0e0598a9f4ad00"
+    },
+    {
+      "offset": 1920,
+      "count": 128,
+      "sha256": "cafe886e31c2b02c485fb46792f5af4c081268c8d87642141ce1f142a07cc29d"
+    },
+    {
+      "offset": 2048,
+      "count": 128,
+      "sha256": "c6082eaf823f6629b5d04425635e43b32657eda508a4c93e752ec95983c6d981"
+    },
+    {
+      "offset": 2176,
+      "count": 128,
+      "sha256": "5ac047321bb1539db4d953d88d12c018295644d2916f65d2fd0f74605632006d"
+    },
+    {
+      "offset": 2304,
+      "count": 128,
+      "sha256": "e32175f2696aa2b47b9e11e38564c92f4eeb6a76a70232087673da727d22398b"
+    },
+    {
+      "offset": 2432,
+      "count": 128,
+      "sha256": "f8462a3217e9111a9ddd0e7be8ac2c660b5f2954911fa74f4dd1fbf56af09bd7"
+    },
+    {
+      "offset": 2560,
+      "count": 128,
+      "sha256": "06b074c341d9dbecb8c01106800960f843ff81335b85558d9a597446a4148b3b"
+    },
+    {
+      "offset": 2688,
+      "count": 128,
+      "sha256": "709a5fc01534ea41d077c6315e3b4d4e1c0a422b029c2e647ecf96a82f89003c"
+    },
+    {
+      "offset": 2816,
+      "count": 128,
+      "sha256": "0640ff8debeb5124b6911507e73b4f1c7c686fa4eff4f6cfe9d5bd729698a0f3"
+    },
+    {
+      "offset": 2944,
+      "count": 128,
+      "sha256": "3577c18dee2b356c2494daef39ea2124e6f1552aa2c7df1a20361cd08bbacf85"
+    },
+    {
+      "offset": 3072,
+      "count": 128,
+      "sha256": "db7a8960e478dbb475b4c18fdfb5eb1bbdb0a0e562349c0ad11a80bf67f83b8a"
+    },
+    {
+      "offset": 3200,
+      "count": 128,
+      "sha256": "e0ad738c9c0abd7c7d299f5a43d4e85185e75e522102a7e28bdb129457644236"
+    },
+    {
+      "offset": 3328,
+      "count": 128,
+      "sha256": "4fff0d5235c6051ec4c0fe4849fce96e3c0e54ea409376576c1252142f780a01"
+    },
+    {
+      "offset": 3456,
+      "count": 128,
+      "sha256": "acec0c34ac5fb303b14343315bff98e64607ea0f576f10ec9d17aca136e627ab"
+    },
+    {
+      "offset": 3584,
+      "count": 128,
+      "sha256": "d3d16da8eaefc1f8d51b37537b9f556033ed4e7aa45e02ddd23eaaf62612a435"
+    },
+    {
+      "offset": 3712,
+      "count": 128,
+      "sha256": "66df2279f7c264be6f3340dfecad24f8ab17746854b12d3ea9b1497cc545aa68"
+    },
+    {
+      "offset": 3840,
+      "count": 128,
+      "sha256": "bf0b25d2d68873fc22ffc0c87362f59cdbb7124390700166427ae9b94e747477"
+    },
+    {
+      "offset": 3968,
+      "count": 128,
+      "sha256": "e49ea79aee8dc4d8171c22bf1a1e719f0143a602d45a8dfd368028608eeb3edc"
+    },
+    {
+      "offset": 4096,
+      "count": 128,
+      "sha256": "7e6d3f9a98d292d7b108d4dbe4b2fcd04f5d8528d9d31eb801c8015440ed6d00"
+    },
+    {
+      "offset": 4224,
+      "count": 128,
+      "sha256": "0ca238c41da5b5cea7c790bd1faf03e53a61bf216bb80d8f19e7809116f2b3c9"
+    },
+    {
+      "offset": 4352,
+      "count": 128,
+      "sha256": "6ae80e67fa3710fbf8a04218df0ceee1c87f1840f1ff8d5d77288109efb7548c"
+    },
+    {
+      "offset": 4480,
+      "count": 128,
+      "sha256": "01927b7ba1c7df420337b801482afeec799644ef10b5ee4f40f0ee1a3afe9acb"
+    },
+    {
+      "offset": 4608,
+      "count": 128,
+      "sha256": "a92aee1f73b5be3cbe9b28beae98d36ddc98dbc34df8fda6ef759153916d1fc1"
+    },
+    {
+      "offset": 4736,
+      "count": 128,
+      "sha256": "afb4bb436ad387fbdf88ef4359d2ddadf2802364678545c5fbbf40f75e50faa7"
+    },
+    {
+      "offset": 4864,
+      "count": 128,
+      "sha256": "fcc2e060a501f1e97ef3ce9a0dc397eb6b64fd7f99d98d974880ea09324f78c0"
+    },
+    {
+      "offset": 4992,
+      "count": 128,
+      "sha256": "a712ba20805bd3b1ebf1982e1507294e29cd213200641ba225cc704c3f02f1bf"
+    },
+    {
+      "offset": 5120,
+      "count": 128,
+      "sha256": "f57036e26b3123f8f4a315f9be3acaa08cc72c6c3f893279d4de23ae7f30aaf9"
+    },
+    {
+      "offset": 5248,
+      "count": 128,
+      "sha256": "a2c55b54f165316cd7ef23eb4365c391c33460e0aca85a203782a596b26e8ca2"
+    },
+    {
+      "offset": 5376,
+      "count": 128,
+      "sha256": "f26f32272969e00c426ba89e00498052b4688b89cf68ce9ea5fbb38464f050b9"
+    },
+    {
+      "offset": 5504,
+      "count": 128,
+      "sha256": "f51fe9611d23689e65b1ddebf1cf85216a7cd8a6eca27b1287f5e5706160ea34"
+    },
+    {
+      "offset": 5632,
+      "count": 128,
+      "sha256": "2385f0b518320f4485f357abec5c131fe419fac7a9fc611ff903b94170781101"
+    },
+    {
+      "offset": 5760,
+      "count": 128,
+      "sha256": "fe12caeeb7aa58b333a05f78f1801674b1bb0c4129979ae8bef9fd015e53045d"
+    },
+    {
+      "offset": 5888,
+      "count": 128,
+      "sha256": "8f32daddf348e5ca45a2051daaac0dbd8cdf70091c62379ccc7d95d6e929ac60"
+    },
+    {
+      "offset": 6016,
+      "count": 128,
+      "sha256": "6624ac435952507d615e08f18e80677e3d00863ae9e4d4b9d67b1369f1315b16"
+    },
+    {
+      "offset": 6144,
+      "count": 128,
+      "sha256": "f1680318fc09708d444777978b3a70ff18bf0d5850bfded213261df113c9deb6"
+    },
+    {
+      "offset": 6272,
+      "count": 128,
+      "sha256": "631803bd243df254238426dc845e2db60017bfecd7493d8257e591bdc18b1bac"
+    },
+    {
+      "offset": 6400,
+      "count": 128,
+      "sha256": "8c0d71851574dff56e568ddf1adf67a1cc70260a1c2383daa2202427394925df"
+    },
+    {
+      "offset": 6528,
+      "count": 128,
+      "sha256": "0453093ddf9f6f44f6fcee3090b3e3bba9ebbb32069a4b2036f781a4fcffa98a"
+    },
+    {
+      "offset": 6656,
+      "count": 128,
+      "sha256": "a4c2cb9f248cedff74ea8869326b171bd681562b48d2c80c4a16b94a26d7f09b"
+    },
+    {
+      "offset": 6784,
+      "count": 128,
+      "sha256": "7f5315759ac3eaa10057399dcc905a573f52eeb0ae6765ce2db9a2f32dcc0375"
+    },
+    {
+      "offset": 6912,
+      "count": 128,
+      "sha256": "12565e9ec97fada2d7dea669c610658f8fe419ccf747b404992bfd3a70209bce"
+    },
+    {
+      "offset": 7040,
+      "count": 128,
+      "sha256": "971e67162f1a9a9bc942cd4bcc7f05ac21a06b6cff734e97788b3e64ba0a214b"
+    },
+    {
+      "offset": 7168,
+      "count": 128,
+      "sha256": "78b26d300e5a6c16c950060bfc8dfa90bc2fbb171c693b3f75cc9fd49b0b763a"
+    },
+    {
+      "offset": 7296,
+      "count": 128,
+      "sha256": "42a67e83b9e909421bdf235258aab1e53541f1bd63cc0b24a6355d214241b2cd"
+    },
+    {
+      "offset": 7424,
+      "count": 128,
+      "sha256": "3fa42ae070b2c9c2b5af8d4793b076c672ee3a6aec27ea22698537723e3d60cf"
+    },
+    {
+      "offset": 7552,
+      "count": 128,
+      "sha256": "0652a58717720c977d2ca78de010a9484b6b7ffb666edfbe62707a433aa499b8"
+    },
+    {
+      "offset": 7680,
+      "count": 128,
+      "sha256": "a9500fbdbc4e73a22579774d0d4dac5b008550e003e75e43d7817017b7c84dee"
+    },
+    {
+      "offset": 7808,
+      "count": 128,
+      "sha256": "fe6043540ebacdd47927afbd510bd01aaa88c183e14d97f78304b09511b6902b"
+    },
+    {
+      "offset": 7936,
+      "count": 128,
+      "sha256": "c305955c476c640d376b8e25e071d9aa11fd16f72d642974eb4cc459879d2f21"
+    },
+    {
+      "offset": 8064,
+      "count": 128,
+      "sha256": "aad5f2d3d84ec465f346e8a89b630095eca4bb9b6bff8a439736d00eac312041"
+    },
+    {
+      "offset": 8192,
+      "count": 128,
+      "sha256": "1244d8e97b0160957c8d1e610c4883470fbb937727e495d2e3f47a0c8b6918bc"
+    },
+    {
+      "offset": 8320,
+      "count": 128,
+      "sha256": "a1b6b609773020cfb0f38f6f17f3884420d9c7eb8083f6f050377364bee026cb"
+    },
+    {
+      "offset": 8448,
+      "count": 128,
+      "sha256": "5e7272ed6a4bcb6cfa84668ce13c2c9f4c98cdcdd040e615a05b2a7d84ccfe69"
+    },
+    {
+      "offset": 8576,
+      "count": 128,
+      "sha256": "9c8625864e45c970fc2feb205a0f55684ceaa2eedfcd498c2e183417e80e16e7"
+    },
+    {
+      "offset": 8704,
+      "count": 128,
+      "sha256": "2eab34cca7a0f16e51f818d844f8cff70bc43249cc547fc6ff90cb957e7b0a9a"
+    },
+    {
+      "offset": 8832,
+      "count": 128,
+      "sha256": "46ccbd96f5bd7b1ccd142437e641f9b78b627cf97bd3c7ca0591a713fc105e13"
+    },
+    {
+      "offset": 8960,
+      "count": 128,
+      "sha256": "2862061c9facc40841913c1401a40f67c88c5884a4e1779b200b7522e5cdfc8f"
+    },
+    {
+      "offset": 9088,
+      "count": 128,
+      "sha256": "bbb8f3f2e7c85dc5e06743ed57cd81c1326f0748e7b75238464d6fed1fa5f12a"
+    },
+    {
+      "offset": 9216,
+      "count": 128,
+      "sha256": "bb0819765d3d58c4365d35c1bb46369c8a8ac3944d741f09844a504aec9b9674"
+    },
+    {
+      "offset": 9344,
+      "count": 128,
+      "sha256": "e03f051328d1e86ce9eaa0f57833585f5f538adb73d199961560d19092732419"
+    },
+    {
+      "offset": 9472,
+      "count": 128,
+      "sha256": "e4e2c9e5a91c5d3479144e3a7fa453d4502b1532f04f11b1ee9db821f6d8b268"
+    },
+    {
+      "offset": 9600,
+      "count": 128,
+      "sha256": "e16a022411d63d47a97705409e4349458749d13850e6222f7158ad71f506689c"
+    },
+    {
+      "offset": 9728,
+      "count": 128,
+      "sha256": "f74205cb099825a1d5ce035c140d95762a0b3612adc2574066a7c6e4fadf01bf"
+    },
+    {
+      "offset": 9856,
+      "count": 128,
+      "sha256": "496d0e4bfeed313dc7502f577939260da57d2ed982383fc448dfc709e80c81d8"
+    },
+    {
+      "offset": 9984,
+      "count": 128,
+      "sha256": "4bb93a2954f2fda4b0b0a781a22831f6cb2173c072536307cb11bfc7ebdba566"
+    },
+    {
+      "offset": 10112,
+      "count": 128,
+      "sha256": "40fcc2433876e0b172018dcbb6f0de3c92acef447c2e2b7ff31469ac59fa6b05"
+    },
+    {
+      "offset": 10240,
+      "count": 128,
+      "sha256": "524548923c04779bfce2f6a581246c6b68bc6a9081a5050f3bf5fa1987ce9be4"
+    },
+    {
+      "offset": 10368,
+      "count": 128,
+      "sha256": "621c944ed4da09d1eb670c865b633b384b51825af957c99f71dfbd6d41c9d3ef"
+    },
+    {
+      "offset": 10496,
+      "count": 128,
+      "sha256": "22ba6e8d7a4f1c515326762611ff78805162fbd335b3d96e38474792160df194"
+    },
+    {
+      "offset": 10624,
+      "count": 128,
+      "sha256": "595c9fb191975a072636f579e2d0a3e2c24c86b35a1a3c22836ef53267f26d84"
+    },
+    {
+      "offset": 10752,
+      "count": 128,
+      "sha256": "40e695a3f120969d80b5cbd759a1a2f2d606c06bd7e57411ee4008a6f365ff2c"
+    },
+    {
+      "offset": 10880,
+      "count": 128,
+      "sha256": "4b22ba9c06963b75732b07b8b2464b482554228d00dfb3236ddc66f7ecfadf38"
+    },
+    {
+      "offset": 11008,
+      "count": 128,
+      "sha256": "76b597a13c40e1af9baeefe6ebbf548c94aab7c75022feffbdc0b1f8e5dff4cb"
+    },
+    {
+      "offset": 11136,
+      "count": 128,
+      "sha256": "acec3966f8439ff5db35f890cdfc1cc7e2e562e9fe55dafb0d8a5f9e9090a3fc"
+    },
+    {
+      "offset": 11264,
+      "count": 128,
+      "sha256": "9799d3664bd9acf568d06b758289a26f9a33343b703f98e4c01ce0eafc62b67a"
+    },
+    {
+      "offset": 11392,
+      "count": 128,
+      "sha256": "5c8930876ba9867f1d8694d1a27f46ce4aa88e5e38a8321f20876c0c1b8c1bdd"
+    },
+    {
+      "offset": 11520,
+      "count": 128,
+      "sha256": "40fc2a9c8060f40f56cd0037d45df19828f686cf7cca1b4ef5b196db060d894c"
+    },
+    {
+      "offset": 11648,
+      "count": 128,
+      "sha256": "c2d69fcd0a8e0cdf500fd8f7938f73620d3cd9988f5daff1cb421b66af2930a2"
+    },
+    {
+      "offset": 11776,
+      "count": 128,
+      "sha256": "185f0e68e937e3a1b14a21e2d07074789e62df7786ea144677d6a01f11311957"
+    },
+    {
+      "offset": 11904,
+      "count": 96,
+      "sha256": "199037e2f5d1eb00d3d58f0fa9e11df87938796500c211d12a022ea26525a141"
+    }
+  ],
+  "oracle": "import codecs,json,sys\nout=[]\nfor r in json.load(sys.stdin):\n d=codecs.getincrementaldecoder(r['codec'])(r['policy']); events=[]\n for i,b in enumerate(r['chunks']):\n  try: v=['ok',list(map(ord,d.decode(bytes(b),i%2==1)))]\n  except UnicodeDecodeError as e: v=['error',e.encoding,list(e.object),e.start,e.end,e.reason]\n  except Exception as e: v=['error',type(e).__name__,str(e)]\n  state=d.getstate(); events.append([v,[list(state[0]),str(state[1])]])\n out.append(events)\nprint(json.dumps(out))",
+  "driver": "import {execFileSync} from 'node:child_process';\nimport {writeFileSync} from 'node:fs';\nimport {DoubleByteIncrementalDecoder} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-incremental-decoder.ts';\nimport {ExecutionBudget} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nimport {PythonRuntimeError} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/error.ts';\nimport {PythonDecodeError} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/decode-error.ts';\nimport {hzCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/hz-codec.ts';\nimport {iso2022JpCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.ts';\nimport {iso2022Jp2Codec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-2-codec.ts';\nimport {iso2022KrCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-kr-codec.ts';\nconst codecs=[hzCodec,iso2022JpCodec,iso2022Jp2Codec,iso2022KrCodec];\nlet seed=941731;const next=()=>seed=(Math.imul(seed,1664525)+1013904223)>>>0;\nconst alphabet=[0,10,13,14,15,27,32,33,36,40,41,42,46,64,65,66,67,68,73,74,78,79,92,95,96,123,125,126,127,128,255];\nconst rows=[];\nfor(let i=0;i<12000;i++){const data=Array.from({length:next()%35},()=>alphabet[next()%alphabet.length]);const split=next()%(data.length+1);rows.push({codec:codecs[i%4].name,policy:['strict','replace','ignore'][i%3],chunks:[data.slice(0,split),data.slice(split),[65],[]]});}\nconst oracle=`import codecs,json,sys\nout=[]\nfor r in json.load(sys.stdin):\n d=codecs.getincrementaldecoder(r['codec'])(r['policy']); events=[]\n for i,b in enumerate(r['chunks']):\n  try: v=['ok',list(map(ord,d.decode(bytes(b),i%2==1)))]\n  except UnicodeDecodeError as e: v=['error',e.encoding,list(e.object),e.start,e.end,e.reason]\n  except Exception as e: v=['error',type(e).__name__,str(e)]\n  state=d.getstate(); events.append([v,[list(state[0]),str(state[1])]])\n out.append(events)\nprint(json.dumps(out))`;\nconst expected=JSON.parse(execFileSync('/opt/homebrew/bin/python3.14',['-I','-c',oracle],{input:JSON.stringify(rows),encoding:'utf8',maxBuffer:30000000}));\nconst failures=[];\nfor(let i=0;i<rows.length;i++){const row=rows[i],meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000}),d=new DoubleByteIncrementalDecoder(codecs[i%4],row.policy as any);const actual=row.chunks.map((b,j)=>{let v;try{v=['ok',[...d.decode(Uint8Array.from(b),j%2===1,meter)]];}catch(e){if(e instanceof PythonDecodeError)v=['error',e.encoding,[...e.object],e.start,e.end,e.reason];else if(e instanceof PythonRuntimeError)v=['error',e.name,e.message];else throw e;}const s=d.getstate(meter);return [v,[[...s[0]],String(s[1])]];});if(JSON.stringify(actual)!==JSON.stringify(expected[i]))failures.push({row,actual,expected:expected[i]});}\nwriteFileSync('/tmp/codec-shift-user-audit.json',JSON.stringify({rows,expected,failures,oracle},null,2));console.log({cases:rows.length,failures:failures.length,first:failures[0]});\n"
+}

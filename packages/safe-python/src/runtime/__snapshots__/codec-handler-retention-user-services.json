@@ -1,0 +1,5271 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "oracle": "codec-handler-retention-user-3.14.7.json",
+  "procedure": "Execute each unchanged program using actual input/output file descriptors. Complete output writes, fsync, close and reopen for exact persisted-output comparison under two hash seeds. Cancel after first actual read/write, both returning and throwing, then check terminal exec/eval and unchanged service counts. Remove only the owned temporary directory.",
+  "hashes": {
+    "runtime/runtime-codec-registry.ts": "af09c087ce814069fca48abc800fadb1870d47d8f0dc298d3614aa8dc3af4704",
+    "runtime/runtime-codec-registry-functions.ts": "df404f8204f6dc3eea78383e579efddeec5487e70a39c32e55ed695e4bb5a798",
+    "runtime/utf-wide-incremental.ts": "0cbeb91f112d81693556d2bb6daf7a3e2b13b3cfb85d63a3d9cf1d3d6917fa96",
+    "runtime/utf8-incremental.ts": "7e633f8a439aeaa433b7450002d7f31146edf9812645e98a5f77ebdd4acd2e1a",
+    "runtime/utf8-signature.ts": "9f1e17d6cc2385ba081fcfce16f74ef6911ba6386bac87c910e08a749006c4a3",
+    "codec-handler-retention-user-cases.ts": "e0808b29315adb4ffa21d470bf297fda61057e4bfad52a2d428886daee4e23b3",
+    "session-codec-handler-retention-user.test.ts": "514b429d024bdc14cbb4334e99311f7de26c31508539a71e2b4c9eaad3c79b74"
+  },
+  "total": 192,
+  "passed": 192,
+  "results": [
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 1) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 1) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 ﻿NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 3, 4), ('index', 4, 7), ('replacement', 5, 6), ('index', 6, 7)]\nreset (b'', 1) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 ﻿NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 3, 4), ('index', 4, 7), ('replacement', 5, 6), ('index', 6, 7)]\nreset (b'', 1) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nresult 2 b'N\\x00A\\x00N\\x00Z\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nresult 2 b'N\\x00A\\x00N\\x00Z\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nresult 2 b'\\x00N\\x00A\\x00N\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nresult 2 b'\\x00N\\x00A\\x00N\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nresult 2 b'N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nresult 2 b'N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nresult 2 b'\\x00\\x00\\x00N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nresult 2 b'\\x00\\x00\\x00N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 2,
+        "writes": 32,
+        "flushes": 2
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "baseline-1",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "baseline-2",
+      "passed": true,
+      "status": "ok",
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n",
+      "counts": {
+        "reads": 4,
+        "writes": 30,
+        "flushes": 4
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "read-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "read-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "counts": {
+        "reads": 1,
+        "writes": 0,
+        "flushes": 1
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "after": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "write-return",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "write-throw",
+      "passed": true,
+      "status": "terminated",
+      "reason": "cancelled",
+      "output": "result",
+      "counts": {
+        "reads": 2,
+        "writes": 1,
+        "flushes": 2
+      },
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "before": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        },
+        "after": {
+          "reads": 2,
+          "writes": 1,
+          "flushes": 2
+        }
+      }
+    }
+  ]
+}

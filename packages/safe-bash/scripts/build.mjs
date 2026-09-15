@@ -238,6 +238,18 @@ function compilerInputs(root, tools, fileSystem) {
           else peerPaths[name + "/*"] = [join(dependencyRoot, "*")];
         }
       }
+      if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
+        assert.equal(manifest.private, true, "op build dependency is internal only");
+        assert.equal(manifest.devDependencies["@poe-platform/op"], "*", "op build dependency must be the local workspace");
+        const opRoot = resolve(root, "../op");
+        peerMetadata.add(join(opRoot, "package.json"));
+        const op = JSON.parse(read(join(opRoot, "package.json")));
+        assert.equal(op.name, "@poe-platform/op", "internal op package identity");
+        assert.equal(op.private, true, "op implementation must remain private");
+        assert.equal(op.exports?.["."]?.types, "./dist/index.d.ts", "internal op declaration entry");
+        toolRoots.push(join(opRoot, "dist"));
+        peerPaths = { ...peerPaths, "@poe-platform/op": [join(opRoot, "dist/index.d.ts")] };
+      }
       return peerPaths;
     },
     admitSources(paths) {
@@ -328,7 +340,30 @@ export async function buildPackage({ root = packageRoot, args = [], fileSystem =
   };
   const program = ts.createProgram(parsed.fileNames, parsed.options, host);
   const diagnostics = ts.getPreEmitDiagnostics(program);
-  const emitted = program.emit();
+  const opEntry = peerPaths?.["@poe-platform/op"]?.[0];
+  const opDeclarations = opEntry ? dirname(opEntry) : undefined;
+  const localOpDeclarations = join(root, "dist/internal/op");
+  const declarationImports = context => source => {
+    const outputFile = join(parsed.options.declarationDir ?? parsed.options.outDir, relative(parsed.options.rootDir, source.fileName));
+    let target = relative(dirname(outputFile), join(localOpDeclarations, "index.js")).split(sep).join("/");
+    if (!target.startsWith(".")) target = "./" + target;
+    const rewrite = literal => opEntry && literal && ts.isStringLiteral(literal) && literal.text === "@poe-platform/op"
+      ? context.factory.createStringLiteral(target) : literal;
+    const visit = node => {
+      if (ts.isImportDeclaration(node)) return context.factory.updateImportDeclaration(node, node.modifiers, node.importClause, rewrite(node.moduleSpecifier), node.attributes);
+      if (ts.isExportDeclaration(node)) return context.factory.updateExportDeclaration(node, node.modifiers, node.isTypeOnly, node.exportClause, rewrite(node.moduleSpecifier), node.attributes);
+      if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) return context.factory.updateImportTypeNode(node, context.factory.updateLiteralTypeNode(node.argument, rewrite(node.argument.literal)), node.attributes, node.qualifier, node.typeArguments, node.isTypeOf);
+      return ts.visitEachChild(node, visit, context);
+    };
+    return ts.visitNode(source, visit);
+  };
+  const emitted = program.emit(undefined, undefined, undefined, undefined, { afterDeclarations: [declarationImports] });
+  if (opDeclarations && parsed.options.declaration && !emitted.emitSkipped) {
+    for (const source of program.getSourceFiles()) {
+      if (!source.isDeclarationFile || !below(opDeclarations, source.fileName)) continue;
+      host.writeFile(join(localOpDeclarations, relative(opDeclarations, source.fileName)), source.text, false);
+    }
+  }
   const allDiagnostics = ts.sortAndDeduplicateDiagnostics([...diagnostics, ...emitted.diagnostics]);
   report(allDiagnostics);
   if (parsed.options.listFiles) for (const source of program.getSourceFiles()) write(source.fileName + "\n");

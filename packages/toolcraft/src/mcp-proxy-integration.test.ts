@@ -778,11 +778,7 @@ describe("mcp proxy integration", () => {
         arguments: { text: "xyz" },
       });
 
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0]).toMatchObject({ type: "text" });
-      expect(
-        JSON.parse((result.content[0] as { text: string }).text)
-      ).toEqual({
+      expect(result).toEqual({
         content: [{ type: "text", text: "abc" }],
       });
     } finally {

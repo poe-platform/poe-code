@@ -1,0 +1,25 @@
+{
+  "observedAt": "2026-09-14T00:52:08.171Z",
+  "results": [
+    {
+      "name": "safe-js",
+      "url": "https://registry.npmjs.org/@poe-platform%2fsafe-js/0.1.590",
+      "status": 404,
+      "etag": null
+    },
+    {
+      "name": "safe-fs",
+      "url": "https://registry.npmjs.org/@poe-platform%2fsafe-fs/0.1.590",
+      "status": 200,
+      "version": "0.1.590",
+      "etag": null
+    },
+    {
+      "name": "safe-bash",
+      "url": "https://registry.npmjs.org/@poe-platform%2fsafe-bash/0.1.590",
+      "status": 200,
+      "version": "0.1.590",
+      "etag": null
+    }
+  ]
+}

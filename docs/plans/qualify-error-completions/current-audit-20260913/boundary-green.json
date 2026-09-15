@@ -1,0 +1,46 @@
+[
+  {
+    "kind": "sync",
+    "original": [
+      "Error",
+      "Host operation failed.",
+      "Error: Host operation failed.\n    at fail (line 1, column 11)"
+    ],
+    "replay": [
+      "Error",
+      "Host operation failed.",
+      "Error: Host operation failed.\n    at fail (line 1, column 11)"
+    ],
+    "calls": 1,
+    "originalTrace": [],
+    "trace": []
+  },
+  {
+    "kind": "async",
+    "original": [
+      "Error",
+      "Host operation failed.",
+      "Error: Host operation failed.\n    at fail (line 1, column 11)"
+    ],
+    "replay": [
+      "Error",
+      "Host operation failed.",
+      "Error: Host operation failed.\n    at fail (line 1, column 11)"
+    ],
+    "calls": 1,
+    "originalTrace": [],
+    "trace": []
+  },
+  {
+    "kind": "foreign-arguments",
+    "expected": [
+      true,
+      true,
+      false,
+      "finally"
+    ],
+    "failed": {
+      "message": "Unknown intrinsic identity: [\"%ThrowTypeError%\"]"
+    }
+  }
+]

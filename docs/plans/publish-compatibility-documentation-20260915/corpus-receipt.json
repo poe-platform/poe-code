@@ -1,0 +1,11 @@
+{
+  "sourceHead": "e63e1b158c58de8b14a926a6e6c8989da1d23feb",
+  "qualification": "inherited dirty candidate, not remote source qualification",
+  "sha256": "a170bd9dc261700dc47c7a9a93b4fadb99c94b42d6680c70255a0b98c8b28a19",
+  "lastRecord": {
+    "type": "aborted",
+    "complete": false,
+    "message": "ENOSPC: no space left on device, write"
+  },
+  "bytes": 10514109
+}

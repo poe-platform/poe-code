@@ -1,0 +1,312 @@
+
+> @poe-code/safe-python@0.0.0-dev test:unit
+> vitest run --config vitest.config.ts src/session-codec-stateful-encoder-user.test.ts src/session-codec-interpreter-isolation.test.ts src/session-codec-search-mutation.test.ts src/session-codec-recovery-index-boundaries.test.ts src/session-core-codec-cancellation.test.ts --maxWorkers=2 --pool=forks
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts (24 tests | 24 failed) 479ms
+   × 'iso2022_jp' restores encoder state after recovery and guest failure 71ms
+   × 'iso2022_jp_1' restores encoder state after recovery and guest failure 23ms
+   × 'iso2022_jp_2' restores encoder state after recovery and guest failure 20ms
+   × 'iso2022_jp_3' restores encoder state after recovery and guest failure 18ms
+   × 'iso2022_jp_2004' restores encoder state after recovery and guest failure 22ms
+   × 'iso2022_jp_ext' restores encoder state after recovery and guest failure 19ms
+   × 'iso2022_kr' restores encoder state after recovery and guest failure 18ms
+   × 'hz' restores encoder state after recovery and guest failure 15ms
+   × 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=false) 28ms
+   × 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=true) 21ms
+   × 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=false) 18ms
+   × 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=true) 19ms
+   × 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=false) 15ms
+   × 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=true) 17ms
+   × 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=false) 16ms
+   × 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=true) 14ms
+   × 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=false) 17ms
+   × 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=true) 15ms
+   × 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=false) 16ms
+   × 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=true) 15ms
+   × 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=false) 16ms
+   × 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=true) 15ms
+   × 'hz' keeps encoder recovery cancellation terminal (throws=false) 15ms
+   × 'hz' keeps encoder recovery cancellation terminal (throws=true) 13ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 24 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_1' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_1'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_2'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_3' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_3'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2004' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_2004'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_ext' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_jp_ext'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_kr' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: iso2022_kr'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'hz' restores encoder state after recovery and guest failure
+AssertionError: LookupError('unknown encoding: hz'): expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:25:33
+     23|     if (diagnostic.status === "ok") detail = String(diagnostic.value.p…
+     24|   }
+     25|   expect(result.status, detail).toBe("ok");
+       |                                 ^
+     26|   expect(output).toBe(oracle.stdout);
+     27|   expect(reads).toBeGreaterThanOrEqual(3);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_1' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_1'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_2'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_3' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_3'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_2004' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_2004'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_jp_ext' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_jp_ext'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'iso2022_kr' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: iso2022_kr'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/24]⎯
+
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'hz' keeps encoder recovery cancellation terminal (throws=false)
+ FAIL  src/session-codec-stateful-encoder-user.test.ts > 'hz' keeps encoder recovery cancellation terminal (throws=true)
+AssertionError: LookupError('unknown encoding: hz'): expected 'exception' to be 'terminated' // Object.is equality
+
+Expected: "terminated"
+Received: "exception"
+
+ ❯ src/session-codec-stateful-encoder-user.test.ts:51:35
+     49|       if (diagnostic.status === "ok") detail = String(diagnostic.value…
+     50|     }
+     51|     expect(result.status, detail).toBe("terminated");
+       |                                   ^
+     52|     if (result.status === "terminated") expect(result.reason).toBe("ca…
+     53|     const before = writes;
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/24]⎯
+
+
+ Test Files  1 failed | 4 passed (5)
+      Tests  24 failed | 55 passed (79)
+   Start at  11:47:31
+   Duration  9.22s (transform 8.71s, setup 0ms, import 13.78s, tests 2.82s, environment 0ms)
+
+npm error Lifecycle script `test:unit` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+npm error workspace @poe-code/safe-python@0.0.0-dev
+npm error location /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts src/session-codec-stateful-encoder-user.test.ts src/session-codec-interpreter-isolation.test.ts src/session-codec-search-mutation.test.ts src/session-codec-recovery-index-boundaries.test.ts src/session-core-codec-cancellation.test.ts --maxWorkers=2 --pool=forks

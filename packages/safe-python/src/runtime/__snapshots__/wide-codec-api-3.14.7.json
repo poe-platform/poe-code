@@ -1,0 +1,4821 @@
+{
+  "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "utf_16_encode()",
+      "expression": "_codecs.utf_16_encode()",
+      "error": "TypeError",
+      "args": "('utf_16_encode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_16_encode(None, None, None, None)",
+      "expression": "_codecs.utf_16_encode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_encode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_16_encode(None, None, None, None, None)",
+      "expression": "_codecs.utf_16_encode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_encode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_16_encode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_16_encode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_encode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_16_encode(None)",
+      "expression": "_codecs.utf_16_encode(None)",
+      "error": "TypeError",
+      "args": "('utf_16_encode() argument 1 must be str, not None',)"
+    },
+    {
+      "name": "utf_16_encode(7)",
+      "expression": "_codecs.utf_16_encode(7)",
+      "error": "TypeError",
+      "args": "('utf_16_encode() argument 1 must be str, not int',)"
+    },
+    {
+      "name": "utf_16_encode([])",
+      "expression": "_codecs.utf_16_encode([])",
+      "error": "TypeError",
+      "args": "('utf_16_encode() argument 1 must be str, not list',)"
+    },
+    {
+      "name": "utf_16_encode(str='A')",
+      "expression": "_codecs.utf_16_encode(str='A')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_encode('A', errors=None)",
+      "expression": "_codecs.utf_16_encode('A', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_encode('A', 7)",
+      "expression": "_codecs.utf_16_encode('A', 7)",
+      "error": "TypeError",
+      "args": "('utf_16_encode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_16_encode('A', b'strict')",
+      "expression": "_codecs.utf_16_encode('A', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_16_encode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_16_encode('A', 'bad\\x00name')",
+      "expression": "_codecs.utf_16_encode('A', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_16_encode('A', '\\ud800')",
+      "expression": "_codecs.utf_16_encode('A', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('A', 'missing')",
+      "expression": "_codecs.utf_16_encode('A', 'missing')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('A', None, None)",
+      "expression": "_codecs.utf_16_encode('A', None, None)",
+      "error": "TypeError",
+      "args": "(\"'NoneType' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_encode('A', None, 1.0)",
+      "expression": "_codecs.utf_16_encode('A', None, 1.0)",
+      "error": "TypeError",
+      "args": "(\"'float' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_encode('A', None, 'little')",
+      "expression": "_codecs.utf_16_encode('A', None, 'little')",
+      "error": "TypeError",
+      "args": "(\"'str' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_encode('A', None, [])",
+      "expression": "_codecs.utf_16_encode('A', None, [])",
+      "error": "TypeError",
+      "args": "(\"'list' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_encode('A', None, -2147483649)",
+      "expression": "_codecs.utf_16_encode('A', None, -2147483649)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_16_encode('A', None, 2147483648)",
+      "expression": "_codecs.utf_16_encode('A', None, 2147483648)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_16_encode('A', None, True)",
+      "expression": "_codecs.utf_16_encode('A', None, True)",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_encode('A', None, False)",
+      "expression": "_codecs.utf_16_encode('A', None, False)",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('A', None, -2)",
+      "expression": "_codecs.utf_16_encode('A', None, -2)",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('A', None, 2)",
+      "expression": "_codecs.utf_16_encode('A', None, 2)",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_encode('', 'strict')",
+      "expression": "_codecs.utf_16_encode('', 'strict')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'strict')",
+      "expression": "_codecs.utf_16_encode('A', 'strict')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'strict')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'strict')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'strict')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'strict')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('', 'ignore')",
+      "expression": "_codecs.utf_16_encode('', 'ignore')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'ignore')",
+      "expression": "_codecs.utf_16_encode('A', 'ignore')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'ignore')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'ignore')",
+      "value": "(b'\\xff\\xfe', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'ignore')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'ignore')",
+      "value": "(b'\\xff\\xfe', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'ignore')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'ignore')",
+      "value": "(b'\\xff\\xfe', 1)"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'ignore')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'ignore')",
+      "value": "(b'\\xff\\xfeA\\x00B\\x00', 4)"
+    },
+    {
+      "name": "utf_16_encode('', 'replace')",
+      "expression": "_codecs.utf_16_encode('', 'replace')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'replace')",
+      "expression": "_codecs.utf_16_encode('A', 'replace')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'replace')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'replace')",
+      "value": "(b'\\xff\\xfe?\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'replace')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'replace')",
+      "value": "(b'\\xff\\xfe?\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'replace')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'replace')",
+      "value": "(b'\\xff\\xfe?\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'replace')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'replace')",
+      "value": "(b'\\xff\\xfeA\\x00?\\x00B\\x00?\\x00', 4)"
+    },
+    {
+      "name": "utf_16_encode('', 'backslashreplace')",
+      "expression": "_codecs.utf_16_encode('', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'backslashreplace')",
+      "expression": "_codecs.utf_16_encode('A', 'backslashreplace')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'backslashreplace')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'backslashreplace')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\\\\\x00u\\x00d\\x00c\\x008\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "value": "(b'\\xff\\xfeA\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00B\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 4)"
+    },
+    {
+      "name": "utf_16_encode('', 'surrogateescape')",
+      "expression": "_codecs.utf_16_encode('', 'surrogateescape')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'surrogateescape')",
+      "expression": "_codecs.utf_16_encode('A', 'surrogateescape')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'surrogateescape')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'surrogateescape')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_encode('', 'surrogatepass')",
+      "expression": "_codecs.utf_16_encode('', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'surrogatepass')",
+      "expression": "_codecs.utf_16_encode('A', 'surrogatepass')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'surrogatepass')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x00\\xd8', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'surrogatepass')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x80\\xdc', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\xff\\xdf', 1)"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "value": "(b'\\xff\\xfeA\\x00\\x00\\xd8B\\x00\\xff\\xdf', 4)"
+    },
+    {
+      "name": "utf_16_encode('', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_encode('', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_encode('A', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe&\\x00#\\x005\\x005\\x002\\x009\\x006\\x00;\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe&\\x00#\\x005\\x006\\x004\\x004\\x008\\x00;\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe&\\x00#\\x005\\x007\\x003\\x004\\x003\\x00;\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfeA\\x00&\\x00#\\x005\\x005\\x002\\x009\\x006\\x00;\\x00B\\x00&\\x00#\\x005\\x007\\x003\\x004\\x003\\x00;\\x00', 4)"
+    },
+    {
+      "name": "utf_16_encode('', 'namereplace')",
+      "expression": "_codecs.utf_16_encode('', 'namereplace')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'namereplace')",
+      "expression": "_codecs.utf_16_encode('A', 'namereplace')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'namereplace')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'namereplace')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\\\\\x00u\\x00d\\x00c\\x008\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'namereplace')",
+      "value": "(b'\\xff\\xfeA\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00B\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 4)"
+    },
+    {
+      "name": "utf_16_encode('', 'missing')",
+      "expression": "_codecs.utf_16_encode('', 'missing')",
+      "value": "(b'\\xff\\xfe', 0)"
+    },
+    {
+      "name": "utf_16_encode('A', 'missing')",
+      "expression": "_codecs.utf_16_encode('A', 'missing')",
+      "value": "(b'\\xff\\xfeA\\x00', 1)"
+    },
+    {
+      "name": "utf_16_encode('\\ud800', 'missing')",
+      "expression": "_codecs.utf_16_encode('\\ud800', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_encode('\\udc80', 'missing')",
+      "expression": "_codecs.utf_16_encode('\\udc80', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_encode('\\udfff', 'missing')",
+      "expression": "_codecs.utf_16_encode('\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_encode('A\\ud800B\\udfff', 'missing')",
+      "expression": "_codecs.utf_16_encode('A\\ud800B\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_decode()",
+      "expression": "_codecs.utf_16_decode()",
+      "error": "TypeError",
+      "args": "('utf_16_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_16_decode(None, None, None, None)",
+      "expression": "_codecs.utf_16_decode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_decode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_16_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_16_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_decode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_16_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_16_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_decode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_16_decode(None)",
+      "expression": "_codecs.utf_16_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_16_decode(7)",
+      "expression": "_codecs.utf_16_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_16_decode([])",
+      "expression": "_codecs.utf_16_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_16_decode(str=b'')",
+      "expression": "_codecs.utf_16_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_decode(b'', errors=None)",
+      "expression": "_codecs.utf_16_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_decode(b'', 7)",
+      "expression": "_codecs.utf_16_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_16_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_16_decode(b'', b'strict')",
+      "expression": "_codecs.utf_16_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_16_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_16_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_16_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_16_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_decode(b'', 'missing')",
+      "expression": "_codecs.utf_16_decode(b'', 'missing')",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'replace', None)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'replace', None)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'replace', [])",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'replace', [])",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'replace', [1])",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'replace', [1])",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'replace', 1)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'replace', 1)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'replace', 0)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'replace', 0)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'strict', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'strict', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'strict', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'strict', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\x00\\xd8', 0, 2, 'unexpected end of data')"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'ignore', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'ignore', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'ignore', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'ignore', True)",
+      "value": "('', 1)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'ignore', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'ignore', True)",
+      "value": "('', 2)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'replace', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'replace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'replace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'replace', True)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'replace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'replace', True)",
+      "value": "('\ufffd', 2)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'backslashreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'backslashreplace', True)",
+      "value": "('\\\\xff', 1)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "value": "('\\\\x00\\\\xd8', 2)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'surrogateescape', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'surrogateescape', True)",
+      "value": "('\\udcff', 1)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\x00\\xd8', 0, 2, 'unexpected end of data')"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'surrogatepass', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "value": "('\\ud800', 2)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'xmlcharrefreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'namereplace', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'namereplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'namereplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_decode(b'', 'missing', True)",
+      "expression": "_codecs.utf_16_decode(b'', 'missing', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_decode(b'\\xff', 'missing', True)",
+      "expression": "_codecs.utf_16_decode(b'\\xff', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\xd8', 'missing', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\xd8', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "expression": "_codecs.utf_16_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_encode()",
+      "expression": "_codecs.utf_16_le_encode()",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_16_le_encode(None, None, None)",
+      "expression": "_codecs.utf_16_le_encode(None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode expected at most 2 arguments, got 3',)"
+    },
+    {
+      "name": "utf_16_le_encode(None, None, None, None)",
+      "expression": "_codecs.utf_16_le_encode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode expected at most 2 arguments, got 4',)"
+    },
+    {
+      "name": "utf_16_le_encode(None, None, None, None, None)",
+      "expression": "_codecs.utf_16_le_encode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode expected at most 2 arguments, got 5',)"
+    },
+    {
+      "name": "utf_16_le_encode(None)",
+      "expression": "_codecs.utf_16_le_encode(None)",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode() argument 1 must be str, not None',)"
+    },
+    {
+      "name": "utf_16_le_encode(7)",
+      "expression": "_codecs.utf_16_le_encode(7)",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode() argument 1 must be str, not int',)"
+    },
+    {
+      "name": "utf_16_le_encode([])",
+      "expression": "_codecs.utf_16_le_encode([])",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode() argument 1 must be str, not list',)"
+    },
+    {
+      "name": "utf_16_le_encode(str='A')",
+      "expression": "_codecs.utf_16_le_encode(str='A')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_le_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_le_encode('A', errors=None)",
+      "expression": "_codecs.utf_16_le_encode('A', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_le_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 7)",
+      "expression": "_codecs.utf_16_le_encode('A', 7)",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_16_le_encode('A', b'strict')",
+      "expression": "_codecs.utf_16_le_encode('A', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_16_le_encode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'bad\\x00name')",
+      "expression": "_codecs.utf_16_le_encode('A', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_16_le_encode('A', '\\ud800')",
+      "expression": "_codecs.utf_16_le_encode('A', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'missing')",
+      "expression": "_codecs.utf_16_le_encode('A', 'missing')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('', 'strict')",
+      "expression": "_codecs.utf_16_le_encode('', 'strict')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'strict')",
+      "expression": "_codecs.utf_16_le_encode('A', 'strict')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'strict')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'strict')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'strict')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'strict')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('', 'ignore')",
+      "expression": "_codecs.utf_16_le_encode('', 'ignore')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'ignore')",
+      "expression": "_codecs.utf_16_le_encode('A', 'ignore')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'ignore')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'ignore')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'ignore')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'ignore')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'ignore')",
+      "value": "(b'A\\x00B\\x00', 4)"
+    },
+    {
+      "name": "utf_16_le_encode('', 'replace')",
+      "expression": "_codecs.utf_16_le_encode('', 'replace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'replace')",
+      "expression": "_codecs.utf_16_le_encode('A', 'replace')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'replace')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'replace')",
+      "value": "(b'?\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'replace')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'replace')",
+      "value": "(b'?\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'replace')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'replace')",
+      "value": "(b'?\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'replace')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'replace')",
+      "value": "(b'A\\x00?\\x00B\\x00?\\x00', 4)"
+    },
+    {
+      "name": "utf_16_le_encode('', 'backslashreplace')",
+      "expression": "_codecs.utf_16_le_encode('', 'backslashreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'backslashreplace')",
+      "expression": "_codecs.utf_16_le_encode('A', 'backslashreplace')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'backslashreplace')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'backslashreplace')",
+      "value": "(b'\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'backslashreplace')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'backslashreplace')",
+      "value": "(b'\\\\\\x00u\\x00d\\x00c\\x008\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'backslashreplace')",
+      "value": "(b'\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "value": "(b'A\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00B\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 4)"
+    },
+    {
+      "name": "utf_16_le_encode('', 'surrogateescape')",
+      "expression": "_codecs.utf_16_le_encode('', 'surrogateescape')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'surrogateescape')",
+      "expression": "_codecs.utf_16_le_encode('A', 'surrogateescape')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'surrogateescape')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'surrogateescape')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-le', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_encode('', 'surrogatepass')",
+      "expression": "_codecs.utf_16_le_encode('', 'surrogatepass')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'surrogatepass')",
+      "expression": "_codecs.utf_16_le_encode('A', 'surrogatepass')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'surrogatepass')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'surrogatepass')",
+      "value": "(b'\\x00\\xd8', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'surrogatepass')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'surrogatepass')",
+      "value": "(b'\\x80\\xdc', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'surrogatepass')",
+      "value": "(b'\\xff\\xdf', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "value": "(b'A\\x00\\x00\\xd8B\\x00\\xff\\xdf', 4)"
+    },
+    {
+      "name": "utf_16_le_encode('', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_le_encode('', 'xmlcharrefreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_le_encode('A', 'xmlcharrefreplace')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'xmlcharrefreplace')",
+      "value": "(b'&\\x00#\\x005\\x005\\x002\\x009\\x006\\x00;\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'xmlcharrefreplace')",
+      "value": "(b'&\\x00#\\x005\\x006\\x004\\x004\\x008\\x00;\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'&\\x00#\\x005\\x007\\x003\\x004\\x003\\x00;\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'A\\x00&\\x00#\\x005\\x005\\x002\\x009\\x006\\x00;\\x00B\\x00&\\x00#\\x005\\x007\\x003\\x004\\x003\\x00;\\x00', 4)"
+    },
+    {
+      "name": "utf_16_le_encode('', 'namereplace')",
+      "expression": "_codecs.utf_16_le_encode('', 'namereplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'namereplace')",
+      "expression": "_codecs.utf_16_le_encode('A', 'namereplace')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'namereplace')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'namereplace')",
+      "value": "(b'\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'namereplace')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'namereplace')",
+      "value": "(b'\\\\\\x00u\\x00d\\x00c\\x008\\x000\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'namereplace')",
+      "value": "(b'\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'namereplace')",
+      "value": "(b'A\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00B\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f\\x00', 4)"
+    },
+    {
+      "name": "utf_16_le_encode('', 'missing')",
+      "expression": "_codecs.utf_16_le_encode('', 'missing')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_le_encode('A', 'missing')",
+      "expression": "_codecs.utf_16_le_encode('A', 'missing')",
+      "value": "(b'A\\x00', 1)"
+    },
+    {
+      "name": "utf_16_le_encode('\\ud800', 'missing')",
+      "expression": "_codecs.utf_16_le_encode('\\ud800', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udc80', 'missing')",
+      "expression": "_codecs.utf_16_le_encode('\\udc80', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_le_encode('\\udfff', 'missing')",
+      "expression": "_codecs.utf_16_le_encode('\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_le_encode('A\\ud800B\\udfff', 'missing')",
+      "expression": "_codecs.utf_16_le_encode('A\\ud800B\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_le_decode()",
+      "expression": "_codecs.utf_16_le_decode()",
+      "error": "TypeError",
+      "args": "('utf_16_le_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_16_le_decode(None, None, None, None)",
+      "expression": "_codecs.utf_16_le_decode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_le_decode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_16_le_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_16_le_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_le_decode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_16_le_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_16_le_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_le_decode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_16_le_decode(None)",
+      "expression": "_codecs.utf_16_le_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_16_le_decode(7)",
+      "expression": "_codecs.utf_16_le_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_16_le_decode([])",
+      "expression": "_codecs.utf_16_le_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_16_le_decode(str=b'')",
+      "expression": "_codecs.utf_16_le_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_le_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', errors=None)",
+      "expression": "_codecs.utf_16_le_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_le_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 7)",
+      "expression": "_codecs.utf_16_le_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_16_le_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', b'strict')",
+      "expression": "_codecs.utf_16_le_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_16_le_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_16_le_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_16_le_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'missing')",
+      "expression": "_codecs.utf_16_le_decode(b'', 'missing')",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'replace', None)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'replace', None)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'replace', [])",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'replace', [])",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'replace', [1])",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'replace', [1])",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'replace', 1)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'replace', 1)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'replace', 0)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'replace', 0)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'strict', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'strict', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'strict', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'strict', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\x00\\xd8', 0, 2, 'unexpected end of data')"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'ignore', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'ignore', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'ignore', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'ignore', True)",
+      "value": "('', 1)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'ignore', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'ignore', True)",
+      "value": "('', 2)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'replace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'replace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'replace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'replace', True)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'replace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'replace', True)",
+      "value": "('\ufffd', 2)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'backslashreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'backslashreplace', True)",
+      "value": "('\\\\xff', 1)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "value": "('\\\\x00\\\\xd8', 2)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'surrogateescape', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'surrogateescape', True)",
+      "value": "('\\udcff', 1)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\x00\\xd8', 0, 2, 'unexpected end of data')"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'surrogatepass', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "value": "('\\ud800', 2)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'xmlcharrefreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'namereplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'namereplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'namereplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_le_decode(b'', 'missing', True)",
+      "expression": "_codecs.utf_16_le_decode(b'', 'missing', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\xff', 'missing', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\xff', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\xd8', 'missing', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\xd8', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "expression": "_codecs.utf_16_le_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "value": "('\\x00\\x11', 4)"
+    },
+    {
+      "name": "utf_16_be_encode()",
+      "expression": "_codecs.utf_16_be_encode()",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_16_be_encode(None, None, None)",
+      "expression": "_codecs.utf_16_be_encode(None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode expected at most 2 arguments, got 3',)"
+    },
+    {
+      "name": "utf_16_be_encode(None, None, None, None)",
+      "expression": "_codecs.utf_16_be_encode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode expected at most 2 arguments, got 4',)"
+    },
+    {
+      "name": "utf_16_be_encode(None, None, None, None, None)",
+      "expression": "_codecs.utf_16_be_encode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode expected at most 2 arguments, got 5',)"
+    },
+    {
+      "name": "utf_16_be_encode(None)",
+      "expression": "_codecs.utf_16_be_encode(None)",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode() argument 1 must be str, not None',)"
+    },
+    {
+      "name": "utf_16_be_encode(7)",
+      "expression": "_codecs.utf_16_be_encode(7)",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode() argument 1 must be str, not int',)"
+    },
+    {
+      "name": "utf_16_be_encode([])",
+      "expression": "_codecs.utf_16_be_encode([])",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode() argument 1 must be str, not list',)"
+    },
+    {
+      "name": "utf_16_be_encode(str='A')",
+      "expression": "_codecs.utf_16_be_encode(str='A')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_be_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_be_encode('A', errors=None)",
+      "expression": "_codecs.utf_16_be_encode('A', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_be_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 7)",
+      "expression": "_codecs.utf_16_be_encode('A', 7)",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_16_be_encode('A', b'strict')",
+      "expression": "_codecs.utf_16_be_encode('A', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_16_be_encode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'bad\\x00name')",
+      "expression": "_codecs.utf_16_be_encode('A', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_16_be_encode('A', '\\ud800')",
+      "expression": "_codecs.utf_16_be_encode('A', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'missing')",
+      "expression": "_codecs.utf_16_be_encode('A', 'missing')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('', 'strict')",
+      "expression": "_codecs.utf_16_be_encode('', 'strict')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'strict')",
+      "expression": "_codecs.utf_16_be_encode('A', 'strict')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'strict')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'strict')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'strict')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'strict')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('', 'ignore')",
+      "expression": "_codecs.utf_16_be_encode('', 'ignore')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'ignore')",
+      "expression": "_codecs.utf_16_be_encode('A', 'ignore')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'ignore')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'ignore')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'ignore')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'ignore')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'ignore')",
+      "value": "(b'\\x00A\\x00B', 4)"
+    },
+    {
+      "name": "utf_16_be_encode('', 'replace')",
+      "expression": "_codecs.utf_16_be_encode('', 'replace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'replace')",
+      "expression": "_codecs.utf_16_be_encode('A', 'replace')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'replace')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'replace')",
+      "value": "(b'\\x00?', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'replace')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'replace')",
+      "value": "(b'\\x00?', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'replace')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'replace')",
+      "value": "(b'\\x00?', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'replace')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'replace')",
+      "value": "(b'\\x00A\\x00?\\x00B\\x00?', 4)"
+    },
+    {
+      "name": "utf_16_be_encode('', 'backslashreplace')",
+      "expression": "_codecs.utf_16_be_encode('', 'backslashreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'backslashreplace')",
+      "expression": "_codecs.utf_16_be_encode('A', 'backslashreplace')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'backslashreplace')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'backslashreplace')",
+      "value": "(b'\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'backslashreplace')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'backslashreplace')",
+      "value": "(b'\\x00\\\\\\x00u\\x00d\\x00c\\x008\\x000', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'backslashreplace')",
+      "value": "(b'\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "value": "(b'\\x00A\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00B\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f', 4)"
+    },
+    {
+      "name": "utf_16_be_encode('', 'surrogateescape')",
+      "expression": "_codecs.utf_16_be_encode('', 'surrogateescape')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'surrogateescape')",
+      "expression": "_codecs.utf_16_be_encode('A', 'surrogateescape')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'surrogateescape')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'surrogateescape')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-16-be', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_encode('', 'surrogatepass')",
+      "expression": "_codecs.utf_16_be_encode('', 'surrogatepass')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'surrogatepass')",
+      "expression": "_codecs.utf_16_be_encode('A', 'surrogatepass')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'surrogatepass')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'surrogatepass')",
+      "value": "(b'\\xd8\\x00', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'surrogatepass')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'surrogatepass')",
+      "value": "(b'\\xdc\\x80', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'surrogatepass')",
+      "value": "(b'\\xdf\\xff', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "value": "(b'\\x00A\\xd8\\x00\\x00B\\xdf\\xff', 4)"
+    },
+    {
+      "name": "utf_16_be_encode('', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_be_encode('', 'xmlcharrefreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_be_encode('A', 'xmlcharrefreplace')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'xmlcharrefreplace')",
+      "value": "(b'\\x00&\\x00#\\x005\\x005\\x002\\x009\\x006\\x00;', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'xmlcharrefreplace')",
+      "value": "(b'\\x00&\\x00#\\x005\\x006\\x004\\x004\\x008\\x00;', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\x00&\\x00#\\x005\\x007\\x003\\x004\\x003\\x00;', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\x00A\\x00&\\x00#\\x005\\x005\\x002\\x009\\x006\\x00;\\x00B\\x00&\\x00#\\x005\\x007\\x003\\x004\\x003\\x00;', 4)"
+    },
+    {
+      "name": "utf_16_be_encode('', 'namereplace')",
+      "expression": "_codecs.utf_16_be_encode('', 'namereplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'namereplace')",
+      "expression": "_codecs.utf_16_be_encode('A', 'namereplace')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'namereplace')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'namereplace')",
+      "value": "(b'\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'namereplace')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'namereplace')",
+      "value": "(b'\\x00\\\\\\x00u\\x00d\\x00c\\x008\\x000', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'namereplace')",
+      "value": "(b'\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'namereplace')",
+      "value": "(b'\\x00A\\x00\\\\\\x00u\\x00d\\x008\\x000\\x000\\x00B\\x00\\\\\\x00u\\x00d\\x00f\\x00f\\x00f', 4)"
+    },
+    {
+      "name": "utf_16_be_encode('', 'missing')",
+      "expression": "_codecs.utf_16_be_encode('', 'missing')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_16_be_encode('A', 'missing')",
+      "expression": "_codecs.utf_16_be_encode('A', 'missing')",
+      "value": "(b'\\x00A', 1)"
+    },
+    {
+      "name": "utf_16_be_encode('\\ud800', 'missing')",
+      "expression": "_codecs.utf_16_be_encode('\\ud800', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udc80', 'missing')",
+      "expression": "_codecs.utf_16_be_encode('\\udc80', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_be_encode('\\udfff', 'missing')",
+      "expression": "_codecs.utf_16_be_encode('\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_be_encode('A\\ud800B\\udfff', 'missing')",
+      "expression": "_codecs.utf_16_be_encode('A\\ud800B\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_be_decode()",
+      "expression": "_codecs.utf_16_be_decode()",
+      "error": "TypeError",
+      "args": "('utf_16_be_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_16_be_decode(None, None, None, None)",
+      "expression": "_codecs.utf_16_be_decode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_be_decode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_16_be_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_16_be_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_be_decode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_16_be_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_16_be_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_be_decode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_16_be_decode(None)",
+      "expression": "_codecs.utf_16_be_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_16_be_decode(7)",
+      "expression": "_codecs.utf_16_be_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_16_be_decode([])",
+      "expression": "_codecs.utf_16_be_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_16_be_decode(str=b'')",
+      "expression": "_codecs.utf_16_be_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_be_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', errors=None)",
+      "expression": "_codecs.utf_16_be_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_be_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 7)",
+      "expression": "_codecs.utf_16_be_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_16_be_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', b'strict')",
+      "expression": "_codecs.utf_16_be_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_16_be_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_16_be_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_16_be_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'missing')",
+      "expression": "_codecs.utf_16_be_decode(b'', 'missing')",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'replace', None)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'replace', None)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'replace', [])",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'replace', [])",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'replace', [1])",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'replace', [1])",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'replace', 1)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'replace', 1)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'replace', 0)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'replace', 0)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'strict', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'strict', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'strict', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-be', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'strict', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'strict', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'ignore', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'ignore', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'ignore', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'ignore', True)",
+      "value": "('', 1)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'ignore', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'ignore', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'replace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'replace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'replace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'replace', True)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'replace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'replace', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'backslashreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'backslashreplace', True)",
+      "value": "('\\\\xff', 1)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'surrogateescape', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'surrogateescape', True)",
+      "value": "('\\udcff', 1)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'surrogatepass', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-be', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'xmlcharrefreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'namereplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'namereplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'namereplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_be_decode(b'', 'missing', True)",
+      "expression": "_codecs.utf_16_be_decode(b'', 'missing', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\xff', 'missing', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\xff', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\xd8', 'missing', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\xd8', 'missing', True)",
+      "value": "('\u00d8', 2)"
+    },
+    {
+      "name": "utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "expression": "_codecs.utf_16_be_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "value": "('\\x00\u1100', 4)"
+    },
+    {
+      "name": "utf_16_ex_decode()",
+      "expression": "_codecs.utf_16_ex_decode()",
+      "error": "TypeError",
+      "args": "('utf_16_ex_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_16_ex_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_16_ex_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_ex_decode expected at most 4 arguments, got 5',)"
+    },
+    {
+      "name": "utf_16_ex_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_16_ex_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_ex_decode expected at most 4 arguments, got 6',)"
+    },
+    {
+      "name": "utf_16_ex_decode(None, None, None, None, None, None, None)",
+      "expression": "_codecs.utf_16_ex_decode(None, None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_16_ex_decode expected at most 4 arguments, got 7',)"
+    },
+    {
+      "name": "utf_16_ex_decode(None)",
+      "expression": "_codecs.utf_16_ex_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(7)",
+      "expression": "_codecs.utf_16_ex_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_16_ex_decode([])",
+      "expression": "_codecs.utf_16_ex_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(str=b'')",
+      "expression": "_codecs.utf_16_ex_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_ex_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', errors=None)",
+      "expression": "_codecs.utf_16_ex_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_16_ex_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 7)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_16_ex_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', b'strict')",
+      "expression": "_codecs.utf_16_ex_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_16_ex_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_16_ex_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'missing')",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'missing')",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, None)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, None)",
+      "error": "TypeError",
+      "args": "(\"'NoneType' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, 1.0)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, 1.0)",
+      "error": "TypeError",
+      "args": "(\"'float' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, 'little')",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, 'little')",
+      "error": "TypeError",
+      "args": "(\"'str' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, [])",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, [])",
+      "error": "TypeError",
+      "args": "(\"'list' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, -2147483649)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, -2147483649)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, 2147483648)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, 2147483648)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, True)",
+      "value": "('', 0, 1)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, False)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, False)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, -2)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, -2)",
+      "value": "('', 0, -2)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', None, 2)",
+      "expression": "_codecs.utf_16_ex_decode(b'', None, 2)",
+      "value": "('', 0, 2)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'replace', 0, None)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'replace', 0, None)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'replace', 0, [])",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'replace', 0, [])",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'replace', 0, [1])",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'replace', 0, [1])",
+      "value": "('\ufffd', 1, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'replace', 0, 1)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'replace', 0, 1)",
+      "value": "('\ufffd', 1, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'replace', 0, 0)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'replace', 0, 0)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'strict', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'strict', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'strict', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'strict', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'strict', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'strict', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\x00\\xd8', 0, 2, 'unexpected end of data')"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'strict', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'strict', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'ignore', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'ignore', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'ignore', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'ignore', 0, True)",
+      "value": "('', 1, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'ignore', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'ignore', 0, True)",
+      "value": "('', 2, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'ignore', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'ignore', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'replace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'replace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'replace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'replace', 0, True)",
+      "value": "('\ufffd', 1, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'replace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'replace', 0, True)",
+      "value": "('\ufffd', 2, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'replace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'replace', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'backslashreplace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'backslashreplace', 0, True)",
+      "value": "('\\\\xff', 1, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'backslashreplace', 0, True)",
+      "value": "('\\\\x00\\\\xd8', 2, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'surrogateescape', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'surrogateescape', 0, True)",
+      "value": "('\\udcff', 1, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'surrogateescape', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\x00\\xd8', 0, 2, 'unexpected end of data')"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'surrogatepass', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'surrogatepass', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-16-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'surrogatepass', 0, True)",
+      "value": "('\\ud800', 2, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'xmlcharrefreplace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'xmlcharrefreplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'xmlcharrefreplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'namereplace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'namereplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'namereplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'', 'missing', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'', 'missing', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\xff', 'missing', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\xff', 'missing', 0, True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\xd8', 'missing', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\xd8', 'missing', 0, True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'missing', 0, True)",
+      "expression": "_codecs.utf_16_ex_decode(b'\\x00\\x00\\x11\\x00', 'missing', 0, True)",
+      "value": "('\\x00\\x11', 4, 0)"
+    },
+    {
+      "name": "utf_32_encode()",
+      "expression": "_codecs.utf_32_encode()",
+      "error": "TypeError",
+      "args": "('utf_32_encode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_32_encode(None, None, None, None)",
+      "expression": "_codecs.utf_32_encode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_encode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_32_encode(None, None, None, None, None)",
+      "expression": "_codecs.utf_32_encode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_encode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_32_encode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_32_encode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_encode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_32_encode(None)",
+      "expression": "_codecs.utf_32_encode(None)",
+      "error": "TypeError",
+      "args": "('utf_32_encode() argument 1 must be str, not None',)"
+    },
+    {
+      "name": "utf_32_encode(7)",
+      "expression": "_codecs.utf_32_encode(7)",
+      "error": "TypeError",
+      "args": "('utf_32_encode() argument 1 must be str, not int',)"
+    },
+    {
+      "name": "utf_32_encode([])",
+      "expression": "_codecs.utf_32_encode([])",
+      "error": "TypeError",
+      "args": "('utf_32_encode() argument 1 must be str, not list',)"
+    },
+    {
+      "name": "utf_32_encode(str='A')",
+      "expression": "_codecs.utf_32_encode(str='A')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_encode('A', errors=None)",
+      "expression": "_codecs.utf_32_encode('A', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_encode('A', 7)",
+      "expression": "_codecs.utf_32_encode('A', 7)",
+      "error": "TypeError",
+      "args": "('utf_32_encode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_32_encode('A', b'strict')",
+      "expression": "_codecs.utf_32_encode('A', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_32_encode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_32_encode('A', 'bad\\x00name')",
+      "expression": "_codecs.utf_32_encode('A', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_32_encode('A', '\\ud800')",
+      "expression": "_codecs.utf_32_encode('A', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('A', 'missing')",
+      "expression": "_codecs.utf_32_encode('A', 'missing')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A', None, None)",
+      "expression": "_codecs.utf_32_encode('A', None, None)",
+      "error": "TypeError",
+      "args": "(\"'NoneType' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_encode('A', None, 1.0)",
+      "expression": "_codecs.utf_32_encode('A', None, 1.0)",
+      "error": "TypeError",
+      "args": "(\"'float' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_encode('A', None, 'little')",
+      "expression": "_codecs.utf_32_encode('A', None, 'little')",
+      "error": "TypeError",
+      "args": "(\"'str' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_encode('A', None, [])",
+      "expression": "_codecs.utf_32_encode('A', None, [])",
+      "error": "TypeError",
+      "args": "(\"'list' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_encode('A', None, -2147483649)",
+      "expression": "_codecs.utf_32_encode('A', None, -2147483649)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_32_encode('A', None, 2147483648)",
+      "expression": "_codecs.utf_32_encode('A', None, 2147483648)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_32_encode('A', None, True)",
+      "expression": "_codecs.utf_32_encode('A', None, True)",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_encode('A', None, False)",
+      "expression": "_codecs.utf_32_encode('A', None, False)",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A', None, -2)",
+      "expression": "_codecs.utf_32_encode('A', None, -2)",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A', None, 2)",
+      "expression": "_codecs.utf_32_encode('A', None, 2)",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_encode('', 'strict')",
+      "expression": "_codecs.utf_32_encode('', 'strict')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'strict')",
+      "expression": "_codecs.utf_32_encode('A', 'strict')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'strict')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'strict')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'strict')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'strict')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('', 'ignore')",
+      "expression": "_codecs.utf_32_encode('', 'ignore')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'ignore')",
+      "expression": "_codecs.utf_32_encode('A', 'ignore')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'ignore')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'ignore')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'ignore')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'ignore')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'ignore')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'ignore')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'ignore')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'ignore')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00B\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_encode('', 'replace')",
+      "expression": "_codecs.utf_32_encode('', 'replace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'replace')",
+      "expression": "_codecs.utf_32_encode('A', 'replace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'replace')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'replace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00?\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'replace')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'replace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00?\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'replace')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'replace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00?\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'replace')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'replace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00B\\x00\\x00\\x00?\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_encode('', 'backslashreplace')",
+      "expression": "_codecs.utf_32_encode('', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'backslashreplace')",
+      "expression": "_codecs.utf_32_encode('A', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'backslashreplace')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'backslashreplace')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00c\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00B\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_encode('', 'surrogateescape')",
+      "expression": "_codecs.utf_32_encode('', 'surrogateescape')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'surrogateescape')",
+      "expression": "_codecs.utf_32_encode('A', 'surrogateescape')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'surrogateescape')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'surrogateescape')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_encode('', 'surrogatepass')",
+      "expression": "_codecs.utf_32_encode('', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'surrogatepass')",
+      "expression": "_codecs.utf_32_encode('A', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'surrogatepass')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\x00\\xd8\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'surrogatepass')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\x80\\xdc\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\xff\\xdf\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00\\x00\\xd8\\x00\\x00B\\x00\\x00\\x00\\xff\\xdf\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_encode('', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_encode('', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_encode('A', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x005\\x00\\x00\\x002\\x00\\x00\\x009\\x00\\x00\\x006\\x00\\x00\\x00;\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x006\\x00\\x00\\x004\\x00\\x00\\x004\\x00\\x00\\x008\\x00\\x00\\x00;\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x007\\x00\\x00\\x003\\x00\\x00\\x004\\x00\\x00\\x003\\x00\\x00\\x00;\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x005\\x00\\x00\\x002\\x00\\x00\\x009\\x00\\x00\\x006\\x00\\x00\\x00;\\x00\\x00\\x00B\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x007\\x00\\x00\\x003\\x00\\x00\\x004\\x00\\x00\\x003\\x00\\x00\\x00;\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_encode('', 'namereplace')",
+      "expression": "_codecs.utf_32_encode('', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'namereplace')",
+      "expression": "_codecs.utf_32_encode('A', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'namereplace')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'namereplace')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00c\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'namereplace')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00B\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_encode('', 'missing')",
+      "expression": "_codecs.utf_32_encode('', 'missing')",
+      "value": "(b'\\xff\\xfe\\x00\\x00', 0)"
+    },
+    {
+      "name": "utf_32_encode('A', 'missing')",
+      "expression": "_codecs.utf_32_encode('A', 'missing')",
+      "value": "(b'\\xff\\xfe\\x00\\x00A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_encode('\\ud800', 'missing')",
+      "expression": "_codecs.utf_32_encode('\\ud800', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_encode('\\udc80', 'missing')",
+      "expression": "_codecs.utf_32_encode('\\udc80', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_encode('\\udfff', 'missing')",
+      "expression": "_codecs.utf_32_encode('\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_encode('A\\ud800B\\udfff', 'missing')",
+      "expression": "_codecs.utf_32_encode('A\\ud800B\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_decode()",
+      "expression": "_codecs.utf_32_decode()",
+      "error": "TypeError",
+      "args": "('utf_32_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_32_decode(None, None, None, None)",
+      "expression": "_codecs.utf_32_decode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_decode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_32_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_32_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_decode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_32_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_32_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_decode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_32_decode(None)",
+      "expression": "_codecs.utf_32_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_32_decode(7)",
+      "expression": "_codecs.utf_32_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_32_decode([])",
+      "expression": "_codecs.utf_32_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_32_decode(str=b'')",
+      "expression": "_codecs.utf_32_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_decode(b'', errors=None)",
+      "expression": "_codecs.utf_32_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_decode(b'', 7)",
+      "expression": "_codecs.utf_32_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_32_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_32_decode(b'', b'strict')",
+      "expression": "_codecs.utf_32_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_32_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_32_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_32_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_32_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_32_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_decode(b'', 'missing')",
+      "expression": "_codecs.utf_32_decode(b'', 'missing')",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'replace', None)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'replace', None)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'replace', [])",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'replace', [])",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'replace', [1])",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'replace', [1])",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'replace', 1)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'replace', 1)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'replace', 0)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'replace', 0)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'', 'strict', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'strict', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'strict', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'strict', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_decode(b'', 'ignore', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'ignore', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'ignore', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'ignore', True)",
+      "value": "('', 1)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'ignore', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'ignore', True)",
+      "value": "('', 2)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "value": "('', 4)"
+    },
+    {
+      "name": "utf_32_decode(b'', 'replace', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'replace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'replace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'replace', True)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'replace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'replace', True)",
+      "value": "('\ufffd', 2)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "value": "('\ufffd', 4)"
+    },
+    {
+      "name": "utf_32_decode(b'', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'backslashreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'backslashreplace', True)",
+      "value": "('\\\\xff', 1)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "value": "('\\\\x00\\\\xd8', 2)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "value": "('\\\\x00\\\\x00\\\\x11\\\\x00', 4)"
+    },
+    {
+      "name": "utf_32_decode(b'', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'surrogateescape', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'surrogateescape', True)",
+      "value": "('\\udcff', 1)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_decode(b'', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'surrogatepass', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_decode(b'', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'xmlcharrefreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_decode(b'', 'namereplace', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'namereplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'namereplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_decode(b'', 'missing', True)",
+      "expression": "_codecs.utf_32_decode(b'', 'missing', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_decode(b'\\xff', 'missing', True)",
+      "expression": "_codecs.utf_32_decode(b'\\xff', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\xd8', 'missing', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\xd8', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "expression": "_codecs.utf_32_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_le_encode()",
+      "expression": "_codecs.utf_32_le_encode()",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_32_le_encode(None, None, None)",
+      "expression": "_codecs.utf_32_le_encode(None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode expected at most 2 arguments, got 3',)"
+    },
+    {
+      "name": "utf_32_le_encode(None, None, None, None)",
+      "expression": "_codecs.utf_32_le_encode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode expected at most 2 arguments, got 4',)"
+    },
+    {
+      "name": "utf_32_le_encode(None, None, None, None, None)",
+      "expression": "_codecs.utf_32_le_encode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode expected at most 2 arguments, got 5',)"
+    },
+    {
+      "name": "utf_32_le_encode(None)",
+      "expression": "_codecs.utf_32_le_encode(None)",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode() argument 1 must be str, not None',)"
+    },
+    {
+      "name": "utf_32_le_encode(7)",
+      "expression": "_codecs.utf_32_le_encode(7)",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode() argument 1 must be str, not int',)"
+    },
+    {
+      "name": "utf_32_le_encode([])",
+      "expression": "_codecs.utf_32_le_encode([])",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode() argument 1 must be str, not list',)"
+    },
+    {
+      "name": "utf_32_le_encode(str='A')",
+      "expression": "_codecs.utf_32_le_encode(str='A')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_le_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_le_encode('A', errors=None)",
+      "expression": "_codecs.utf_32_le_encode('A', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_le_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 7)",
+      "expression": "_codecs.utf_32_le_encode('A', 7)",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_32_le_encode('A', b'strict')",
+      "expression": "_codecs.utf_32_le_encode('A', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_32_le_encode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'bad\\x00name')",
+      "expression": "_codecs.utf_32_le_encode('A', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_32_le_encode('A', '\\ud800')",
+      "expression": "_codecs.utf_32_le_encode('A', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'missing')",
+      "expression": "_codecs.utf_32_le_encode('A', 'missing')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('', 'strict')",
+      "expression": "_codecs.utf_32_le_encode('', 'strict')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'strict')",
+      "expression": "_codecs.utf_32_le_encode('A', 'strict')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'strict')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'strict')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'strict')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'strict')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('', 'ignore')",
+      "expression": "_codecs.utf_32_le_encode('', 'ignore')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'ignore')",
+      "expression": "_codecs.utf_32_le_encode('A', 'ignore')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'ignore')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'ignore')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'ignore')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'ignore')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'ignore')",
+      "value": "(b'A\\x00\\x00\\x00B\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_le_encode('', 'replace')",
+      "expression": "_codecs.utf_32_le_encode('', 'replace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'replace')",
+      "expression": "_codecs.utf_32_le_encode('A', 'replace')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'replace')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'replace')",
+      "value": "(b'?\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'replace')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'replace')",
+      "value": "(b'?\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'replace')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'replace')",
+      "value": "(b'?\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'replace')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'replace')",
+      "value": "(b'A\\x00\\x00\\x00?\\x00\\x00\\x00B\\x00\\x00\\x00?\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_le_encode('', 'backslashreplace')",
+      "expression": "_codecs.utf_32_le_encode('', 'backslashreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'backslashreplace')",
+      "expression": "_codecs.utf_32_le_encode('A', 'backslashreplace')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'backslashreplace')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'backslashreplace')",
+      "value": "(b'\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'backslashreplace')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'backslashreplace')",
+      "value": "(b'\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00c\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'backslashreplace')",
+      "value": "(b'\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "value": "(b'A\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00B\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_le_encode('', 'surrogateescape')",
+      "expression": "_codecs.utf_32_le_encode('', 'surrogateescape')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'surrogateescape')",
+      "expression": "_codecs.utf_32_le_encode('A', 'surrogateescape')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'surrogateescape')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'surrogateescape')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-le', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_encode('', 'surrogatepass')",
+      "expression": "_codecs.utf_32_le_encode('', 'surrogatepass')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'surrogatepass')",
+      "expression": "_codecs.utf_32_le_encode('A', 'surrogatepass')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'surrogatepass')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'surrogatepass')",
+      "value": "(b'\\x00\\xd8\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'surrogatepass')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'surrogatepass')",
+      "value": "(b'\\x80\\xdc\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'surrogatepass')",
+      "value": "(b'\\xff\\xdf\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "value": "(b'A\\x00\\x00\\x00\\x00\\xd8\\x00\\x00B\\x00\\x00\\x00\\xff\\xdf\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_le_encode('', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_le_encode('', 'xmlcharrefreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_le_encode('A', 'xmlcharrefreplace')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'xmlcharrefreplace')",
+      "value": "(b'&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x005\\x00\\x00\\x002\\x00\\x00\\x009\\x00\\x00\\x006\\x00\\x00\\x00;\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'xmlcharrefreplace')",
+      "value": "(b'&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x006\\x00\\x00\\x004\\x00\\x00\\x004\\x00\\x00\\x008\\x00\\x00\\x00;\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x007\\x00\\x00\\x003\\x00\\x00\\x004\\x00\\x00\\x003\\x00\\x00\\x00;\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'A\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x005\\x00\\x00\\x002\\x00\\x00\\x009\\x00\\x00\\x006\\x00\\x00\\x00;\\x00\\x00\\x00B\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x007\\x00\\x00\\x003\\x00\\x00\\x004\\x00\\x00\\x003\\x00\\x00\\x00;\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_le_encode('', 'namereplace')",
+      "expression": "_codecs.utf_32_le_encode('', 'namereplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'namereplace')",
+      "expression": "_codecs.utf_32_le_encode('A', 'namereplace')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'namereplace')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'namereplace')",
+      "value": "(b'\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'namereplace')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'namereplace')",
+      "value": "(b'\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00c\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'namereplace')",
+      "value": "(b'\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'namereplace')",
+      "value": "(b'A\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00B\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00', 4)"
+    },
+    {
+      "name": "utf_32_le_encode('', 'missing')",
+      "expression": "_codecs.utf_32_le_encode('', 'missing')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_le_encode('A', 'missing')",
+      "expression": "_codecs.utf_32_le_encode('A', 'missing')",
+      "value": "(b'A\\x00\\x00\\x00', 1)"
+    },
+    {
+      "name": "utf_32_le_encode('\\ud800', 'missing')",
+      "expression": "_codecs.utf_32_le_encode('\\ud800', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udc80', 'missing')",
+      "expression": "_codecs.utf_32_le_encode('\\udc80', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_le_encode('\\udfff', 'missing')",
+      "expression": "_codecs.utf_32_le_encode('\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_le_encode('A\\ud800B\\udfff', 'missing')",
+      "expression": "_codecs.utf_32_le_encode('A\\ud800B\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_le_decode()",
+      "expression": "_codecs.utf_32_le_decode()",
+      "error": "TypeError",
+      "args": "('utf_32_le_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_32_le_decode(None, None, None, None)",
+      "expression": "_codecs.utf_32_le_decode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_le_decode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_32_le_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_32_le_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_le_decode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_32_le_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_32_le_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_le_decode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_32_le_decode(None)",
+      "expression": "_codecs.utf_32_le_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_32_le_decode(7)",
+      "expression": "_codecs.utf_32_le_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_32_le_decode([])",
+      "expression": "_codecs.utf_32_le_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_32_le_decode(str=b'')",
+      "expression": "_codecs.utf_32_le_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_le_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', errors=None)",
+      "expression": "_codecs.utf_32_le_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_le_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 7)",
+      "expression": "_codecs.utf_32_le_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_32_le_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', b'strict')",
+      "expression": "_codecs.utf_32_le_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_32_le_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_32_le_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_32_le_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'missing')",
+      "expression": "_codecs.utf_32_le_decode(b'', 'missing')",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'replace', None)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'replace', None)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'replace', [])",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'replace', [])",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'replace', [1])",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'replace', [1])",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'replace', 1)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'replace', 1)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'replace', 0)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'replace', 0)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'strict', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'strict', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'strict', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'strict', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'ignore', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'ignore', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'ignore', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'ignore', True)",
+      "value": "('', 1)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'ignore', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'ignore', True)",
+      "value": "('', 2)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "value": "('', 4)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'replace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'replace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'replace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'replace', True)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'replace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'replace', True)",
+      "value": "('\ufffd', 2)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "value": "('\ufffd', 4)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'backslashreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'backslashreplace', True)",
+      "value": "('\\\\xff', 1)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "value": "('\\\\x00\\\\xd8', 2)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "value": "('\\\\x00\\\\x00\\\\x11\\\\x00', 4)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'surrogateescape', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'surrogateescape', True)",
+      "value": "('\\udcff', 1)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'surrogatepass', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'xmlcharrefreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'namereplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'namereplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'namereplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'', 'missing', True)",
+      "expression": "_codecs.utf_32_le_decode(b'', 'missing', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\xff', 'missing', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\xff', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\xd8', 'missing', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\xd8', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "expression": "_codecs.utf_32_le_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_be_encode()",
+      "expression": "_codecs.utf_32_be_encode()",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_32_be_encode(None, None, None)",
+      "expression": "_codecs.utf_32_be_encode(None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode expected at most 2 arguments, got 3',)"
+    },
+    {
+      "name": "utf_32_be_encode(None, None, None, None)",
+      "expression": "_codecs.utf_32_be_encode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode expected at most 2 arguments, got 4',)"
+    },
+    {
+      "name": "utf_32_be_encode(None, None, None, None, None)",
+      "expression": "_codecs.utf_32_be_encode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode expected at most 2 arguments, got 5',)"
+    },
+    {
+      "name": "utf_32_be_encode(None)",
+      "expression": "_codecs.utf_32_be_encode(None)",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode() argument 1 must be str, not None',)"
+    },
+    {
+      "name": "utf_32_be_encode(7)",
+      "expression": "_codecs.utf_32_be_encode(7)",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode() argument 1 must be str, not int',)"
+    },
+    {
+      "name": "utf_32_be_encode([])",
+      "expression": "_codecs.utf_32_be_encode([])",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode() argument 1 must be str, not list',)"
+    },
+    {
+      "name": "utf_32_be_encode(str='A')",
+      "expression": "_codecs.utf_32_be_encode(str='A')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_be_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_be_encode('A', errors=None)",
+      "expression": "_codecs.utf_32_be_encode('A', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_be_encode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 7)",
+      "expression": "_codecs.utf_32_be_encode('A', 7)",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_32_be_encode('A', b'strict')",
+      "expression": "_codecs.utf_32_be_encode('A', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_32_be_encode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'bad\\x00name')",
+      "expression": "_codecs.utf_32_be_encode('A', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_32_be_encode('A', '\\ud800')",
+      "expression": "_codecs.utf_32_be_encode('A', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'missing')",
+      "expression": "_codecs.utf_32_be_encode('A', 'missing')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('', 'strict')",
+      "expression": "_codecs.utf_32_be_encode('', 'strict')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'strict')",
+      "expression": "_codecs.utf_32_be_encode('A', 'strict')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'strict')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'strict')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'strict')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'strict')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'strict')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('', 'ignore')",
+      "expression": "_codecs.utf_32_be_encode('', 'ignore')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'ignore')",
+      "expression": "_codecs.utf_32_be_encode('A', 'ignore')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'ignore')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'ignore')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'ignore')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'ignore')",
+      "value": "(b'', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'ignore')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'ignore')",
+      "value": "(b'\\x00\\x00\\x00A\\x00\\x00\\x00B', 4)"
+    },
+    {
+      "name": "utf_32_be_encode('', 'replace')",
+      "expression": "_codecs.utf_32_be_encode('', 'replace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'replace')",
+      "expression": "_codecs.utf_32_be_encode('A', 'replace')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'replace')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'replace')",
+      "value": "(b'\\x00\\x00\\x00?', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'replace')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'replace')",
+      "value": "(b'\\x00\\x00\\x00?', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'replace')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'replace')",
+      "value": "(b'\\x00\\x00\\x00?', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'replace')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'replace')",
+      "value": "(b'\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00B\\x00\\x00\\x00?', 4)"
+    },
+    {
+      "name": "utf_32_be_encode('', 'backslashreplace')",
+      "expression": "_codecs.utf_32_be_encode('', 'backslashreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'backslashreplace')",
+      "expression": "_codecs.utf_32_be_encode('A', 'backslashreplace')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'backslashreplace')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'backslashreplace')",
+      "value": "(b'\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'backslashreplace')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'backslashreplace')",
+      "value": "(b'\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00c\\x00\\x00\\x008\\x00\\x00\\x000', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'backslashreplace')",
+      "value": "(b'\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'backslashreplace')",
+      "value": "(b'\\x00\\x00\\x00A\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00B\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f', 4)"
+    },
+    {
+      "name": "utf_32_be_encode('', 'surrogateescape')",
+      "expression": "_codecs.utf_32_be_encode('', 'surrogateescape')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'surrogateescape')",
+      "expression": "_codecs.utf_32_be_encode('A', 'surrogateescape')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'surrogateescape')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'surrogateescape')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', '\\udc80', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', '\\udfff', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'surrogateescape')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-32-be', 'A\\ud800B\\udfff', 1, 2, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_encode('', 'surrogatepass')",
+      "expression": "_codecs.utf_32_be_encode('', 'surrogatepass')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'surrogatepass')",
+      "expression": "_codecs.utf_32_be_encode('A', 'surrogatepass')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'surrogatepass')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'surrogatepass')",
+      "value": "(b'\\x00\\x00\\xd8\\x00', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'surrogatepass')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'surrogatepass')",
+      "value": "(b'\\x00\\x00\\xdc\\x80', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'surrogatepass')",
+      "value": "(b'\\x00\\x00\\xdf\\xff', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'surrogatepass')",
+      "value": "(b'\\x00\\x00\\x00A\\x00\\x00\\xd8\\x00\\x00\\x00\\x00B\\x00\\x00\\xdf\\xff', 4)"
+    },
+    {
+      "name": "utf_32_be_encode('', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_be_encode('', 'xmlcharrefreplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_be_encode('A', 'xmlcharrefreplace')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'xmlcharrefreplace')",
+      "value": "(b'\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x005\\x00\\x00\\x002\\x00\\x00\\x009\\x00\\x00\\x006\\x00\\x00\\x00;', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'xmlcharrefreplace')",
+      "value": "(b'\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x006\\x00\\x00\\x004\\x00\\x00\\x004\\x00\\x00\\x008\\x00\\x00\\x00;', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x007\\x00\\x00\\x003\\x00\\x00\\x004\\x00\\x00\\x003\\x00\\x00\\x00;', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'xmlcharrefreplace')",
+      "value": "(b'\\x00\\x00\\x00A\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x005\\x00\\x00\\x002\\x00\\x00\\x009\\x00\\x00\\x006\\x00\\x00\\x00;\\x00\\x00\\x00B\\x00\\x00\\x00&\\x00\\x00\\x00#\\x00\\x00\\x005\\x00\\x00\\x007\\x00\\x00\\x003\\x00\\x00\\x004\\x00\\x00\\x003\\x00\\x00\\x00;', 4)"
+    },
+    {
+      "name": "utf_32_be_encode('', 'namereplace')",
+      "expression": "_codecs.utf_32_be_encode('', 'namereplace')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'namereplace')",
+      "expression": "_codecs.utf_32_be_encode('A', 'namereplace')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'namereplace')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'namereplace')",
+      "value": "(b'\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'namereplace')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'namereplace')",
+      "value": "(b'\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00c\\x00\\x00\\x008\\x00\\x00\\x000', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'namereplace')",
+      "value": "(b'\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'namereplace')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'namereplace')",
+      "value": "(b'\\x00\\x00\\x00A\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x008\\x00\\x00\\x000\\x00\\x00\\x000\\x00\\x00\\x00B\\x00\\x00\\x00\\\\\\x00\\x00\\x00u\\x00\\x00\\x00d\\x00\\x00\\x00f\\x00\\x00\\x00f\\x00\\x00\\x00f', 4)"
+    },
+    {
+      "name": "utf_32_be_encode('', 'missing')",
+      "expression": "_codecs.utf_32_be_encode('', 'missing')",
+      "value": "(b'', 0)"
+    },
+    {
+      "name": "utf_32_be_encode('A', 'missing')",
+      "expression": "_codecs.utf_32_be_encode('A', 'missing')",
+      "value": "(b'\\x00\\x00\\x00A', 1)"
+    },
+    {
+      "name": "utf_32_be_encode('\\ud800', 'missing')",
+      "expression": "_codecs.utf_32_be_encode('\\ud800', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udc80', 'missing')",
+      "expression": "_codecs.utf_32_be_encode('\\udc80', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_be_encode('\\udfff', 'missing')",
+      "expression": "_codecs.utf_32_be_encode('\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_be_encode('A\\ud800B\\udfff', 'missing')",
+      "expression": "_codecs.utf_32_be_encode('A\\ud800B\\udfff', 'missing')",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_be_decode()",
+      "expression": "_codecs.utf_32_be_decode()",
+      "error": "TypeError",
+      "args": "('utf_32_be_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_32_be_decode(None, None, None, None)",
+      "expression": "_codecs.utf_32_be_decode(None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_be_decode expected at most 3 arguments, got 4',)"
+    },
+    {
+      "name": "utf_32_be_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_32_be_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_be_decode expected at most 3 arguments, got 5',)"
+    },
+    {
+      "name": "utf_32_be_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_32_be_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_be_decode expected at most 3 arguments, got 6',)"
+    },
+    {
+      "name": "utf_32_be_decode(None)",
+      "expression": "_codecs.utf_32_be_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_32_be_decode(7)",
+      "expression": "_codecs.utf_32_be_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_32_be_decode([])",
+      "expression": "_codecs.utf_32_be_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_32_be_decode(str=b'')",
+      "expression": "_codecs.utf_32_be_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_be_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', errors=None)",
+      "expression": "_codecs.utf_32_be_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_be_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 7)",
+      "expression": "_codecs.utf_32_be_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_32_be_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', b'strict')",
+      "expression": "_codecs.utf_32_be_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_32_be_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_32_be_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_32_be_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'missing')",
+      "expression": "_codecs.utf_32_be_decode(b'', 'missing')",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'replace', None)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'replace', None)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'replace', [])",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'replace', [])",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'replace', [1])",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'replace', [1])",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'replace', 1)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'replace', 1)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'replace', 0)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'replace', 0)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'strict', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'strict', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'strict', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-be', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'strict', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'strict', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-be', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'strict', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'ignore', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'ignore', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'ignore', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'ignore', True)",
+      "value": "('', 1)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'ignore', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'ignore', True)",
+      "value": "('', 2)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'ignore', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'replace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'replace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'replace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'replace', True)",
+      "value": "('\ufffd', 1)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'replace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'replace', True)",
+      "value": "('\ufffd', 2)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'replace', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'backslashreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'backslashreplace', True)",
+      "value": "('\\\\xff', 1)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'backslashreplace', True)",
+      "value": "('\\\\x00\\\\xd8', 2)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'surrogateescape', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'surrogateescape', True)",
+      "value": "('\\udcff', 1)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'surrogateescape', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-be', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'surrogatepass', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-be', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'surrogatepass', True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-be', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'xmlcharrefreplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'xmlcharrefreplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'namereplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'namereplace', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'namereplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'namereplace', True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_be_decode(b'', 'missing', True)",
+      "expression": "_codecs.utf_32_be_decode(b'', 'missing', True)",
+      "value": "('', 0)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\xff', 'missing', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\xff', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\xd8', 'missing', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\xd8', 'missing', True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "expression": "_codecs.utf_32_be_decode(b'\\x00\\x00\\x11\\x00', 'missing', True)",
+      "value": "('\u1100', 4)"
+    },
+    {
+      "name": "utf_32_ex_decode()",
+      "expression": "_codecs.utf_32_ex_decode()",
+      "error": "TypeError",
+      "args": "('utf_32_ex_decode expected at least 1 argument, got 0',)"
+    },
+    {
+      "name": "utf_32_ex_decode(None, None, None, None, None)",
+      "expression": "_codecs.utf_32_ex_decode(None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_ex_decode expected at most 4 arguments, got 5',)"
+    },
+    {
+      "name": "utf_32_ex_decode(None, None, None, None, None, None)",
+      "expression": "_codecs.utf_32_ex_decode(None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_ex_decode expected at most 4 arguments, got 6',)"
+    },
+    {
+      "name": "utf_32_ex_decode(None, None, None, None, None, None, None)",
+      "expression": "_codecs.utf_32_ex_decode(None, None, None, None, None, None, None)",
+      "error": "TypeError",
+      "args": "('utf_32_ex_decode expected at most 4 arguments, got 7',)"
+    },
+    {
+      "name": "utf_32_ex_decode(None)",
+      "expression": "_codecs.utf_32_ex_decode(None)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'NoneType'\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(7)",
+      "expression": "_codecs.utf_32_ex_decode(7)",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'int'\",)"
+    },
+    {
+      "name": "utf_32_ex_decode([])",
+      "expression": "_codecs.utf_32_ex_decode([])",
+      "error": "TypeError",
+      "args": "(\"a bytes-like object is required, not 'list'\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(str=b'')",
+      "expression": "_codecs.utf_32_ex_decode(str=b'')",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_ex_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', errors=None)",
+      "expression": "_codecs.utf_32_ex_decode(b'', errors=None)",
+      "error": "TypeError",
+      "args": "('_codecs.utf_32_ex_decode() takes no keyword arguments',)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 7)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 7)",
+      "error": "TypeError",
+      "args": "('utf_32_ex_decode() argument 2 must be str or None, not int',)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', b'strict')",
+      "expression": "_codecs.utf_32_ex_decode(b'', b'strict')",
+      "error": "TypeError",
+      "args": "('utf_32_ex_decode() argument 2 must be str or None, not bytes',)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'bad\\x00name')",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'bad\\x00name')",
+      "error": "ValueError",
+      "args": "('embedded null character',)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', '\\ud800')",
+      "expression": "_codecs.utf_32_ex_decode(b'', '\\ud800')",
+      "error": "UnicodeEncodeError",
+      "args": "('utf-8', '\\ud800', 0, 1, 'surrogates not allowed')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'missing')",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'missing')",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, None)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, None)",
+      "error": "TypeError",
+      "args": "(\"'NoneType' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, 1.0)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, 1.0)",
+      "error": "TypeError",
+      "args": "(\"'float' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, 'little')",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, 'little')",
+      "error": "TypeError",
+      "args": "(\"'str' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, [])",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, [])",
+      "error": "TypeError",
+      "args": "(\"'list' object cannot be interpreted as an integer\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, -2147483649)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, -2147483649)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, 2147483648)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, 2147483648)",
+      "error": "OverflowError",
+      "args": "('Python int too large to convert to C int',)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, True)",
+      "value": "('', 0, 1)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, False)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, False)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, -2)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, -2)",
+      "value": "('', 0, -2)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', None, 2)",
+      "expression": "_codecs.utf_32_ex_decode(b'', None, 2)",
+      "value": "('', 0, 2)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'replace', 0, None)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'replace', 0, None)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'replace', 0, [])",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'replace', 0, [])",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'replace', 0, [1])",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'replace', 0, [1])",
+      "value": "('\ufffd', 1, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'replace', 0, 1)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'replace', 0, 1)",
+      "value": "('\ufffd', 1, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'replace', 0, 0)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'replace', 0, 0)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'strict', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'strict', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'strict', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'strict', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'strict', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'strict', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'strict', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'strict', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'ignore', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'ignore', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'ignore', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'ignore', 0, True)",
+      "value": "('', 1, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'ignore', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'ignore', 0, True)",
+      "value": "('', 2, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'ignore', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'ignore', 0, True)",
+      "value": "('', 4, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'replace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'replace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'replace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'replace', 0, True)",
+      "value": "('\ufffd', 1, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'replace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'replace', 0, True)",
+      "value": "('\ufffd', 2, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'replace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'replace', 0, True)",
+      "value": "('\ufffd', 4, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'backslashreplace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'backslashreplace', 0, True)",
+      "value": "('\\\\xff', 1, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'backslashreplace', 0, True)",
+      "value": "('\\\\x00\\\\xd8', 2, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'backslashreplace', 0, True)",
+      "value": "('\\\\x00\\\\x00\\\\x11\\\\x00', 4, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'surrogateescape', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'surrogateescape', 0, True)",
+      "value": "('\\udcff', 1, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'surrogateescape', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogateescape', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'surrogatepass', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'surrogatepass', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\xff', 0, 1, 'truncated data')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'surrogatepass', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\xd8', 0, 2, 'truncated data')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'surrogatepass', 0, True)",
+      "error": "UnicodeDecodeError",
+      "args": "('utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)')"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'xmlcharrefreplace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'xmlcharrefreplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'xmlcharrefreplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'xmlcharrefreplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'namereplace', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'namereplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'namereplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'namereplace', 0, True)",
+      "error": "TypeError",
+      "args": "(\"don't know how to handle UnicodeDecodeError in error callback\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'', 'missing', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'', 'missing', 0, True)",
+      "value": "('', 0, 0)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\xff', 'missing', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\xff', 'missing', 0, True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\xd8', 'missing', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\xd8', 'missing', 0, True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    },
+    {
+      "name": "utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'missing', 0, True)",
+      "expression": "_codecs.utf_32_ex_decode(b'\\x00\\x00\\x11\\x00', 'missing', 0, True)",
+      "error": "LookupError",
+      "args": "(\"unknown error handler name 'missing'\",)"
+    }
+  ]
+}

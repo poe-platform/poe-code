@@ -1,0 +1,294 @@
+{
+  "baseline": {
+    "passed": 429,
+    "failed": 10,
+    "pending": 0,
+    "files": 4,
+    "slowestMs": 62.44291599999997,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-frozen-execution.test.ts",
+        "name": "frozen execution: 'late frozen import failure retains es…'",
+        "messages": [
+          "AssertionError: 'code' object has no attribute 'co_consts': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-frozen-execution.test.ts:42:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'byte escape types, argument precedenc…'",
+        "messages": [
+          "AssertionError: No module named 'warnings': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'Punycode public decoder factories ret…'",
+        "messages": [
+          "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'charmap surrogateescape retains origi…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'callback failures preserve identity, …'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'all standard handlers through publish…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'custom codecs shared by encode/decode…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_consumer: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'decoder subtype identity and tuple ov…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_subtype: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'stream reader/writer adapters over a …'",
+        "messages": [
+          "AssertionError: No module named 'io': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'UTF-16/32 rejected replacements resto…'",
+        "messages": [
+          "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "firstImplementation": {
+    "passed": 274,
+    "failed": 16,
+    "pending": 0,
+    "files": 1,
+    "slowestMs": 3.2165410000000065,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 132: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 134: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 135: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 136: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 138: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 139: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 140: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 141: 'a2b_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 274: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 276: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 277: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 278: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 280: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 281: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 282: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts",
+        "name": "pinned Base64 binding 283: 'b2a_base64'",
+        "messages": [
+          "AssertionError: expected { error: 'TypeError', …(1) } to deeply equal { error: 'TypeError', …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-base64-functions.test.ts:43:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "final": {
+    "passed": 1048,
+    "failed": 10,
+    "pending": 0,
+    "files": 16,
+    "slowestMs": 144.772333,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-frozen-execution.test.ts",
+        "name": "frozen execution: 'late frozen import failure retains es…'",
+        "messages": [
+          "AssertionError: 'code' object has no attribute 'co_consts': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-frozen-execution.test.ts:42:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'byte escape types, argument precedenc…'",
+        "messages": [
+          "AssertionError: No module named 'warnings': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'Punycode public decoder factories ret…'",
+        "messages": [
+          "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'charmap surrogateescape retains origi…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'callback failures preserve identity, …'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'all standard handlers through publish…'",
+        "messages": [
+          "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'custom codecs shared by encode/decode…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_consumer: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'decoder subtype identity and tuple ov…'",
+        "messages": [
+          "AssertionError: unknown encoding: public_subtype: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'stream reader/writer adapters over a …'",
+        "messages": [
+          "AssertionError: No module named 'io': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'UTF-16/32 rejected replacements resto…'",
+        "messages": [
+          "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "publicService": {
+    "source": "print('base64 public import probe')\nimport binascii\nassert binascii.b2a_base64(b'A', newline=False) == b'QQ=='\n",
+    "status": "exception",
+    "error": "No module named 'binascii'",
+    "writes": 2,
+    "bytes": 27,
+    "output": "base64 public import probe\n"
+  },
+  "publicServiceDriver": "import {openSync,writeSync,readFileSync,closeSync} from 'node:fs';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst path='/tmp/safe-python-base64-public-output.txt';\nconst fd=openSync(path,'w');let writes=0,bytes=0;\nconst session=new PythonSession({hashSeed:[1n,2n],limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},output:{write(text){bytes+=writeSync(fd,text);writes++;},flush(){}}});\nconst source=\"print('base64 public import probe')\\nimport binascii\\nassert binascii.b2a_base64(b'A', newline=False) == b'QQ=='\\n\";\nconst result=session.exec(source);let error;\nif(result.status==='exception'){session.globals.set('failure',result.exception);const value=session.eval('str(failure)');if(value.status==='ok')error=value.value.primitive;}\ncloseSync(fd);\nconsole.log(JSON.stringify({source,status:result.status,error,writes,bytes,output:readFileSync(path,'utf8')}));\n",
+  "checks": {
+    "typecheck": "npm run typecheck --workspace=@poe-code/safe-python: exit 0",
+    "eslint": "npx eslint packages/safe-python/src/runtime/runtime-base64-functions.ts packages/safe-python/src/runtime/runtime-base64-functions.test.ts packages/safe-python/src/runtime/runtime-base64-guests.test.ts: exit 0"
+  }
+}

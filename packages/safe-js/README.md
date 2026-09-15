@@ -2,13 +2,16 @@
 
 Run a JavaScript subset with explicit host capabilities, execution budgets, and resumable checkpoints.
 
-This README describes the current source checkout. See [Development status](#development-status)
-for local changes that are not yet released; installing the published package
-does not necessarily include them.
+This README describes implemented source features with dated compatibility and
+publication evidence. See [compatibility evidence](#compatibility-evidence--2026-09-15)
+for delivered repairs, historical development notes and unresolved limitations.
+Full ECMAScript conformance is not established.
 
 ## Quickstart
 
-Install the public package (Node.js 18.18+ and ESM):
+Install the public ESM package. Node.js 18.18+ is declared, but exact-minimum
+weak-symbol behavior remains defective; see the runtime matrix below. This
+quickstart is verified on Node.js 22.23.2 / ICU 78.2:
 
 ```sh
 npm install @poe-platform/safe-js
@@ -531,6 +534,67 @@ The bundled runner is `npx poe-safe-js <script.md|script.safejs|script.ajs>` (`p
 For embedding, `runCli(argv, options?)` comes from `@poe-platform/safe-js/cli`. Options: `cwd`, `env`, `mcp`, `modulesFor`, `process`, `readFile`, `stat`, `stdout`, `stderr`, `writeFile`. Its `modulesFor` callback also receives `{ stdout, stderr }`. Do not combine SDK `env`/`mcp` options with their config-file flags.
 
 </details>
+
+## Compatibility evidence — 2026-09-15
+
+The target is **published ECMA-262 edition 16 / ECMA-402 edition 12 (June
+2025)**, Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`. Temporal
+(pin `e8cc03fc970a65a3359e8870e3b35e687ac94e55`), resource-management,
+weak upsert and Atomics.pause are separately tracked newer APIs; they do not
+redefine the target edition. Implemented surfaces include classes, async
+functions/generators, guest eval and dynamic functions, Proxy/Reflect,
+Temporal, Intl, weak collections and bounded shared-memory operations.
+API presence does not establish complete semantics.
+
+**Full conformance is not established.** The preserved selector-free
+[corpus report](../../docs/plans/publish-compatibility-documentation-20260915/full-corpus.jsonl.gz)
+ends with `aborted`, `complete:false`, ENOSPC. Failures, unsupported required
+modes, edition-mismatch adjudication and current-source revalidation remain
+open. Historical or selected passes cannot be combined into a final full run.
+See the [report, reproducible commands and delivery disposition](../../docs/plans/safejs-gap-closure-evidence.md#compatibility-documentation-delivery--2026-09-15).
+
+The declared contract is ESM Node **18.18+**, with no excluded operating system.
+The [runtime matrix](../../docs/plans/safejs-runtime-support-fresh-delivery-20260915.md)
+records selected macOS arm64 controls for Node 18.18.0, 18.20.8, 20.20.2,
+22.23.2, 24.21.0, 26.8.2 and Bun 1.3.11. Exact-minimum fresh-symbol WeakMap
+keys fail; newer-host passes do not waive this obligation. Linux/Windows,
+complete cross-runtime suites and installed feature coverage remain incomplete.
+Workerd has selected controls with explicit nodejs_compat and a pinned
+compatibility date, not complete runtime/ICU qualification. Browser bundling
+controls do not establish a supported browser interpreter. Direct CommonJS
+require and browser interpreter export routes are intentionally unsupported.
+
+Host authority is explicit: no ambient DOM, process, fetch, general Node API,
+automatic npm resolution or filesystem grant. Registered modules and explicit
+capabilities supply authority. Missing authority by design is not a language
+defect. Native Map/Set subclasses, opaque/revoked Proxies and Proxy-bearing
+prototype chains reject at host copying; live identity requires realm-owned
+capabilities. Internal heap transport and structured-clone normalization are
+separate contracts; see [CHECKPOINT_REPLAY.md](CHECKPOINT_REPLAY.md).
+New runs use jobs-v9; genuine v6/v7/v8 restores retain original semantics and
+explicit migration creates a new continuation. Never upgrade by editing markers.
+
+The [final transport report](../../docs/plans/qualify-realms-and-recovery/final-delivery-20260914.md)
+separates local commits, remote ancestry and independently installed published
+versions. It measures 156 supported, 100 rejection and 18 version cells, while
+retaining raw shared-write recovery that produces 0 instead of 7 and can execute
+an effect before rejection. Arbitrary concurrent recovery and exactly-once
+side effects are unqualified. Those transport repairs shipped in SafeJS
+0.1.596–0.1.598 and poe-code 15.0.39–15.0.40; their older local-only descriptions
+below are historical, not an inventory of current publication.
+
+Other residual limitations include Temporal extreme-range/calendar/foreign-realm
+behavior, older-host Intl output, nondeterministic weak collection cleanup,
+nonblocking host-agent Atomics.wait, intermediate shared-write visibility and
+timeout replay, complete eval/Proxy/RegExp semantics, opaque handles and native
+iterator frames in recovery, cooperative budgets/cancellation, and filesystem
+race boundaries. Native Promise copying omits user-symbol properties by default;
+explicit admission has separate controls. Host calls need their own timeouts and
+side-effect reconciliation. Artifact source/lock binding, minimum-Node umbrella
+installation, raw archive closure and exhaustive license disposition remain
+unqualified in the accumulated candidate. No proposal, skipped test or unavailable
+runner is counted as standard conformance. The dated evidence ledger retains
+individual findings rather than treating these limitations as resolved.
 
 ## Compatibility evidence at a glance
 
@@ -1338,7 +1402,7 @@ preserve existing values and use collection budgets for insertions; computed
 defaults run only for missing keys. See the [Map validation record](../../docs/plans/safejs-map-upsert.md).
 The corresponding WeakMap methods are committed locally but unreleased;
 they retain the older-Node weak-symbol limitations above.
-See the [WeakMap integration record](../../docs/plans/safejs-weakmap-upsert.md).
+See the [WeakMap integration evidence](../../docs/plans/safejs-gap-closure-evidence.md).
 
 The unreleased runtime supports `Atomics` integer operations on ordinary
 ArrayBuffer-backed typed arrays, including BigInt views. Experimental,

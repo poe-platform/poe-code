@@ -1,0 +1,13 @@
+{
+  "cwd": "/tmp/poe-language-artifacts-js-575",
+  "installedVersion": "0.1.577",
+  "command": [
+    "node",
+    "--input-type=module",
+    "-e",
+    "import assert from\"node:assert/strict\";import{run,dump,restore}from\"@poe-platform/safe-js\";const source=\"const init=[],test=[];for(let i=0,f=()=>i;(test.push(()=>i),i<2);i++)init.push(f);await 0;return [init.map(f=>f()),test.map(f=>f()),init[0].toString(),init[0].constructor(\\\"return typeof process+','+typeof require\\\")()];\";let pending=run(source);for(let i=0;i<3;i++){const saved=JSON.parse(await dump(pending));assert.deepEqual((await pending).returnValue,[[0,0],[0,1,2],\"()=>i\",\"undefined,undefined\"]);pending=run(source,{snapshot:restore(saved,{source})});}assert.deepEqual((await pending).returnValue,[[0,0],[0,1,2],\"()=>i\",\"undefined,undefined\"]);console.log(\"installed SafeJS 0.1.577 loop/replay/source/authority passed\");"
+  ],
+  "exit": 0,
+  "stdout": "installed SafeJS 0.1.577 loop/replay/source/authority passed\n",
+  "stderr": ""
+}

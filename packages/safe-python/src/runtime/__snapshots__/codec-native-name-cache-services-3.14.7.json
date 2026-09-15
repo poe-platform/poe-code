@@ -1,0 +1,106 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "operation": "encode",
+      "replacement": "b'8'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "b'x'\nb'x'\n[True]\n",
+      "actual": "b'x'\nb'x'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0
+    },
+    {
+      "operation": "encode",
+      "replacement": "b'\\xff'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'\\xff', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "b'x'\nb'x'\n[True]\n",
+      "actual": "b'x'\nb'x'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0
+    },
+    {
+      "operation": "encode",
+      "replacement": "b'8\\x00'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8\\x00', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "actual": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "flushes": 0
+    },
+    {
+      "operation": "encode",
+      "replacement": "input()",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (input(), error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr('x'.encode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "b'x'\nb'x'\n[True]\n",
+      "actual": "b'x'\nb'x'\n[True]\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 6,
+      "flushes": 1
+    },
+    {
+      "operation": "decode",
+      "replacement": "b'8'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "'x'\n'x'\n[True]\n",
+      "actual": "'x'\n'x'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0
+    },
+    {
+      "operation": "decode",
+      "replacement": "b'\\xff'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'\\xff', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "'x'\n'x'\n[True]\n",
+      "actual": "'x'\n'x'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 6,
+      "flushes": 0
+    },
+    {
+      "operation": "decode",
+      "replacement": "b'8\\x00'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (b'8\\x00', error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "actual": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "flushes": 0
+    },
+    {
+      "operation": "decode",
+      "replacement": "input()",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\nseen = []\ndef repair(error):\n    seen.append(error.object is name)\n    return (input(), error.end)\ncodecs.register_error('strict', repair)\nfor attempt in range(2):\n    try:\n        print(repr(b'x'.decode(name)))\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "'x'\n'x'\n[True]\n",
+      "actual": "'x'\n'x'\n[True]\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 6,
+      "flushes": 1
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /private/tmp/qualify-builtins-delivery-20260914
+
+ ✓ packages/safe-js/src/interp/array-length-coercion.test.ts (8 tests) 376ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  19:22:02
+   Duration  1.90s (transform 1.14s, setup 32ms, import 1.43s, tests 376ms, environment 0ms)
+

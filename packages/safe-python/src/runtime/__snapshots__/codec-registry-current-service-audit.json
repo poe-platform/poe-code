@@ -1,0 +1,1047 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "limits": {
+    "maxSteps": 4000000,
+    "maxAllocatedBytes": 64000000,
+    "maxDepth": 150
+  },
+  "services": "Explicit opened file descriptors: bytewise line input, partial-write loop, fsync, finally cleanup",
+  "cases": [
+    {
+      "name": "ascii paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('ascii')\nwriter = codecs.getwriter('ascii')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "sha256": "6531db1ff4ff88f923964aa40fe4a4ed928c7e5c3e475e9e26701bb1d01b8fc4",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 1,
+          "writes": 72,
+          "stdout": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 1,
+          "writes": 72,
+          "stdout": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "latin-1 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('latin-1')\nwriter = codecs.getwriter('latin-1')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "sha256": "7adf3313267e0272948b5d5c3ef8849bde5453c389744874475175e2013ec9b8",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 1,
+          "writes": 72,
+          "stdout": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 1,
+          "writes": 72,
+          "stdout": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "utf-8 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('utf-8')\nwriter = codecs.getwriter('utf-8')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "sha256": "5ce32c184b3765a0c0790b3bd0324d9847eaa6854e110a1ee2f88fc0404b6088",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 1,
+          "writes": 72,
+          "stdout": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 1,
+          "writes": 72,
+          "stdout": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "utf_7",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_7')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_7')(Stream())\nwriter = codecs.getwriter('utf_7')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "74c8d9f7056d76f8a3cc2e960a5aab400f82c10e4c52916f40b015749f101b51",
+      "oracle": {
+        "status": 0,
+        "stdout": "2b414f6b0a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "2b414f6b0a\n410a\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "2b414f6b0a\n410a\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "utf_16_le",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_16_le')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_16_le')(Stream())\nwriter = codecs.getwriter('utf_16_le')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "1be854e2ca54e556d02c286e48362362ea5f36d954700259dd7215e6f48dd1e2",
+      "oracle": {
+        "status": 0,
+        "stdout": "e9000a00\n41000a00\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e9000a00\n41000a00\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e9000a00\n41000a00\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "utf_16_be",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_16_be')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_16_be')(Stream())\nwriter = codecs.getwriter('utf_16_be')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "a63cd37a4def5346f4378049e1ded3806b88994890777e8c76d620d425d4ac65",
+      "oracle": {
+        "status": 0,
+        "stdout": "00e9000a\n0041000a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "00e9000a\n0041000a\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "00e9000a\n0041000a\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "utf_32_le",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_32_le')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_32_le')(Stream())\nwriter = codecs.getwriter('utf_32_le')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "8bd3298a7afe74203cafd536fb4fe69e570c93de6fe67bef6484a2a77e608468",
+      "oracle": {
+        "status": 0,
+        "stdout": "e90000000a000000\n410000000a000000\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e90000000a000000\n410000000a000000\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e90000000a000000\n410000000a000000\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "utf_32_be",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_32_be')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_32_be')(Stream())\nwriter = codecs.getwriter('utf_32_be')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "9800c23f3bc4aef1d8a20fed92a2ee176eec2131b4299b2a81b38a9899be9173",
+      "oracle": {
+        "status": 0,
+        "stdout": "000000e90000000a\n000000410000000a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "000000e90000000a\n000000410000000a\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "000000e90000000a\n000000410000000a\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "unicode_escape",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('unicode_escape')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('unicode_escape')(Stream())\nwriter = codecs.getwriter('unicode_escape')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "14b7d5369d891a230c305c56bf1936c9e60796a1a633f1f28690fca94f1d7a1d",
+      "oracle": {
+        "status": 0,
+        "stdout": "5c7865395c6e\n415c6e\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "5c7865395c6e\n415c6e\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "5c7865395c6e\n415c6e\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "raw_unicode_escape",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('raw_unicode_escape')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('raw_unicode_escape')(Stream())\nwriter = codecs.getwriter('raw_unicode_escape')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "bf664b7e7d7dd9c55a62a24963f12b92323dc72f747f07a4b66710f6d91cff6e",
+      "oracle": {
+        "status": 0,
+        "stdout": "e90a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e90a\n410a\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e90a\n410a\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "charmap",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('charmap')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('charmap')(Stream())\nwriter = codecs.getwriter('charmap')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "83d2f0b9302d7364a3af4ad35d37b1146ccf57e0b0254dab6004a19696f2f138",
+      "oracle": {
+        "status": 0,
+        "stdout": "e90a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e90a\n410a\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "e90a\n410a\n"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "name": "utf_8_sig",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_8_sig')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_8_sig')(Stream())\nwriter = codecs.getwriter('utf_8_sig')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "sha256": "a5f203569f3cb1de59723cc0f36106ad98b20e1f1a810e8f746ac97f5792a80b",
+      "oracle": {
+        "status": 0,
+        "stdout": "efbbbfc3a90a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "efbbbfc3a90a\n410a\n"
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "ok"
+          },
+          "reads": 5,
+          "writes": 4,
+          "stdout": "efbbbfc3a90a\n410a\n"
+        }
+      ],
+      "matched": true
+    }
+  ],
+  "cancellation": [
+    {
+      "name": "reader.read",
+      "source": "import codecs\nevents = []\n\nclass Stream:\n    def read(self, size=-1):\n        input()\n        events.append('resumed')\n        return b'A'\ncodecs.getreader('utf8')(Stream()).read()\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "212641d020ad55cdb4f2e41f98456b4af50ba7e357a8cc98d75ec8a17cd71563",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "writer.write",
+      "source": "import codecs\nevents = []\n\nclass Stream:\n    def write(self, value):\n        input()\n        events.append('resumed')\ncodecs.getwriter('utf8')(Stream()).write('é')\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "0e31527b34c285ba4bed614bc8115830f106948caadd4ea2d058245e9e064870",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "paired.reset",
+      "source": "import codecs\nevents = []\n\nclass Reader:\n    def __init__(self, stream, errors):\n        pass\n    def reset(self):\n        input()\n        events.append('resumed')\nclass Writer(Reader):\n    def reset(self):\n        events.append('writer.reset')\ncodecs.StreamReaderWriter(None, Reader, Writer).reset()\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "82af76ed47ed808357b8772be07c9dd47991141f00bea39fcb1e5631858d68cd",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "recoder.seek",
+      "source": "import codecs\nevents = []\n\nclass Reader:\n    def __init__(self, stream, errors):\n        pass\n    def seek(self, *args):\n        input()\n        events.append('resumed')\nclass Writer(Reader):\n    def seek(self, *args):\n        events.append('writer.seek')\ncodecs.StreamRecoder(None, None, None, Reader, Writer).seek(0)\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "b4d436bcaa770516aa9feaeda78c3241e4efc2dab6bd18b52835ca3cdc56d384",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "incremental handler",
+      "source": "import codecs\nevents = []\n\ndef handler(error):\n    input()\n    events.append('resumed')\n    return ('?', error.end)\ncodecs.register_error('cancel_stream', handler)\ncodecs.getincrementaldecoder('utf8')('cancel_stream').decode(b'\\xff', True)\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "57b68982a225a736f9d85a2edbdc45cf142eb31727cbec4a33d2f69422822e41",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "iterator source",
+      "source": "import codecs\nevents = []\n\ndef source():\n    input()\n    events.append('resumed')\n    yield 'A'\nnext(codecs.iterencode(source(), 'utf8'))\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "899533db492f675937960602d73a753bf476cd1414341990a24902edec88a863",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reader.readline",
+      "source": "import codecs\nevents = []\n\nclass Stream:\n    def read(self, size=-1):\n        input()\n        events.append('resumed')\n        return b'A'\n    def tell(self):\n        input()\n        events.append('resumed')\n        return 0\ncodecs.getreader('utf8')(Stream()).readline()\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "65c6aa8986d5a03a7a0ec038ff87d95c56dde668e3b54803938b75d0e7303370",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reader.readlines",
+      "source": "import codecs\nevents = []\n\nclass Stream:\n    def read(self, size=-1):\n        input()\n        events.append('resumed')\n        return b'A'\n    def tell(self):\n        input()\n        events.append('resumed')\n        return 0\ncodecs.getreader('utf8')(Stream()).readlines()\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "cea4a6e0820cb006e7a776d6c367a7d152d663d45b0e670eb21fa7ebbd5c5ce2",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "reader.tell",
+      "source": "import codecs\nevents = []\n\nclass Stream:\n    def read(self, size=-1):\n        input()\n        events.append('resumed')\n        return b'A'\n    def tell(self):\n        input()\n        events.append('resumed')\n        return 0\ncodecs.getreader('utf8')(Stream()).tell()\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "2c38bd2108f9e30173ad0ce7024239ae33d66ef8da2c2fd4cacf0d90c5c75dd3",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "writer.writelines source",
+      "source": "import codecs\nevents = []\n\nclass Stream:\n    def write(self, value):\n        events.append('write')\ndef lines():\n    yield 'A'\n    input()\n    events.append('resumed')\n    yield 'B'\ncodecs.getwriter('utf8')(Stream()).writelines(lines())\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "415a2b3b207411e7238291ad444d432325e7bae41ce718ca28fa3ec2cf4f70a6",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "buffered decoder consumed index",
+      "source": "import codecs\nevents = []\n\nclass Count:\n    def __index__(self):\n        input()\n        events.append('resumed')\n        return 1\nclass Decoder(codecs.BufferedIncrementalDecoder):\n    def _buffer_decode(self, data, errors, final):\n        return ('A', Count())\nDecoder().decode(b'A', True)\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "bceaad8badd6ee68a6b3bc7f4f16db63925876448b055756c22c155875f22727",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "iterencode final callback",
+      "source": "import codecs\nevents = []\n\nclass Codec:\n    def __init__(self, errors):\n        pass\n    def encode(self, data, final=False):\n        assert final is True\n        input()\n        events.append('resumed')\n        return data\ncodecs.getincrementalencoder = lambda name: Codec\nnext(codecs.iterencode([], 'unused'))\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "8bc046ca49cf7bed981b01b995667d7f6829b1efe973cb30bbfbca2112557f0d",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "iterdecode final callback",
+      "source": "import codecs\nevents = []\n\nclass Codec:\n    def __init__(self, errors):\n        pass\n    def decode(self, data, final=False):\n        assert final is True\n        input()\n        events.append('resumed')\n        return data\ncodecs.getincrementaldecoder = lambda name: Codec\nnext(codecs.iterdecode([], 'unused'))\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "eeeecfc7b67705689add0b0ca81746d1345aac4b2f59685c04de483977ab374e",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    },
+    {
+      "name": "recoder frontend decoder",
+      "source": "import codecs\nevents = []\n\nclass Backend:\n    def __init__(self, stream, errors):\n        pass\n    def write(self, value):\n        events.append('write')\ndef decode(data, errors):\n    input()\n    events.append('resumed')\n    return ('A', 1)\ncodecs.StreamRecoder(None, None, decode, Backend, Backend).write(b'A')\n\nraise AssertionError('continued after cancellation')\n",
+      "sha256": "c7ff8dd3494d3e1a7231597a64b305f320cf64f7b4f4f960dc70a0b7f6e529f2",
+      "runs": [
+        {
+          "seed": [
+            1,
+            2
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        },
+        {
+          "seed": [
+            3,
+            4
+          ],
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled"
+          },
+          "reads": 1,
+          "writes": 0,
+          "stdout": "",
+          "subsequent": {
+            "status": "terminated",
+            "reason": "cancelled"
+          }
+        }
+      ]
+    }
+  ]
+}

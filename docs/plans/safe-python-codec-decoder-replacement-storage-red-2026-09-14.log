@@ -1,0 +1,210 @@
+
+> @poe-code/safe-python@0.0.0-dev test:unit
+> vitest run --config vitest.config.ts src/session-codec-decoder-replacement-storage.test.ts --maxWorkers=2 --pool=forks
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+
+ ❯ src/session-codec-decoder-replacement-storage.test.ts (18 tests | 8 failed) 600ms
+   × retains decoder replacement Unicode storage: 'c2 / "AB"' 36ms
+   × retains decoder replacement Unicode storage: 'c4 / "A"' 25ms
+   × retains decoder replacement Unicode storage: 'c4 / "AB"' 27ms
+   × retains decoder replacement Unicode storage: 'c4 / "é"' 34ms
+   × retains decoder replacement Unicode storage: 'f0 / "A"' 27ms
+   × retains decoder replacement Unicode storage: 'f0 / "AB"' 28ms
+   × retains decoder replacement Unicode storage: 'f0 / "é"' 26ms
+   × retains decoder replacement Unicode storage: 'f0 / "€"' 25ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'c2 / "AB"'
+AssertionError: expected 'utf-8 \'AB\' False True True b\'AB\'\…' to be 'utf-8 \'AB\' False True True b\'AB\'\…' // Object.is equality
+
+- Expected
++ Received
+
+  utf-8 'AB' False True True b'AB'
+- utf-16-le 'AB' False True True b'AB'
++ utf-16-le 'AB' True True True b'AB'
+- utf-16-be 'AB' False True True b'AB'
++ utf-16-be 'AB' True True True b'AB'
+- utf-32-le 'AB' False True True b'AB'
++ utf-32-le 'AB' True True True b'AB'
+- utf-32-be 'AB' False True True b'AB'
++ utf-32-be 'AB' True True True b'AB'
+- utf-7 'AB' False True True b'AB'
++ utf-7 'AB' True True True b'AB'
+- ascii 'AB' False True True b'AB'
++ ascii 'AB' True True True b'AB'
+- unicode_escape 'ABQQQQ' False True False b'ABQQQQ'
++ unicode_escape 'ABQQQQ' True True False b'ABQQQQ'
+- raw_unicode_escape 'ABQQQQ' False True False b'ABQQQQ'
++ raw_unicode_escape 'ABQQQQ' True True False b'ABQQQQ'
+
+
+ ❯ src/session-codec-decoder-replacement-storage.test.ts:17:18
+     15|   });
+     16|   expect(session.exec(source).status, output).toBe('ok');
+     17|   expect(output).toBe(row.stdout);
+       |                  ^
+     18| });
+     19|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'c4 / "A"'
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'f0 / "A"'
+AssertionError: expected 'utf-8 \'A\' False False True b\'A\'\n…' to be 'utf-8 \'A\' False False True b\'A\'\n…' // Object.is equality
+
+- Expected
++ Received
+
+  utf-8 'A' False False True b'A'
+- utf-16-le 'A' False False True b'A'
++ utf-16-le 'A' True True False b'A'
+- utf-16-be 'A' False False True b'A'
++ utf-16-be 'A' True True False b'A'
+- utf-32-le 'A' False False True b'A'
++ utf-32-le 'A' True True False b'A'
+- utf-32-be 'A' False False True b'A'
++ utf-32-be 'A' True True False b'A'
+- utf-7 'A' False False True b'A'
++ utf-7 'A' True True False b'A'
+- ascii 'A' False False True b'A'
++ ascii 'A' True True False b'A'
+- unicode_escape 'AQQQQ' False False False b'AQQQQ'
++ unicode_escape 'AQQQQ' True True False b'AQQQQ'
+- raw_unicode_escape 'AQQQQ' False False False b'AQQQQ'
++ raw_unicode_escape 'AQQQQ' True True False b'AQQQQ'
+
+
+ ❯ src/session-codec-decoder-replacement-storage.test.ts:17:18
+     15|   });
+     16|   expect(session.exec(source).status, output).toBe('ok');
+     17|   expect(output).toBe(row.stdout);
+       |                  ^
+     18| });
+     19|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'c4 / "AB"'
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'f0 / "AB"'
+AssertionError: expected 'utf-8 \'AB\' False False True b\'AB\'…' to be 'utf-8 \'AB\' False False True b\'AB\'…' // Object.is equality
+
+- Expected
++ Received
+
+  utf-8 'AB' False False True b'AB'
+- utf-16-le 'AB' False False True b'AB'
++ utf-16-le 'AB' True True False b'AB'
+- utf-16-be 'AB' False False True b'AB'
++ utf-16-be 'AB' True True False b'AB'
+- utf-32-le 'AB' False False True b'AB'
++ utf-32-le 'AB' True True False b'AB'
+- utf-32-be 'AB' False False True b'AB'
++ utf-32-be 'AB' True True False b'AB'
+- utf-7 'AB' False False True b'AB'
++ utf-7 'AB' True True False b'AB'
+- ascii 'AB' False False True b'AB'
++ ascii 'AB' True True False b'AB'
+- unicode_escape 'ABQQQQ' False False False b'ABQQQQ'
++ unicode_escape 'ABQQQQ' True True False b'ABQQQQ'
+- raw_unicode_escape 'ABQQQQ' False False False b'ABQQQQ'
++ raw_unicode_escape 'ABQQQQ' True True False b'ABQQQQ'
+
+
+ ❯ src/session-codec-decoder-replacement-storage.test.ts:17:18
+     15|   });
+     16|   expect(session.exec(source).status, output).toBe('ok');
+     17|   expect(output).toBe(row.stdout);
+       |                  ^
+     18| });
+     19|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'c4 / "é"'
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'f0 / "é"'
+AssertionError: expected 'utf-8 \'é\' False False True b\'\xc3\…' to be 'utf-8 \'é\' False False True b\'\xc3\…' // Object.is equality
+
+- Expected
++ Received
+
+  utf-8 'é' False False True b'\xc3\xa9'
+- utf-16-le 'é' False False True b'\xc3\xa9'
++ utf-16-le 'é' False True False b'\xc3\xa9'
+- utf-16-be 'é' False False True b'\xc3\xa9'
++ utf-16-be 'é' False True False b'\xc3\xa9'
+- utf-32-le 'é' False False True b'\xc3\xa9'
++ utf-32-le 'é' False True False b'\xc3\xa9'
+- utf-32-be 'é' False False True b'\xc3\xa9'
++ utf-32-be 'é' False True False b'\xc3\xa9'
+- utf-7 'é' False False True b'\xc3\xa9'
++ utf-7 'é' False True False b'\xc3\xa9'
+- ascii 'é' False False True b'\xc3\xa9'
++ ascii 'é' False True False b'\xc3\xa9'
+- unicode_escape 'éQQQQ' False False False b'\xc3\xa9QQQQ'
++ unicode_escape 'éQQQQ' False True False b'\xc3\xa9QQQQ'
+- raw_unicode_escape 'éQQQQ' False False False b'\xc3\xa9QQQQ'
++ raw_unicode_escape 'éQQQQ' False True False b'\xc3\xa9QQQQ'
+
+
+ ❯ src/session-codec-decoder-replacement-storage.test.ts:17:18
+     15|   });
+     16|   expect(session.exec(source).status, output).toBe('ok');
+     17|   expect(output).toBe(row.stdout);
+       |                  ^
+     18| });
+     19|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  src/session-codec-decoder-replacement-storage.test.ts > retains decoder replacement Unicode storage: 'f0 / "€"'
+AssertionError: expected 'utf-8 \'€\' False False True b\'\xe2\…' to be 'utf-8 \'€\' False False True b\'\xe2\…' // Object.is equality
+
+- Expected
++ Received
+
+  utf-8 '€' False False True b'\xe2\x82\xac'
+- utf-16-le '€' False False True b'\xe2\x82\xac'
++ utf-16-le '€' False True False b'\xe2\x82\xac'
+- utf-16-be '€' False False True b'\xe2\x82\xac'
++ utf-16-be '€' False True False b'\xe2\x82\xac'
+- utf-32-le '€' False False True b'\xe2\x82\xac'
++ utf-32-le '€' False True False b'\xe2\x82\xac'
+- utf-32-be '€' False False True b'\xe2\x82\xac'
++ utf-32-be '€' False True False b'\xe2\x82\xac'
+- utf-7 '€' False False True b'\xe2\x82\xac'
++ utf-7 '€' False True False b'\xe2\x82\xac'
+- ascii '€' False False True b'\xe2\x82\xac'
++ ascii '€' False True False b'\xe2\x82\xac'
+- unicode_escape '€QQQQ' False False False b'\xe2\x82\xacQQQQ'
++ unicode_escape '€QQQQ' False True False b'\xe2\x82\xacQQQQ'
+- raw_unicode_escape '€QQQQ' False False False b'\xe2\x82\xacQQQQ'
++ raw_unicode_escape '€QQQQ' False True False b'\xe2\x82\xacQQQQ'
+
+
+ ❯ src/session-codec-decoder-replacement-storage.test.ts:17:18
+     15|   });
+     16|   expect(session.exec(source).status, output).toBe('ok');
+     17|   expect(output).toBe(row.stdout);
+       |                  ^
+     18| });
+     19|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 10 passed (18)
+   Start at  12:03:51
+   Duration  4.34s (transform 2.89s, setup 0ms, import 3.65s, tests 600ms, environment 0ms)
+
+npm error Lifecycle script `test:unit` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+npm error workspace @poe-code/safe-python@0.0.0-dev
+npm error location /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts src/session-codec-decoder-replacement-storage.test.ts --maxWorkers=2 --pool=forks

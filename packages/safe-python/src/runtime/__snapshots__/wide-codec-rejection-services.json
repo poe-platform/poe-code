@@ -1,0 +1,433 @@
+{
+  "source": "import _codecs\nnames = ('utf_16_encode', 'utf_16_le_encode', 'utf_16_be_encode', 'utf_16_decode', 'utf_16_le_decode', 'utf_16_be_decode', 'utf_16_ex_decode', 'utf_32_encode', 'utf_32_le_encode', 'utf_32_be_encode', 'utf_32_decode', 'utf_32_le_decode', 'utf_32_be_decode', 'utf_32_ex_decode')\nfor name in names:\n    function = getattr(_codecs, name)\n    source = '' if name.endswith('encode') else b''\n    for args, keywords in (((), {}), ((source,), {'errors': None}), ((None,), {}), ((source, True), {}), ((source, '\\0'), {})):\n        try:\n            function(*args, **keywords)\n        except Exception as error:\n            print(name, type(error).__name__, error.args, getattr(error, '__notes__', None), error.__cause__, error.__context__, error.__traceback__ is not None)\nclass Position:\n    def __index__(self):\n        assert input() == 'continue'\n        return 1 << 100\nfor name in ('utf_16_encode', 'utf_32_encode', 'utf_16_ex_decode', 'utf_32_ex_decode'):\n    try:\n        getattr(_codecs, name)('' if name.endswith('encode') else b'', None, Position())\n    except Exception as error:\n        print(name, type(error).__name__, error.args, getattr(error, '__notes__', None), error.__cause__, error.__context__, error.__traceback__ is not None)\n",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "oracle": {
+    "status": 0,
+    "stdout": "utf_16_encode TypeError ('utf_16_encode expected at least 1 argument, got 0',) None None None True\nutf_16_encode TypeError ('_codecs.utf_16_encode() takes no keyword arguments',) None None None True\nutf_16_encode TypeError ('utf_16_encode() argument 1 must be str, not None',) None None None True\nutf_16_encode TypeError ('utf_16_encode() argument 2 must be str or None, not bool',) None None None True\nutf_16_encode ValueError ('embedded null character',) None None None True\nutf_16_le_encode TypeError ('utf_16_le_encode expected at least 1 argument, got 0',) None None None True\nutf_16_le_encode TypeError ('_codecs.utf_16_le_encode() takes no keyword arguments',) None None None True\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 1 must be str, not None',) None None None True\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 2 must be str or None, not bool',) None None None True\nutf_16_le_encode ValueError ('embedded null character',) None None None True\nutf_16_be_encode TypeError ('utf_16_be_encode expected at least 1 argument, got 0',) None None None True\nutf_16_be_encode TypeError ('_codecs.utf_16_be_encode() takes no keyword arguments',) None None None True\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 1 must be str, not None',) None None None True\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 2 must be str or None, not bool',) None None None True\nutf_16_be_encode ValueError ('embedded null character',) None None None True\nutf_16_decode TypeError ('utf_16_decode expected at least 1 argument, got 0',) None None None True\nutf_16_decode TypeError ('_codecs.utf_16_decode() takes no keyword arguments',) None None None True\nutf_16_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_16_decode TypeError ('utf_16_decode() argument 2 must be str or None, not bool',) None None None True\nutf_16_decode ValueError ('embedded null character',) None None None True\nutf_16_le_decode TypeError ('utf_16_le_decode expected at least 1 argument, got 0',) None None None True\nutf_16_le_decode TypeError ('_codecs.utf_16_le_decode() takes no keyword arguments',) None None None True\nutf_16_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_16_le_decode TypeError ('utf_16_le_decode() argument 2 must be str or None, not bool',) None None None True\nutf_16_le_decode ValueError ('embedded null character',) None None None True\nutf_16_be_decode TypeError ('utf_16_be_decode expected at least 1 argument, got 0',) None None None True\nutf_16_be_decode TypeError ('_codecs.utf_16_be_decode() takes no keyword arguments',) None None None True\nutf_16_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_16_be_decode TypeError ('utf_16_be_decode() argument 2 must be str or None, not bool',) None None None True\nutf_16_be_decode ValueError ('embedded null character',) None None None True\nutf_16_ex_decode TypeError ('utf_16_ex_decode expected at least 1 argument, got 0',) None None None True\nutf_16_ex_decode TypeError ('_codecs.utf_16_ex_decode() takes no keyword arguments',) None None None True\nutf_16_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_16_ex_decode TypeError ('utf_16_ex_decode() argument 2 must be str or None, not bool',) None None None True\nutf_16_ex_decode ValueError ('embedded null character',) None None None True\nutf_32_encode TypeError ('utf_32_encode expected at least 1 argument, got 0',) None None None True\nutf_32_encode TypeError ('_codecs.utf_32_encode() takes no keyword arguments',) None None None True\nutf_32_encode TypeError ('utf_32_encode() argument 1 must be str, not None',) None None None True\nutf_32_encode TypeError ('utf_32_encode() argument 2 must be str or None, not bool',) None None None True\nutf_32_encode ValueError ('embedded null character',) None None None True\nutf_32_le_encode TypeError ('utf_32_le_encode expected at least 1 argument, got 0',) None None None True\nutf_32_le_encode TypeError ('_codecs.utf_32_le_encode() takes no keyword arguments',) None None None True\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 1 must be str, not None',) None None None True\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 2 must be str or None, not bool',) None None None True\nutf_32_le_encode ValueError ('embedded null character',) None None None True\nutf_32_be_encode TypeError ('utf_32_be_encode expected at least 1 argument, got 0',) None None None True\nutf_32_be_encode TypeError ('_codecs.utf_32_be_encode() takes no keyword arguments',) None None None True\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 1 must be str, not None',) None None None True\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 2 must be str or None, not bool',) None None None True\nutf_32_be_encode ValueError ('embedded null character',) None None None True\nutf_32_decode TypeError ('utf_32_decode expected at least 1 argument, got 0',) None None None True\nutf_32_decode TypeError ('_codecs.utf_32_decode() takes no keyword arguments',) None None None True\nutf_32_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_32_decode TypeError ('utf_32_decode() argument 2 must be str or None, not bool',) None None None True\nutf_32_decode ValueError ('embedded null character',) None None None True\nutf_32_le_decode TypeError ('utf_32_le_decode expected at least 1 argument, got 0',) None None None True\nutf_32_le_decode TypeError ('_codecs.utf_32_le_decode() takes no keyword arguments',) None None None True\nutf_32_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_32_le_decode TypeError ('utf_32_le_decode() argument 2 must be str or None, not bool',) None None None True\nutf_32_le_decode ValueError ('embedded null character',) None None None True\nutf_32_be_decode TypeError ('utf_32_be_decode expected at least 1 argument, got 0',) None None None True\nutf_32_be_decode TypeError ('_codecs.utf_32_be_decode() takes no keyword arguments',) None None None True\nutf_32_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_32_be_decode TypeError ('utf_32_be_decode() argument 2 must be str or None, not bool',) None None None True\nutf_32_be_decode ValueError ('embedded null character',) None None None True\nutf_32_ex_decode TypeError ('utf_32_ex_decode expected at least 1 argument, got 0',) None None None True\nutf_32_ex_decode TypeError ('_codecs.utf_32_ex_decode() takes no keyword arguments',) None None None True\nutf_32_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True\nutf_32_ex_decode TypeError ('utf_32_ex_decode() argument 2 must be str or None, not bool',) None None None True\nutf_32_ex_decode ValueError ('embedded null character',) None None None True\nutf_16_encode OverflowError ('Python int too large to convert to C int',) None None None True\nutf_32_encode OverflowError ('Python int too large to convert to C int',) None None None True\nutf_16_ex_decode OverflowError ('Python int too large to convert to C int',) None None None True\nutf_32_ex_decode OverflowError ('Python int too large to convert to C int',) None None None True\n",
+    "stderr": ""
+  },
+  "cases": [
+    {
+      "mode": "normal",
+      "status": "ok",
+      "reads": 4,
+      "stdout": "utf_16_encode TypeError ('utf_16_encode expected at least 1 argument, got 0',) None None None False\nutf_16_encode TypeError ('_codecs.utf_16_encode() takes no keyword arguments',) None None None False\nutf_16_encode TypeError ('utf_16_encode() argument 1 must be str, not None',) None None None False\nutf_16_encode TypeError ('utf_16_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_encode ValueError ('embedded null character',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode expected at least 1 argument, got 0',) None None None False\nutf_16_le_encode TypeError ('_codecs.utf_16_le_encode() takes no keyword arguments',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 1 must be str, not None',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_le_encode ValueError ('embedded null character',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode expected at least 1 argument, got 0',) None None None False\nutf_16_be_encode TypeError ('_codecs.utf_16_be_encode() takes no keyword arguments',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 1 must be str, not None',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_be_encode ValueError ('embedded null character',) None None None False\nutf_16_decode TypeError ('utf_16_decode expected at least 1 argument, got 0',) None None None False\nutf_16_decode TypeError ('_codecs.utf_16_decode() takes no keyword arguments',) None None None False\nutf_16_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_decode TypeError ('utf_16_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_decode ValueError ('embedded null character',) None None None False\nutf_16_le_decode TypeError ('utf_16_le_decode expected at least 1 argument, got 0',) None None None False\nutf_16_le_decode TypeError ('_codecs.utf_16_le_decode() takes no keyword arguments',) None None None False\nutf_16_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_le_decode TypeError ('utf_16_le_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_le_decode ValueError ('embedded null character',) None None None False\nutf_16_be_decode TypeError ('utf_16_be_decode expected at least 1 argument, got 0',) None None None False\nutf_16_be_decode TypeError ('_codecs.utf_16_be_decode() takes no keyword arguments',) None None None False\nutf_16_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_be_decode TypeError ('utf_16_be_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_be_decode ValueError ('embedded null character',) None None None False\nutf_16_ex_decode TypeError ('utf_16_ex_decode expected at least 1 argument, got 0',) None None None False\nutf_16_ex_decode TypeError ('_codecs.utf_16_ex_decode() takes no keyword arguments',) None None None False\nutf_16_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_ex_decode TypeError ('utf_16_ex_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_ex_decode ValueError ('embedded null character',) None None None False\nutf_32_encode TypeError ('utf_32_encode expected at least 1 argument, got 0',) None None None False\nutf_32_encode TypeError ('_codecs.utf_32_encode() takes no keyword arguments',) None None None False\nutf_32_encode TypeError ('utf_32_encode() argument 1 must be str, not None',) None None None False\nutf_32_encode TypeError ('utf_32_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_encode ValueError ('embedded null character',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode expected at least 1 argument, got 0',) None None None False\nutf_32_le_encode TypeError ('_codecs.utf_32_le_encode() takes no keyword arguments',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 1 must be str, not None',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_le_encode ValueError ('embedded null character',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode expected at least 1 argument, got 0',) None None None False\nutf_32_be_encode TypeError ('_codecs.utf_32_be_encode() takes no keyword arguments',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 1 must be str, not None',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_be_encode ValueError ('embedded null character',) None None None False\nutf_32_decode TypeError ('utf_32_decode expected at least 1 argument, got 0',) None None None False\nutf_32_decode TypeError ('_codecs.utf_32_decode() takes no keyword arguments',) None None None False\nutf_32_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_decode TypeError ('utf_32_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_decode ValueError ('embedded null character',) None None None False\nutf_32_le_decode TypeError ('utf_32_le_decode expected at least 1 argument, got 0',) None None None False\nutf_32_le_decode TypeError ('_codecs.utf_32_le_decode() takes no keyword arguments',) None None None False\nutf_32_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_le_decode TypeError ('utf_32_le_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_le_decode ValueError ('embedded null character',) None None None False\nutf_32_be_decode TypeError ('utf_32_be_decode expected at least 1 argument, got 0',) None None None False\nutf_32_be_decode TypeError ('_codecs.utf_32_be_decode() takes no keyword arguments',) None None None False\nutf_32_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_be_decode TypeError ('utf_32_be_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_be_decode ValueError ('embedded null character',) None None None False\nutf_32_ex_decode TypeError ('utf_32_ex_decode expected at least 1 argument, got 0',) None None None False\nutf_32_ex_decode TypeError ('_codecs.utf_32_ex_decode() takes no keyword arguments',) None None None False\nutf_32_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_ex_decode TypeError ('utf_32_ex_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_ex_decode ValueError ('embedded null character',) None None None False\nutf_16_encode OverflowError ('Python int too large to convert to C int',) None None None False\nutf_32_encode OverflowError ('Python int too large to convert to C int',) None None None False\nutf_16_ex_decode OverflowError ('Python int too large to convert to C int',) None None None False\nutf_32_ex_decode OverflowError ('Python int too large to convert to C int',) None None None False\n",
+      "oracleMatch": false
+    },
+    {
+      "mode": "cancel-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "stdout": "utf_16_encode TypeError ('utf_16_encode expected at least 1 argument, got 0',) None None None False\nutf_16_encode TypeError ('_codecs.utf_16_encode() takes no keyword arguments',) None None None False\nutf_16_encode TypeError ('utf_16_encode() argument 1 must be str, not None',) None None None False\nutf_16_encode TypeError ('utf_16_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_encode ValueError ('embedded null character',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode expected at least 1 argument, got 0',) None None None False\nutf_16_le_encode TypeError ('_codecs.utf_16_le_encode() takes no keyword arguments',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 1 must be str, not None',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_le_encode ValueError ('embedded null character',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode expected at least 1 argument, got 0',) None None None False\nutf_16_be_encode TypeError ('_codecs.utf_16_be_encode() takes no keyword arguments',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 1 must be str, not None',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_be_encode ValueError ('embedded null character',) None None None False\nutf_16_decode TypeError ('utf_16_decode expected at least 1 argument, got 0',) None None None False\nutf_16_decode TypeError ('_codecs.utf_16_decode() takes no keyword arguments',) None None None False\nutf_16_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_decode TypeError ('utf_16_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_decode ValueError ('embedded null character',) None None None False\nutf_16_le_decode TypeError ('utf_16_le_decode expected at least 1 argument, got 0',) None None None False\nutf_16_le_decode TypeError ('_codecs.utf_16_le_decode() takes no keyword arguments',) None None None False\nutf_16_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_le_decode TypeError ('utf_16_le_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_le_decode ValueError ('embedded null character',) None None None False\nutf_16_be_decode TypeError ('utf_16_be_decode expected at least 1 argument, got 0',) None None None False\nutf_16_be_decode TypeError ('_codecs.utf_16_be_decode() takes no keyword arguments',) None None None False\nutf_16_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_be_decode TypeError ('utf_16_be_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_be_decode ValueError ('embedded null character',) None None None False\nutf_16_ex_decode TypeError ('utf_16_ex_decode expected at least 1 argument, got 0',) None None None False\nutf_16_ex_decode TypeError ('_codecs.utf_16_ex_decode() takes no keyword arguments',) None None None False\nutf_16_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_ex_decode TypeError ('utf_16_ex_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_ex_decode ValueError ('embedded null character',) None None None False\nutf_32_encode TypeError ('utf_32_encode expected at least 1 argument, got 0',) None None None False\nutf_32_encode TypeError ('_codecs.utf_32_encode() takes no keyword arguments',) None None None False\nutf_32_encode TypeError ('utf_32_encode() argument 1 must be str, not None',) None None None False\nutf_32_encode TypeError ('utf_32_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_encode ValueError ('embedded null character',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode expected at least 1 argument, got 0',) None None None False\nutf_32_le_encode TypeError ('_codecs.utf_32_le_encode() takes no keyword arguments',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 1 must be str, not None',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_le_encode ValueError ('embedded null character',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode expected at least 1 argument, got 0',) None None None False\nutf_32_be_encode TypeError ('_codecs.utf_32_be_encode() takes no keyword arguments',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 1 must be str, not None',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_be_encode ValueError ('embedded null character',) None None None False\nutf_32_decode TypeError ('utf_32_decode expected at least 1 argument, got 0',) None None None False\nutf_32_decode TypeError ('_codecs.utf_32_decode() takes no keyword arguments',) None None None False\nutf_32_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_decode TypeError ('utf_32_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_decode ValueError ('embedded null character',) None None None False\nutf_32_le_decode TypeError ('utf_32_le_decode expected at least 1 argument, got 0',) None None None False\nutf_32_le_decode TypeError ('_codecs.utf_32_le_decode() takes no keyword arguments',) None None None False\nutf_32_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_le_decode TypeError ('utf_32_le_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_le_decode ValueError ('embedded null character',) None None None False\nutf_32_be_decode TypeError ('utf_32_be_decode expected at least 1 argument, got 0',) None None None False\nutf_32_be_decode TypeError ('_codecs.utf_32_be_decode() takes no keyword arguments',) None None None False\nutf_32_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_be_decode TypeError ('utf_32_be_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_be_decode ValueError ('embedded null character',) None None None False\nutf_32_ex_decode TypeError ('utf_32_ex_decode expected at least 1 argument, got 0',) None None None False\nutf_32_ex_decode TypeError ('_codecs.utf_32_ex_decode() takes no keyword arguments',) None None None False\nutf_32_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_ex_decode TypeError ('utf_32_ex_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_ex_decode ValueError ('embedded null character',) None None None False\n",
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "same": true
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "same": true
+        }
+      ]
+    },
+    {
+      "mode": "cancel-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "stdout": "utf_16_encode TypeError ('utf_16_encode expected at least 1 argument, got 0',) None None None False\nutf_16_encode TypeError ('_codecs.utf_16_encode() takes no keyword arguments',) None None None False\nutf_16_encode TypeError ('utf_16_encode() argument 1 must be str, not None',) None None None False\nutf_16_encode TypeError ('utf_16_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_encode ValueError ('embedded null character',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode expected at least 1 argument, got 0',) None None None False\nutf_16_le_encode TypeError ('_codecs.utf_16_le_encode() takes no keyword arguments',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 1 must be str, not None',) None None None False\nutf_16_le_encode TypeError ('utf_16_le_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_le_encode ValueError ('embedded null character',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode expected at least 1 argument, got 0',) None None None False\nutf_16_be_encode TypeError ('_codecs.utf_16_be_encode() takes no keyword arguments',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 1 must be str, not None',) None None None False\nutf_16_be_encode TypeError ('utf_16_be_encode() argument 2 must be str or None, not bool',) None None None False\nutf_16_be_encode ValueError ('embedded null character',) None None None False\nutf_16_decode TypeError ('utf_16_decode expected at least 1 argument, got 0',) None None None False\nutf_16_decode TypeError ('_codecs.utf_16_decode() takes no keyword arguments',) None None None False\nutf_16_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_decode TypeError ('utf_16_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_decode ValueError ('embedded null character',) None None None False\nutf_16_le_decode TypeError ('utf_16_le_decode expected at least 1 argument, got 0',) None None None False\nutf_16_le_decode TypeError ('_codecs.utf_16_le_decode() takes no keyword arguments',) None None None False\nutf_16_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_le_decode TypeError ('utf_16_le_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_le_decode ValueError ('embedded null character',) None None None False\nutf_16_be_decode TypeError ('utf_16_be_decode expected at least 1 argument, got 0',) None None None False\nutf_16_be_decode TypeError ('_codecs.utf_16_be_decode() takes no keyword arguments',) None None None False\nutf_16_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_be_decode TypeError ('utf_16_be_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_be_decode ValueError ('embedded null character',) None None None False\nutf_16_ex_decode TypeError ('utf_16_ex_decode expected at least 1 argument, got 0',) None None None False\nutf_16_ex_decode TypeError ('_codecs.utf_16_ex_decode() takes no keyword arguments',) None None None False\nutf_16_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_16_ex_decode TypeError ('utf_16_ex_decode() argument 2 must be str or None, not bool',) None None None False\nutf_16_ex_decode ValueError ('embedded null character',) None None None False\nutf_32_encode TypeError ('utf_32_encode expected at least 1 argument, got 0',) None None None False\nutf_32_encode TypeError ('_codecs.utf_32_encode() takes no keyword arguments',) None None None False\nutf_32_encode TypeError ('utf_32_encode() argument 1 must be str, not None',) None None None False\nutf_32_encode TypeError ('utf_32_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_encode ValueError ('embedded null character',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode expected at least 1 argument, got 0',) None None None False\nutf_32_le_encode TypeError ('_codecs.utf_32_le_encode() takes no keyword arguments',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 1 must be str, not None',) None None None False\nutf_32_le_encode TypeError ('utf_32_le_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_le_encode ValueError ('embedded null character',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode expected at least 1 argument, got 0',) None None None False\nutf_32_be_encode TypeError ('_codecs.utf_32_be_encode() takes no keyword arguments',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 1 must be str, not None',) None None None False\nutf_32_be_encode TypeError ('utf_32_be_encode() argument 2 must be str or None, not bool',) None None None False\nutf_32_be_encode ValueError ('embedded null character',) None None None False\nutf_32_decode TypeError ('utf_32_decode expected at least 1 argument, got 0',) None None None False\nutf_32_decode TypeError ('_codecs.utf_32_decode() takes no keyword arguments',) None None None False\nutf_32_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_decode TypeError ('utf_32_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_decode ValueError ('embedded null character',) None None None False\nutf_32_le_decode TypeError ('utf_32_le_decode expected at least 1 argument, got 0',) None None None False\nutf_32_le_decode TypeError ('_codecs.utf_32_le_decode() takes no keyword arguments',) None None None False\nutf_32_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_le_decode TypeError ('utf_32_le_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_le_decode ValueError ('embedded null character',) None None None False\nutf_32_be_decode TypeError ('utf_32_be_decode expected at least 1 argument, got 0',) None None None False\nutf_32_be_decode TypeError ('_codecs.utf_32_be_decode() takes no keyword arguments',) None None None False\nutf_32_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_be_decode TypeError ('utf_32_be_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_be_decode ValueError ('embedded null character',) None None None False\nutf_32_ex_decode TypeError ('utf_32_ex_decode expected at least 1 argument, got 0',) None None None False\nutf_32_ex_decode TypeError ('_codecs.utf_32_ex_decode() takes no keyword arguments',) None None None False\nutf_32_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False\nutf_32_ex_decode TypeError ('utf_32_ex_decode() argument 2 must be str or None, not bool',) None None None False\nutf_32_ex_decode ValueError ('embedded null character',) None None None False\n",
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "same": true
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "same": true
+        }
+      ]
+    }
+  ],
+  "differences": [
+    {
+      "line": 1,
+      "expected": "utf_16_encode TypeError ('utf_16_encode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_16_encode TypeError ('utf_16_encode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 2,
+      "expected": "utf_16_encode TypeError ('_codecs.utf_16_encode() takes no keyword arguments',) None None None True",
+      "actual": "utf_16_encode TypeError ('_codecs.utf_16_encode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 3,
+      "expected": "utf_16_encode TypeError ('utf_16_encode() argument 1 must be str, not None',) None None None True",
+      "actual": "utf_16_encode TypeError ('utf_16_encode() argument 1 must be str, not None',) None None None False"
+    },
+    {
+      "line": 4,
+      "expected": "utf_16_encode TypeError ('utf_16_encode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_16_encode TypeError ('utf_16_encode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 5,
+      "expected": "utf_16_encode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_16_encode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 6,
+      "expected": "utf_16_le_encode TypeError ('utf_16_le_encode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_16_le_encode TypeError ('utf_16_le_encode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 7,
+      "expected": "utf_16_le_encode TypeError ('_codecs.utf_16_le_encode() takes no keyword arguments',) None None None True",
+      "actual": "utf_16_le_encode TypeError ('_codecs.utf_16_le_encode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 8,
+      "expected": "utf_16_le_encode TypeError ('utf_16_le_encode() argument 1 must be str, not None',) None None None True",
+      "actual": "utf_16_le_encode TypeError ('utf_16_le_encode() argument 1 must be str, not None',) None None None False"
+    },
+    {
+      "line": 9,
+      "expected": "utf_16_le_encode TypeError ('utf_16_le_encode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_16_le_encode TypeError ('utf_16_le_encode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 10,
+      "expected": "utf_16_le_encode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_16_le_encode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 11,
+      "expected": "utf_16_be_encode TypeError ('utf_16_be_encode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_16_be_encode TypeError ('utf_16_be_encode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 12,
+      "expected": "utf_16_be_encode TypeError ('_codecs.utf_16_be_encode() takes no keyword arguments',) None None None True",
+      "actual": "utf_16_be_encode TypeError ('_codecs.utf_16_be_encode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 13,
+      "expected": "utf_16_be_encode TypeError ('utf_16_be_encode() argument 1 must be str, not None',) None None None True",
+      "actual": "utf_16_be_encode TypeError ('utf_16_be_encode() argument 1 must be str, not None',) None None None False"
+    },
+    {
+      "line": 14,
+      "expected": "utf_16_be_encode TypeError ('utf_16_be_encode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_16_be_encode TypeError ('utf_16_be_encode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 15,
+      "expected": "utf_16_be_encode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_16_be_encode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 16,
+      "expected": "utf_16_decode TypeError ('utf_16_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_16_decode TypeError ('utf_16_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 17,
+      "expected": "utf_16_decode TypeError ('_codecs.utf_16_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_16_decode TypeError ('_codecs.utf_16_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 18,
+      "expected": "utf_16_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_16_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 19,
+      "expected": "utf_16_decode TypeError ('utf_16_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_16_decode TypeError ('utf_16_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 20,
+      "expected": "utf_16_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_16_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 21,
+      "expected": "utf_16_le_decode TypeError ('utf_16_le_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_16_le_decode TypeError ('utf_16_le_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 22,
+      "expected": "utf_16_le_decode TypeError ('_codecs.utf_16_le_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_16_le_decode TypeError ('_codecs.utf_16_le_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 23,
+      "expected": "utf_16_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_16_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 24,
+      "expected": "utf_16_le_decode TypeError ('utf_16_le_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_16_le_decode TypeError ('utf_16_le_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 25,
+      "expected": "utf_16_le_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_16_le_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 26,
+      "expected": "utf_16_be_decode TypeError ('utf_16_be_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_16_be_decode TypeError ('utf_16_be_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 27,
+      "expected": "utf_16_be_decode TypeError ('_codecs.utf_16_be_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_16_be_decode TypeError ('_codecs.utf_16_be_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 28,
+      "expected": "utf_16_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_16_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 29,
+      "expected": "utf_16_be_decode TypeError ('utf_16_be_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_16_be_decode TypeError ('utf_16_be_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 30,
+      "expected": "utf_16_be_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_16_be_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 31,
+      "expected": "utf_16_ex_decode TypeError ('utf_16_ex_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_16_ex_decode TypeError ('utf_16_ex_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 32,
+      "expected": "utf_16_ex_decode TypeError ('_codecs.utf_16_ex_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_16_ex_decode TypeError ('_codecs.utf_16_ex_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 33,
+      "expected": "utf_16_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_16_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 34,
+      "expected": "utf_16_ex_decode TypeError ('utf_16_ex_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_16_ex_decode TypeError ('utf_16_ex_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 35,
+      "expected": "utf_16_ex_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_16_ex_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 36,
+      "expected": "utf_32_encode TypeError ('utf_32_encode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_32_encode TypeError ('utf_32_encode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 37,
+      "expected": "utf_32_encode TypeError ('_codecs.utf_32_encode() takes no keyword arguments',) None None None True",
+      "actual": "utf_32_encode TypeError ('_codecs.utf_32_encode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 38,
+      "expected": "utf_32_encode TypeError ('utf_32_encode() argument 1 must be str, not None',) None None None True",
+      "actual": "utf_32_encode TypeError ('utf_32_encode() argument 1 must be str, not None',) None None None False"
+    },
+    {
+      "line": 39,
+      "expected": "utf_32_encode TypeError ('utf_32_encode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_32_encode TypeError ('utf_32_encode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 40,
+      "expected": "utf_32_encode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_32_encode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 41,
+      "expected": "utf_32_le_encode TypeError ('utf_32_le_encode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_32_le_encode TypeError ('utf_32_le_encode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 42,
+      "expected": "utf_32_le_encode TypeError ('_codecs.utf_32_le_encode() takes no keyword arguments',) None None None True",
+      "actual": "utf_32_le_encode TypeError ('_codecs.utf_32_le_encode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 43,
+      "expected": "utf_32_le_encode TypeError ('utf_32_le_encode() argument 1 must be str, not None',) None None None True",
+      "actual": "utf_32_le_encode TypeError ('utf_32_le_encode() argument 1 must be str, not None',) None None None False"
+    },
+    {
+      "line": 44,
+      "expected": "utf_32_le_encode TypeError ('utf_32_le_encode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_32_le_encode TypeError ('utf_32_le_encode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 45,
+      "expected": "utf_32_le_encode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_32_le_encode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 46,
+      "expected": "utf_32_be_encode TypeError ('utf_32_be_encode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_32_be_encode TypeError ('utf_32_be_encode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 47,
+      "expected": "utf_32_be_encode TypeError ('_codecs.utf_32_be_encode() takes no keyword arguments',) None None None True",
+      "actual": "utf_32_be_encode TypeError ('_codecs.utf_32_be_encode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 48,
+      "expected": "utf_32_be_encode TypeError ('utf_32_be_encode() argument 1 must be str, not None',) None None None True",
+      "actual": "utf_32_be_encode TypeError ('utf_32_be_encode() argument 1 must be str, not None',) None None None False"
+    },
+    {
+      "line": 49,
+      "expected": "utf_32_be_encode TypeError ('utf_32_be_encode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_32_be_encode TypeError ('utf_32_be_encode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 50,
+      "expected": "utf_32_be_encode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_32_be_encode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 51,
+      "expected": "utf_32_decode TypeError ('utf_32_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_32_decode TypeError ('utf_32_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 52,
+      "expected": "utf_32_decode TypeError ('_codecs.utf_32_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_32_decode TypeError ('_codecs.utf_32_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 53,
+      "expected": "utf_32_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_32_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 54,
+      "expected": "utf_32_decode TypeError ('utf_32_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_32_decode TypeError ('utf_32_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 55,
+      "expected": "utf_32_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_32_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 56,
+      "expected": "utf_32_le_decode TypeError ('utf_32_le_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_32_le_decode TypeError ('utf_32_le_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 57,
+      "expected": "utf_32_le_decode TypeError ('_codecs.utf_32_le_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_32_le_decode TypeError ('_codecs.utf_32_le_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 58,
+      "expected": "utf_32_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_32_le_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 59,
+      "expected": "utf_32_le_decode TypeError ('utf_32_le_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_32_le_decode TypeError ('utf_32_le_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 60,
+      "expected": "utf_32_le_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_32_le_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 61,
+      "expected": "utf_32_be_decode TypeError ('utf_32_be_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_32_be_decode TypeError ('utf_32_be_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 62,
+      "expected": "utf_32_be_decode TypeError ('_codecs.utf_32_be_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_32_be_decode TypeError ('_codecs.utf_32_be_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 63,
+      "expected": "utf_32_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_32_be_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 64,
+      "expected": "utf_32_be_decode TypeError ('utf_32_be_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_32_be_decode TypeError ('utf_32_be_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 65,
+      "expected": "utf_32_be_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_32_be_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 66,
+      "expected": "utf_32_ex_decode TypeError ('utf_32_ex_decode expected at least 1 argument, got 0',) None None None True",
+      "actual": "utf_32_ex_decode TypeError ('utf_32_ex_decode expected at least 1 argument, got 0',) None None None False"
+    },
+    {
+      "line": 67,
+      "expected": "utf_32_ex_decode TypeError ('_codecs.utf_32_ex_decode() takes no keyword arguments',) None None None True",
+      "actual": "utf_32_ex_decode TypeError ('_codecs.utf_32_ex_decode() takes no keyword arguments',) None None None False"
+    },
+    {
+      "line": 68,
+      "expected": "utf_32_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None True",
+      "actual": "utf_32_ex_decode TypeError (\"a bytes-like object is required, not 'NoneType'\",) None None None False"
+    },
+    {
+      "line": 69,
+      "expected": "utf_32_ex_decode TypeError ('utf_32_ex_decode() argument 2 must be str or None, not bool',) None None None True",
+      "actual": "utf_32_ex_decode TypeError ('utf_32_ex_decode() argument 2 must be str or None, not bool',) None None None False"
+    },
+    {
+      "line": 70,
+      "expected": "utf_32_ex_decode ValueError ('embedded null character',) None None None True",
+      "actual": "utf_32_ex_decode ValueError ('embedded null character',) None None None False"
+    },
+    {
+      "line": 71,
+      "expected": "utf_16_encode OverflowError ('Python int too large to convert to C int',) None None None True",
+      "actual": "utf_16_encode OverflowError ('Python int too large to convert to C int',) None None None False"
+    },
+    {
+      "line": 72,
+      "expected": "utf_32_encode OverflowError ('Python int too large to convert to C int',) None None None True",
+      "actual": "utf_32_encode OverflowError ('Python int too large to convert to C int',) None None None False"
+    },
+    {
+      "line": 73,
+      "expected": "utf_16_ex_decode OverflowError ('Python int too large to convert to C int',) None None None True",
+      "actual": "utf_16_ex_decode OverflowError ('Python int too large to convert to C int',) None None None False"
+    },
+    {
+      "line": 74,
+      "expected": "utf_32_ex_decode OverflowError ('Python int too large to convert to C int',) None None None True",
+      "actual": "utf_32_ex_decode OverflowError ('Python int too large to convert to C int',) None None None False"
+    }
+  ]
+}

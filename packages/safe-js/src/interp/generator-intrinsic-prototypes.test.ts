@@ -32,8 +32,8 @@ it.each([
 it.each([
   "function* f(){} const p=Object.getPrototypeOf(f);const g=Object.getPrototypeOf(f.prototype);return [typeof p,Object.getPrototypeOf(p)===Object.getPrototypeOf(function(){}),p.prototype===g,g.constructor===p,Object.hasOwn(f.prototype,'constructor'),Object.getPrototypeOf(g)===Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]())),Object.prototype.toString.call(f)]",
   "async function* f(){} const p=Object.getPrototypeOf(f);const g=Object.getPrototypeOf(f.prototype);return [typeof p,Object.getPrototypeOf(p)===Object.getPrototypeOf(function(){}),p.prototype===g,g.constructor===p,Object.hasOwn(f.prototype,'constructor'),Object.prototype.toString.call(f)]",
-  "function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]",
-  "async function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]",
+  { source: "function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]", expected: [false, true] },
+  { source: "async function* f(x=(f.prototype={changed:true})){}const old=f.prototype;const value=f();return [Object.getPrototypeOf(value)===old,Object.getPrototypeOf(value)===f.prototype]", expected: [false, true] },
   "function* f(){} const p=Object.getPrototypeOf(f);const bound=f.bind(null);return [Object.hasOwn(bound,'prototype'),Object.getPrototypeOf(bound)===p,bound.prototype===p.prototype,Object.getPrototypeOf(bound())===f.prototype]",
   "function* f(){} const d=Object.getOwnPropertyDescriptor(f,'prototype');return [d.writable,d.enumerable,d.configurable,Object.getOwnPropertyNames(d.value)]",
   "function* f(){} const shared=Object.getPrototypeOf(f.prototype);f.prototype=null;return Object.getPrototypeOf(f())===shared",
@@ -49,8 +49,11 @@ it.each([
   "const it=(function*(){})();delete Object.getPrototypeOf(Object.getPrototypeOf(it))[Symbol.toStringTag];return Object.prototype.toString.call(it)",
   "const it=(async function*(){})();delete Object.getPrototypeOf(Object.getPrototypeOf(it))[Symbol.toStringTag];return Object.prototype.toString.call(it)",
   "const it=(function*(){yield 1})();delete Object.getPrototypeOf(Object.getPrototypeOf(Object.getPrototypeOf(it)))[Symbol.iterator];try{Array.from(it);return 'array-like'}catch(e){return e.name}"
-])("preserves generator graph semantics: %s", async source => {
-  expect(await run(source)).toMatchObject({ ok: true, returnValue: runInNewContext(`(function(){${source}})()`) });
+])("preserves generator graph semantics: %s", async testCase => {
+  const source = typeof testCase === "string" ? testCase : testCase.source;
+  // Pinned ECMA-262 initializes parameters before selecting the instance prototype.
+  const expected = typeof testCase === "string" ? runInNewContext(`(function(){${source}})()`) : testCase.expected;
+  expect(await run(source)).toMatchObject({ ok: true, returnValue: expected });
 });
 
 it.each(["next", "return", "throw"])("brand-checks borrowed %s methods", async method => {
@@ -78,9 +81,10 @@ it.each([
   "async function* f(){yield 1;yield 2}const value=f();const next=value.next;const first=await next.call(value);await pause();return [first,next===value.next,Object.getPrototypeOf(value)===f.prototype,await next.call(value)]",
   "function* f(){}const value=f();const prototype=Object.getPrototypeOf(f.prototype);prototype.next=function(){return {done:true,value:this.extra}};value.extra=7;Object.freeze(f.prototype);await pause();return [value.next(),Object.isFrozen(f.prototype),Object.getPrototypeOf(value)===f.prototype]",
   "const it=(async function*(){})();const factory=it[Symbol.asyncIterator];const prototype=Object.getPrototypeOf(Object.getPrototypeOf(it));delete prototype[Symbol.toStringTag];await pause();return [factory===it[Symbol.asyncIterator],factory.call(it)===it,Object.prototype.toString.call(it)]",
-  "function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra",
-  "async function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra"
-])("preserves generator intrinsic graphs across a pending effect: %s", async source => {
+  { source: "function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra", expected: undefined },
+  { source: "async function* f(x=(f.prototype={},pause())){}f.prototype.extra=7;const value=f();return value.extra", expected: undefined }
+])("preserves generator intrinsic graphs across a pending effect: %s", async testCase => {
+  const source = typeof testCase === "string" ? testCase : testCase.source;
   let release!: () => void;
   let signalEntered!: () => void;
   const pending = new Promise<void>(resolve => { release = resolve; });
@@ -93,7 +97,7 @@ it.each([
     await Promise.race([entered, execution]);
     serialized = await dump(execution, { mode: "replay" });
   } finally { release(); }
-  const expected = await runInNewContext(`(async function(){const pause=async()=>{};${source}})()`);
+  const expected = typeof testCase === "string" ? await runInNewContext(`(async function(){const pause=async()=>{};${source}})()`) : testCase.expected;
   expect(await execution).toMatchObject({ok:true,returnValue:expected});
   expect(await run(source, { snapshot: restore(JSON.parse(serialized), { source }),
     bindings: { pause: declareHostOperation(async () => undefined, "re-issue") } })).toMatchObject({ok:true,returnValue:expected});
@@ -125,11 +129,11 @@ it("keeps generator dynamic-source constructors inside the guest realm", async (
     .toMatchObject({ok:true,returnValue:["undefined","undefined","GeneratorFunction","AsyncGeneratorFunction",true,true,"undefined","undefined"]});
 });
 
-it.each([false, true])("retains the selected prototype during parameter initialization (async=%s)", async async => {
+it.each([false, true])("retains the replacement prototype during parameter initialization (async=%s)", async async => {
   const budget = new Budget({dataSize:100000});
   let retained = 0;
   const inspect = declareHostOperation(() => { retained = measureSandboxData(budget.retainedValues()); }, "re-issue");
-  const source = `${async ? "async " : ""}function* f(x=(f.prototype={},inspect())){}f.prototype.extra='x'.repeat(10000);const value=f();return Object.getPrototypeOf(value).extra.length`;
+  const source = `${async ? "async " : ""}function* f(x=(f.prototype={extra:'x'.repeat(10000)},inspect())){}const value=f();return Object.getPrototypeOf(value).extra.length`;
   expect(await run(source, {budget,bindings:{inspect}})).toMatchObject({ok:true,returnValue:10000});
   expect(retained).toBeGreaterThan(10000);
 });

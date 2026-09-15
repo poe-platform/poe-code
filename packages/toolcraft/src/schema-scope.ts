@@ -2,7 +2,21 @@ import type { AnySchema } from "toolcraft-schema";
 
 type SchemaScope = "cli" | "mcp" | "sdk";
 
+const unfilteredSchemas = new WeakMap<AnySchema, AnySchema>();
+
 export function filterSchemaForScope(schema: AnySchema, scope: SchemaScope): AnySchema | undefined {
+  const filtered = filterScopedSchema(schema, scope);
+  if (filtered !== undefined && filtered !== schema && schema.kind !== "optional") {
+    unfilteredSchemas.set(filtered, unfilteredSchemas.get(schema) ?? schema);
+  }
+  return filtered;
+}
+
+export function getUnfilteredSchema(schema: AnySchema): AnySchema {
+  return unfilteredSchemas.get(schema) ?? schema;
+}
+
+function filterScopedSchema(schema: AnySchema, scope: SchemaScope): AnySchema | undefined {
   if (schema.scope !== undefined && !schema.scope.includes(scope)) {
     return undefined;
   }
@@ -39,25 +53,27 @@ export function filterSchemaForScope(schema: AnySchema, scope: SchemaScope): Any
       return value === undefined ? undefined : { ...schema, value };
     }
 
-    case "oneOf":
-      return {
-        ...schema,
-        branches: Object.fromEntries(
-          Object.entries(schema.branches).flatMap(([name, branch]) => {
-            const filtered = filterSchemaForScope(branch, scope);
-            return filtered?.kind === "object" ? [[name, filtered]] : [];
-          })
-        )
-      };
-
-    case "union":
-      return {
-        ...schema,
-        branches: schema.branches.flatMap((branch) => {
+    case "oneOf": {
+      const branches = Object.fromEntries(
+        Object.entries(schema.branches).flatMap(([name, branch]) => {
           const filtered = filterSchemaForScope(branch, scope);
-          return filtered?.kind === "object" ? [filtered] : [];
+          return filtered?.kind === "object" ? [[name, filtered]] : [];
         })
-      };
+      );
+      return Object.keys(branches).length === 0 && schema.nullable !== true
+        ? undefined
+        : { ...schema, branches };
+    }
+
+    case "union": {
+      const branches = schema.branches.flatMap((branch) => {
+        const filtered = filterSchemaForScope(branch, scope);
+        return filtered?.kind === "object" ? [filtered] : [];
+      });
+      return branches.length === 0 && schema.nullable !== true
+        ? undefined
+        : { ...schema, branches };
+    }
 
     case "object":
       return {

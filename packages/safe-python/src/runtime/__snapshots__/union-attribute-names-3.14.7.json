@@ -1,0 +1,393 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "u.__getattribute__({name}): '__module__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__module__')\n    if '__module__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'typing'), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__module__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__module__'))\n    if '__module__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'typing'), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__name__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__name__')\n    if '__name__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__name__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__name__'))\n    if '__name__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__qualname__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__qualname__')\n    if '__qualname__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__qualname__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__qualname__'))\n    if '__qualname__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__args__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__args__')\n    if '__args__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', (<class 'int'>, <class 'str'>)), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__args__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__args__'))\n    if '__args__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', (<class 'int'>, <class 'str'>)), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__origin__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__origin__')\n    if '__origin__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__origin__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__origin__'))\n    if '__origin__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__parameters__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__parameters__')\n    if '__parameters__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', ()), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__parameters__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__parameters__'))\n    if '__parameters__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', ()), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__doc__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__doc__')\n    if '__doc__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Represent a union type\\n\\nE.g. for int | str'), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__doc__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__doc__'))\n    if '__doc__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Represent a union type\\n\\nE.g. for int | str'), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): 'missing'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('missing')\n    if 'missing' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('missing')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('missing'))\n    if 'missing' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): 'with\\x00null'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('with\\x00null')\n    if 'with\\x00null' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'with\\x00null'\", (\"'typing.Union' object has no attribute 'with\\x00null'\",)), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('with\\x00null')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('with\\x00null'))\n    if 'with\\x00null' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'with\\x00null'\", (\"'typing.Union' object has no attribute 'with\\x00null'\",)), ['hash'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '\ud835\udcb3'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('\ud835\udcb3')\n    if '\ud835\udcb3' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '\ud835\udcb3'\", (\"'typing.Union' object has no attribute '\ud835\udcb3'\",)), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('\ud835\udcb3')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('\ud835\udcb3'))\n    if '\ud835\udcb3' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '\ud835\udcb3'\", (\"'typing.Union' object has no attribute '\ud835\udcb3'\",)), ['hash'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__class__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__class__')\n    if '__class__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__class__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__class__'))\n    if '__class__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__getattribute__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__getattribute__')\n    if '__getattribute__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__getattribute__', True), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__getattribute__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__getattribute__'))\n    if '__getattribute__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__getattribute__', True), ['hash', 'eq'])"
+    },
+    {
+      "name": "u.__getattribute__({name}): '__repr__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__('__repr__')\n    if '__repr__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__repr__', True), [])"
+    },
+    {
+      "name": "u.__getattribute__({name}): Name('__repr__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = u.__getattribute__(Name('__repr__'))\n    if '__repr__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__repr__', True), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__module__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__module__')\n    if '__module__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'typing'), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__module__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__module__'))\n    if '__module__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'typing'), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__name__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__name__')\n    if '__name__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__name__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__name__'))\n    if '__name__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__qualname__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__qualname__')\n    if '__qualname__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__qualname__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__qualname__'))\n    if '__qualname__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Union'), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__args__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__args__')\n    if '__args__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', (<class 'int'>, <class 'str'>)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__args__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__args__'))\n    if '__args__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', (<class 'int'>, <class 'str'>)), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__origin__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__origin__')\n    if '__origin__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__origin__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__origin__'))\n    if '__origin__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__parameters__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__parameters__')\n    if '__parameters__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', ()), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__parameters__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__parameters__'))\n    if '__parameters__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', ()), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__doc__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__doc__')\n    if '__doc__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Represent a union type\\n\\nE.g. for int | str'), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__doc__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__doc__'))\n    if '__doc__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', 'Represent a union type\\n\\nE.g. for int | str'), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): 'missing'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, 'missing')\n    if 'missing' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('missing')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('missing'))\n    if 'missing' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): 'with\\x00null'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, 'with\\x00null')\n    if 'with\\x00null' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'with\\x00null'\", (\"'typing.Union' object has no attribute 'with\\x00null'\",)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('with\\x00null')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('with\\x00null'))\n    if 'with\\x00null' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'with\\x00null'\", (\"'typing.Union' object has no attribute 'with\\x00null'\",)), ['hash'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '\ud835\udcb3'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '\ud835\udcb3')\n    if '\ud835\udcb3' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '\ud835\udcb3'\", (\"'typing.Union' object has no attribute '\ud835\udcb3'\",)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('\ud835\udcb3')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('\ud835\udcb3'))\n    if '\ud835\udcb3' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '\ud835\udcb3'\", (\"'typing.Union' object has no attribute '\ud835\udcb3'\",)), ['hash'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__class__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__class__')\n    if '__class__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__class__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__class__'))\n    if '__class__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', <class 'typing.Union'>), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__getattribute__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__getattribute__')\n    if '__getattribute__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__getattribute__', True), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__getattribute__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__getattribute__'))\n    if '__getattribute__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__getattribute__', True), ['hash', 'eq'])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): '__repr__'",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, '__repr__')\n    if '__repr__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__repr__', True), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, {name}): Name('__repr__')",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    value = type(u).__getattribute__(u, Name('__repr__'))\n    if '__repr__' in ('__getattribute__', '__repr__'):\n        result = ('ok', value.__self__ is u, value.__name__, repr(value) == \"<method-wrapper '\" + value.__name__ + \"' of typing.Union object at \" + hex(id(u)) + \">\")\n    else:\n        result = ('ok', value)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('ok', True, '__repr__', True), ['hash', 'eq'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed'): __module__",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed')\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['hash', 'hash'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed'): __args__",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed')\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['hash'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed'): __class__",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed')\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__class__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__class__'\", (\"'typing.Union' object has no attribute '__class__'\",)), ['hash'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed'): missing",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        raise ValueError('hash failed')\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('missing')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        return 42: __module__",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        return 42\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['hash', 'hash'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        return 42: __args__",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        return 42\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['hash'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        return 42: __class__",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        return 42\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__class__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__class__'\", (\"'typing.Union' object has no attribute '__class__'\",)), ['hash'])"
+    },
+    {
+      "name": "def __hash__(self):\n        events.append('hash')\n        return 42: missing",
+      "source": "events = []\nclass Name(str):\n    def __hash__(self):\n        events.append('hash')\n        return 42\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('missing')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), ['hash'])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__: __module__",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq'])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__: __args__",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__: __class__",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__class__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__class__'\", (\"'typing.Union' object has no attribute '__class__'\",)), ['eq'])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__: missing",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        raise ValueError('eq failed')\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('missing')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), [])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __module__",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq'])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __class__",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__class__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__class__'\", (\"'typing.Union' object has no attribute '__class__'\",)), ['eq'])"
+    },
+    {
+      "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: missing",
+      "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('missing')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), [])"
+    },
+    {
+      "name": "__hash__ = None: __module__",
+      "source": "events = []\nclass Name(str):\n    __hash__ = None\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), [])"
+    },
+    {
+      "name": "__hash__ = None: __args__",
+      "source": "events = []\nclass Name(str):\n    __hash__ = None\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), [])"
+    },
+    {
+      "name": "__hash__ = None: __class__",
+      "source": "events = []\nclass Name(str):\n    __hash__ = None\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__class__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute '__class__'\", (\"'typing.Union' object has no attribute '__class__'\",)), [])"
+    },
+    {
+      "name": "__hash__ = None: missing",
+      "source": "events = []\nclass Name(str):\n    __hash__ = None\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('missing')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('AttributeError', \"'typing.Union' object has no attribute 'missing'\", (\"'typing.Union' object has no attribute 'missing'\",)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, 1)",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    result = ('ok', type(u).__getattribute__(u, 1))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\", (\"attribute name must be string, not 'int'\",)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u)",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    result = ('ok', type(u).__getattribute__(u))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, Name(\"__args__\"), 1)",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name(\"__args__\"), 1))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(u, name=Name(\"__args__\"))",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    result = ('ok', type(u).__getattribute__(u, name=Name(\"__args__\")))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('TypeError', 'wrapper __getattribute__() takes no keyword arguments', ('wrapper __getattribute__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "type(u).__getattribute__(1, Name(\"__args__\"))",
+      "source": "\nevents = []\nclass Name(str):\n    def __str__(self):\n        events.append('str')\n        raise RuntimeError('str called')\n    def __hash__(self):\n        events.append('hash')\n        return str.__hash__(self)\n    def __eq__(self, other):\n        events.append('eq')\n        return str.__eq__(self, other)\nu = int | str\n\ntry:\n    result = ('ok', type(u).__getattribute__(1, Name(\"__args__\")))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__getattribute__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__getattribute__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    }
+  ],
+  "oracleHashSeed": 0
+}

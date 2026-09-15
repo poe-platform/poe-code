@@ -1,0 +1,2965 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "oracleSnapshot": "codec-handler-retention-user-3.14.7.json",
+  "oracleSnapshotSha256": "584c50419dadc3f50ffce7773a9c93e7e829d08ec12b09462b6c65173715a3bd",
+  "freshOraclePrograms": 32,
+  "procedure": "Execute retained whole sources unchanged against isolated CPython. Then use PythonSession with real file-descriptor input/output, persisted exact output for two hash seeds, and cancellation after actual reads/writes, returning or throwing. Verify terminal exec/eval and unchanged service counts. Remove only owned temporary directory.",
+  "implementation": {
+    "runtime-codec-recovery.ts": "9a9c65b6cbbf98e68d5c2081163aa1bf518f3ec9a727a3ce78cff156e3106202",
+    "runtime-codec-registry.ts": "af09c087ce814069fca48abc800fadb1870d47d8f0dc298d3614aa8dc3af4704",
+    "utf8-decode.ts": "03c17ff2f8bba275c985f21eabcc8d8fef57a24343436e7ec4c188ac85a2a0d6",
+    "utf8-encode.ts": "dd0eab157ceb77a41d3b04058207942be47b5d9fd5631d31d9a4197aec345fb3",
+    "utf-wide.ts": "368ebafeaa0b531756e351bc5357d48b1fc88b58af68ec2a2a0c69e91d244dd5"
+  },
+  "rows": [
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "ascii decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "cp1252 decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'RARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'RARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?A?Z'\n"
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8 decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n"
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n"
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n"
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'\\xef\\xbb\\xbfRARZ'\nstate 0\nresult 2 b'NANZ'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 1 b'\\xef\\xbb\\xbf?A?Z'\n"
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 1) �A�Z\n"
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset (b'', 1) �A�Z\n"
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 ﻿NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 3, 4), ('index', 4, 7), ('replacement', 5, 6), ('index', 6, 7)]\nreset (b'', 1) �A�Z\n"
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 ﻿NANZ\nstate (b'', 0)\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 3, 4), ('index', 4, 7), ('replacement', 5, 6), ('index', 6, 7)]\nreset (b'', 1) �A�Z\n"
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-8-sig decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n"
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n"
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nresult 2 b'N\\x00A\\x00N\\x00Z\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n"
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'R\\x00A\\x00R\\x00Z\\x00'\nstate 0\nresult 2 b'N\\x00A\\x00N\\x00Z\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00A\\x00?\\x00Z\\x00'\n"
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-le decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n"
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n"
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nresult 2 b'\\x00N\\x00A\\x00N\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n"
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'\\x00R\\x00A\\x00R\\x00Z'\nstate 0\nresult 2 b'\\x00N\\x00A\\x00N\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00?\\x00A\\x00?\\x00Z'\n"
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 2), ('removed', True), ('index', 2, 8), ('original', 4, 6), ('removed', False), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 2), ('index', 2, 8), ('original', 4, 6), ('index', 6, 8), ('replacement', 0, 2), ('index', 2, 8), ('replacement', 4, 6), ('index', 6, 8)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-16-be decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n"
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n"
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nresult 2 b'N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n"
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nresult 2 b'N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z\\x00\\x00\\x00'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z\\x00\\x00\\x00'\n"
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-le decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n"
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate 0\nevents [('original', 0, 1), ('removed', True), ('index', 1, 4), ('original', 2, 3), ('removed', False), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n"
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nresult 2 b'\\x00\\x00\\x00N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n"
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 b'\\x00\\x00\\x00R\\x00\\x00\\x00A\\x00\\x00\\x00R\\x00\\x00\\x00Z'\nstate 0\nresult 2 b'\\x00\\x00\\x00N\\x00\\x00\\x00A\\x00\\x00\\x00N\\x00\\x00\\x00Z'\nstate 0\nevents [('original', 0, 1), ('index', 1, 4), ('original', 2, 3), ('index', 3, 4), ('replacement', 0, 1), ('index', 1, 4), ('replacement', 2, 3), ('index', 3, 4)]\nreset 0 b'\\x00\\x00\\x00?\\x00\\x00\\x00A\\x00\\x00\\x00?\\x00\\x00\\x00Z'\n"
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be encode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 2,
+      "writes": 32,
+      "output": "result 1 RARZ\nstate (b'', 0)\nfailure 2 LookupError (\"unknown error handler name 'retained-user'\",)\nstate (b'', 0)\nevents [('original', 0, 4), ('removed', True), ('index', 4, 16), ('original', 8, 12), ('removed', False), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after unregister",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "baseline-1",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "baseline-2",
+      "status": "ok",
+      "reads": 4,
+      "writes": 30,
+      "output": "result 1 RARZ\nstate (b'', 0)\nresult 2 NANZ\nstate (b'', 0)\nevents [('original', 0, 4), ('index', 4, 16), ('original', 8, 12), ('index', 12, 16), ('replacement', 0, 4), ('index', 4, 16), ('replacement', 8, 12), ('index', 12, 16)]\nreset (b'', 0) �A�Z\n"
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "read-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "read-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 1,
+      "writes": 0,
+      "output": "",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "write-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    },
+    {
+      "name": "utf-32-be decode retains handler after replace",
+      "mode": "write-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "reads": 2,
+      "writes": 1,
+      "output": "result",
+      "followup": [
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled"
+        }
+      ]
+    }
+  ]
+}

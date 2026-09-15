@@ -1,0 +1,74 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "search callback generator is rejected without entering its body",
+      "sourceSha256": "2d09f922704dcd4a09404482cc9fc7a885a172b085e50b60b5409a552fc16d1f",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "encode callback generator is rejected before iteration",
+      "sourceSha256": "60ac337fa6a5eb0ab04b042c94b55e22956c014b0319ef9a17c15830f9fc888d",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "decode callback generator is rejected before iteration",
+      "sourceSha256": "80f53e572ab1ab07552f44e31cfc839c1e70661bd6a2559aef08297a3f48c312",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "encode error handler generator is rejected before iteration",
+      "sourceSha256": "d19ae1bb3cd9e85b41605d69285a242512eadd98a6ed32f748234b9730c23cac",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "decode error handler generator is rejected before iteration",
+      "sourceSha256": "9fb74d982977241879170a1c5a59d3fd2caa98445dfeaa03883566ecfebbbe7a",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "incrementalencoder factory retains its suspended generator and guest arguments",
+      "sourceSha256": "02bd13e516fe5159d58b61faac88ca82aff17e3153ac7e7d24cee3d71bd88ae9",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "incrementaldecoder factory retains its suspended generator and guest arguments",
+      "sourceSha256": "8cf29e6de1d1a6be1488338ea524c0e2f69d136e421077d8a086ae8bfbb8eb63",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "reader factory retains its suspended generator and guest arguments",
+      "sourceSha256": "b064f385e8f55b8f266dc5f9ac7766f63590e8f2111b33c2f226b3e0025bbff0",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "writer factory retains its suspended generator and guest arguments",
+      "sourceSha256": "cfbb0f14ae2be72f9442ecee1ae4e542e61d5fbed18650d0f0cdec917554ecf4",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

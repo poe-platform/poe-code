@@ -1,0 +1,60 @@
+{
+  "reference": "CPython 3.14.7; Unicode 16.0.0; Darwin arm64",
+  "services": "Real node:fs descriptors; incremental source encoding; one-byte guest reads",
+  "cases": [
+    {
+      "name": "utf_7",
+      "status": "ok",
+      "reads": 5,
+      "output": "2b414f6b0a\n410a\n"
+    },
+    {
+      "name": "utf_16_le",
+      "status": "ok",
+      "reads": 5,
+      "output": "e9000a00\n41000a00\n"
+    },
+    {
+      "name": "utf_16_be",
+      "status": "ok",
+      "reads": 5,
+      "output": "00e9000a\n0041000a\n"
+    },
+    {
+      "name": "utf_32_le",
+      "status": "ok",
+      "reads": 5,
+      "output": "e90000000a000000\n410000000a000000\n"
+    },
+    {
+      "name": "utf_32_be",
+      "status": "ok",
+      "reads": 5,
+      "output": "000000e90000000a\n000000410000000a\n"
+    },
+    {
+      "name": "unicode_escape",
+      "status": "ok",
+      "reads": 5,
+      "output": "5c7865395c6e\n415c6e\n"
+    },
+    {
+      "name": "raw_unicode_escape",
+      "status": "ok",
+      "reads": 5,
+      "output": "e90a\n410a\n"
+    },
+    {
+      "name": "charmap",
+      "status": "ok",
+      "reads": 5,
+      "output": "e90a\n410a\n"
+    },
+    {
+      "name": "utf_8_sig",
+      "status": "ok",
+      "reads": 5,
+      "output": "efbbbfc3a90a\n410a\n"
+    }
+  ]
+}

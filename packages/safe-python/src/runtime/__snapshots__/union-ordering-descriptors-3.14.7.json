@@ -1,0 +1,507 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "u.__lt__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__lt__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "u.__lt__(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__lt__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__lt__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__dict__['__lt__'](u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__dict__['__lt__'](u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__lt__(0, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__(0, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__lt__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__lt__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__lt__()",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__lt__' of 'typing.Union' object needs an argument\", (\"descriptor '__lt__' of 'typing.Union' object needs an argument\",)), [])"
+    },
+    {
+      "name": "cls.__lt__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "cls.__lt__(u, other, 1)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__(u, other, 1)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "cls.__lt__(u, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__(u, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __lt__() takes no keyword arguments', ('wrapper __lt__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "cls.__lt__(0, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__(0, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__lt__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__lt__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__lt__.__get__(u)(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__.__get__(u)(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__lt__.__get__(None, cls) is cls.__lt__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__.__get__(None, cls) is cls.__lt__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__lt__.__objclass__ is cls",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__.__objclass__ is cls\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__lt__.__doc__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return self<value.'\"), [])"
+    },
+    {
+      "name": "cls.__lt__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "u.__le__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__le__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "u.__le__(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__le__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__le__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__dict__['__le__'](u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__dict__['__le__'](u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__le__(0, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__(0, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__le__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__le__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__le__()",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__le__' of 'typing.Union' object needs an argument\", (\"descriptor '__le__' of 'typing.Union' object needs an argument\",)), [])"
+    },
+    {
+      "name": "cls.__le__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "cls.__le__(u, other, 1)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__(u, other, 1)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "cls.__le__(u, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__(u, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __le__() takes no keyword arguments', ('wrapper __le__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "cls.__le__(0, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__(0, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__le__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__le__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__le__.__get__(u)(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__.__get__(u)(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__le__.__get__(None, cls) is cls.__le__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__.__get__(None, cls) is cls.__le__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__le__.__objclass__ is cls",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__.__objclass__ is cls\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__le__.__doc__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return self<=value.'\"), [])"
+    },
+    {
+      "name": "cls.__le__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "u.__gt__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__gt__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "u.__gt__(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__gt__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__gt__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__dict__['__gt__'](u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__dict__['__gt__'](u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__gt__(0, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__(0, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__gt__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__gt__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__gt__()",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__gt__' of 'typing.Union' object needs an argument\", (\"descriptor '__gt__' of 'typing.Union' object needs an argument\",)), [])"
+    },
+    {
+      "name": "cls.__gt__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "cls.__gt__(u, other, 1)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__(u, other, 1)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "cls.__gt__(u, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__(u, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __gt__() takes no keyword arguments', ('wrapper __gt__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "cls.__gt__(0, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__(0, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__gt__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__gt__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__gt__.__get__(u)(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__.__get__(u)(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__gt__.__get__(None, cls) is cls.__gt__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__.__get__(None, cls) is cls.__gt__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__gt__.__objclass__ is cls",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__.__objclass__ is cls\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__gt__.__doc__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return self>value.'\"), [])"
+    },
+    {
+      "name": "cls.__gt__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "u.__ge__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ge__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "u.__ge__(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u.__ge__(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__ge__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__dict__['__ge__'](u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__dict__['__ge__'](u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__ge__(0, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__(0, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ge__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__ge__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__ge__()",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__()\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ge__' of 'typing.Union' object needs an argument\", (\"descriptor '__ge__' of 'typing.Union' object needs an argument\",)), [])"
+    },
+    {
+      "name": "cls.__ge__(u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__(u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 0', ('expected 1 argument, got 0',)), [])"
+    },
+    {
+      "name": "cls.__ge__(u, other, 1)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__(u, other, 1)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'expected 1 argument, got 2', ('expected 1 argument, got 2',)), [])"
+    },
+    {
+      "name": "cls.__ge__(u, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__(u, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', 'wrapper __ge__() takes no keyword arguments', ('wrapper __ge__() takes no keyword arguments',)), [])"
+    },
+    {
+      "name": "cls.__ge__(0, other=other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__(0, other=other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ge__' requires a 'typing.Union' object but received a 'int'\", (\"descriptor '__ge__' requires a 'typing.Union' object but received a 'int'\",)), [])"
+    },
+    {
+      "name": "cls.__ge__.__get__(u)(other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__.__get__(u)(other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__ge__.__get__(None, cls) is cls.__ge__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__.__get__(None, cls) is cls.__ge__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__ge__.__objclass__ is cls",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__.__objclass__ is cls\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "cls.__ge__.__doc__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__.__doc__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'Return self>=value.'\"), [])"
+    },
+    {
+      "name": "cls.__ge__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "cls.__repr__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__repr__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, /)'\"), [])"
+    },
+    {
+      "name": "cls.__hash__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__hash__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, /)'\"), [])"
+    },
+    {
+      "name": "cls.__eq__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__eq__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "cls.__ne__.__text_signature__",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ne__.__text_signature__\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, \"'($self, value, /)'\"), [])"
+    },
+    {
+      "name": "u < u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u < u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'<' not supported between instances of 'typing.Union' and 'typing.Union'\", (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "u < other",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u < other\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['gt'])"
+    },
+    {
+      "name": "other < u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=other < u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['lt'])"
+    },
+    {
+      "name": "u < 1",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u < 1\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'<' not supported between instances of 'typing.Union' and 'int'\", (\"'<' not supported between instances of 'typing.Union' and 'int'\",)), [])"
+    },
+    {
+      "name": "1 < u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=1 < u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'<' not supported between instances of 'int' and 'typing.Union'\", (\"'<' not supported between instances of 'int' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "u <= u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u <= u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\", (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "u <= other",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u <= other\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['ge'])"
+    },
+    {
+      "name": "other <= u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=other <= u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['le'])"
+    },
+    {
+      "name": "u <= 1",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u <= 1\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'<=' not supported between instances of 'typing.Union' and 'int'\", (\"'<=' not supported between instances of 'typing.Union' and 'int'\",)), [])"
+    },
+    {
+      "name": "1 <= u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=1 <= u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'<=' not supported between instances of 'int' and 'typing.Union'\", (\"'<=' not supported between instances of 'int' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "u > u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u > u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'>' not supported between instances of 'typing.Union' and 'typing.Union'\", (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "u > other",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u > other\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['lt'])"
+    },
+    {
+      "name": "other > u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=other > u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['gt'])"
+    },
+    {
+      "name": "u > 1",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u > 1\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'>' not supported between instances of 'typing.Union' and 'int'\", (\"'>' not supported between instances of 'typing.Union' and 'int'\",)), [])"
+    },
+    {
+      "name": "1 > u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=1 > u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'>' not supported between instances of 'int' and 'typing.Union'\", (\"'>' not supported between instances of 'int' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "u >= u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u >= u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\", (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "u >= other",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u >= other\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['le'])"
+    },
+    {
+      "name": "other >= u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=other >= u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), ['ge'])"
+    },
+    {
+      "name": "u >= 1",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=u >= 1\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'>=' not supported between instances of 'typing.Union' and 'int'\", (\"'>=' not supported between instances of 'typing.Union' and 'int'\",)), [])"
+    },
+    {
+      "name": "1 >= u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=1 >= u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"'>=' not supported between instances of 'int' and 'typing.Union'\", (\"'>=' not supported between instances of 'int' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "object.__lt__(0, u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__lt__(0, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "object.__lt__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__lt__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__lt__.__get__(other, cls)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__.__get__(other, cls)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__lt__' for 'typing.Union' objects doesn't apply to a 'Other' object\", (\"descriptor '__lt__' for 'typing.Union' objects doesn't apply to a 'Other' object\",)), [])"
+    },
+    {
+      "name": "cls.__lt__.__get__(u).__self__ is u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__lt__.__get__(u).__self__ is u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "object.__le__(0, u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__le__(0, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "object.__le__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__le__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__le__.__get__(other, cls)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__.__get__(other, cls)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__le__' for 'typing.Union' objects doesn't apply to a 'Other' object\", (\"descriptor '__le__' for 'typing.Union' objects doesn't apply to a 'Other' object\",)), [])"
+    },
+    {
+      "name": "cls.__le__.__get__(u).__self__ is u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__le__.__get__(u).__self__ is u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "object.__gt__(0, u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__gt__(0, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "object.__gt__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__gt__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__gt__.__get__(other, cls)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__.__get__(other, cls)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__gt__' for 'typing.Union' objects doesn't apply to a 'Other' object\", (\"descriptor '__gt__' for 'typing.Union' objects doesn't apply to a 'Other' object\",)), [])"
+    },
+    {
+      "name": "cls.__gt__.__get__(u).__self__ is u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__gt__.__get__(u).__self__ is u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    },
+    {
+      "name": "object.__ge__(0, u)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__ge__(0, u)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "object.__ge__(u, other)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=object.__ge__(u, other)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', True, 'NotImplemented'), [])"
+    },
+    {
+      "name": "cls.__ge__.__get__(other, cls)",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__.__get__(other, cls)\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('TypeError', \"descriptor '__ge__' for 'typing.Union' objects doesn't apply to a 'Other' object\", (\"descriptor '__ge__' for 'typing.Union' objects doesn't apply to a 'Other' object\",)), [])"
+    },
+    {
+      "name": "cls.__ge__.__get__(u).__self__ is u",
+      "source": "events=[]\nclass Other:\n def __lt__(self, other): events.append('lt'); return True\n def __le__(self, other): events.append('le'); return True\n def __gt__(self, other): events.append('gt'); return True\n def __ge__(self, other): events.append('ge'); return True\nother=Other()\nu=int|str\ncls=type(u)\ntry:\n value=cls.__ge__.__get__(u).__self__ is u\n result=('ok', value is NotImplemented, repr(value))\nexcept Exception as e:\n result=(type(e).__name__, str(e), e.args)\nresult=(result, events)\n",
+      "expected": "(('ok', False, 'True'), [])"
+    }
+  ]
+}

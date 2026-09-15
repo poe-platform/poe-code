@@ -1,0 +1,50 @@
+<emu-clause id="sec-let-and-const-declarations-static-semantics-early-errors">
+        <h1>Static Semantics: Early Errors</h1>
+        <ins class="block">
+        <emu-grammar>
+          UsingDeclaration :
+            `using` BindingList `;`
+        </emu-grammar>
+        <ul>
+          <li>
+            It is a Syntax Error if the BoundNames of |BindingList| contains *"let"*.
+          </li>
+          <li>
+            It is a Syntax Error if the BoundNames of |BindingList| contains any duplicate entries.
+          </li>
+          <li>
+            It is a Syntax Error if the goal symbol is |Script| and |UsingDeclaration| is not contained, either directly or indirectly, within a |Block|, |CaseBlock|, |ForStatement|, |ForInOfStatement|, |FunctionBody|, |GeneratorBody|, |AsyncGeneratorBody|, |AsyncFunctionBody|, or |ClassStaticBlockBody|.
+          </li>
+        </ul>
+        <emu-grammar>
+          AwaitUsingDeclaration :
+            CoverAwaitExpressionAndAwaitUsingDeclarationHead BindingList `;`
+        </emu-grammar>
+        <ul>
+          <li>|CoverAwaitExpressionAndAwaitUsingDeclarationHead| must cover an |AwaitUsingDeclarationHead|.</li>
+          <li>
+            It is a Syntax Error if the BoundNames of |BindingList| contains *"let"*.
+          </li>
+          <li>
+            It is a Syntax Error if the BoundNames of |BindingList| contains any duplicate entries.
+          </li>
+          <li>
+            It is a Syntax Error if the goal symbol is |Script| and |AwaitUsingDeclaration| is not contained, either directly or indirectly, within a |Block|, |CaseBlock|, |ForStatement|, |ForInOfStatement|, |FunctionBody|, |GeneratorBody|, |AsyncGeneratorBody|, |AsyncFunctionBody|, or |ClassStaticBlockBody|.
+          </li>
+        </ul>
+        <emu-note>
+          Draft Note: This behavior is currently under discussion in <a href="https://github.com/tc39/proposal-explicit-resource-management/issues/66">#66</a>. The above boundaries have been chosen for the following reasons:
+          <ul>
+            <li>
+              |Block|, |CaseBlock|, |FunctionBody|, |GeneratorBody|, |AsyncGeneratorBody|, |AsyncFunctionBody|, |ClassStaticBlockBody|, and |ClassBody| each introduce an explicit block scope.
+            </li>
+            <li>
+              |ForStatement| introduces an implicit block scope for the entire statement.
+            </li>
+            <li>
+              |ForInOfStatement| introduces an implicit block scope per iteration.
+            </li>
+          </ul>
+        </emu-note>
+        </ins>
+      </emu-clause>

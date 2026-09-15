@@ -1,0 +1,84 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/interp/object-binding-read.test.ts (5 tests) 771ms
+   ✓ restores an object environment without exposing host authority  512ms
+ ✓ packages/safe-js/src/snapshot/dynamic-with.test.ts (6 tests) 794ms
+ ❯ packages/safe-js/src/interp/guest-proxy-with.test.ts (7 tests | 1 failed) 289ms
+   ✓ matches native Proxy with-environment behavior: 'target lookup' 62ms
+   × matches native Proxy with-environment behavior: 'virtual binding' 58ms
+   ✓ matches native Proxy with-environment behavior: 'hidden binding fallback' 33ms
+   ✓ matches native Proxy with-environment behavior: 'unscopables' 42ms
+   ✓ matches native Proxy with-environment behavior: 'refused unqualified deletion' 30ms
+   ✓ matches native Proxy with-environment behavior: 'forwarded unqualified deletion' 26ms
+   ✓ matches native Proxy with-environment behavior: 'virtual binding deletion' 35ms
+FAIL packages/safe-js/src/interp/guest-proxy-with.test.ts > matches native Proxy with-environment behavior: 'virtual binding'
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -3,9 +3,10 @@
+    "returnValue": [
+      8,
+      [
+        "has:x",
+        "unscopables",
++       "has:x",
+        "get:x",
+      ],
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/guest-proxy-with.test.ts:23:7
+     21|   expect(await interpret({ type: "BlockStatement", body: parsed.body, …
+     22|     budget, bindings: { ...createBuiltinBindings({ budget }), wrap }
+     23|   })).toMatchObject({ ok: true, returnValue: expected });
+       |       ^
+     24| });
+     25|
+
+ ✓ packages/safe-js/src/interp/globals/eval-with-completion.test.ts (12 tests) 413ms
+ ✓ packages/safe-js/src/interp/jobs.test.ts (5 tests) 6ms
+ ✓ packages/safe-js/src/snapshot/with-environment.test.ts (7 tests) 41ms
+ ✓ packages/safe-js/src/interp/global-scope.test.ts (3 tests) 5ms
+ ✓ packages/safe-js/src/interp/with-binding-reference.test.ts (7 tests) 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/guest-proxy-with.test.ts > matches native Proxy with-environment behavior: 'virtual binding'
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -3,9 +3,10 @@
+    "returnValue": [
+      8,
+      [
+        "has:x",
+        "unscopables",
++       "has:x",
+        "get:x",
+      ],
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/guest-proxy-with.test.ts:23:7
+     21|   expect(await interpret({ type: "BlockStatement", body: parsed.body, …
+     22|     budget, bindings: { ...createBuiltinBindings({ budget }), wrap }
+     23|   })).toMatchObject({ ok: true, returnValue: expected });
+       |       ^
+     24| });
+     25|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 7 passed (8)
+      Tests  1 failed | 51 passed (52)
+   Start at  11:15:04
+   Duration  5.57s (transform 4.08s, setup 173ms, import 7.38s, tests 2.33s, environment 0ms)
+

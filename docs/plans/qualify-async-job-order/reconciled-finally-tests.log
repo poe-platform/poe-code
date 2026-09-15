@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-async-delivery-20260913
+
+ ✓ packages/safe-js/src/interp/globals/promise-finally-own-then.test.ts (8 tests) 343ms
+ ✓ packages/safe-js/src/interp/globals/promise-finally-foreign-species.test.ts (5 tests) 393ms
+ ✓ packages/safe-js/test/promise-finally-handler-metadata.test.ts (2 tests) 110ms
+
+ Test Files  3 passed (3)
+      Tests  15 passed (15)
+   Start at  05:30:09
+   Duration  4.53s (transform 5.16s, setup 155ms, import 7.09s, tests 847ms, environment 1ms)

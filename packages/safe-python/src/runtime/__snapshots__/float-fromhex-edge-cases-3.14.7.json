@@ -1,0 +1,1963 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "oracle": "float.fromhex(input); success captures float.hex(), failure captures type, str and args",
+  "rows": [
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00010069nf'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'i\\U0001006ef'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'in\\U00010066'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00020069nf'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'i\\U0002006ef'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'in\\U00020066'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00080069nf'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'i\\U0008006ef'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'in\\U00080066'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00100069nf'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'i\\U0010006ef'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'in\\U00100066'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00010049NFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'I\\U0001004eFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'IN\\U00010046INITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INF\\U00010049NITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFI\\U0001004eITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFIN\\U00010049TY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINI\\U00010054Y'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINIT\\U00010059'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00020049NFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'I\\U0002004eFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'IN\\U00020046INITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INF\\U00020049NITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFI\\U0002004eITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFIN\\U00020049TY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINI\\U00020054Y'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINIT\\U00020059'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00080049NFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'I\\U0008004eFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'IN\\U00080046INITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INF\\U00080049NITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFI\\U0008004eITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFIN\\U00080049TY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINI\\U00080054Y'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINIT\\U00080059'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U00100049NFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'I\\U0010004eFINITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'IN\\U00100046INITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INF\\U00100049NITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFI\\U0010004eITY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFIN\\U00100049TY'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINI\\U00100054Y'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'INFINIT\\U00100059'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U0001006ean'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'n\\U00010061n'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'na\\U0001006e'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U0002006ean'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'n\\U00020061n'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'na\\U0002006e'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U0008006ean'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'n\\U00080061n'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'na\\U0008006e'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'\\U0010006ean'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'n\\U00100061n'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "non-ASCII special spelling",
+      "literal": "'na\\U0010006e'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p1024'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p1024x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p1024\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p1024 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p1024\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p1024\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 6: surrogates not allowed\", ('utf-8', '1p1024\\ud800', 6, 7, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p999999999999999999999999'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p999999999999999999999999x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p999999999999999999999999\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p999999999999999999999999 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p999999999999999999999999\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 26: surrogates not allowed\", ('utf-8', '1p999999999999999999999999\\ud800', 26, 27, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff8p1023'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff8p1023x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff8p1023\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff8p1023 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff8p1023\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff8p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 23: surrogates not allowed\", ('utf-8', '0x1.fffffffffffff8p1023\\ud800', 23, 24, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff7p1023'",
+      "expected": "('ok', '0x1.fffffffffffffp+1023')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff7p1023x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff7p1023\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff7p1023 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff7p1023\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0x1.fffffffffffff7p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 23: surrogates not allowed\", ('utf-8', '0x1.fffffffffffff7p1023\\ud800', 23, 24, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-1075'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-1075x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-1075\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-1075 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-1075\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-1075\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 7: surrogates not allowed\", ('utf-8', '1p-1075\\ud800', 7, 8, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-999999999999999999999999'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'1p-999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 27: surrogates not allowed\", ('utf-8', '1p-999999999999999999999999\\ud800', 27, 28, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0p999999999999999999999999'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0p999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0p999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0p999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0p999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'0p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 26: surrogates not allowed\", ('utf-8', '0p999999999999999999999999\\ud800', 26, 27, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p1024'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p1024x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p1024\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p1024 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p1024\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p1024\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 7: surrogates not allowed\", ('utf-8', '+1p1024\\ud800', 7, 8, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p999999999999999999999999'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p999999999999999999999999x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p999999999999999999999999\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p999999999999999999999999 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p999999999999999999999999\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 27: surrogates not allowed\", ('utf-8', '+1p999999999999999999999999\\ud800', 27, 28, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff8p1023'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff8p1023x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff8p1023\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff8p1023 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff8p1023\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff8p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 24: surrogates not allowed\", ('utf-8', '+0x1.fffffffffffff8p1023\\ud800', 24, 25, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff7p1023'",
+      "expected": "('ok', '0x1.fffffffffffffp+1023')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff7p1023x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff7p1023\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff7p1023 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff7p1023\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0x1.fffffffffffff7p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 24: surrogates not allowed\", ('utf-8', '+0x1.fffffffffffff7p1023\\ud800', 24, 25, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-1075'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-1075x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-1075\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-1075 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-1075\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-1075\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 8: surrogates not allowed\", ('utf-8', '+1p-1075\\ud800', 8, 9, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-999999999999999999999999'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+1p-999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 28: surrogates not allowed\", ('utf-8', '+1p-999999999999999999999999\\ud800', 28, 29, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0p999999999999999999999999'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0p999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0p999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0p999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0p999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'+0p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 27: surrogates not allowed\", ('utf-8', '+0p999999999999999999999999\\ud800', 27, 28, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p1024'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p1024x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p1024\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p1024 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p1024\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p1024\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 7: surrogates not allowed\", ('utf-8', '-1p1024\\ud800', 7, 8, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p999999999999999999999999'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p999999999999999999999999x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p999999999999999999999999\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p999999999999999999999999 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p999999999999999999999999\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 27: surrogates not allowed\", ('utf-8', '-1p999999999999999999999999\\ud800', 27, 28, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff8p1023'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff8p1023x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff8p1023\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff8p1023 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff8p1023\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff8p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 24: surrogates not allowed\", ('utf-8', '-0x1.fffffffffffff8p1023\\ud800', 24, 25, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff7p1023'",
+      "expected": "('ok', '-0x1.fffffffffffffp+1023')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff7p1023x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff7p1023\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff7p1023 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff7p1023\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0x1.fffffffffffff7p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 24: surrogates not allowed\", ('utf-8', '-0x1.fffffffffffff7p1023\\ud800', 24, 25, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-1075'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-1075x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-1075\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-1075 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-1075\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-1075\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 8: surrogates not allowed\", ('utf-8', '-1p-1075\\ud800', 8, 9, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-999999999999999999999999'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-1p-999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 28: surrogates not allowed\", ('utf-8', '-1p-999999999999999999999999\\ud800', 28, 29, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0p999999999999999999999999'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0p999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0p999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0p999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0p999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "'-0p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 27: surrogates not allowed\", ('utf-8', '-0p999999999999999999999999\\ud800', 27, 28, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p1024'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p1024x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p1024\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p1024 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p1024\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p1024\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 9: surrogates not allowed\", ('utf-8', ' \\t-1p1024\\ud800', 9, 10, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p999999999999999999999999'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p999999999999999999999999x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p999999999999999999999999\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p999999999999999999999999 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p999999999999999999999999\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 29: surrogates not allowed\", ('utf-8', ' \\t-1p999999999999999999999999\\ud800', 29, 30, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff8p1023'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff8p1023x'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff8p1023\\x00'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff8p1023 \\tx'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff8p1023\\xa0'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff8p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 26: surrogates not allowed\", ('utf-8', ' \\t-0x1.fffffffffffff8p1023\\ud800', 26, 27, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff7p1023'",
+      "expected": "('ok', '-0x1.fffffffffffffp+1023')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff7p1023x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff7p1023\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff7p1023 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff7p1023\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0x1.fffffffffffff7p1023\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 26: surrogates not allowed\", ('utf-8', ' \\t-0x1.fffffffffffff7p1023\\ud800', 26, 27, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-1075'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-1075x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-1075\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-1075 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-1075\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-1075\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 10: surrogates not allowed\", ('utf-8', ' \\t-1p-1075\\ud800', 10, 11, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-999999999999999999999999'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-1p-999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 30: surrogates not allowed\", ('utf-8', ' \\t-1p-999999999999999999999999\\ud800', 30, 31, 'surrogates not allowed'))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0p999999999999999999999999'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0p999999999999999999999999x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0p999999999999999999999999\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0p999999999999999999999999 \\tx'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0p999999999999999999999999\\xa0'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "overflow and trailing syntax precedence",
+      "literal": "' \\t-0p999999999999999999999999\\ud800'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 29: surrogates not allowed\", ('utf-8', ' \\t-0p999999999999999999999999\\ud800', 29, 30, 'surrogates not allowed'))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'inf'",
+      "expected": "('ok', 'inf')"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'inf\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'inf\\udfff'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\udfff' in position 3: surrogates not allowed\", ('utf-8', 'inf\\udfff', 3, 4, 'surrogates not allowed'))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'Infinity'",
+      "expected": "('ok', 'inf')"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'Infinity\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'Infinity\\udfff'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\udfff' in position 8: surrogates not allowed\", ('utf-8', 'Infinity\\udfff', 8, 9, 'surrogates not allowed'))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'NaN'",
+      "expected": "('ok', 'nan')"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'NaN\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'NaN\\udfff'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\udfff' in position 3: surrogates not allowed\", ('utf-8', 'NaN\\udfff', 3, 4, 'surrogates not allowed'))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'0x'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'0x\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'0x\\udfff'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\udfff' in position 2: surrogates not allowed\", ('utf-8', '0x\\udfff', 2, 3, 'surrogates not allowed'))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'1p+'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'1p+\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'1p+\\udfff'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\udfff' in position 3: surrogates not allowed\", ('utf-8', '1p+\\udfff', 3, 4, 'surrogates not allowed'))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'1.2.3'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'1.2.3\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'1.2.3\\udfff'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\udfff' in position 5: surrogates not allowed\", ('utf-8', '1.2.3\\udfff', 5, 6, 'surrogates not allowed'))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'0xinf'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'0xinf\\x00'",
+      "expected": "('ValueError', 'invalid hexadecimal floating-point string', ('invalid hexadecimal floating-point string',))"
+    },
+    {
+      "group": "syntax and encoding precedence",
+      "literal": "'0xinf\\udfff'",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\udfff' in position 5: surrogates not allowed\", ('utf-8', '0xinf\\udfff', 5, 6, 'surrogates not allowed'))"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000007p-1075'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000007p-1074'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000007p-1023'",
+      "expected": "('ok', '0x0.8000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000007p-1022'",
+      "expected": "('ok', '0x1.0000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000007p0'",
+      "expected": "('ok', '0x1.0000000000000p+0')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000007p1023'",
+      "expected": "('ok', '0x1.0000000000000p+1023')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008p-1075'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008p-1074'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008p-1023'",
+      "expected": "('ok', '0x0.8000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008p-1022'",
+      "expected": "('ok', '0x1.0000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008p0'",
+      "expected": "('ok', '0x1.0000000000000p+0')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008p1023'",
+      "expected": "('ok', '0x1.0000000000000p+1023')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008000000000000001p-1075'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008000000000000001p-1074'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008000000000000001p-1023'",
+      "expected": "('ok', '0x0.8000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008000000000000001p-1022'",
+      "expected": "('ok', '0x1.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008000000000000001p0'",
+      "expected": "('ok', '0x1.0000000000001p+0')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000008000000000000001p1023'",
+      "expected": "('ok', '0x1.0000000000001p+1023')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000018p-1075'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000018p-1074'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000018p-1023'",
+      "expected": "('ok', '0x0.8000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000018p-1022'",
+      "expected": "('ok', '0x1.0000000000002p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000018p0'",
+      "expected": "('ok', '0x1.0000000000002p+0')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.00000000000018p1023'",
+      "expected": "('ok', '0x1.0000000000002p+1023')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff7p-1075'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff7p-1074'",
+      "expected": "('ok', '0x0.0000000000002p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff7p-1023'",
+      "expected": "('ok', '0x1.0000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff7p-1022'",
+      "expected": "('ok', '0x1.fffffffffffffp-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff7p0'",
+      "expected": "('ok', '0x1.fffffffffffffp+0')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff8p-1075'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff8p-1074'",
+      "expected": "('ok', '0x0.0000000000002p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff8p-1023'",
+      "expected": "('ok', '0x1.0000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff8p-1022'",
+      "expected": "('ok', '0x1.0000000000000p-1021')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x1.fffffffffffff8p0'",
+      "expected": "('ok', '0x1.0000000000000p+1')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff8p-1075'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff8p-1074'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff8p-1023'",
+      "expected": "('ok', '0x0.8000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff8p-1022'",
+      "expected": "('ok', '0x1.0000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff8p0'",
+      "expected": "('ok', '0x1.fffffffffffffp-1')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff8p1023'",
+      "expected": "('ok', '0x1.fffffffffffffp+1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff80000000001p-1075'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff80000000001p-1074'",
+      "expected": "('ok', '0x0.0000000000001p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff80000000001p-1023'",
+      "expected": "('ok', '0x0.8000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff80000000001p-1022'",
+      "expected": "('ok', '0x1.0000000000000p-1022')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff80000000001p0'",
+      "expected": "('ok', '0x1.fffffffffffffp-1')"
+    },
+    {
+      "group": "binary64 rounding boundary",
+      "literal": "'0x0.fffffffffffff80000000001p1023'",
+      "expected": "('ok', '0x1.fffffffffffffp+1022')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x56e19ba1553dd772d865c220aefa379960947536e1a0d6f4b9fe4eeaba1cb0929.488ec86b46b1fbp1055'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xd628e5a51f8e697f62e1f4a8f794e83dd743a18c.27102197f3d03af68cf6e866c98c5p-1414'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xb8fd9b799ee733b1472e.179baea536e820e56c1bb46dddcb19a353fb953269dd514638b64be59cc97c220p-642'",
+      "expected": "('ok', '-0x1.71fb36f33dce6p-563')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xabc9cdc976b689d1660907c84dea.e3d491p-296'",
+      "expected": "('ok', '0x1.57939b92ed6d1p-185')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xce2a23de7bb163ab6524.42fb99683p-1427'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xb9682b838720820e7214325572ec5a9047d0441e26b7650a6f0.44d0efp-1033'",
+      "expected": "('ok', '0x1.72d057070e410p-830')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x1aaa68abc6de6f5c14388ccbb765ff.5151bd33a04e31f86ad8p79'",
+      "expected": "('ok', '-0x1.aaa68abc6de6fp+195')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xc8.9p-121'",
+      "expected": "('ok', '-0x1.9120000000000p-114')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x4001b6edffb48fdf7ead9ada.b21f9230c7b51087576bbb2aacf1786d8965e6eb5228cc82bebadd1a3be03cfp-900'",
+      "expected": "('ok', '-0x1.0006dbb7fed24p-806')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x43.a60p271'",
+      "expected": "('ok', '0x1.0e98000000000p+277')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xad2d.4p375'",
+      "expected": "('ok', '0x1.5a5a800000000p+390')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xc.17efp-118'",
+      "expected": "('ok', '-0x1.82fde00000000p-115')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x20286beee17f3ce3f6b08cf48bb560.64f15316138ecd5aab15fe6322952f501f9698dp-1443'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x6269af8592dfa0ae9b.ee2f8bb185da7fc2a3b4ecd46d7cffp-393'",
+      "expected": "('ok', '-0x1.89a6be164b7e8p-323')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x02bdb24a6666bc2f70baccba719121fee44d573a142f.56c81d375688b8b26b41a3b6f2b35e82ce37a83p-1210'",
+      "expected": "('ok', '0x0.00002bdb24a66p-1022')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x69f0eeb.ep-728'",
+      "expected": "('ok', '0x1.a7c3baf800000p-702')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xe25f4f013e4ce87a28b3781e1937467821.1d32922876686965817f247c88de5e5c2b9bb9d1e319ap-806'",
+      "expected": "('ok', '-0x1.c4be9e027c99dp-671')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xed1e4c15fbfabe982f2.c2ed5ea20bb6b4f45023b20e94p639'",
+      "expected": "('ok', '0x1.da3c982bf7f58p+714')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x4962585c7ffae1563864a5a201f6a557c3d5.f804f588dabaa6e7567p-44'",
+      "expected": "('ok', '-0x1.25896171ffeb8p+98')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x03973da1aad90327b361de7b2bf819e09.c5848612ff03dae09ea330dp-883'",
+      "expected": "('ok', '-0x1.cb9ed0d56c819p-758')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x6d64ea3a10f70dde142b61154cca5e8f98016e9de34d4bb77e4251b28657e68a88a79102f4f67.d2b76ad82fap-880'",
+      "expected": "('ok', '-0x1.b593a8e843dc3p-574')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xa4513027eb1d6bdf4bf19c6fbb6bdce827fd8023efe0c2f641b435b3cd26.b832eb362785402a6p500'",
+      "expected": "('ok', '0x1.48a2604fd63adp+739')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x.d0e3298e222p-437'",
+      "expected": "('ok', '0x1.a1c6531c44400p-438')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x.733f7202ac1840ce63cba0c1ced829fp-1056'",
+      "expected": "('ok', '-0x0.000000001ccfep-1022')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x6fea451529a.724b8e2b6ff12d4f79ef2ecbp-1307'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x5674f7cbb7d742d5cbca28858e76d371d63cd07c945ca3691426cf091db9.085882p-1080'",
+      "expected": "('ok', '-0x1.59d3df2edf5d1p-842')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x2bc4005db0e7f8a94db16815a5c1f.c4e00a56b04b242d17c1f59877904b9b82c841ae887b69dp596'",
+      "expected": "('ok', '-0x1.5e2002ed873fcp+709')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x8d7be439cb07734245c25f239ff86a57e.b68a1c0bd5f102p874'",
+      "expected": "('ok', '-0x1.1af7c873960eep+1005')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xdbd33eea773a5bccce5b9acf.62618811d523cfcb734p765'",
+      "expected": "('ok', '0x1.b7a67dd4ee74bp+860')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x1a8.e05c45bd3427c715ca59ddc50p-510'",
+      "expected": "('ok', '0x1.a8e05c45bd342p-502')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xde7e.a1100d34a2b6112591945146p-1305'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x2227c68cf0e1acfd198927a5827280b4a162c.98245ec61cfc326f33d4d27p-14'",
+      "expected": "('ok', '0x1.113e3467870d6p+131')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x1a8.9a87dce096da2d342ea5d7ae38ce11601d39067bf797p194'",
+      "expected": "('ok', '0x1.a89a87dce096ep+202')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x957624e4f20ca4def.9f43764e475712c7df6e9c207cedf2854ad7p-504'",
+      "expected": "('ok', '-0x1.2aec49c9e4195p-437')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xe67adf1459f6cf8da25422d9d5.ed6da4e5b6b848d9f8ca4455d3f8f2316bcp852'",
+      "expected": "('ok', '0x1.ccf5be28b3edap+955')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xe5adcd56d680ecabaf541646837f40fbeaa84ec76a33e6554dc2b3c6a996.94fa667daf9p216'",
+      "expected": "('ok', '0x1.cb5b9aadad01ep+455')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x913a0d.22aa30ec90793c3b052e69p-46'",
+      "expected": "('ok', '0x1.22741a455461ep-23')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xd15e36.b20e4377a300p747'",
+      "expected": "('ok', '0x1.a2bc6d641c86fp+770')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x51eb4e7f38100a3bb93557880c62c1d73aae74c32.877e049de186757a507c669c1p-1177'",
+      "expected": "('ok', '-0x1.47ad39fce0403p-1015')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x79dec18943d.32953b76467a808c55f3eadd8605p1090'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x33d51d98dd104c033607a4574c41271e60399e77dc3d1e6ba3549b41a85bbceec730b56a9aa129f5a0.1665p-437'",
+      "expected": "('ok', '-0x1.9ea8ecc6e8826p-112')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x2e6.8a74462ef2088a268acb379ff16dfec202f565a39cf9dc8822763aa5806015p-925'",
+      "expected": "('ok', '0x1.73453a2317790p-916')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x1907e13.9eda35c2505ea8c53058f6c9ef9e1976dd3a8c3fap325'",
+      "expected": "('ok', '-0x1.907e139eda35cp+349')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x31bf25a5ebf77af7573fb.2acb6284e29e57950fp539'",
+      "expected": "('ok', '0x1.8df92d2f5fbbdp+620')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x.6a8777d4cb1edf3a749930c23ecb53a5195a0f93p463'",
+      "expected": "('ok', '-0x1.aa1ddf532c7b8p+461')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x542aba8c98020ba06757456312e65929b2462819c852.012949p-1187'",
+      "expected": "('ok', '0x1.50aaea3260083p-1013')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x0fc0629c22c71.35b09d231p58'",
+      "expected": "('ok', '-0x1.f80c538458e27p+105')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xf0294efaaf12d7e0a41.7eecap-1060'",
+      "expected": "('ok', '0x1.e0529df55e25bp-985')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x1cfc7703910f276e2bcb58b36d.a0ab467d4644e6132e66faa0719be089fe2026fa60p-405'",
+      "expected": "('ok', '0x1.cfc7703910f27p-305')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x4bebc9588e0a557757c47efdbb2c2ed0a07ea1f1015e7857914d4584e92e5ac3e60.24f8p-633'",
+      "expected": "('ok', '-0x1.2faf256238295p-367')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xbf36f854.3ef1cb045b03dc7be918e330ff6916p-1326'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x.8bc463ee02a8a14016aacb3199p-928'",
+      "expected": "('ok', '0x1.1788c7dc05514p-929')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x.8p-193'",
+      "expected": "('ok', '0x1.0000000000000p-194')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xf5cd64bbead13.5cd797d71c2aea7edd35837405ff5472a7bd75c378p777'",
+      "expected": "('ok', '-0x1.eb9ac977d5a27p+828')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x2e6c7303dcbab9b80dbef9d17fc93efa.558b8555p-486'",
+      "expected": "('ok', '-0x1.7363981ee5d5dp-361')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xe19e6346.bbd701bc48dp-717'",
+      "expected": "('ok', '-0x1.c33cc68d77ae0p-686')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x.bbbf17e1d0caa37b8a2770a7p-1424'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x3aece128fa5cda436d2a6.55c675c7b9c38fccf03f3ff9452c7dc91042850066606aep-809'",
+      "expected": "('ok', '0x1.d7670947d2e6dp-728')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x6a824a68eedf13f5f62b394e8ddcd9c.5cdfbb7dc14b42ae6c1a80d24f29p1027'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xc37be2f3b6b924c7f25dc0ebd7903b0a080a8af2025ecb15bd28a3af549d519bca.26f7122845f31p740'",
+      "expected": "('ok', '0x1.86f7c5e76d725p+1003')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x00e84a8c36e.e180e911bf65ef6p-334'",
+      "expected": "('ok', '-0x1.d095186ddc302p-299')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x62033dbbd9ed3d872a62966a1ee90298035d.7b7657452ae02209fb008c43b31e1p-1052'",
+      "expected": "('ok', '-0x1.880cf6ef67b4fp-910')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xb5.6861cc293ad9c86cb44f210811bdp-63'",
+      "expected": "('ok', '0x1.6ad0c3985275bp-56')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xb0d0822f3b.ccfa14ap-174'",
+      "expected": "('ok', '0x1.61a1045e7799fp-135')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xb2a5cf7d72247eada7a889e74d0c711fb4e7.bb114695f7dbced03769ee42c28555ap-1353'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xa48dd2992e85f4beba79750d8cf3dd4f1.18c683826p132'",
+      "expected": "('ok', '-0x1.491ba5325d0bfp+263')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x5958a.734de9089791d0p-1128'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xc4b91f9b2a1a97312420a061e1138021cd2885f5c60.d3ddefp-933'",
+      "expected": "('ok', '-0x1.89723f3654353p-762')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x2e29332b30c08031eb97a.eeaebbf96d02c723a203e0f827a51765563bfe2d84faef326d2d0690bb6f57c3474p-375'",
+      "expected": "('ok', '-0x1.7149995986040p-294')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x297d6bec0ce3.266c3ap-389'",
+      "expected": "('ok', '0x1.4beb5f6067193p-344')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x45d526c5091fd99454c6e192a9301b076c4503749b8c3f.dff7116b73b4691a40406p-1403'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x3af1500174d96f0599.17e6p-332'",
+      "expected": "('ok', '-0x1.d78a800ba6cb8p-263')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x8eda6e51250b.5f62e89c953094f625e92c710cbafb13b512fd539487ebf794b8d9d12p750'",
+      "expected": "('ok', '0x1.1db4dca24a16cp+797')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x45b783.ep-563'",
+      "expected": "('ok', '0x1.16de0f8000000p-541')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xdbf4b8904631fdefc3631a6143cc73966390105557f75ed7f9c793822fa5a602b35cacba402bcbf0.9p-1490'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x95039f912e39.5bf0321a1ba047c29fd04426d76a2412710ef5f4d05f36f32d255db97c7905f996fp962'",
+      "expected": "('ok', '0x1.2a073f225c72bp+1009')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x094a91353e179f873172f56df513210d357f0dfea8652a422.133e2bd4d8e16df9e978d2p-361'",
+      "expected": "('ok', '-0x1.295226a7c2f3fp-170')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xe588c7b6d95b7a8a25d0.d9913fc233737ep-865'",
+      "expected": "('ok', '0x1.cb118f6db2b6fp-786')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xb4.3c655121c19236135a1be2faf89853ce7061831d9p30'",
+      "expected": "('ok', '-0x1.6878caa243832p+37')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x30d409cefd7c.2825p-1126'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xae861d9.477236f1326e157601aa71e55beaa32a905634909e1d76583521a526b14a2848ce5fd2bb7f99p4'",
+      "expected": "('ok', '-0x1.5d0c3b28ee46ep+31')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x900ea46e07ff72f2471d89ab3969b4c16dc1695fc42844fc3536274d0.3b9c977373p554'",
+      "expected": "('ok', '0x1.201d48dc0ffeep+781')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x16c17.2ae67ae89d35aa2e96ede7ba3f487deccc3b46b517555fce630dcp231'",
+      "expected": "('ok', '-0x1.6c172ae67ae8ap+247')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xbf4bd13d631e7dd798f0cf62a4e94948715f38666.63034de733a7c5c1768e1bcdp175'",
+      "expected": "('ok', '-0x1.7e97a27ac63d0p+338')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x34b170adcde58.728c3a3f5dd2daf88bdab6ba2ab084e964bbe83d45p290'",
+      "expected": "('ok', '-0x1.a58b856e6f2c4p+339')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x05d6b8af0ba01bfb35f75d3.6dcf4bc835619fe6c8c1b5p282'",
+      "expected": "('ok', '0x1.75ae2bc2e8070p+368')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xfbcb.4e49434c67cce63c4e8091b22421cda4dp610'",
+      "expected": "('ok', '0x1.f7969c928698dp+625')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xa8a4c3ae9920f9d111.96ad0076315b9b362745d5be0d84c85190a1766ep-695'",
+      "expected": "('ok', '0x1.5149875d3241fp-624')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xe1a6.c176d9ec7df1bed63a06846eee3p913'",
+      "expected": "('ok', '0x1.c34d82edb3d90p+928')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x305427.1e9d417fd2cb1cdf563fbd03ep248'",
+      "expected": "('ok', '-0x1.82a138f4ea0c0p+269')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xbc30c15405d42d04978d39e0d768c56f4e2489a.672d88a3488b9bffa3b40407dd478cp-1349'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xa59fb50d9f0906941039eb.7ccaedf58p800'",
+      "expected": "('ok', '-0x1.4b3f6a1b3e121p+887')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x179aa2748d589a7142e02.3f7a976d272fed7f37dc5d36a7p-1208'",
+      "expected": "('ok', '0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x3d39ef054d470a4f88c.6862bf3p-702'",
+      "expected": "('ok', '-0x1.e9cf782a6a385p-629')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x7bb48532086db0d78e8.cda612e537c66d390416e08363bed7bbbc6c65p1023'",
+      "expected": "('OverflowError', 'hexadecimal value too large to represent as a float', ('hexadecimal value too large to represent as a float',))"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0x87b9557f8c3ac5ba2438a62e33ba3bef128100b834642da9b2d.ap-1368'",
+      "expected": "('ok', '-0x0.0p+0')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0x443380e9617.b5e6c5p-899'",
+      "expected": "('ok', '0x1.10ce03a585ed8p-857')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xc.09258a313386eb8de8453006d186fa471eb3f743b406d45bbd7c18c279a7ef2a93bp447'",
+      "expected": "('ok', '-0x1.8124b1462670ep+450')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'0xace491e3fb0.1a8fffc875f25a77541d22fd3bf710cc506bd2160b2ec0b047f1b5p644'",
+      "expected": "('ok', '0x1.59c923c7f6035p+687')"
+    },
+    {
+      "group": "deterministic significand and exponent sample",
+      "literal": "'-0xea0507d02.4bb0c404d15103c123074990c3ea314cba3b00fa251e07c949e923d16ccp-1455'",
+      "expected": "('ok', '-0x0.0p+0')"
+    }
+  ]
+}

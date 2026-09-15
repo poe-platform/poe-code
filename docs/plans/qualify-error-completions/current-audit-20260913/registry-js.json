@@ -1,0 +1,19 @@
+{
+  "package": "@poe-platform/safe-js",
+  "version": "0.1.570",
+  "registry": {
+    "dist.integrity": "sha512-YDK1wRy4dxmZYrA9HwraPCowCopP62ADL3XqBfP//vdrmfDQ6WJFeWwYOfFC1dNTDyJ8IiwgPmbMP2/Z2zCf6Q==",
+    "dist.tarball": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.570.tgz",
+    "dist.attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.570",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    }
+  },
+  "bytes": 8512862,
+  "integrityMatches": true,
+  "attestationSubjectMatches": true,
+  "publicationCommit": "f7b7552cf89f4a5379df6435e8fd2263114f99b5",
+  "provenanceInvocation": "https://github.com/poe-platform/poe-code/actions/runs/34759703311/attempts/1"
+}

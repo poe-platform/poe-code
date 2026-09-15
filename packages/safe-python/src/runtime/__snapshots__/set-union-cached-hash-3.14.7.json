@@ -1,0 +1,967 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "rows": [
+    {
+      "name": "frozenset/neither/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/neither/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/left/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/right/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', True), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', True), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset/both/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=frozenset([A,B])\nright=frozenset([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/neither/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/left/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/right/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', True), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('AssertionError', ('override',)), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'A', 'C')])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "frozenset-subtype/both/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nclass F(frozenset):\n def __eq__(self, other): raise AssertionError(\"override\")\n def __ne__(self, other): raise AssertionError(\"override\")\n __hash__=frozenset.__hash__\nleft=F([A,B])\nright=F([C,D])\nT=frozenset\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/neither/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/neither/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/left/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/left/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/right/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/right/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/both/same-hash=False/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "union/both/same-hash=False/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', True), [])"
+    },
+    {
+      "name": "union/both/same-hash=False/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=False/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=False/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=False/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=False/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', False), [])"
+    },
+    {
+      "name": "union/both/same-hash=False/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=2\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ok', True), [])"
+    },
+    {
+      "name": "union/both/same-hash=True/left == right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left == right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/both/same-hash=True/left != right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left != right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/both/same-hash=True/left <= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left <= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=True/left >= right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left >= right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>=' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=True/left < right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left < right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'<' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=True/left > right",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=left > right\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('TypeError', (\"'>' not supported between instances of 'typing.Union' and 'typing.Union'\",)), [])"
+    },
+    {
+      "name": "union/both/same-hash=True/T.__eq__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__eq__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    },
+    {
+      "name": "union/both/same-hash=True/T.__ne__(left, right)",
+      "source": "events=[]\narmed=False\nclass M(type):\n def __hash__(cls):\n  events.append(('hash', cls.__name__))\n  return cls.h\n def __eq__(cls, other):\n  events.append(('eq', cls.__name__, other.__name__))\n  if armed:\n   raise ValueError('comparison')\n  return cls is other\nclass A(metaclass=M): h=0\nclass B(metaclass=M): h=1\nclass C(metaclass=M): h=0\nclass D(metaclass=M): h=1\nleft=A|B\nright=C|D\nT=type(left)\nhash(left)\nhash(right)\nevents.clear()\narmed=True\ntry:\n value=T.__ne__(left, right)\n result=(\"ok\", value)\nexcept BaseException as error:\n result=(type(error).__name__, error.args)\nresult=(result,events)\n",
+      "expected": "(('ValueError', ('comparison',)), [('eq', 'C', 'A')])"
+    }
+  ]
+}

@@ -1,8 +1,24 @@
 import { describe, expect, it } from "vitest";
 import { S } from "toolcraft-schema";
-import { filterSchemaForScope } from "./schema-scope.js";
+import { filterSchemaForScope, getUnfilteredSchema } from "./schema-scope.js";
 
 describe("filterSchemaForScope", () => {
+  it("retains the original schema through repeated projections", () => {
+    const schema = S.Object({ visible: S.String(), hidden: S.String({ scope: ["cli"] }) });
+    const first = filterSchemaForScope(schema, "sdk")!;
+    const second = filterSchemaForScope(first, "mcp")!;
+
+    expect(getUnfilteredSchema(first)).toBe(schema);
+    expect(getUnfilteredSchema(second)).toBe(schema);
+    expect(getUnfilteredSchema(schema)).toBe(schema);
+  });
+
+  it("does not replace an inner schema's identity when promoting an optional field", () => {
+    const inner = S.String({ requiredScopes: ["sdk"] });
+    expect(filterSchemaForScope(S.Optional(inner), "sdk")).toBe(inner);
+    expect(getUnfilteredSchema(inner)).toBe(inner);
+  });
+
   it("preserves and recursively filters complex schema kinds", () => {
     const schema = S.Object({
       json: S.Json(),

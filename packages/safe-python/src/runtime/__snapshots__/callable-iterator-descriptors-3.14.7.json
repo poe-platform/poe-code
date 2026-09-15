@@ -1,0 +1,335 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "rows": [
+    {
+      "name": "canonical publication",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\nactual=(T.__name__,T.__module__,T is type(iter(source,None)),T is i.__class__,T.__base__ is object,T.__bases__==(object,),T.__mro__==(T,object),sorted(T.__dict__),[(n,type(T.__dict__[n]).__name__,getattr(T.__dict__[n],'__objclass__',None) is T) for n in sorted(T.__dict__)],T.__doc__)\n",
+      "expected": "('callable_iterator', 'builtins', True, True, True, True, True, ['__doc__', '__iter__', '__next__', '__reduce__'], [('__doc__', 'NoneType', False), ('__iter__', 'wrapper_descriptor', True), ('__next__', 'wrapper_descriptor', True), ('__reduce__', 'method_descriptor', True)], None)"
+    },
+    {
+      "name": "descriptor metadata",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\nactual=[]\nfor n in ['__iter__','__next__','__reduce__']:\n d=T.__dict__[n];m=getattr(i,n)\n actual.append((n,type(d).__name__,d.__name__,d.__qualname__,d.__doc__,d.__text_signature__,type(m).__name__,m.__name__,m.__qualname__,m.__doc__,m.__self__ is i,d.__get__(None,T) is d,getattr(m,'__objclass__',None) is T))\n",
+      "expected": "[('__iter__', 'wrapper_descriptor', '__iter__', 'callable_iterator.__iter__', 'Implement iter(self).', '($self, /)', 'method-wrapper', '__iter__', 'callable_iterator.__iter__', 'Implement iter(self).', True, True, True), ('__next__', 'wrapper_descriptor', '__next__', 'callable_iterator.__next__', 'Implement next(self).', '($self, /)', 'method-wrapper', '__next__', 'callable_iterator.__next__', 'Implement next(self).', True, True, True), ('__reduce__', 'method_descriptor', '__reduce__', 'callable_iterator.__reduce__', 'Return state information for pickling.', '($self, /)', 'builtin_function_or_method', '__reduce__', 'callable_iterator.__reduce__', 'Return state information for pickling.', True, True, False)]"
+    },
+    {
+      "name": "live reduction",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\na=i.__reduce__();b=T.__reduce__(i)\nactual=(len(a),a[0] is iter,a[1][0] is source,a[1][1] is sentinel,a==b,a is b,a[1] is b[1],next(i),i.__iter__() is i,T.__iter__(i) is i)\n",
+      "expected": "(2, True, True, True, True, False, False, 42, True, True)"
+    },
+    {
+      "name": "exhaustion sentinel",
+      "source": "calls=[]\nsentinel=object()\ndef source():\n calls.append('call')\n return sentinel\ni=iter(source,sentinel)\na=i.__reduce__()\nresult=next(i,'default')\nb=i.__reduce__();c=i.__reduce__()\nactual=(result,b[0] is iter,b[1:],c[1:],next(i,'again'),calls,a[1][0] is source,a[1][1] is sentinel)\n",
+      "expected": "('default', True, (((),),), (((),),), 'again', ['call'], True, True)"
+    },
+    {
+      "name": "exhaustion stop",
+      "source": "calls=[]\nsentinel=object()\ndef source():\n calls.append('call')\n raise StopIteration('payload')\ni=iter(source,sentinel)\na=i.__reduce__()\nresult=next(i,'default')\nb=i.__reduce__();c=i.__reduce__()\nactual=(result,b[0] is iter,b[1:],c[1:],next(i,'again'),calls,a[1][0] is source,a[1][1] is sentinel)\n",
+      "expected": "('default', True, (((),),), (((),),), 'again', ['call'], True, True)"
+    },
+    {
+      "name": "lookup advance",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\nevents=[]\noriginal_iter=iter\nmarker=ValueError('lookup')\nclass Builtins(dict):\n def __getitem__(self,name):\n  events.append(name)\n  if name=='iter':\n   events.append(next(i))\n  return dict.__getitem__(self,name)\ndef original():pass\n__builtins__=Builtins(original.__builtins__)\ndef reduce():return i.__reduce__()\ntry:\n r=reduce()\n actual=('ok',r[0] is original_iter,r[0] is sentinel,r[1][0] is source,r[1][1] is sentinel,events)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args,e is marker,events)\n",
+      "expected": "('ok', True, False, True, True, ['iter', 42, 'repr'])"
+    },
+    {
+      "name": "lookup error",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\nevents=[]\noriginal_iter=iter\nmarker=ValueError('lookup')\nclass Builtins(dict):\n def __getitem__(self,name):\n  events.append(name)\n  if name=='iter':\n   raise marker\n  return dict.__getitem__(self,name)\ndef original():pass\n__builtins__=Builtins(original.__builtins__)\ndef reduce():return i.__reduce__()\ntry:\n r=reduce()\n actual=('ok',r[0] is original_iter,r[0] is sentinel,r[1][0] is source,r[1][1] is sentinel,events)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args,e is marker,events)\n",
+      "expected": "('ValueError', 'lookup', ('lookup',), True, ['iter', 'repr'])"
+    },
+    {
+      "name": "lookup replace",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\nevents=[]\noriginal_iter=iter\nmarker=ValueError('lookup')\nclass Builtins(dict):\n def __getitem__(self,name):\n  events.append(name)\n  if name=='iter':\n   return sentinel\n  return dict.__getitem__(self,name)\ndef original():pass\n__builtins__=Builtins(original.__builtins__)\ndef reduce():return i.__reduce__()\ntry:\n r=reduce()\n actual=('ok',r[0] is original_iter,r[0] is sentinel,r[1][0] is source,r[1][1] is sentinel,events)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args,e is marker,events)\n",
+      "expected": "('ok', False, True, True, True, ['iter', 'repr'])"
+    },
+    {
+      "name": "lookup missing",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\nevents=[]\noriginal_iter=iter\nmarker=ValueError('lookup')\nclass Builtins(dict):\n def __getitem__(self,name):\n  events.append(name)\n  if name=='iter':\n   raise KeyError(name)\n  return dict.__getitem__(self,name)\ndef original():pass\n__builtins__=Builtins(original.__builtins__)\ndef reduce():return i.__reduce__()\ntry:\n r=reduce()\n actual=('ok',r[0] is original_iter,r[0] is sentinel,r[1][0] is source,r[1][1] is sentinel,events)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args,e is marker,events)\n",
+      "expected": "('AttributeError', 'iter', ('iter',), False, ['iter', 'repr'])"
+    },
+    {
+      "name": "lookup observes reentrant exhaustion",
+      "source": "\nevents=[]\nsentinel=object()\ndef source():return sentinel\ni=iter(source,sentinel)\noriginal_iter=iter\nclass Builtins(dict):\n def __getitem__(self,name):\n  if name=='iter':events.append(next(i,'ended'))\n  return dict.__getitem__(self,name)\ndef original():pass\n__builtins__=Builtins(original.__builtins__)\ndef reduce():return i.__reduce__()\na=reduce()\nactual=(a[0] is original_iter,a[1:],events)\n",
+      "expected": "(True, (((),),), ['ended'])"
+    },
+    {
+      "name": "equality StopIteration remains retryable",
+      "source": "\nevents=[]\nmarker=StopIteration('equal')\nclass Sentinel:\n def __eq__(self,other):\n  events.append(other)\n  if len(events)==1:raise marker\n  return False\nsentinel=Sentinel()\ndef source():return 42\ni=iter(source,sentinel)\ntry:i.__next__()\nexcept StopIteration as e:actual=[e is marker,e.args]\na=i.__reduce__()\nactual += [a[1][0] is source,a[1][1] is sentinel,i.__next__(),events]\n",
+      "expected": "[True, ('equal',), True, True, 42, [42, 42]]"
+    },
+    {
+      "name": "construction inheritance mutation",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\nactual=[]\nfor action in [lambda:T(),lambda:T(1),lambda:T(x=1),lambda:object.__new__(T),lambda:type('Child',(T,),{}),lambda:setattr(T,'x',1),lambda:setattr(i,'x',1)]:\n try:action();actual.append('accepted')\n except BaseException as e:actual.append((type(e).__name__,str(e),e.args))\n",
+      "expected": "[('TypeError', \"cannot create 'callable_iterator' instances\", (\"cannot create 'callable_iterator' instances\",)), ('TypeError', \"cannot create 'callable_iterator' instances\", (\"cannot create 'callable_iterator' instances\",)), ('TypeError', \"cannot create 'callable_iterator' instances\", (\"cannot create 'callable_iterator' instances\",)), ('TypeError', \"cannot create 'callable_iterator' instances\", (\"cannot create 'callable_iterator' instances\",)), ('TypeError', \"type 'callable_iterator' is not an acceptable base type\", (\"type 'callable_iterator' is not an acceptable base type\",)), ('TypeError', \"cannot set 'x' attribute of immutable type 'callable_iterator'\", (\"cannot set 'x' attribute of immutable type 'callable_iterator'\",)), ('AttributeError', \"'callable_iterator' object has no attribute 'x' and no __dict__ for setting new attributes\", (\"'callable_iterator' object has no attribute 'x' and no __dict__ for setting new attributes\",))]"
+    },
+    {
+      "name": "T.__iter__()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__iter__' of 'callable_iterator' object needs an argument\", (\"descriptor '__iter__' of 'callable_iterator' object needs an argument\",))"
+    },
+    {
+      "name": "T.__iter__(None)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__(None)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__iter__' requires a 'callable_iterator' object but received a 'NoneType'\", (\"descriptor '__iter__' requires a 'callable_iterator' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "T.__iter__(42)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__(42)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__iter__' requires a 'callable_iterator' object but received a 'int'\", (\"descriptor '__iter__' requires a 'callable_iterator' object but received a 'int'\",))"
+    },
+    {
+      "name": "T.__iter__(iter(b\"a\"))",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__(iter(b\"a\"))\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__iter__' requires a 'callable_iterator' object but received a 'bytes_iterator'\", (\"descriptor '__iter__' requires a 'callable_iterator' object but received a 'bytes_iterator'\",))"
+    },
+    {
+      "name": "T.__iter__(i)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__(i)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('self',)"
+    },
+    {
+      "name": "T.__iter__(i,1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__(i,1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1', ('expected 0 arguments, got 1',))"
+    },
+    {
+      "name": "T.__iter__(i,x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__(i,x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'wrapper __iter__() takes no keyword arguments', ('wrapper __iter__() takes no keyword arguments',))"
+    },
+    {
+      "name": "T.__iter__(None,x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__(None,x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__iter__' requires a 'callable_iterator' object but received a 'NoneType'\", (\"descriptor '__iter__' requires a 'callable_iterator' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "i.__iter__()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__iter__()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('self',)"
+    },
+    {
+      "name": "i.__iter__(1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__iter__(1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1', ('expected 0 arguments, got 1',))"
+    },
+    {
+      "name": "i.__iter__(x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__iter__(x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'wrapper __iter__() takes no keyword arguments', ('wrapper __iter__() takes no keyword arguments',))"
+    },
+    {
+      "name": "T.__iter__.__get__(None,None)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__.__get__(None,None)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', '__get__(None, None) is invalid', ('__get__(None, None) is invalid',))"
+    },
+    {
+      "name": "T.__iter__.__get__(42,T)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__.__get__(42,T)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__iter__' for 'callable_iterator' objects doesn't apply to a 'int' object\", (\"descriptor '__iter__' for 'callable_iterator' objects doesn't apply to a 'int' object\",))"
+    },
+    {
+      "name": "T.__iter__.__get__(i,T)()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__iter__.__get__(i,T)()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('self',)"
+    },
+    {
+      "name": "T.__next__()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__next__' of 'callable_iterator' object needs an argument\", (\"descriptor '__next__' of 'callable_iterator' object needs an argument\",))"
+    },
+    {
+      "name": "T.__next__(None)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__(None)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__next__' requires a 'callable_iterator' object but received a 'NoneType'\", (\"descriptor '__next__' requires a 'callable_iterator' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "T.__next__(42)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__(42)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__next__' requires a 'callable_iterator' object but received a 'int'\", (\"descriptor '__next__' requires a 'callable_iterator' object but received a 'int'\",))"
+    },
+    {
+      "name": "T.__next__(iter(b\"a\"))",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__(iter(b\"a\"))\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__next__' requires a 'callable_iterator' object but received a 'bytes_iterator'\", (\"descriptor '__next__' requires a 'callable_iterator' object but received a 'bytes_iterator'\",))"
+    },
+    {
+      "name": "T.__next__(i)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__(i)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', 42)"
+    },
+    {
+      "name": "T.__next__(i,1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__(i,1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1', ('expected 0 arguments, got 1',))"
+    },
+    {
+      "name": "T.__next__(i,x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__(i,x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'wrapper __next__() takes no keyword arguments', ('wrapper __next__() takes no keyword arguments',))"
+    },
+    {
+      "name": "T.__next__(None,x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__(None,x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__next__' requires a 'callable_iterator' object but received a 'NoneType'\", (\"descriptor '__next__' requires a 'callable_iterator' object but received a 'NoneType'\",))"
+    },
+    {
+      "name": "i.__next__()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__next__()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', 42)"
+    },
+    {
+      "name": "i.__next__(1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__next__(1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'expected 0 arguments, got 1', ('expected 0 arguments, got 1',))"
+    },
+    {
+      "name": "i.__next__(x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__next__(x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'wrapper __next__() takes no keyword arguments', ('wrapper __next__() takes no keyword arguments',))"
+    },
+    {
+      "name": "T.__next__.__get__(None,None)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__.__get__(None,None)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', '__get__(None, None) is invalid', ('__get__(None, None) is invalid',))"
+    },
+    {
+      "name": "T.__next__.__get__(42,T)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__.__get__(42,T)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__next__' for 'callable_iterator' objects doesn't apply to a 'int' object\", (\"descriptor '__next__' for 'callable_iterator' objects doesn't apply to a 'int' object\",))"
+    },
+    {
+      "name": "T.__next__.__get__(i,T)()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__next__.__get__(i,T)()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', 42)"
+    },
+    {
+      "name": "T.__reduce__()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'unbound method callable_iterator.__reduce__() needs an argument', ('unbound method callable_iterator.__reduce__() needs an argument',))"
+    },
+    {
+      "name": "T.__reduce__(None)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__(None)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'NoneType' object\", (\"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'NoneType' object\",))"
+    },
+    {
+      "name": "T.__reduce__(42)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__(42)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'int' object\", (\"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'int' object\",))"
+    },
+    {
+      "name": "T.__reduce__(iter(b\"a\"))",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__(iter(b\"a\"))\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'bytes_iterator' object\", (\"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'bytes_iterator' object\",))"
+    },
+    {
+      "name": "T.__reduce__(i)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__(i)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('reduction', True, True)"
+    },
+    {
+      "name": "T.__reduce__(i,1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__(i,1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__reduce__() takes no arguments (1 given)', ('callable_iterator.__reduce__() takes no arguments (1 given)',))"
+    },
+    {
+      "name": "T.__reduce__(i,x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__(i,x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__reduce__() takes no keyword arguments', ('callable_iterator.__reduce__() takes no keyword arguments',))"
+    },
+    {
+      "name": "T.__reduce__(None,x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__(None,x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'NoneType' object\", (\"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'NoneType' object\",))"
+    },
+    {
+      "name": "i.__reduce__()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__reduce__()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('reduction', True, True)"
+    },
+    {
+      "name": "i.__reduce__(1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__reduce__(1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__reduce__() takes no arguments (1 given)', ('callable_iterator.__reduce__() takes no arguments (1 given)',))"
+    },
+    {
+      "name": "i.__reduce__(x=1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=i.__reduce__(x=1)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', 'callable_iterator.__reduce__() takes no keyword arguments', ('callable_iterator.__reduce__() takes no keyword arguments',))"
+    },
+    {
+      "name": "T.__reduce__.__get__(None,None)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__.__get__(None,None)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', '__get__(None, None) is invalid', ('__get__(None, None) is invalid',))"
+    },
+    {
+      "name": "T.__reduce__.__get__(42,T)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__.__get__(42,T)\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'int' object\", (\"descriptor '__reduce__' for 'callable_iterator' objects doesn't apply to a 'int' object\",))"
+    },
+    {
+      "name": "T.__reduce__.__get__(i,T)()",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\n\ntry:\n r=T.__reduce__.__get__(i,T)()\n if r is i:actual=('self',)\n elif isinstance(r,tuple) and len(r)==2 and r[0] is iter:actual=('reduction',r[1][0] is source,r[1][1] is sentinel)\n else:actual=('value',r)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('reduction', True, True)"
+    },
+    {
+      "name": "i.__getattribute__('__class__') is T",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\ntry:actual=('value',i.__getattribute__('__class__') is T)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "T.__getattribute__(i,'__class__') is T",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\ntry:actual=('value',T.__getattribute__(i,'__class__') is T)\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('value', True)"
+    },
+    {
+      "name": "i.__getattribute__('missing')",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\ntry:actual=('value',i.__getattribute__('missing'))\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('AttributeError', \"'callable_iterator' object has no attribute 'missing'\", (\"'callable_iterator' object has no attribute 'missing'\",))"
+    },
+    {
+      "name": "i.__getattribute__(1)",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\ntry:actual=('value',i.__getattribute__(1))\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('TypeError', \"attribute name must be string, not 'int'\", (\"attribute name must be string, not 'int'\",))"
+    },
+    {
+      "name": "i.__getattribute__('__length_hint__')",
+      "source": "def source(): return 42\nsentinel=object()\ni=iter(source,sentinel)\nT=type(i)\ntry:actual=('value',i.__getattribute__('__length_hint__'))\nexcept BaseException as e:actual=(type(e).__name__,str(e),e.args)\n",
+      "expected": "('AttributeError', \"'callable_iterator' object has no attribute '__length_hint__'\", (\"'callable_iterator' object has no attribute '__length_hint__'\",))"
+    },
+    {
+      "name": "retry after call exception",
+      "source": "\nevents=[]\nmarker=ValueError('failure')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  if phase=='truth' and events.count('truth')==1:raise marker\n  return False\nclass Sentinel:\n def __eq__(self,other):\n  events.append('equal')\n  if phase=='equal' and events.count('equal')==1:raise marker\n  return Truth()\ndef source():\n events.append('call')\n if phase=='call' and events.count('call')==1:raise marker\n return 42\nphase='call'\nsentinel=Sentinel()\ni=iter(source,sentinel)\ntry:type(i).__next__(i)\nexcept ValueError as e:actual=[e is marker,e.args]\na=i.__reduce__()\nactual += [a[1][0] is source,a[1][1] is sentinel,next(i),events]\n",
+      "expected": "[True, ('failure',), True, True, 42, ['call', 'call', 'equal', 'truth']]"
+    },
+    {
+      "name": "retry after equal exception",
+      "source": "\nevents=[]\nmarker=ValueError('failure')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  if phase=='truth' and events.count('truth')==1:raise marker\n  return False\nclass Sentinel:\n def __eq__(self,other):\n  events.append('equal')\n  if phase=='equal' and events.count('equal')==1:raise marker\n  return Truth()\ndef source():\n events.append('call')\n if phase=='call' and events.count('call')==1:raise marker\n return 42\nphase='equal'\nsentinel=Sentinel()\ni=iter(source,sentinel)\ntry:type(i).__next__(i)\nexcept ValueError as e:actual=[e is marker,e.args]\na=i.__reduce__()\nactual += [a[1][0] is source,a[1][1] is sentinel,next(i),events]\n",
+      "expected": "[True, ('failure',), True, True, 42, ['call', 'equal', 'call', 'equal', 'truth']]"
+    },
+    {
+      "name": "retry after truth exception",
+      "source": "\nevents=[]\nmarker=ValueError('failure')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  if phase=='truth' and events.count('truth')==1:raise marker\n  return False\nclass Sentinel:\n def __eq__(self,other):\n  events.append('equal')\n  if phase=='equal' and events.count('equal')==1:raise marker\n  return Truth()\ndef source():\n events.append('call')\n if phase=='call' and events.count('call')==1:raise marker\n return 42\nphase='truth'\nsentinel=Sentinel()\ni=iter(source,sentinel)\ntry:type(i).__next__(i)\nexcept ValueError as e:actual=[e is marker,e.args]\na=i.__reduce__()\nactual += [a[1][0] is source,a[1][1] is sentinel,next(i),events]\n",
+      "expected": "[True, ('failure',), True, True, 42, ['call', 'equal', 'truth', 'call', 'equal', 'truth']]"
+    },
+    {
+      "name": "reentrant exhaustion during call",
+      "source": "\nevents=[]\nclass Sentinel:\n def __eq__(self,other):\n  events.append('equal')\n  if phase=='equal':events.append(next(i,'nested end'))\n  return False\nsentinel=Sentinel()\ndef source():\n events.append('call')\n if events.count('call')>1:return sentinel\n if phase=='call':events.append(next(i,'nested end'))\n return 42\nphase='call'\ni=iter(source,sentinel)\nx=next(i,'outer end')\na=i.__reduce__()\nactual=(x,a[0] is iter,a[1:],next(i,'end'),events)\n",
+      "expected": "('outer end', True, (((),),), 'end', ['call', 'call', 'nested end'])"
+    },
+    {
+      "name": "reentrant exhaustion during equal",
+      "source": "\nevents=[]\nclass Sentinel:\n def __eq__(self,other):\n  events.append('equal')\n  if phase=='equal':events.append(next(i,'nested end'))\n  return False\nsentinel=Sentinel()\ndef source():\n events.append('call')\n if events.count('call')>1:return sentinel\n if phase=='call':events.append(next(i,'nested end'))\n return 42\nphase='equal'\ni=iter(source,sentinel)\nx=next(i,'outer end')\na=i.__reduce__()\nactual=(x,a[0] is iter,a[1:],next(i,'end'),events)\n",
+      "expected": "(42, True, (((),),), 'end', ['call', 'equal', 'call', 'nested end'])"
+    },
+    {
+      "name": "binding does not call either operand",
+      "source": "\nevents=[]\nclass C:\n def __call__(self):events.append('call');return 1\nclass S:\n def __eq__(self,other):events.append('equal');return False\nc=C();s=S();i=iter(c,s);T=type(i)\na=T.__iter__.__get__(i,T)\nb=T.__next__.__get__(i,T)\nd=T.__reduce__.__get__(i,T)\ninitial=list(events)\nr=d()\nactual=(initial,events,a.__self__ is i,b.__self__ is i,d.__self__ is i,r[1][0] is c,r[1][1] is s)\n",
+      "expected": "([], [], True, True, True, True, True)"
+    }
+  ],
+  "observation": "Execute source, then evaluate repr(actual) in the same globals, including live replacement __builtins__."
+}

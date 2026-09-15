@@ -1,15 +1,16 @@
 import { Json } from "./json.js";
+import { cloneDefaultValue } from "./clone-default.js";
 import { createJsonSchemaDocument } from "./json-schema-document.js";
 import { OneOf } from "./oneof.js";
 import { Record as RecordBuilder } from "./record.js";
 import { Union } from "./union.js";
-import { validate } from "./validate.js";
+import { isPlainRecord, validate } from "./validate.js";
 import type { JsonValue, JsonValueSchema } from "./json.js";
 import type { JsonSchemaDocument, JsonSchemaDocumentOptions } from "./json-schema-document.js";
 import type { OneOfSchema } from "./oneof.js";
 import type { RecordSchema } from "./record.js";
 import type { UnionSchema } from "./union.js";
-import type { ValidationIssue, ValidationResult } from "./validate.js";
+import type { ValidationIssue, ValidationOptions, ValidationResult } from "./validate.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object";
 type SchemaKind =
@@ -123,6 +124,8 @@ export interface SchemaBase<TKind extends SchemaKind, TStatic> {
 
 export interface JsonSchema {
   additionalProperties?: boolean | JsonSchema;
+  allOf?: JsonSchema[];
+  anyOf?: JsonSchema[];
   type?: JsonSchemaType;
   description?: string;
   default?: unknown;
@@ -136,6 +139,7 @@ export interface JsonSchema {
   minimum?: number;
   minLength?: number;
   nullable?: boolean;
+  not?: JsonSchema;
   oneOf?: JsonSchema[];
   pattern?: string;
   properties?: Record<string, JsonSchema>;
@@ -209,11 +213,14 @@ function withMetadata<TSchema extends AnySchema>(
   }
 
   if (schema.default !== undefined) {
-    jsonSchema.default = schema.default;
+    jsonSchema.default = cloneDefaultValue(schema.default);
   }
 
   if (schema.nullable === true) {
     jsonSchema.nullable = true;
+    if (jsonSchema.oneOf !== undefined) {
+      jsonSchema.oneOf.push({ enum: [null] });
+    }
   }
 
   return jsonSchema;
@@ -365,12 +372,27 @@ function unwrapOptional(schema: AnySchema): Exclude<AnySchema, OptionalSchema<An
   return schema;
 }
 
+function toObjectBranchJsonSchema(schema: ObjectSchema<any>): JsonSchema {
+  const branchJsonSchema = toJsonSchema(schema);
+  delete branchJsonSchema.nullable;
+  if (branchJsonSchema.default === null) {
+    delete branchJsonSchema.default;
+  }
+  return branchJsonSchema;
+}
+
 function withInjectedDiscriminator(
   schema: ObjectSchema<any>,
   discriminator: string,
   branchName: string
 ): JsonSchema {
-  const branchJsonSchema = toJsonSchema(schema);
+  const branchJsonSchema = toObjectBranchJsonSchema(schema);
+  if (branchJsonSchema.default !== undefined) {
+    branchJsonSchema.default = {
+      ...(branchJsonSchema.default as Record<string, unknown>),
+      [discriminator]: branchName
+    };
+  }
   const properties = {
     ...(branchJsonSchema.properties ?? {}),
     [discriminator]: {
@@ -584,7 +606,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
 
     case "union":
       return withMetadata(unwrappedSchema, {
-        oneOf: unwrappedSchema.branches.map((branchSchema) => toJsonSchema(branchSchema))
+        oneOf: unwrappedSchema.branches.map((branchSchema) => toObjectBranchJsonSchema(branchSchema))
       });
 
     case "record":
@@ -605,7 +627,9 @@ export function toJsonSchemaDocument(
   return createJsonSchemaDocument(toJsonSchema(schema), options);
 }
 
-export { Json, OneOf, RecordBuilder as Record, Union, validate };
+export { Json, OneOf, RecordBuilder as Record, Union, isPlainRecord, validate };
+export { cloneDefaultValue } from "./clone-default.js";
+export { unicodeLength } from "./json-schema/utils.js";
 export { compileJsonSchema, formatIssues } from "./json-schema/index.js";
 export type { CompileJsonSchemaOptions, CompiledJsonSchema } from "./json-schema/index.js";
 export type { JsonSchemaDocument, JsonSchemaDocumentOptions } from "./json-schema-document.js";
@@ -616,5 +640,6 @@ export type {
   RecordSchema,
   UnionSchema,
   ValidationIssue,
+  ValidationOptions,
   ValidationResult
 };

@@ -1,0 +1,19 @@
+{
+  "command": "npm run test:unit --workspace=@poe-code/safe-python -- runtime-quoted-printable runtime-codec-registry session-codec-search-lifecycle-user session-codec-recovery-index-boundaries session-codec-incremental-replay session-core-codec-cancellation session-codec-stream-cancellation --maxWorkers=2 --reporter=json --outputFile=/tmp/qp-option-regression.json",
+  "results": {
+    "numTotalTests": 3442,
+    "numPassedTests": 3442,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "files": 11,
+    "slowestMs": 158.7106249999997
+  },
+  "hashes": {
+    "runtime-quoted-printable-functions.test.ts": "93579f2395d2b153fb0ec92d73530dc5660a80148bc2020a32ea8ea2363361d3",
+    "runtime-quoted-printable-option-matrix.test.ts": "f232d894c12326c627553e767bfd00a49763f0d196d6c894b7005a367fa52d5f",
+    "__snapshots__/quoted-printable-binding-3.14.7.json": "1bb38766ff218adb838122d0a16cb09645433b8448e3e5edc3776637e0a05c67"
+  },
+  "restoration": "726 original test identities including multiplicity match /tmp/safe-python-qp-binding-final.json",
+  "typecheck": "npm run typecheck --workspace=@poe-code/safe-python: exit 0",
+  "eslint": "npx eslint packages/safe-python/src/runtime/runtime-quoted-printable-option-matrix.test.ts: exit 0"
+}

@@ -1,0 +1,293 @@
+{
+  "adapter": "Real input readSync and output writeSync; AbortController aborts after input read; no guest filesystem capability.",
+  "rows": [
+    {
+      "name": "registration during search uses the original length and survives a service callback",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninfo = (None, None, None, None)\ndef appended(name):\n    events.append('appended')\n    return info\ndef first(name):\n    events.append('first')\n    assert input() == 'continue'\n    codecs.register(appended)\ncodecs.register(first)\ntry:\n    codecs.lookup('append-during-search')\nexcept LookupError as error:\n    assert error.args == ('unknown encoding: append-during-search',)\nelse:\n    assert False\nassert events == ['first']\nassert codecs.lookup('append-during-search') is info\nassert events == ['first', 'first', 'appended']\nprint('appended search verified')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "ascii_encode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = '\\ud800A\\ud800'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.ascii_encode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.ascii_encode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "latin_1_encode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = '\\ud800A\\ud800'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.latin_1_encode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.latin_1_encode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_8_encode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = '\\ud800A\\ud800'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_8_encode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_8_encode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_16_le_encode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = '\\ud800A\\ud800'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_16_le_encode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_16_le_encode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_16_be_encode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = '\\ud800A\\ud800'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_16_be_encode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_16_be_encode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_32_le_encode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = '\\ud800A\\ud800'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_32_le_encode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_32_le_encode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_32_be_encode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = '\\ud800A\\ud800'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_32_be_encode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_32_be_encode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "ascii_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\xffA\\xff'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.ascii_decode(source, 'serviced_handler')\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.ascii_decode(source, 'serviced_handler'))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_8_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\xffA\\xff'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_8_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_8_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_7_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\xffA\\xff'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_7_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_7_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_16_le_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\x00\\xdcA\\x00\\x00\\xdc'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_16_le_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_16_le_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_16_be_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\xdc\\x00\\x00A\\xdc\\x00'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_16_be_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_16_be_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_32_le_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\x00\\xd8\\x00\\x00A\\x00\\x00\\x00\\x00\\xd8\\x00\\x00'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_32_le_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_32_le_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "utf_32_be_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\x00\\x00\\xd8\\x00\\x00\\x00\\x00A\\x00\\x00\\xd8\\x00'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.utf_32_be_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.utf_32_be_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "unicode_escape_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\\\uXXA\\\\uXX'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.unicode_escape_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.unicode_escape_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "raw_unicode_escape_decode: serviced failure after handler replacement",
+      "source": "import codecs\nimport _codecs\nsource = b'\\\\uXXA\\\\uXX'\nfailure = ValueError('serviced recovery')\nevents = []\ndef replacement(error):\n    events.append(('new', error.start, error.end))\n    return ('!', error.end)\ndef original(error):\n    events.append(('old', error.start, error.end))\n    assert _codecs._unregister_error('serviced_handler') is True\n    codecs.register_error('serviced_handler', replacement)\n    assert input() == 'service'\n    raise failure\ncodecs.register_error('serviced_handler', original)\ntry:\n    codecs.raw_unicode_escape_decode(source, 'serviced_handler', True)\nexcept ValueError as caught:\n    assert caught is failure\n    print(type(caught).__name__, caught.args)\nelse:\n    raise AssertionError('handler failure was swallowed')\nassert codecs.lookup_error('serviced_handler') is replacement\nprint('next', codecs.raw_unicode_escape_decode(source, 'serviced_handler', True))\nprint(events)\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    },
+    {
+      "name": "UTF-8 callback state mutation, failure, negative resume and retry",
+      "source": "\nimport codecs\ndecoder = codecs.getincrementaldecoder('utf-8')('state_replay')\nfailure = ValueError('callback failed')\nevents = []\nfail = True\nclass Position:\n    def __index__(self):\n        events.append('index')\n        decoder.buffer = b'index mutation'\n        decoder.errors = 'strict'\n        return -1\ndef recover(error):\n    events.append((error.object, error.start, error.end, error.reason))\n    decoder.buffer = b'callback mutation'\n    assert input() == 'continue'\n    if fail:\n        raise failure\n    return ('!', Position())\ncodecs.register_error('state_replay', recover)\nassert decoder.decode(b'\\xe2') == ''\nsaved = decoder.getstate()\ntry:\n    decoder.decode(b'Z', True)\nexcept ValueError as caught:\n    assert caught is failure\nelse:\n    assert False\nassert decoder.getstate() == (b'callback mutation', 0)\nassert saved == (b'\\xe2', 0)\ndecoder.setstate(saved)\nfail = False\nassert decoder.decode(b'Z', True) == '!Z'\nassert decoder.getstate() == (b'', 0)\nassert decoder.errors == 'strict'\nassert events == [(b'\\xe2Z', 0, 1, 'invalid continuation byte'), (b'\\xe2Z', 0, 1, 'invalid continuation byte'), 'index']\nprint('callback retry verified')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "after": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": ""
+    }
+  ]
+}

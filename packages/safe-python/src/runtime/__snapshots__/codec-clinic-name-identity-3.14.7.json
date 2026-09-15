@@ -1,0 +1,48 @@
+{
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "provenance": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\nlittle\n",
+  "cases": [
+    {
+      "name": "encode reject",
+      "source": "\nimport codecs\nnames = ('obj', 'encoding', 'errors')\nevents = []\nfailure = ValueError('comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append((other, other is names[0], other is names[1], other is names[2]))\n        if 'reject' == 'raise':\n            input()\n            raise failure\n        return 'reject' == 'accept'\ntry:\n    codecs.encode('a', **{Key('unexpected'): 1})\nexcept Exception as error:\n    print(type(error).__name__, str(error), error is failure)\nprint(events)\n",
+      "stdout": "TypeError encode() got an unexpected keyword argument 'unexpected' False\n[('obj', True, False, False), ('encoding', False, True, False), ('errors', False, False, True)]\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "encode accept",
+      "source": "\nimport codecs\nnames = ('obj', 'encoding', 'errors')\nevents = []\nfailure = ValueError('comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append((other, other is names[0], other is names[1], other is names[2]))\n        if 'accept' == 'raise':\n            input()\n            raise failure\n        return 'accept' == 'accept'\ntry:\n    codecs.encode('a', **{Key('unexpected'): 1})\nexcept Exception as error:\n    print(type(error).__name__, str(error), error is failure)\nprint(events)\n",
+      "stdout": "TypeError invalid keyword argument for encode() False\n[('obj', True, False, False)]\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "encode raise",
+      "source": "\nimport codecs\nnames = ('obj', 'encoding', 'errors')\nevents = []\nfailure = ValueError('comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append((other, other is names[0], other is names[1], other is names[2]))\n        if 'raise' == 'raise':\n            input()\n            raise failure\n        return 'raise' == 'accept'\ntry:\n    codecs.encode('a', **{Key('unexpected'): 1})\nexcept Exception as error:\n    print(type(error).__name__, str(error), error is failure)\nprint(events)\n",
+      "stdout": "ValueError comparison True\n[('obj', True, False, False)]\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "decode reject",
+      "source": "\nimport codecs\nnames = ('obj', 'encoding', 'errors')\nevents = []\nfailure = ValueError('comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append((other, other is names[0], other is names[1], other is names[2]))\n        if 'reject' == 'raise':\n            input()\n            raise failure\n        return 'reject' == 'accept'\ntry:\n    codecs.decode(b'a', **{Key('unexpected'): 1})\nexcept Exception as error:\n    print(type(error).__name__, str(error), error is failure)\nprint(events)\n",
+      "stdout": "TypeError decode() got an unexpected keyword argument 'unexpected' False\n[('obj', True, False, False), ('encoding', False, True, False), ('errors', False, False, True)]\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "decode accept",
+      "source": "\nimport codecs\nnames = ('obj', 'encoding', 'errors')\nevents = []\nfailure = ValueError('comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append((other, other is names[0], other is names[1], other is names[2]))\n        if 'accept' == 'raise':\n            input()\n            raise failure\n        return 'accept' == 'accept'\ntry:\n    codecs.decode(b'a', **{Key('unexpected'): 1})\nexcept Exception as error:\n    print(type(error).__name__, str(error), error is failure)\nprint(events)\n",
+      "stdout": "TypeError invalid keyword argument for decode() False\n[('obj', True, False, False)]\n",
+      "stderr": "",
+      "status": 0
+    },
+    {
+      "name": "decode raise",
+      "source": "\nimport codecs\nnames = ('obj', 'encoding', 'errors')\nevents = []\nfailure = ValueError('comparison')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append((other, other is names[0], other is names[1], other is names[2]))\n        if 'raise' == 'raise':\n            input()\n            raise failure\n        return 'raise' == 'accept'\ntry:\n    codecs.decode(b'a', **{Key('unexpected'): 1})\nexcept Exception as error:\n    print(type(error).__name__, str(error), error is failure)\nprint(events)\n",
+      "stdout": "ValueError comparison True\n[('obj', True, False, False)]\n",
+      "stderr": "",
+      "status": 0
+    }
+  ]
+}

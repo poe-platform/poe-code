@@ -1,0 +1,253 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts (10 tests | 6 failed) 81ms
+   × accepts contextual class names in Script code: class await {} 5ms
+   × accepts contextual class names in Script code: class aw\u0061it {} 1ms
+   × accepts contextual class names in Script code: (class await {}) 1ms
+   × accepts contextual class names in Script code: function f(){ class await {} } 1ms
+   × accepts contextual class names in Script code: class C {static { (() => { class await {} }); }} 1ms
+   ✓ preserves forbidden class bindings: async function f(){class await {}} 0ms
+   ✓ preserves forbidden class bindings: class C {static {class await {}}} 0ms
+   ✓ preserves forbidden class bindings: class yield {} 0ms
+   ✓ preserves forbidden class bindings: class eval {} 1ms
+   × retains contextual class source and identity across replay 69ms
+FAIL packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: class await {}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 7."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+FAIL packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: class aw\u0061it {}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 7."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+FAIL packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: (class await {})
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Expected \'{\' at line 1…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Expected '{' at line 1, column 8."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+FAIL packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: function f(){ class await {} }
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 21."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+FAIL packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: class C {static { (() => { class await {} }); }}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 34."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+FAIL packages/safe-js/src/parse/class-await-binding.test.ts > retains contextual class source and identity across replay
+AssertionError: expected { …(10) } to match object { ok: true, …(1) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "returnValue": [
+-     true,
+-     "await",
+-     "class await {}",
+-     "await",
+-     "undefined,undefined",
+-   ],
++   "caret": "  |        ^",
++   "column": 8,
++   "excerpt": "1 | (class await {})",
++   "filename": "<eval>",
++   "kind": "ParseError",
++   "line": 1,
++   "name": "SyntaxError",
+  }
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:36:75
+     34|   for(let i=0;i<3;i++){
+     35|     const settled=pending.catch(error=>error);
+     36|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     37|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     38|   }
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: class await {}
+ FAIL  packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: class aw\u0061it {}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 7."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: (class await {})
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Expected \'{\' at line 1…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Expected '{' at line 1, column 8."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: function f(){ class await {} }
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 21."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  packages/safe-js/src/parse/class-await-binding.test.ts > accepts contextual class names in Script code: class C {static { (() => { class await {} }); }}
+AssertionError: expected [Function] to not throw an error but 'SyntaxError: Unexpected token \'await…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"SyntaxError: Unexpected token 'await' at line 1, column 34."
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:15:56
+     13|   for (const prefix of ["", '"use strict";']) {
+     14|     expect(() => new Script(prefix + source)).not.toThrow();
+     15|     expect(() => parseEvalScript(prefix + source)).not.toThrow();
+       |                                                        ^
+     16|   }
+     17| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  packages/safe-js/src/parse/class-await-binding.test.ts > retains contextual class source and identity across replay
+AssertionError: expected { …(10) } to match object { ok: true, …(1) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
+-   "returnValue": [
+-     true,
+-     "await",
+-     "class await {}",
+-     "await",
+-     "undefined,undefined",
+-   ],
++   "caret": "  |        ^",
++   "column": 8,
++   "excerpt": "1 | (class await {})",
++   "filename": "<eval>",
++   "kind": "ParseError",
++   "line": 1,
++   "name": "SyntaxError",
+  }
+
+ ❯ packages/safe-js/src/parse/class-await-binding.test.ts:36:75
+     34|   for(let i=0;i<3;i++){
+     35|     const settled=pending.catch(error=>error);
+     36|     try{const saved=JSON.parse(await dump(pending));expect(await settl…
+       |                                                                           ^
+     37|       pending=run(source,{snapshot:restore(saved,{source})});}finally{…
+     38|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 4 passed (10)
+   Start at  10:46:25
+   Duration  2.18s (transform 1.55s, setup 41ms, import 1.95s, tests 81ms, environment 0ms)
+

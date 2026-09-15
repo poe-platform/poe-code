@@ -1,0 +1,24 @@
+[
+  {
+    "url": "https://registry.npmjs.org/@poe-platform%2fsafe-js/0.1.594",
+    "at": "2026-09-14T07:19:31.988057+00:00",
+    "failure": "HTTP Error 404: Not Found"
+  },
+  {
+    "url": "https://registry.npmjs.org/@poe-platform%2fsafe-js",
+    "at": "2026-09-14T07:19:32.468150+00:00",
+    "status": 200,
+    "bytes": 1673838,
+    "hasVersion": false
+  },
+  {
+    "url": "https://registry.npmjs.org/@poe-platform/safe-js/-/safe-js-0.1.594.tgz",
+    "at": "2026-09-14T07:19:32.893320+00:00",
+    "failure": "HTTP Error 404: Not Found"
+  },
+  {
+    "url": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-js@0.1.594",
+    "at": "2026-09-14T07:19:33.117304+00:00",
+    "failure": "HTTP Error 404: Not Found"
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "cases": [
+    {
+      "name": "ROT13 bytes consumer nontext rejection",
+      "source": "try:\n    b'A'.decode('rot13')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n",
+      "expected": "LookupError 'rot13' is not a text encoding; use codecs.decode() to handle arbitrary codecs\n",
+      "actual": "LookupError unknown encoding: rot13\n",
+      "status": "ok",
+      "passed": false
+    },
+    {
+      "name": "undefined bytes consumer",
+      "source": "try:\n    b'A'.decode('undefined')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n",
+      "expected": "UnicodeError undefined encoding\n",
+      "actual": "LookupError unknown encoding: undefined\n",
+      "status": "ok",
+      "passed": false
+    },
+    {
+      "name": "guest module spec",
+      "source": "import encodings.rot_13 as rot\ntry:\n    print(rot.__spec__.name)\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n",
+      "expected": "encodings.rot_13\n",
+      "actual": "AttributeError module 'encodings.rot_13' has no attribute '__spec__'\n",
+      "status": "ok",
+      "passed": false
+    },
+    {
+      "name": "undefined traceback",
+      "source": "import codecs\ntry:\n    codecs.encode('', 'undefined')\nexcept UnicodeError as error:\n    print(error.__traceback__ is not None)\n",
+      "expected": "True\n",
+      "actual": "False\n",
+      "status": "ok",
+      "passed": false
+    }
+  ]
+}

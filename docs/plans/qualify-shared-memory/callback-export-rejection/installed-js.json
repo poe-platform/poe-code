@@ -1,0 +1,85 @@
+{
+  "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-js-consumer-g1j8hlzj",
+  "package": "@poe-platform/safe-js",
+  "version": "0.1.592",
+  "install": {
+    "exitCode": 0,
+    "output": "\nadded 15 packages in 2s\n"
+  },
+  "module": "import assert from \"node:assert/strict\";\nconst entry = process.env.SAFEJS_QUALIFICATION_ENTRY;\nconst { run, dump } = await import(entry);\nconst source = \"const b=new SharedArrayBuffer(4);await receive(()=>b);return new Uint8Array(b)[0]\";\nlet calls = 0;\nconst bindings = {\n  receive: async (callback) => {\n    calls++;\n    const buffer = await callback();\n    new Uint8Array(buffer)[0] = 7;\n  }\n};\nconst original = await run(source, { bindings });\nassert.equal(original.ok, true);\nassert.equal(original.returnValue, 7);\nassert.match(original.snapshot.replayError, /Shared storage exported by a guest callback/);\nawait assert.rejects(dump(original), /Shared storage exported by a guest callback/);\nawait assert.rejects(\n  run(source, { bindings, snapshot: original.snapshot }),\n  /Shared storage exported by a guest callback/\n);\nassert.equal(calls, 1);\nconst confined =\n  \"const a=new Int32Array(new SharedArrayBuffer(4));const w=Atomics.waitAsync(a,0,0);const n=Atomics.notify(a,0);return [n,await w.value]\";\nconst first = await run(confined);\nassert.deepEqual(first.returnValue, [1, \"ok\"]);\nconst replay = await run(confined, { snapshot: JSON.parse(await dump(first)) });\nassert.deepEqual(replay.returnValue, [1, \"ok\"]);\nconsole.log(\n  JSON.stringify({\n    entry,\n    node: process.versions.node,\n    icu: process.versions.icu,\n    original: original.returnValue,\n    receiverCalls: calls,\n    confined: first.returnValue,\n    confinedReplay: replay.returnValue,\n    rejected: true\n  })\n);",
+  "smokes": [
+    {
+      "runtime": "18.18.0",
+      "command": [
+        "/Users/kjopek/.npm/_npx/5c21e3f970cab345/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"@poe-platform/safe-js\",\"node\":\"18.18.0\",\"icu\":\"73.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "runtime": "18.20.8",
+      "command": [
+        "/Users/kjopek/.npm/_npx/00073ba5d7c1f8bc/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"@poe-platform/safe-js\",\"node\":\"18.20.8\",\"icu\":\"74.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "runtime": "20.20.2",
+      "command": [
+        "/Users/kjopek/.npm/_npx/185e25162edaacfb/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"@poe-platform/safe-js\",\"node\":\"20.20.2\",\"icu\":\"78.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "runtime": "22.23.2",
+      "command": [
+        "/Users/kjopek/.nvm/versions/node/v22.23.2/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"@poe-platform/safe-js\",\"node\":\"22.23.2\",\"icu\":\"78.2\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "runtime": "24.21.0",
+      "command": [
+        "/Users/kjopek/.npm/_npx/538786c08bcb9442/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"@poe-platform/safe-js\",\"node\":\"24.21.0\",\"icu\":\"78.3\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "runtime": "26.8.2",
+      "command": [
+        "/Users/kjopek/.npm/_npx/131005c554cfb1ac/node_modules/node/bin/node",
+        "--input-type=module"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"@poe-platform/safe-js\",\"node\":\"26.8.2\",\"icu\":\"78.3\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    },
+    {
+      "runtime": "Bun 1.4.2",
+      "command": [
+        "npm",
+        "exec",
+        "--yes",
+        "--package=bun@1.4.2",
+        "--",
+        "bun",
+        "run",
+        "-"
+      ],
+      "exitCode": 0,
+      "output": "{\"entry\":\"@poe-platform/safe-js\",\"node\":\"26.3.0\",\"icu\":\"78.1\",\"original\":7,\"receiverCalls\":1,\"confined\":[1,\"ok\"],\"confinedReplay\":[1,\"ok\"],\"rejected\":true}\n"
+    }
+  ],
+  "signatures": {
+    "exitCode": 0,
+    "output": "audited 15 packages in 0s\n\n15 packages have verified registry signatures\n\n10 packages have verified attestations\n\n"
+  }
+}

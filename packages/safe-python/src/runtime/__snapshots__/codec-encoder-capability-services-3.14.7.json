@@ -1,0 +1,510 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "rows": [
+    {
+      "name": "core aliases share registered encoders across every text consumer and empty input",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('input coerced')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('output coerced')\nresult = Data(b'registry')\ndef encode(*args):\n    events.append(args)\n    return (result, object())\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\nfor name in ('u8', 'utf', 'cp65001', '646', 'cp367', 'latin', 'l1', 'cp819'):\n    events.clear()\n    for contents in ('', 'A'):\n        source = Text(contents)\n        assert source.encode(name) is result\n        assert str.encode(source, name, 'custom') is result\n        assert bytes(source, name) is result\n        assert bytes.__new__(bytes, source, name, 'custom') is result\n        assert events[-4:] == [(source,), (source, 'custom'), (source,), (source, 'custom')]\n        for args in events[-4:]:\n            assert args[0] is source\n    assert events[0] == name and len(events) == 9\nevents.clear()\nfor name in ('utf-8', 'ascii', 'latin-1'):\n    assert 'A'.encode(name) == b'A'\n    assert bytes('', name) == b''\nassert events == []\n",
+      "stdin": "",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "core aliases share registered encoders across every text consumer and empty input",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('input coerced')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('output coerced')\nresult = Data(b'registry')\ndef encode(*args):\n    events.append(args)\n    return (result, object())\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\nfor name in ('u8', 'utf', 'cp65001', '646', 'cp367', 'latin', 'l1', 'cp819'):\n    events.clear()\n    for contents in ('', 'A'):\n        source = Text(contents)\n        assert source.encode(name) is result\n        assert str.encode(source, name, 'custom') is result\n        assert bytes(source, name) is result\n        assert bytes.__new__(bytes, source, name, 'custom') is result\n        assert events[-4:] == [(source,), (source, 'custom'), (source,), (source, 'custom')]\n        for args in events[-4:]:\n            assert args[0] is source\n    assert events[0] == name and len(events) == 9\nevents.clear()\nfor name in ('utf-8', 'ascii', 'latin-1'):\n    assert 'A'.encode(name) == b'A'\n    assert bytes('', name) == b''\nassert events == []\n",
+      "stdin": "",
+      "seed": [
+        "17",
+        "29"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "all native non-fast-path families consult replacement registry search",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('input coerced')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('output coerced')\nsource = Text('')\nresult = Data(b'registry')\ndef encode(*args):\n    events.append(args)\n    return (result, object())\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\nfor name in ('utf_8_sig', 'utf_7', 'u7', 'unicode_1_1_utf_7', 'unicode_escape', 'raw_unicode_escape', 'utf_16_le', 'utf_16_be', 'utf_32_le', 'utf_32_be', 'u16', 'u32', 'punycode', 'cp437', 'charmap'):\n    events.clear()\n    assert source.encode(name) is result\n    assert bytes(source, name, 'custom') is result\n    assert events == [name, (source,), (source, 'custom')]\n    assert events[1][0] is source and events[2][0] is source\n",
+      "stdin": "",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "all native non-fast-path families consult replacement registry search",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('input coerced')\nclass Data(bytes):\n    def __bytes__(self):\n        raise AssertionError('output coerced')\nsource = Text('')\nresult = Data(b'registry')\ndef encode(*args):\n    events.append(args)\n    return (result, object())\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\nfor name in ('utf_8_sig', 'utf_7', 'u7', 'unicode_1_1_utf_7', 'unicode_escape', 'raw_unicode_escape', 'utf_16_le', 'utf_16_be', 'utf_32_le', 'utf_32_be', 'u16', 'u32', 'punycode', 'cp437', 'charmap'):\n    events.clear()\n    assert source.encode(name) is result\n    assert bytes(source, name, 'custom') is result\n    assert events == [name, (source,), (source, 'custom')]\n    assert events[1][0] is source and events[2][0] is source\n",
+      "stdin": "",
+      "seed": [
+        "17",
+        "29"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "native non-fast-path codecs observe nontext flags and result validation",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ncalls = []\ndef encode(*args):\n    calls.append(args)\n    return ('wrong', None)\ninfo = codecs.CodecInfo(encode, None, name='custom', _is_text_encoding=False)\ndef search(name):\n    return info\ncodecs.register(search)\nfor name in ('utf-8-sig', 'utf-7', 'utf-16-le', 'unicode_escape', 'cp437'):\n    try:\n        'A'.encode(name)\n    except LookupError as error:\n        assert str(error) == \"'\" + name + \"' is not a text encoding; use codecs.encode() to handle arbitrary codecs\"\n    else:\n        assert False\nassert calls == []\ninfo._is_text_encoding = True\nfor name in ('utf-8-sig', 'utf-7', 'utf-16-le', 'unicode_escape', 'cp437'):\n    try:\n        'A'.encode(name)\n    except TypeError as error:\n        assert str(error) == \"'\" + name + \"' encoder returned 'str' instead of 'bytes'; use codecs.encode() to encode to arbitrary types\"\n    else:\n        assert False\nassert calls == [('A',)] * 5\n",
+      "stdin": "",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "native non-fast-path codecs observe nontext flags and result validation",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ncalls = []\ndef encode(*args):\n    calls.append(args)\n    return ('wrong', None)\ninfo = codecs.CodecInfo(encode, None, name='custom', _is_text_encoding=False)\ndef search(name):\n    return info\ncodecs.register(search)\nfor name in ('utf-8-sig', 'utf-7', 'utf-16-le', 'unicode_escape', 'cp437'):\n    try:\n        'A'.encode(name)\n    except LookupError as error:\n        assert str(error) == \"'\" + name + \"' is not a text encoding; use codecs.encode() to handle arbitrary codecs\"\n    else:\n        assert False\nassert calls == []\ninfo._is_text_encoding = True\nfor name in ('utf-8-sig', 'utf-7', 'utf-16-le', 'unicode_escape', 'cp437'):\n    try:\n        'A'.encode(name)\n    except TypeError as error:\n        assert str(error) == \"'\" + name + \"' encoder returned 'str' instead of 'bytes'; use codecs.encode() to encode to arbitrary types\"\n    else:\n        assert False\nassert calls == [('A',)] * 5\n",
+      "stdin": "",
+      "seed": [
+        "17",
+        "29"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "native non-fast-path codecs retain recursive callback exception identity and notes",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nfailure = ValueError('callback failure')\ncalls = []\ndef encode(source, errors='strict'):\n    calls.append((source, errors))\n    if source == 'outer':\n        return (bytes('inner', 'utf-8-sig', 'nested'), None)\n    raise failure\ndef search(name):\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    'outer'.encode('utf-7')\nexcept ValueError as error:\n    assert error is failure\n    assert error.__notes__ == [\"encoding with 'utf-8-sig' codec failed\", \"encoding with 'utf-7' codec failed\"]\nelse:\n    assert False\nassert calls == [('outer', 'strict'), ('inner', 'nested')]\n",
+      "stdin": "",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "native non-fast-path codecs retain recursive callback exception identity and notes",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nfailure = ValueError('callback failure')\ncalls = []\ndef encode(source, errors='strict'):\n    calls.append((source, errors))\n    if source == 'outer':\n        return (bytes('inner', 'utf-8-sig', 'nested'), None)\n    raise failure\ndef search(name):\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    'outer'.encode('utf-7')\nexcept ValueError as error:\n    assert error is failure\n    assert error.__notes__ == [\"encoding with 'utf-8-sig' codec failed\", \"encoding with 'utf-7' codec failed\"]\nelse:\n    assert False\nassert calls == [('outer', 'strict'), ('inner', 'nested')]\n",
+      "stdin": "",
+      "seed": [
+        "17",
+        "29"
+      ],
+      "status": "ok",
+      "reads": 0,
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "search callback I/O through a native non-fast-path codec",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ndef encode(source, errors='strict'):\n    pass\n    print('encoded')\n    return (b'converted', None)\ndef search(name):\n    assert input() == 'continue'\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    assert 'A'.encode('utf-8-sig') == b'converted'\nexcept BaseException:\n    print('caught')\n    raise\nprint('finished')\n",
+      "stdin": "continue\n",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "reads": 1,
+      "stdout": "encoded\nfinished\n",
+      "reference": {
+        "status": 0,
+        "stdout": "encoded\nfinished\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "search callback I/O through a native non-fast-path codec",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ndef encode(source, errors='strict'):\n    pass\n    print('encoded')\n    return (b'converted', None)\ndef search(name):\n    assert input() == 'continue'\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    assert 'A'.encode('utf-8-sig') == b'converted'\nexcept BaseException:\n    print('caught')\n    raise\nprint('finished')\n",
+      "stdin": "continue\n",
+      "seed": [
+        "17",
+        "29"
+      ],
+      "status": "ok",
+      "reads": 1,
+      "stdout": "encoded\nfinished\n",
+      "reference": {
+        "status": 0,
+        "stdout": "encoded\nfinished\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "encode callback I/O through a native non-fast-path codec",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ndef encode(source, errors='strict'):\n    assert input() == 'continue'\n    print('encoded')\n    return (b'converted', None)\ndef search(name):\n    pass\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    assert 'A'.encode('utf-8-sig') == b'converted'\nexcept BaseException:\n    print('caught')\n    raise\nprint('finished')\n",
+      "stdin": "continue\n",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "status": "ok",
+      "reads": 1,
+      "stdout": "encoded\nfinished\n",
+      "reference": {
+        "status": 0,
+        "stdout": "encoded\nfinished\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "encode callback I/O through a native non-fast-path codec",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ndef encode(source, errors='strict'):\n    assert input() == 'continue'\n    print('encoded')\n    return (b'converted', None)\ndef search(name):\n    pass\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    assert 'A'.encode('utf-8-sig') == b'converted'\nexcept BaseException:\n    print('caught')\n    raise\nprint('finished')\n",
+      "stdin": "continue\n",
+      "seed": [
+        "17",
+        "29"
+      ],
+      "status": "ok",
+      "reads": 1,
+      "stdout": "encoded\nfinished\n",
+      "reference": {
+        "status": 0,
+        "stdout": "encoded\nfinished\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "cancellation": [
+    {
+      "name": "search callback I/O through a native non-fast-path codec",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ndef encode(source, errors='strict'):\n    pass\n    print('encoded')\n    return (b'converted', None)\ndef search(name):\n    assert input() == 'continue'\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    assert 'A'.encode('utf-8-sig') == b'converted'\nexcept BaseException:\n    print('caught')\n    raise\nprint('finished')\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resumed": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "output": ""
+    },
+    {
+      "name": "encode callback I/O through a native non-fast-path codec",
+      "source": "\nimport codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\ndef encode(source, errors='strict'):\n    assert input() == 'continue'\n    print('encoded')\n    return (b'converted', None)\ndef search(name):\n    pass\n    return codecs.CodecInfo(encode, None, name=name)\ncodecs.register(search)\ntry:\n    assert 'A'.encode('utf-8-sig') == b'converted'\nexcept BaseException:\n    print('caught')\n    raise\nprint('finished')\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "resumed": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "output": ""
+    }
+  ],
+  "explicitCapabilityOracle": {
+    "source": "import json, codecs, encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(lambda *args: (b'override', 0), None)\ncodecs.register(search)\nrows = []\nfor name in ('u8', 'utf', 'cp65001', '646', 'cp367', 'latin', 'l1', 'cp819', 'utf-8-sig', 'utf-16-le', 'utf-32-be', 'utf-7', 'utf-8', 'ascii', 'latin-1', 'utf-16', 'utf-32'):\n    events.clear()\n    result = 'A'.encode(name)\n    rows.append(dict(encoding=name, result=list(result), result_type=type(result).__name__, search=list(events)))\ncodecs.unregister(search)\ncodecs.register(encodings.search_function)\nprint(json.dumps(rows))\n",
+    "status": 0,
+    "stdout": "[{\"encoding\": \"u8\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"u8\"]}, {\"encoding\": \"utf\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"utf\"]}, {\"encoding\": \"cp65001\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"cp65001\"]}, {\"encoding\": \"646\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"646\"]}, {\"encoding\": \"cp367\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"cp367\"]}, {\"encoding\": \"latin\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"latin\"]}, {\"encoding\": \"l1\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"l1\"]}, {\"encoding\": \"cp819\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"cp819\"]}, {\"encoding\": \"utf-8-sig\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"utf_8_sig\"]}, {\"encoding\": \"utf-16-le\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"utf_16_le\"]}, {\"encoding\": \"utf-32-be\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"utf_32_be\"]}, {\"encoding\": \"utf-7\", \"result\": [111, 118, 101, 114, 114, 105, 100, 101], \"result_type\": \"bytes\", \"search\": [\"utf_7\"]}, {\"encoding\": \"utf-8\", \"result\": [65], \"result_type\": \"bytes\", \"search\": []}, {\"encoding\": \"ascii\", \"result\": [65], \"result_type\": \"bytes\", \"search\": []}, {\"encoding\": \"latin-1\", \"result\": [65], \"result_type\": \"bytes\", \"search\": []}, {\"encoding\": \"utf-16\", \"result\": [255, 254, 65, 0], \"result_type\": \"bytes\", \"search\": []}, {\"encoding\": \"utf-32\", \"result\": [255, 254, 0, 0, 65, 0, 0, 0], \"result_type\": \"bytes\", \"search\": []}]\n",
+    "stderr": "",
+    "rows": [
+      {
+        "encoding": "u8",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "u8"
+        ]
+      },
+      {
+        "encoding": "utf",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "utf"
+        ]
+      },
+      {
+        "encoding": "cp65001",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "cp65001"
+        ]
+      },
+      {
+        "encoding": "646",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "646"
+        ]
+      },
+      {
+        "encoding": "cp367",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "cp367"
+        ]
+      },
+      {
+        "encoding": "latin",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "latin"
+        ]
+      },
+      {
+        "encoding": "l1",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "l1"
+        ]
+      },
+      {
+        "encoding": "cp819",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "cp819"
+        ]
+      },
+      {
+        "encoding": "utf-8-sig",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "utf_8_sig"
+        ]
+      },
+      {
+        "encoding": "utf-16-le",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "utf_16_le"
+        ]
+      },
+      {
+        "encoding": "utf-32-be",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "utf_32_be"
+        ]
+      },
+      {
+        "encoding": "utf-7",
+        "result": [
+          111,
+          118,
+          101,
+          114,
+          114,
+          105,
+          100,
+          101
+        ],
+        "result_type": "bytes",
+        "search": [
+          "utf_7"
+        ]
+      },
+      {
+        "encoding": "utf-8",
+        "result": [
+          65
+        ],
+        "result_type": "bytes",
+        "search": []
+      },
+      {
+        "encoding": "ascii",
+        "result": [
+          65
+        ],
+        "result_type": "bytes",
+        "search": []
+      },
+      {
+        "encoding": "latin-1",
+        "result": [
+          65
+        ],
+        "result_type": "bytes",
+        "search": []
+      },
+      {
+        "encoding": "utf-16",
+        "result": [
+          255,
+          254,
+          65,
+          0
+        ],
+        "result_type": "bytes",
+        "search": []
+      },
+      {
+        "encoding": "utf-32",
+        "result": [
+          255,
+          254,
+          0,
+          0,
+          65,
+          0,
+          0,
+          0
+        ],
+        "result_type": "bytes",
+        "search": []
+      }
+    ]
+  }
+}

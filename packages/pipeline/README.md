@@ -153,7 +153,7 @@ If setup fails, no tasks run. If teardown fails, the pipeline returns `stopReaso
 Pipeline processes tasks sequentially in plan order:
 
 1. Resolve plan path and step definitions
-2. Acquire lock on the plan file
+2. Serialize calls for the same plan within the current process (no disk locks)
 3. Select next runnable task or step
 4. Spawn one agent execution
 5. Persist status after agent exits
@@ -167,7 +167,7 @@ A failed task or step blocks all later tasks.
 
 ### Cancellation
 
-No intermediate status is written before spawn. If an execution is aborted, the task stays at its prior status and the lock is released.
+No intermediate status is written before spawn. If an execution is aborted, the task stays at its prior status and the next queued call can proceed.
 
 ### Plan Archiving
 

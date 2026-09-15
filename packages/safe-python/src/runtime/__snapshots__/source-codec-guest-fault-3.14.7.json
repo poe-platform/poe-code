@@ -1,0 +1,217 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "byteorder": "little",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "rows": [
+    {
+      "name": "ValueError live string protocol",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "ValueError live string protocol",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "ValueError live string protocol",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "LookupError live string protocol",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "LookupError live string protocol",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "LookupError live string protocol",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "IndexError live string protocol",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "IndexError live string protocol",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "IndexError live string protocol",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "UnicodeError live string protocol",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "UnicodeError live string protocol",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "UnicodeError live string protocol",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "KeyError renders the original key through guest repr",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "KeyError renders the original key through guest repr",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "KeyError renders the original key through guest repr",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "SyntaxError updates filename using the live setter and retains args",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "SyntaxError updates filename using the live setter and retains args",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "SyntaxError updates filename using the live setter and retains args",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "rendering failure propagates without a second translation",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "rendering failure propagates without a second translation",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "rendering failure propagates without a second translation",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "invalid str return is a TypeError",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "invalid str return is a TypeError",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "invalid str return is a TypeError",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "untranslated exceptions preserve identity without rendering",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "untranslated exceptions preserve identity without rendering",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "untranslated exceptions preserve identity without rendering",
+      "mode": "eval",
+      "result": "ok"
+    },
+    {
+      "name": "filename setter failures preserve identity",
+      "mode": "compile",
+      "result": "ok"
+    },
+    {
+      "name": "filename setter failures preserve identity",
+      "mode": "exec",
+      "result": "ok"
+    },
+    {
+      "name": "filename setter failures preserve identity",
+      "mode": "eval",
+      "result": "ok"
+    }
+  ],
+  "driver": "import codecs,json,sys,unicodedata,traceback,platform\ncases=json.load(open('/tmp/source-codec-guest-cases.json')); rows=[]\nfor case in cases:\n for mode in ('compile','exec','eval'):\n  ns={'__name__':'__main__'}\n  target='guest-codec.py' if mode=='compile' else '<string>'\n  def decoder(*args):ns['decode']();raise AssertionError('decoder returned')\n  def search(name):return codecs.CodecInfo(None,decoder,name=name) if name=='guest_fault' else None\n  def trigger():\n   source=b'# coding: guest-fault\\n1'\n   return compile(source,target,'exec') if mode=='compile' else (exec(source,{}) if mode=='exec' else eval(source,{}))\n  ns.update(trigger=trigger,target=target,preserve_filename=mode=='compile')\n  codecs.register(search)\n  try:\n   exec(case['source'],ns)\n   result='ok'\n  except BaseException as error:result=traceback.format_exc()\n  finally:codecs.unregister(search)\n  rows.append(dict(name=case['name'],mode=mode,result=result))\njson.dump(dict(oracle=dict(version=sys.version,unicode=unicodedata.unidata_version,byteorder=sys.byteorder,platform=platform.platform()),rows=rows),open('/tmp/source-codec-guest-oracle.json','w'),indent=2)\nfor row in rows:\n if row['result']!='ok':print(row['mode'],row['name'],ascii(row['result']))\nprint('matches',sum(row['result']=='ok' for row in rows),'total',len(rows))\n",
+  "cases": [
+    {
+      "name": "ValueError live string protocol",
+      "source": "\nevents = []\nclass Text(str):\n    pass\nmessage = Text('fault\\ud800\\udc00🐍')\nclass Failure(ValueError):\n    def __str__(self):\n        events.append('str')\n        return message\nfailure = Failure('original')\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.msg is message\n    assert error.args == (message, (target, 0, -1, None))\n    assert error.args[0] is error.msg\n    assert error.filename == target\n    if preserve_filename:\n        assert error.filename is target\n    assert (error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (0, -1, None, None, None)\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['str']\nassert failure.args == ('original',)\n"
+    },
+    {
+      "name": "LookupError live string protocol",
+      "source": "\nevents = []\nclass Text(str):\n    pass\nmessage = Text('fault\\ud800\\udc00🐍')\nclass Failure(LookupError):\n    def __str__(self):\n        events.append('str')\n        return message\nfailure = Failure('original')\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.msg is message\n    assert error.args == (message, (target, 0, -1, None))\n    assert error.args[0] is error.msg\n    assert error.filename == target\n    if preserve_filename:\n        assert error.filename is target\n    assert (error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (0, -1, None, None, None)\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['str']\nassert failure.args == ('original',)\n"
+    },
+    {
+      "name": "IndexError live string protocol",
+      "source": "\nevents = []\nclass Text(str):\n    pass\nmessage = Text('fault\\ud800\\udc00🐍')\nclass Failure(IndexError):\n    def __str__(self):\n        events.append('str')\n        return message\nfailure = Failure('original')\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.msg is message\n    assert error.args == (message, (target, 0, -1, None))\n    assert error.args[0] is error.msg\n    assert error.filename == target\n    if preserve_filename:\n        assert error.filename is target\n    assert (error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (0, -1, None, None, None)\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['str']\nassert failure.args == ('original',)\n"
+    },
+    {
+      "name": "UnicodeError live string protocol",
+      "source": "\nevents = []\nclass Text(str):\n    pass\nmessage = Text('fault\\ud800\\udc00🐍')\nclass Failure(UnicodeError):\n    def __str__(self):\n        events.append('str')\n        return message\nfailure = Failure('original')\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept SyntaxError as error:\n    assert type(error) is SyntaxError\n    assert error.msg is message\n    assert error.args == (message, (target, 0, -1, None))\n    assert error.args[0] is error.msg\n    assert error.filename == target\n    if preserve_filename:\n        assert error.filename is target\n    assert (error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (0, -1, None, None, None)\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['str']\nassert failure.args == ('original',)\n"
+    },
+    {
+      "name": "KeyError renders the original key through guest repr",
+      "source": "\nevents = []\nclass Key:\n    def __repr__(self):\n        events.append('repr')\n        return 'key\\ud800\\udc00'\nkey = Key()\nfailure = KeyError(key)\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept SyntaxError as error:\n    assert error.msg == 'key\\ud800\\udc00'\n    assert error.filename == target\n    if preserve_filename:\n        assert error.filename is target\nelse:\n    assert False\nassert events == ['repr']\nassert failure.args[0] is key\n"
+    },
+    {
+      "name": "SyntaxError updates filename using the live setter and retains args",
+      "source": "\nevents = []\nclass Failure(SyntaxError):\n    def __setattr__(self, name, value):\n        events.append((name, value))\n        super().__setattr__(name, value)\nfailure = Failure('old', ('before.py', 7, 4, 'line', 8, 5))\narguments = failure.args\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept SyntaxError as error:\n    assert error is failure\n    assert error.args is arguments\n    assert error.filename == target\n    if preserve_filename:\n        assert error.filename is target\n    assert (error.lineno, error.offset, error.text, error.end_lineno, error.end_offset) == (7, 4, 'line', 8, 5)\nelse:\n    assert False\nassert events == [('__notes__', [\"decoding with 'guest-fault' codec failed\"]), ('filename', target)]\n"
+    },
+    {
+      "name": "rendering failure propagates without a second translation",
+      "source": "\nevents = []\nreplacement = IndexError('render failed')\nclass Failure(ValueError):\n    def __str__(self):\n        events.append('str')\n        raise replacement\nfailure = Failure('original')\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept IndexError as error:\n    assert error is replacement\n    assert error.__context__ is None\nelse:\n    assert False\nassert events == ['str']\n"
+    },
+    {
+      "name": "invalid str return is a TypeError",
+      "source": "\nclass Failure(ValueError):\n    def __str__(self):\n        return 7\ndef decode():\n    raise Failure('original')\ntry:\n    trigger()\nexcept TypeError as error:\n    assert error.args == ('__str__ returned non-string (type int)',)\nelse:\n    assert False\n"
+    },
+    {
+      "name": "untranslated exceptions preserve identity without rendering",
+      "source": "\nclass Failure(TypeError):\n    def __str__(self):\n        raise AssertionError('must not render')\nfailure = Failure('original')\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept TypeError as error:\n    assert error is failure\nelse:\n    assert False\n"
+    },
+    {
+      "name": "filename setter failures preserve identity",
+      "source": "\nreplacement = LookupError('setter failed')\nclass Failure(SyntaxError):\n    def __setattr__(self, name, value):\n        if name == 'filename':\n            raise replacement\n        super().__setattr__(name, value)\nfailure = Failure('old')\ndef decode():\n    raise failure\ntry:\n    trigger()\nexcept LookupError as error:\n    assert error is replacement\n    assert error.__context__ is None\nelse:\n    assert False\n"
+    }
+  ],
+  "filenameProbe": {
+    "source": "codecs.register(lambda n: codecs.CodecInfo(None, lambda x: ('\\ufeff1', len(x)), name=n) if n == 'guest_fault' else None); compile(b'# coding: guest-fault\\n1', 'guest-codec.py', 'exec')",
+    "args": [
+      "invalid non-printable character U+FEFF",
+      [
+        "guest-codec.py",
+        1,
+        1,
+        "﻿1",
+        1,
+        1
+      ]
+    ]
+  }
+}

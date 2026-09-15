@@ -1,0 +1,14 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "cases": 760,
+  "adapter": "Explicit output capability owning an OS file descriptor: writeSync/fsyncSync; closed and owned scratch removed.",
+  "sourceSha256": "7f231ba0729b810b50ec9e95321da9b86c0a41b8763fed1860fc8ba7cf91d6ff",
+  "outputBytes": 57326,
+  "outputSha256": "f03069a89e12437b2fae995d7a4b820673baa631f0aee47d95374159e8674fa8",
+  "mismatches": 0,
+  "scope": "Dictionary-view and hash-error corpora through real interpreter and output adapter only; no import/buffer/I/O completeness claim."
+}

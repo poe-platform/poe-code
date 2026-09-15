@@ -1,0 +1,7 @@
+{
+  "archive": "docs/plans/complete-conformance-runner/baseline-v4/selected-batch-reports.tar.gz",
+  "sha256": "1c8c1aabb6263f21c33f44202ae84713242fff2d03dae8b43ff5f08d5c718a28",
+  "members": 216,
+  "allCategoryBatchReceiptsMatched": true,
+  "source": "tracked Git archive; no corpus execution"
+}

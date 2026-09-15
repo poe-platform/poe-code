@@ -1,0 +1,334 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "name": "float.fromhex(Text('0x1.8p+1'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('0x1.8p+1'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'float', '0x1.8000000000000p+1', [])"
+    },
+    {
+      "name": "float.fromhex(Text('-0x0p+0'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('-0x0p+0'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'float', '-0x0.0p+0', [])"
+    },
+    {
+      "name": "float.fromhex(Text('  +0x1p-1074  '))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('  +0x1p-1074  '))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'float', '0x0.0000000000001p-1022', [])"
+    },
+    {
+      "name": "float.fromhex(Text('inf'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('inf'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'float', 'inf', [])"
+    },
+    {
+      "name": "float.fromhex(Text('nan'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('nan'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'float', 'nan', [])"
+    },
+    {
+      "name": "float.fromhex(Text('bad'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('bad'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'float', '0x1.75a0000000000p+11', [])"
+    },
+    {
+      "name": "float.fromhex(Text('0x1p+99999'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('0x1p+99999'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'OverflowError', 'hexadecimal value too large to represent as a float', [])"
+    },
+    {
+      "name": "float.fromhex(Text('0x1p-99999'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('0x1p-99999'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'float', '0x0.0p+0', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('0x1.8p+1'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('0x1.8p+1'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x1.8000000000000p+1', [('new', 'float', '0x1.8000000000000p+1'), ('init', 'float', '0x1.8000000000000p+1')])"
+    },
+    {
+      "name": "Result.fromhex(Text('-0x0p+0'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('-0x0p+0'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '-0x0.0p+0', [('new', 'float', '-0x0.0p+0'), ('init', 'float', '-0x0.0p+0')])"
+    },
+    {
+      "name": "Result.fromhex(Text('  +0x1p-1074  '))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('  +0x1p-1074  '))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x0.0000000000001p-1022', [('new', 'float', '0x0.0000000000001p-1022'), ('init', 'float', '0x0.0000000000001p-1022')])"
+    },
+    {
+      "name": "Result.fromhex(Text('inf'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('inf'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', 'inf', [('new', 'float', 'inf'), ('init', 'float', 'inf')])"
+    },
+    {
+      "name": "Result.fromhex(Text('nan'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('nan'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', 'nan', [('new', 'float', 'nan'), ('init', 'float', 'nan')])"
+    },
+    {
+      "name": "Result.fromhex(Text('bad'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('bad'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x1.75a0000000000p+11', [('new', 'float', '0x1.75a0000000000p+11'), ('init', 'float', '0x1.75a0000000000p+11')])"
+    },
+    {
+      "name": "Result.fromhex(Text('0x1p+99999'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('0x1p+99999'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'OverflowError', 'hexadecimal value too large to represent as a float', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('0x1p-99999'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('0x1p-99999'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x0.0p+0', [('new', 'float', '0x0.0p+0'), ('init', 'float', '0x0.0p+0')])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('0x1.8p+1'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('0x1.8p+1'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x1.8000000000000p+1', [('new', 'float', '0x1.8000000000000p+1'), ('init', 'float', '0x1.8000000000000p+1')])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('-0x0p+0'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('-0x0p+0'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '-0x0.0p+0', [('new', 'float', '-0x0.0p+0'), ('init', 'float', '-0x0.0p+0')])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('  +0x1p-1074  '))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('  +0x1p-1074  '))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x0.0000000000001p-1022', [('new', 'float', '0x0.0000000000001p-1022'), ('init', 'float', '0x0.0000000000001p-1022')])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('inf'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('inf'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', 'inf', [('new', 'float', 'inf'), ('init', 'float', 'inf')])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('nan'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('nan'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', 'nan', [('new', 'float', 'nan'), ('init', 'float', 'nan')])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('bad'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('bad'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x1.75a0000000000p+11', [('new', 'float', '0x1.75a0000000000p+11'), ('init', 'float', '0x1.75a0000000000p+11')])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('0x1p+99999'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('0x1p+99999'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'OverflowError', 'hexadecimal value too large to represent as a float', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('0x1p-99999'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('0x1p-99999'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('ok', 'Result', '0x0.0p+0', [('new', 'float', '0x0.0p+0'), ('init', 'float', '0x0.0p+0')])"
+    },
+    {
+      "name": "float.fromhex(Text('z'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('z'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.fromhex(Text('0x1p'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('0x1p'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.fromhex(Text('\uff11'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('\uff11'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.fromhex(Text('1\\x00'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('1\\x00'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.fromhex(Text('\\ud800'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('\\ud800'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\", [])"
+    },
+    {
+      "name": "float.fromhex(Text('\\u20031'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('\\u20031'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.fromhex(string=Text('1'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(string=Text('1'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'float.fromhex() takes no keyword arguments', [])"
+    },
+    {
+      "name": "float.fromhex(Text('1'), Text('2'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(Text('1'), Text('2'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'float.fromhex() takes exactly one argument (2 given)', [])"
+    },
+    {
+      "name": "float.fromhex(b'1')",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(b'1')\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "float.fromhex(1)",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(1)\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "float.fromhex(None)",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.fromhex(None)\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('z'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('z'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('0x1p'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('0x1p'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('\uff11'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('\uff11'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('1\\x00'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('1\\x00'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('\\ud800'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('\\ud800'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\", [])"
+    },
+    {
+      "name": "Result.fromhex(Text('\\u20031'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('\\u20031'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "Result.fromhex(string=Text('1'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(string=Text('1'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'Result.fromhex() takes no keyword arguments', [])"
+    },
+    {
+      "name": "Result.fromhex(Text('1'), Text('2'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(Text('1'), Text('2'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'Result.fromhex() takes exactly one argument (2 given)', [])"
+    },
+    {
+      "name": "Result.fromhex(b'1')",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(b'1')\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "Result.fromhex(1)",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(1)\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "Result.fromhex(None)",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = Result.fromhex(None)\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('z'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('z'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('0x1p'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('0x1p'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('\uff11'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('\uff11'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('1\\x00'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('1\\x00'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('\\ud800'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('\\ud800'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\", [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('\\u20031'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('\\u20031'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'ValueError', 'invalid hexadecimal floating-point string', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(string=Text('1'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(string=Text('1'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'Result.fromhex() takes no keyword arguments', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(Text('1'), Text('2'))",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(Text('1'), Text('2'))\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'Result.fromhex() takes exactly one argument (2 given)', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(b'1')",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(b'1')\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(1)",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(1)\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "float.__dict__['fromhex'].__get__(None, Result)(None)",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\ntry:\n    value = float.__dict__['fromhex'].__get__(None, Result)(None)\n    actual = ('ok', type(value).__name__, value.hex(), events)\nexcept BaseException as error:\n    actual = ('error', type(error).__name__, str(error), events)\n",
+      "expected": "('error', 'TypeError', 'bad argument type for built-in operation', [])"
+    },
+    {
+      "name": "UTF-8 error storage str '\\ud800'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = str('\\ud800')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 0, 1, 'surrogates not allowed', ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed'))"
+    },
+    {
+      "name": "UTF-8 error storage str 'x\\ud800\\ud801y\\udc00'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = str('x\\ud800\\ud801y\\udc00')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 1, 3, 'surrogates not allowed', ('utf-8', 'x\\ud800\\ud801y\\udc00', 1, 3, 'surrogates not allowed'))"
+    },
+    {
+      "name": "UTF-8 error storage str '\\x00\\ud800'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = str('\\x00\\ud800')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 1, 2, 'surrogates not allowed', ('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed'))"
+    },
+    {
+      "name": "UTF-8 error storage str 'z\\ud800'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = str('z\\ud800')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 1, 2, 'surrogates not allowed', ('utf-8', 'z\\ud800', 1, 2, 'surrogates not allowed'))"
+    },
+    {
+      "name": "UTF-8 error storage Text '\\ud800'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = Text('\\ud800')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 0, 1, 'surrogates not allowed', ('utf-8', '\\ud800', 0, 1, 'surrogates not allowed'))"
+    },
+    {
+      "name": "UTF-8 error storage Text 'x\\ud800\\ud801y\\udc00'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = Text('x\\ud800\\ud801y\\udc00')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 1, 3, 'surrogates not allowed', ('utf-8', 'x\\ud800\\ud801y\\udc00', 1, 3, 'surrogates not allowed'))"
+    },
+    {
+      "name": "UTF-8 error storage Text '\\x00\\ud800'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = Text('\\x00\\ud800')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 1, 2, 'surrogates not allowed', ('utf-8', '\\x00\\ud800', 1, 2, 'surrogates not allowed'))"
+    },
+    {
+      "name": "UTF-8 error storage Text 'z\\ud800'",
+      "source": "events = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __getitem__(self, key):\n        raise AssertionError('getitem override')\n    def __iter__(self):\n        raise AssertionError('iter override')\nclass Result(float):\n    def __new__(cls, value):\n        events.append(('new', type(value).__name__, value.hex()))\n        return float.__new__(cls, value)\n    def __init__(self, value):\n        events.append(('init', type(value).__name__, value.hex()))\nsource = Text('z\\ud800')\ntry:\n    float.fromhex(source)\nexcept UnicodeEncodeError as error:\n    actual = (type(error).__name__, error.object is source, error.args[1] is source, error.encoding, error.start, error.end, error.reason, error.args)\n",
+      "expected": "('UnicodeEncodeError', True, True, 'utf-8', 1, 2, 'surrogates not allowed', ('utf-8', 'z\\ud800', 1, 2, 'surrogates not allowed'))"
+    }
+  ]
+}

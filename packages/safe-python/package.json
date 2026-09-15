@@ -1,0 +1,20 @@
+{
+  "name": "@poe-code/safe-python",
+  "version": "0.0.0-dev",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "UNICODE-LICENSE.txt", "CPYTHON-LICENSE.txt"],
+  "dependencies": { "@poe-code/safe-fs": "*" },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",
+    "generate:unicode": "tsx scripts/generate-unicode.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts"
+  }
+}

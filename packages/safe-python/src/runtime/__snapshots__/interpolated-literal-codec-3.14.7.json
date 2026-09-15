@@ -1,0 +1,1229 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "cases": [
+    {
+      "name": "f\"\\x\"",
+      "source": "source = 'f\"\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 5, 'f\"\\\\x\"', 1, 6))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\x\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 6-7: truncated \\\\xXX escape\", ('interpolated.py', 2, 3, '\\\\x\"\"\"', 2, 6))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"abc\\u0\"",
+      "source": "source = 'f\"abc\\\\u0\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 3-5: truncated \\\\uXXXX escape\", ('interpolated.py', 1, 9, 'f\"abc\\\\u0\"', 1, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\nabc\\u0\"\"\"",
+      "source": "source = 'f\"\"\"first\\nabc\\\\u0\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 9-11: truncated \\\\uXXXX escape\", ('interpolated.py', 2, 7, 'abc\\\\u0\"\"\"', 2, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\u00e9\\U00110000\"",
+      "source": "source = 'f\"\u00e9\\\\U00110000\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 10-19: illegal Unicode character\", ('interpolated.py', 1, 14, 'f\"\\xe9\\\\U00110000\"', 1, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\u00e9\\U00110000\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\u00e9\\\\U00110000\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 16-25: illegal Unicode character\", ('interpolated.py', 2, 12, '\\xe9\\\\U00110000\"\"\"', 2, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\N{no}\"",
+      "source": "source = 'f\"\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('interpolated.py', 1, 9, 'f\"\\\\N{no}\"', 1, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\N{no}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 6-11: unknown Unicode character name\", ('interpolated.py', 2, 7, '\\\\N{no}\"\"\"', 2, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"{{\\x}}\"",
+      "source": "source = 'f\"{{\\\\x}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 9, 'f\"{{\\\\x}}\"', 1, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n{{\\x}}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n{{\\\\x}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 7, '{{\\\\x}}\"\"\"', 2, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"a{{b}}\\x\"",
+      "source": "source = 'f\"a{{b}}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 11, 'f\"a{{b}}\\\\x\"', 1, 12))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\na{{b}}\\x\"\"\"",
+      "source": "source = 'f\"\"\"first\\na{{b}}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 9, 'a{{b}}\\\\x\"\"\"', 2, 12))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\x{1}\"",
+      "source": "source = 'f\"\\\\x{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 8, 'f\"\\\\x{1}\"', 1, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\x{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\x{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 6-7: truncated \\\\xXX escape\", ('interpolated.py', 2, 6, '\\\\x{1}\"\"\"', 2, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"{1}\\x\"",
+      "source": "source = 'f\"{1}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 8, 'f\"{1}\\\\x\"', 1, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n{1}\\x\"\"\"",
+      "source": "source = 'f\"\"\"first\\n{1}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 6, '{1}\\\\x\"\"\"', 2, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"{1:\\x}\"",
+      "source": "source = 'f\"{1:\\\\x}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\x', 0, 2, 'truncated \\\\xXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n{1:\\x}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n{1:\\\\x}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\x', 0, 2, 'truncated \\\\xXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\x{1:\\u}\"",
+      "source": "source = 'f\"\\\\x{1:\\\\u}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\u', 0, 2, 'truncated \\\\uXXXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\x{1:\\u}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\x{1:\\\\u}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\u', 0, 2, 'truncated \\\\uXXXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\N{SNAKE}{1}\"",
+      "source": "source = 'f\"\\\\N{SNAKE}{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\U0001f40d1'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\N{SNAKE}{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\N{SNAKE}{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\U0001f40d1'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\ud800{1}\"",
+      "source": "source = 'f\"\\\\ud800{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\ud8001'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\ud800{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\ud800{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\ud8001'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\q{1}\"",
+      "source": "source = 'f\"\\\\q{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\q1'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "f\"\"\"first\n\\q{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\q{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\q1'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "name": "f\"\\777{1}\"",
+      "source": "source = 'f\"\\\\777{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\u01ff1'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "f\"\"\"first\n\\777{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\777{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\u01ff1'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "name": "f\"\\{1}\"",
+      "source": "source = 'f\"\\\\{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\1'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\{\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\{\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "f\"\"\"first\n\\{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\1'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\{\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\{\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "f\"{{\\n}}\"",
+      "source": "source = 'f\"{{\\\\n}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'{\\n}'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n{{\\n}}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n{{\\\\n}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n{\\n}'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\\u00e9{1}\"",
+      "source": "source = 'f\"\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\\u00e9{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\\\\u00e9{1}\"",
+      "source": "source = 'f\"\\\\\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\\\\u00e9{1}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\N{SNAKE}\\x\"",
+      "source": "source = 'f\"\\\\N{SNAKE}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 14, 'f\"\\\\N{SNAKE}\\\\x\"', 1, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\N{SNAKE}\\x\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\N{SNAKE}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 12, '\\\\N{SNAKE}\\\\x\"\"\"', 2, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\N{SNAKE}\\N{no}\"",
+      "source": "source = 'f\"\\\\N{SNAKE}\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('interpolated.py', 1, 18, 'f\"\\\\N{SNAKE}\\\\N{no}\"', 1, 19))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\"\"first\n\\N{SNAKE}\\N{no}\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\N{SNAKE}\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('interpolated.py', 2, 16, '\\\\N{SNAKE}\\\\N{no}\"\"\"', 2, 19))\n",
+      "warnings": []
+    },
+    {
+      "name": "f\"\\q{{\\z\"",
+      "source": "source = 'f\"\\\\q{{\\\\z\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\q{\\\\z'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\z\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\z\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "f\"\"\"first\n\\q{{\\z\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\q{{\\\\z\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\q{\\\\z'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 3
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\z\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\z\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "f\"\\N{SNAKE}\\q\"",
+      "source": "source = 'f\"\\\\N{SNAKE}\\\\q\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\U0001f40d\\\\q'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "f\"\"\"first\n\\N{SNAKE}\\q\"\"\"",
+      "source": "source = 'f\"\"\"first\\n\\\\N{SNAKE}\\\\q\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\U0001f40d\\\\q'\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "t\"\\x\"",
+      "source": "source = 't\"\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 5, 't\"\\\\x\"', 1, 6))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\x\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 6-7: truncated \\\\xXX escape\", ('interpolated.py', 2, 3, '\\\\x\"\"\"', 2, 6))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"abc\\u0\"",
+      "source": "source = 't\"abc\\\\u0\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 3-5: truncated \\\\uXXXX escape\", ('interpolated.py', 1, 9, 't\"abc\\\\u0\"', 1, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\nabc\\u0\"\"\"",
+      "source": "source = 't\"\"\"first\\nabc\\\\u0\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 9-11: truncated \\\\uXXXX escape\", ('interpolated.py', 2, 7, 'abc\\\\u0\"\"\"', 2, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\u00e9\\U00110000\"",
+      "source": "source = 't\"\u00e9\\\\U00110000\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 10-19: illegal Unicode character\", ('interpolated.py', 1, 14, 't\"\\xe9\\\\U00110000\"', 1, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\u00e9\\U00110000\"\"\"",
+      "source": "source = 't\"\"\"first\\n\u00e9\\\\U00110000\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 16-25: illegal Unicode character\", ('interpolated.py', 2, 12, '\\xe9\\\\U00110000\"\"\"', 2, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\N{no}\"",
+      "source": "source = 't\"\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('interpolated.py', 1, 9, 't\"\\\\N{no}\"', 1, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\N{no}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 6-11: unknown Unicode character name\", ('interpolated.py', 2, 7, '\\\\N{no}\"\"\"', 2, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"{{\\x}}\"",
+      "source": "source = 't\"{{\\\\x}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 9, 't\"{{\\\\x}}\"', 1, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n{{\\x}}\"\"\"",
+      "source": "source = 't\"\"\"first\\n{{\\\\x}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 7, '{{\\\\x}}\"\"\"', 2, 10))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"a{{b}}\\x\"",
+      "source": "source = 't\"a{{b}}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 11, 't\"a{{b}}\\\\x\"', 1, 12))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\na{{b}}\\x\"\"\"",
+      "source": "source = 't\"\"\"first\\na{{b}}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 9, 'a{{b}}\\\\x\"\"\"', 2, 12))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\x{1}\"",
+      "source": "source = 't\"\\\\x{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 8, 't\"\\\\x{1}\"', 1, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\x{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\x{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 6-7: truncated \\\\xXX escape\", ('interpolated.py', 2, 6, '\\\\x{1}\"\"\"', 2, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"{1}\\x\"",
+      "source": "source = 't\"{1}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 8, 't\"{1}\\\\x\"', 1, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n{1}\\x\"\"\"",
+      "source": "source = 't\"\"\"first\\n{1}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 6, '{1}\\\\x\"\"\"', 2, 9))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"{1:\\x}\"",
+      "source": "source = 't\"{1:\\\\x}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\x', 0, 2, 'truncated \\\\xXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n{1:\\x}\"\"\"",
+      "source": "source = 't\"\"\"first\\n{1:\\\\x}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\x', 0, 2, 'truncated \\\\xXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\x{1:\\u}\"",
+      "source": "source = 't\"\\\\x{1:\\\\u}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\u', 0, 2, 'truncated \\\\uXXXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\x{1:\\u}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\x{1:\\\\u}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "UnicodeDecodeError ('unicodeescape', b'\\\\u', 0, 2, 'truncated \\\\uXXXX escape')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\N{SNAKE}{1}\"",
+      "source": "source = 't\"\\\\N{SNAKE}{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\U0001f40d', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\N{SNAKE}{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\N{SNAKE}{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\U0001f40d', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\ud800{1}\"",
+      "source": "source = 't\"\\\\ud800{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\ud800', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\ud800{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\ud800{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\ud800', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\q{1}\"",
+      "source": "source = 't\"\\\\q{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\q', '')\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "t\"\"\"first\n\\q{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\q{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\q', '')\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "name": "t\"\\777{1}\"",
+      "source": "source = 't\"\\\\777{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\u01ff', '')\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "t\"\"\"first\n\\777{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\777{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\u01ff', '')\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 3
+        }
+      ]
+    },
+    {
+      "name": "t\"\\{1}\"",
+      "source": "source = 't\"\\\\{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\', '')\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\{\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\{\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "t\"\"\"first\n\\{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\', '')\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\{\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\{\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "t\"{{\\n}}\"",
+      "source": "source = 't\"{{\\\\n}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('{\\n}',)\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n{{\\n}}\"\"\"",
+      "source": "source = 't\"\"\"first\\n{{\\\\n}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n{\\n}',)\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\\u00e9{1}\"",
+      "source": "source = 't\"\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\\u00e9{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\\\\u00e9{1}\"",
+      "source": "source = 't\"\\\\\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\\\\u00e9{1}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\N{SNAKE}\\x\"",
+      "source": "source = 't\"\\\\N{SNAKE}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 1, 14, 't\"\\\\N{SNAKE}\\\\x\"', 1, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\N{SNAKE}\\x\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\N{SNAKE}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-1: truncated \\\\xXX escape\", ('interpolated.py', 2, 12, '\\\\N{SNAKE}\\\\x\"\"\"', 2, 15))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\N{SNAKE}\\N{no}\"",
+      "source": "source = 't\"\\\\N{SNAKE}\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('interpolated.py', 1, 18, 't\"\\\\N{SNAKE}\\\\N{no}\"', 1, 19))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\"\"first\n\\N{SNAKE}\\N{no}\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\N{SNAKE}\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "SyntaxError (\"(unicode error) 'unicodeescape' codec can't decode bytes in position 0-5: unknown Unicode character name\", ('interpolated.py', 2, 16, '\\\\N{SNAKE}\\\\N{no}\"\"\"', 2, 19))\n",
+      "warnings": []
+    },
+    {
+      "name": "t\"\\q{{\\z\"",
+      "source": "source = 't\"\\\\q{{\\\\z\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\q{\\\\z',)\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\z\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\z\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "t\"\"\"first\n\\q{{\\z\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\q{{\\\\z\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\q{\\\\z',)\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 3
+        },
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\z\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\z\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "t\"\\N{SNAKE}\\q\"",
+      "source": "source = 't\"\\\\N{SNAKE}\\\\q\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\U0001f40d\\\\q',)\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "name": "t\"\"\"first\n\\N{SNAKE}\\q\"\"\"",
+      "source": "source = 't\"\"\"first\\n\\\\N{SNAKE}\\\\q\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\U0001f40d\\\\q',)\n",
+      "warnings": [
+        {
+          "category": "SyntaxWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+          "filename": "interpolated.py",
+          "line": 2
+        }
+      ]
+    },
+    {
+      "name": "rf\"\\x\"",
+      "source": "source = 'rf\"\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\x'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\x\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\x'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"abc\\u0\"",
+      "source": "source = 'rf\"abc\\\\u0\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'abc\\\\u0'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\nabc\\u0\"\"\"",
+      "source": "source = 'rf\"\"\"first\\nabc\\\\u0\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\nabc\\\\u0'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\u00e9\\U00110000\"",
+      "source": "source = 'rf\"\u00e9\\\\U00110000\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\xe9\\\\U00110000'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\u00e9\\U00110000\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\u00e9\\\\U00110000\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\xe9\\\\U00110000'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\N{no}\"",
+      "source": "source = 'rf\"\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'no' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\N{no}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'no' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"{{\\x}}\"",
+      "source": "source = 'rf\"{{\\\\x}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'{\\\\x}'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n{{\\x}}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n{{\\\\x}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n{\\\\x}'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"a{{b}}\\x\"",
+      "source": "source = 'rf\"a{{b}}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'a{b}\\\\x'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\na{{b}}\\x\"\"\"",
+      "source": "source = 'rf\"\"\"first\\na{{b}}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\na{b}\\\\x'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\x{1}\"",
+      "source": "source = 'rf\"\\\\x{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\x1'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\x{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\x{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\x1'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"{1}\\x\"",
+      "source": "source = 'rf\"{1}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'1\\\\x'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n{1}\\x\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n{1}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n1\\\\x'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"{1:\\x}\"",
+      "source": "source = 'rf\"{1:\\\\x}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "ValueError (\"Invalid format specifier '\\\\x' for object of type 'int'\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n{1:\\x}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n{1:\\\\x}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "ValueError (\"Invalid format specifier '\\\\x' for object of type 'int'\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\x{1:\\u}\"",
+      "source": "source = 'rf\"\\\\x{1:\\\\u}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "ValueError (\"Invalid format specifier '\\\\u' for object of type 'int'\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\x{1:\\u}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\x{1:\\\\u}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "ValueError (\"Invalid format specifier '\\\\u' for object of type 'int'\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\N{SNAKE}{1}\"",
+      "source": "source = 'rf\"\\\\N{SNAKE}{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\N{SNAKE}{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\N{SNAKE}{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\ud800{1}\"",
+      "source": "source = 'rf\"\\\\ud800{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\ud8001'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\ud800{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\ud800{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\ud8001'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\q{1}\"",
+      "source": "source = 'rf\"\\\\q{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\q1'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\q{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\q{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\q1'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\777{1}\"",
+      "source": "source = 'rf\"\\\\777{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\7771'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\777{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\777{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\7771'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\{1}\"",
+      "source": "source = 'rf\"\\\\{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\1'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\1'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"{{\\n}}\"",
+      "source": "source = 'rf\"{{\\\\n}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'{\\\\n}'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n{{\\n}}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n{{\\\\n}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n{\\\\n}'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\\u00e9{1}\"",
+      "source": "source = 'rf\"\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\\u00e9{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\\\\u00e9{1}\"",
+      "source": "source = 'rf\"\\\\\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\\\\u00e9{1}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\\\\\\\xe91'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\N{SNAKE}\\x\"",
+      "source": "source = 'rf\"\\\\N{SNAKE}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\N{SNAKE}\\x\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\N{SNAKE}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\N{SNAKE}\\N{no}\"",
+      "source": "source = 'rf\"\\\\N{SNAKE}\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\N{SNAKE}\\N{no}\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\N{SNAKE}\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\q{{\\z\"",
+      "source": "source = 'rf\"\\\\q{{\\\\z\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'\\\\q{\\\\z'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\q{{\\z\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\q{{\\\\z\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "'first\\n\\\\q{\\\\z'\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\\N{SNAKE}\\q\"",
+      "source": "source = 'rf\"\\\\N{SNAKE}\\\\q\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rf\"\"\"first\n\\N{SNAKE}\\q\"\"\"",
+      "source": "source = 'rf\"\"\"first\\n\\\\N{SNAKE}\\\\q\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\x\"",
+      "source": "source = 'rt\"\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\x',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\x\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\x',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"abc\\u0\"",
+      "source": "source = 'rt\"abc\\\\u0\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('abc\\\\u0',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\nabc\\u0\"\"\"",
+      "source": "source = 'rt\"\"\"first\\nabc\\\\u0\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\nabc\\\\u0',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\u00e9\\U00110000\"",
+      "source": "source = 'rt\"\u00e9\\\\U00110000\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\xe9\\\\U00110000',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\u00e9\\U00110000\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\u00e9\\\\U00110000\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\xe9\\\\U00110000',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\N{no}\"",
+      "source": "source = 'rt\"\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'no' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\N{no}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'no' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"{{\\x}}\"",
+      "source": "source = 'rt\"{{\\\\x}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('{\\\\x}',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n{{\\x}}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n{{\\\\x}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n{\\\\x}',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"a{{b}}\\x\"",
+      "source": "source = 'rt\"a{{b}}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('a{b}\\\\x',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\na{{b}}\\x\"\"\"",
+      "source": "source = 'rt\"\"\"first\\na{{b}}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\na{b}\\\\x',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\x{1}\"",
+      "source": "source = 'rt\"\\\\x{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\x', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\x{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\x{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\x', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"{1}\\x\"",
+      "source": "source = 'rt\"{1}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('', '\\\\x')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n{1}\\x\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n{1}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n', '\\\\x')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"{1:\\x}\"",
+      "source": "source = 'rt\"{1:\\\\x}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n{1:\\x}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n{1:\\\\x}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\x{1:\\u}\"",
+      "source": "source = 'rt\"\\\\x{1:\\\\u}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\x', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\x{1:\\u}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\x{1:\\\\u}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\x', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\N{SNAKE}{1}\"",
+      "source": "source = 'rt\"\\\\N{SNAKE}{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\N{SNAKE}{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\N{SNAKE}{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\ud800{1}\"",
+      "source": "source = 'rt\"\\\\ud800{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\ud800', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\ud800{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\ud800{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\ud800', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\q{1}\"",
+      "source": "source = 'rt\"\\\\q{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\q', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\q{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\q{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\q', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\777{1}\"",
+      "source": "source = 'rt\"\\\\777{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\777', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\777{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\777{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\777', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\{1}\"",
+      "source": "source = 'rt\"\\\\{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"{{\\n}}\"",
+      "source": "source = 'rt\"{{\\\\n}}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('{\\\\n}',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n{{\\n}}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n{{\\\\n}}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n{\\\\n}',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\\u00e9{1}\"",
+      "source": "source = 'rt\"\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\\u00e9{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\\\\u00e9{1}\"",
+      "source": "source = 'rt\"\\\\\\\\\u00e9{1}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\\\\u00e9{1}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\\\\\\u00e9{1}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\\\\\\\xe9', '')\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\N{SNAKE}\\x\"",
+      "source": "source = 'rt\"\\\\N{SNAKE}\\\\x\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\N{SNAKE}\\x\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\N{SNAKE}\\\\x\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\N{SNAKE}\\N{no}\"",
+      "source": "source = 'rt\"\\\\N{SNAKE}\\\\N{no}\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\N{SNAKE}\\N{no}\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\N{SNAKE}\\\\N{no}\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\q{{\\z\"",
+      "source": "source = 'rt\"\\\\q{{\\\\z\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('\\\\q{\\\\z',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\q{{\\z\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\q{{\\\\z\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "('first\\n\\\\q{\\\\z',)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\\N{SNAKE}\\q\"",
+      "source": "source = 'rt\"\\\\N{SNAKE}\\\\q\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    },
+    {
+      "name": "rt\"\"\"first\n\\N{SNAKE}\\q\"\"\"",
+      "source": "source = 'rt\"\"\"first\\n\\\\N{SNAKE}\\\\q\"\"\"'\ntry:\n    code = compile(source, \"interpolated.py\", \"eval\")\n    result = eval(code)\n    print(ascii(result if isinstance(result, str) else result.strings))\nexcept Exception as error:\n    print(type(error).__name__, ascii(error.args))\n",
+      "stdout": "NameError (\"name 'SNAKE' is not defined\",)\n",
+      "warnings": []
+    }
+  ]
+}

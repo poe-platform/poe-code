@@ -1,0 +1,12 @@
+{
+  "deliveredSha": "ad827a462f97faabcdee0ecf7e0d38c8bfd3327f",
+  "remoteMainSha": "ad827a462f97faabcdee0ecf7e0d38c8bfd3327f",
+  "sourceSha": "c33305ee9876ecfc3e84dff6c4797a70e582d478",
+  "sourceAncestryExit": 0,
+  "releaseRoot": 34907786467,
+  "releaseScoped": 34907786200,
+  "releaseSchema": 34907786179,
+  "publication": "pending",
+  "associatedIssue": "none supplied",
+  "sharedMain": "left unchanged to preserve divergent local commits and staged/unstaged work"
+}

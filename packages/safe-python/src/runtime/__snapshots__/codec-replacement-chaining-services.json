@@ -1,0 +1,793 @@
+{
+  "command": "npx tsx /tmp/safe-python-replacement-reference.mts",
+  "executable": "/opt/homebrew/bin/python3.14",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "driver": "import assert from 'node:assert/strict';\nimport * as fs from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {spawnSync} from 'node:child_process';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecWideReplacementTextCases,codecWideReplacementServiceCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-wide-replacement-text-cases.ts';\nconst executable='/opt/homebrew/bin/python3.14';\nconst identity=spawnSync(executable,['-I','-c','import sys, unicodedata, platform, json; print(json.dumps(dict(version=sys.version, unicode=unicodedata.unidata_version, platform=platform.platform(), byteorder=sys.byteorder)))'],{encoding:'utf8'});\nassert.equal(identity.status,0);\nconst reference=JSON.parse(identity.stdout);\nassert.ok(reference.version.startsWith('3.14.7 '));assert.equal(reference.unicode,'16.0.0');\nconst directory=fs.mkdtempSync(join(tmpdir(),'safe-python-replacement-'));\nconst rows=[];\ntry{\n for(const row of [...codecWideReplacementTextCases,...codecWideReplacementServiceCases]){\n  const oracle=spawnSync(executable,['-I','-c',row.source],{input:'continue\\n',encoding:'utf8'});\n  assert.equal(oracle.status,0,oracle.stderr);assert.equal(oracle.stdout,row.stdout);\n  for(const cancel of codecWideReplacementServiceCases.includes(row)?[false,true]:[false]){\n   const inputPath=join(directory,'input'),outputPath=join(directory,'output');\n   fs.writeFileSync(inputPath,'continue\\n');\n   const input=fs.openSync(inputPath,'r'),output=fs.openSync(outputPath,'w');\n   const controller=new AbortController();let reads=0,writes=0,flushes=0;\n   try{\n    const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\n     input:{readLine(){const bytes=Buffer.alloc(9);const count=fs.readSync(input,bytes,0,9,null);reads++;if(cancel)controller.abort();return bytes.subarray(0,count).toString('utf8');}},\n     output:{write(text){fs.writeSync(output,text);writes++;},flush(){fs.fsyncSync(output);flushes++;}}});\n    const result=session.exec(row.source),stdout=fs.readFileSync(outputPath,'utf8');\n    if(cancel){assert.deepEqual(result,{status:'terminated',reason:'cancelled',message:'execution cancelled'});assert.equal(stdout,'');assert.deepEqual(session.eval('1'),result);}\n    else{assert.deepEqual(result,{status:'ok'});assert.equal(stdout,oracle.stdout);}\n    rows.push({name:row.name,cancel,source:row.source,sha256:createHash('sha256').update(row.source).digest('hex'),oracle:{status:oracle.status,stdout:oracle.stdout,stderr:oracle.stderr},result,stdout,reads,writes,flushes});\n   }finally{fs.closeSync(input);fs.closeSync(output);}\n  }\n }\n}finally{fs.rmSync(directory,{recursive:true});}\nconst snapshot={command:'npx tsx /tmp/safe-python-replacement-reference.mts',executable,reference,driver:fs.readFileSync('/tmp/safe-python-replacement-reference.mts','utf8'),rows};\nfs.writeFileSync('packages/safe-python/src/runtime/__snapshots__/codec-replacement-chaining-services.json',JSON.stringify(snapshot,null,2)+'\\n');\nconsole.log(JSON.stringify({reference,programs:codecWideReplacementTextCases.length+codecWideReplacementServiceCases.length,runs:rows.length,reads:rows.reduce((sum,row)=>sum+row.reads,0)}));\n",
+  "rows": [
+    {
+      "name": "utf_16_encode via native",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = codecs.utf_16_encode\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][2:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16')\n",
+      "sha256": "43635ef064fdb78b665cfc200bfbbf91d418a018ad760c3e20084ad25b9056cc",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_encode via str",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (text.encode('utf-16', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][2:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16')\n",
+      "sha256": "ef71f446a0040cb0ad41c07ba802492c906894efe891a63e03c7b9050d68c52f",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_encode via bytes",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (bytes(text, 'utf-16', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][2:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16')\n",
+      "sha256": "166b9e5b8d6d700386072562664edde61e859a14cb387fc2635b9985c5ff9c5e",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_le_encode via native",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = codecs.utf_16_le_encode\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16-le', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16_le')\n",
+      "sha256": "d93ee9ec39f5461c32681edaf177ab4ea4c99548c7e0d98969417c6695e88e9d",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_le\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_le\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_le_encode via str",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (text.encode('utf-16-le', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16-le', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16_le')\n",
+      "sha256": "94ad0bcae80861c360b49b76fdc035736c029d1354d05e08867653bddcff8899",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_le\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_le\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_le_encode via bytes",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (bytes(text, 'utf-16-le', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16-le', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16_le')\n",
+      "sha256": "f9295e1b80a795d3f0e9dccaf9de83bc2e0bcb4240c15ddfd4aa72929a749262",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_le\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_le\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_be_encode via native",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = codecs.utf_16_be_encode\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16-be', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16_be')\n",
+      "sha256": "f7435447e8cefd86470f867e0faaecc7fb09300684984b0d291d31654a58e904",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_be\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_be\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_be_encode via str",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (text.encode('utf-16-be', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16-be', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16_be')\n",
+      "sha256": "7cbcd010094541a0977d5bbbdbb09b008f108237dfd648d7029ee1fc780986dd",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_be\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_be\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16_be_encode via bytes",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (bytes(text, 'utf-16-be', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-16-be', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 2\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 16_be')\n",
+      "sha256": "510bf0a40a5aae071a775e57dd367ef813a822bc934bc56e8b6ce164f45f0ce0",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_be\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_be\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_encode via native",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = codecs.utf_32_encode\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][4:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32')\n",
+      "sha256": "8b2e352df6e6d4f3921eeba5a7075add80217509d2e1b3ed4c2f2d5afebc4f47",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_encode via str",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (text.encode('utf-32', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][4:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32')\n",
+      "sha256": "cedd3e67a8b8c21c469f1bf4be99d588a6a853a4b0288f6cdc088bcc816fcb63",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_encode via bytes",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (bytes(text, 'utf-32', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][4:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32')\n",
+      "sha256": "3f4499b97823402c50b216c3cac25c676219ea5fa904359c9c23d5a217810623",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_le_encode via native",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = codecs.utf_32_le_encode\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32-le', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32_le')\n",
+      "sha256": "a1c07f43f8d63ab31d2ef2f10e13a8af2652eeb097307bbbaa5190ff2448b7df",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_le\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_le\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_le_encode via str",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (text.encode('utf-32-le', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32-le', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32_le')\n",
+      "sha256": "75a5f457b3b0d73cc274869ccfef3d6dd7fd66b2ca59a55ca8828999f656092e",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_le\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_le\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_le_encode via bytes",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (bytes(text, 'utf-32-le', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32-le', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32_le')\n",
+      "sha256": "91843b1df4f768927e33d0e70d5826097dbd85f7ca97bd39a0adb06859a7e818",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_le\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_le\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_be_encode via native",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = codecs.utf_32_be_encode\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32-be', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32_be')\n",
+      "sha256": "5fe04d9bb3b90957743e8ef1757be39be1f465bc98331e1d1449d181bd18d345",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_be\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_be\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_be_encode via str",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (text.encode('utf-32-be', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32-be', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32_be')\n",
+      "sha256": "738510f7250dc3ff17f5e27e2326cbd26c9d7b69830f68bc050979d470b90fea",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_be\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_be\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_32_be_encode via bytes",
+      "cancel": false,
+      "source": "\nimport codecs\nencoder = lambda text, errors='strict': (bytes(text, 'utf-32-be', errors), len(text))\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual string conversion')\n    def __iter__(self):\n        raise AssertionError('virtual string iteration')\nsource = Text('\\ud800A\\udfffZ')\nfor replacement in ('\\x80', 'é', '€', '🐍', 'aé', 'a\\ud800', '\\udfff', Text('é')):\n    for reused in (False, True):\n        seen = []\n        events = []\n        class Position:\n            def __index__(self):\n                events.append('index')\n                seen[-1].start = 90\n                seen[-1].end = 91\n                seen[-1].reason = 'index mutation'\n                return -1\n        def handler(error):\n            seen.append(error)\n            if reused and len(seen) == 1:\n                return ('?', error.end)\n            error.encoding = 'changed encoding'\n            error.object = 'changed object'\n            error.start = 42\n            error.end = 43\n            error.reason = 'changed reason'\n            return (replacement, Position())\n        codecs.register_error('wide_text_replacement', handler)\n        try:\n            encoder(source, 'wide_text_replacement')\n        except UnicodeEncodeError as error:\n            assert error is seen[0] and error is seen[-1]\n            assert error.encoding == 'changed encoding'\n            assert error.object == 'changed object'\n            assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n            assert error.args == ('utf-32-be', source, 0, 1, 'surrogates not allowed')\n            assert error.args[1] is source\n        else:\n            raise AssertionError('non-ASCII replacement accepted')\n        assert events == ['index']\n        assert len(seen) == (2 if reused else 1)\nfor replacement in ('', '\\x00\\x7f', Text('ascii'), 'a' * 80):\n    codecs.register_error('wide_text_replacement', lambda error: (replacement, -1))\n    assert encoder(source, 'wide_text_replacement') == (encoder(replacement + 'Z')[0], 4)\nraw = b'\\xff' * 4\ncodecs.register_error('wide_text_replacement', lambda error: (raw, -1))\nassert encoder(source, 'wide_text_replacement') == (encoder('')[0] + raw + encoder('Z')[0][0:], 4)\nfailure = ValueError('position failure')\nclass FailedPosition:\n    def __index__(self):\n        raise failure\ncodecs.register_error('wide_text_replacement', lambda error: ('é', FailedPosition()))\ntry:\n    encoder(source, 'wide_text_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('position failure lost')\nprint('verified 32_be')\n",
+      "sha256": "ce319f31b8f63156dfa71d3a093f507bae20ae96bf592a3cf318b0f9ea77af3b",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_be\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_be\n",
+      "reads": 0,
+      "writes": 2,
+      "flushes": 0
+    },
+    {
+      "name": "utf_16: position returns",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16 false')\n",
+      "sha256": "775602c37b38c7d78cd4bcb4b222fb98ab4d40087f774c4ad7856e3f7c0e9a2a",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16 false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16 false\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16: position returns",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16 false')\n",
+      "sha256": "775602c37b38c7d78cd4bcb4b222fb98ab4d40087f774c4ad7856e3f7c0e9a2a",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16 false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16: position raises",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16 true')\n",
+      "sha256": "153a048bf56579937d50c607decd53ef7f814c122bea5a875062d6aab1d861ee",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16 true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16 true\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16: position raises",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16 true')\n",
+      "sha256": "153a048bf56579937d50c607decd53ef7f814c122bea5a875062d6aab1d861ee",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16 true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_le: position returns",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_le false')\n",
+      "sha256": "c5704ac7c14738c536a9de60f8a237c4a4166881460777024e55369179edbdaa",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_le false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_le false\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_le: position returns",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_le false')\n",
+      "sha256": "c5704ac7c14738c536a9de60f8a237c4a4166881460777024e55369179edbdaa",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_le false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_le: position raises",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_le true')\n",
+      "sha256": "f7be3a3f570eb88b5c3bc7bc59d227f43bb99953779bb3cd5bba0f1e109d0cfa",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_le true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_le true\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_le: position raises",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_le true')\n",
+      "sha256": "f7be3a3f570eb88b5c3bc7bc59d227f43bb99953779bb3cd5bba0f1e109d0cfa",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_le true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_be: position returns",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_be false')\n",
+      "sha256": "5410f7c36b34110dd8717d81a08dbbd76b8484416498e538f4c3e758eaea92e4",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_be false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_be false\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_be: position returns",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_be false')\n",
+      "sha256": "5410f7c36b34110dd8717d81a08dbbd76b8484416498e538f4c3e758eaea92e4",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_be false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_be: position raises",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_be true')\n",
+      "sha256": "acfe676da9b182c83d3d95a7ac88843c24537eae6e1fd6076bba864dcaa445bd",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_be true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 16_be true\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_16_be: position raises",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_16_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 16_be true')\n",
+      "sha256": "acfe676da9b182c83d3d95a7ac88843c24537eae6e1fd6076bba864dcaa445bd",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 16_be true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32: position returns",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32 false')\n",
+      "sha256": "dfc9af61b3430e32a3787a6cfafe6d1983063f87f2ee8a03220214cf2bcd02ad",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32 false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32 false\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32: position returns",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32 false')\n",
+      "sha256": "dfc9af61b3430e32a3787a6cfafe6d1983063f87f2ee8a03220214cf2bcd02ad",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32 false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32: position raises",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32 true')\n",
+      "sha256": "433593ecc851d0771a8753ac467500561100642f3a2012bbf93b124a4ca4c785",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32 true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32 true\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32: position raises",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32 true')\n",
+      "sha256": "433593ecc851d0771a8753ac467500561100642f3a2012bbf93b124a4ca4c785",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32 true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_le: position returns",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_le false')\n",
+      "sha256": "dbe0d9cb0e479b8aca326fee30e2442dacd5b9367b10c7891ce79282eeb0d82a",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_le false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_le false\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_le: position returns",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_le false')\n",
+      "sha256": "dbe0d9cb0e479b8aca326fee30e2442dacd5b9367b10c7891ce79282eeb0d82a",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_le false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_le: position raises",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_le true')\n",
+      "sha256": "0713c4d93218c790f66017155c0b3b9dd189b02a8c417a5e1abd83891a0f5349",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_le true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_le true\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_le: position raises",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_le_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_le true')\n",
+      "sha256": "0713c4d93218c790f66017155c0b3b9dd189b02a8c417a5e1abd83891a0f5349",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_le true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_be: position returns",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_be false')\n",
+      "sha256": "1632d670d4547c5c03c6ae6f33ee736a616ecb8f3f5c8b7c51cae8b057ffd2f5",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_be false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_be false\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_be: position returns",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        return -1\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept UnicodeEncodeError as error:\n    assert error is seen[0]\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_be false')\n",
+      "sha256": "1632d670d4547c5c03c6ae6f33ee736a616ecb8f3f5c8b7c51cae8b057ffd2f5",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_be false\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_be: position raises",
+      "cancel": false,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_be true')\n",
+      "sha256": "c140bc07e0fea29229de93da189a0ddd65cb3107a2cfff160dd7c6350f74e885",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_be true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "verified 32_be true\n",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    },
+    {
+      "name": "utf_32_be: position raises",
+      "cancel": true,
+      "source": "\nimport codecs\nseen = []\nevents = []\nfailure = ValueError('position failure')\nclass Position:\n    def __index__(self):\n        events.append(input())\n        raise failure\ndef handler(error):\n    seen.append(error)\n    return ('é', Position())\ncodecs.register_error('serviced_wide_replacement', handler)\ntry:\n    codecs.utf_32_be_encode('\\ud800Z', 'serviced_wide_replacement')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('replacement was accepted')\nassert events == ['continue']\nassert len(seen) == 1\nprint('verified 32_be true')\n",
+      "sha256": "c140bc07e0fea29229de93da189a0ddd65cb3107a2cfff160dd7c6350f74e885",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified 32_be true\n",
+        "stderr": ""
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1
+    }
+  ]
+}

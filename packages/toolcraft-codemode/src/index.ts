@@ -1,5 +1,5 @@
 import { defineGroup, type Group, type Scope } from "toolcraft";
-import { createSDK, type CreateSDKOptions } from "toolcraft/sdk";
+import { createSDK, mergeApprovalsRoot, type CreateSDKOptions } from "toolcraft/sdk";
 
 import { makeExecuteCommand, type ExecuteBudgetOptions } from "./execute.js";
 import { makeGetSchemasCommand } from "./get-schemas.js";
@@ -33,13 +33,15 @@ export function codeMode<TServices extends object = Record<string, unknown>>(
   options: CodeModeOptions<TServices> = {}
 ) {
   const { budget, search, getSchemas, execute, ...sdkOptions } = options;
+  const effectiveRoot = mergeApprovalsRoot(root, sdkOptions);
   const sdk = createSDK(
-    root as Group<any> & { readonly __agentKitGroupTypeInfo: unknown },
-    sdkOptions
+    effectiveRoot as Group<any> & { readonly __agentKitGroupTypeInfo: unknown },
+    { ...sdkOptions, approvals: false }
   );
-  const entries: CommandEntryList = resolveCommandTree(root, {
+  const entries: CommandEntryList = resolveCommandTree(effectiveRoot, {
     projectRoot: options.projectRoot
   }).then((tree) => tree.entries);
+  void entries.catch(() => undefined);
 
   return defineGroup({
     name: "code_mode",
@@ -55,7 +57,7 @@ export function codeMode<TServices extends object = Record<string, unknown>>(
         scope: getSchemas?.scope
       }),
       makeExecuteCommand({
-        root,
+        root: effectiveRoot,
         sdk,
         entries,
         budget,

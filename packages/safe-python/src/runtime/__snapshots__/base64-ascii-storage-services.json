@@ -1,0 +1,50 @@
+{
+  "oracleSource": "import sys, unicodedata, json, binascii\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\nassert sys.platform == 'darwin' and sys.byteorder == 'little'\ndata=json.load(sys.stdin)\nfor raw, newline, expected in data['encode']:\n assert binascii.b2a_base64(bytes.fromhex(raw),newline=newline).hex()==expected\nfor raw, strict, expected, message in data['decode']:\n try:\n  actual=binascii.a2b_base64(bytes.fromhex(raw),strict_mode=strict).hex()\n except binascii.Error as e:\n  assert str(e)==message\n else:\n  assert message is None and actual==expected\nprint(json.dumps({'version':sys.version,'unicode':unicodedata.unidata_version,'encode':len(data['encode']),'decode':len(data['decode'])}))\n",
+  "pin": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "encode": 268,
+    "decode": 11348
+  },
+  "oracleStatus": 0,
+  "oracleStderr": "",
+  "records": [
+    {
+      "name": "core",
+      "source": "import codecs\ntext = input()\nprint(text, flush=True)\nprint(codecs.encode(text, \"utf-8\"))\n",
+      "input": "codec service\n",
+      "actual": {
+        "status": "ok",
+        "stdout": "codec service\nb'codec service'\n"
+      },
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdout": "codec service\nb'codec service'\n",
+        "stderr": ""
+      },
+      "reads": 14,
+      "writes": 4,
+      "flushes": 2
+    },
+    {
+      "name": "base64",
+      "source": "import codecs\ntext = input()\nprint(text, flush=True)\nprint(codecs.encode(text.encode(), \"base64_codec\"))\n",
+      "input": "codec service\n",
+      "actual": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: base64_codec')",
+        "stdout": "codec service\n"
+      },
+      "expected": {
+        "status": 0,
+        "signal": null,
+        "stdout": "codec service\nb'Y29kZWMgc2VydmljZQ==\\n'\n",
+        "stderr": ""
+      },
+      "reads": 14,
+      "writes": 2,
+      "flushes": 2
+    }
+  ]
+}

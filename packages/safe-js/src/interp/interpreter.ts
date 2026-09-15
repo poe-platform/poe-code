@@ -470,7 +470,14 @@ export async function interpret(
         else if (statement.type === "VariableDeclaration" && statement.kind !== "var")
           for (const name of getDeclarationBindingNames(statement)) lexical.add(name);
       }
-      scope.validateScriptDeclarations(lexical, names, functions);
+      try {
+        scope.validateScriptDeclarations(lexical, names, functions);
+      } catch (error) {
+        if (isFatalSandboxError(error)) throw error;
+        const value = coerceThrownValue(error, budget, [], node.span, true);
+        throw options.surfaceUnhandledThrows === true
+          ? surfaceThrownValue(value, budget, [], node.span) : value;
+      }
     }
     hoistVarDeclarations(node, scope);
     if (options.script?.strict === false && node.type === "BlockStatement")
@@ -511,7 +518,9 @@ export async function interpret(
       ? evaluateResourceScope(scope, budget, {...createCoercionContext(context), onSuspend: context.onSuspend, signal: context.signal}, () => evaluateNode(node, context))
       : evaluateNode(node, context);
     let evaluation = await withCancellationSignal(options.signal, () =>
-      options.nested ? runAsyncPrefix(execute) : jobs.run(execute)
+      // A reported async prefix suspends its own job while its caller continues.
+      // Nested host operations without a prefix retain the enclosing token.
+      options.nested ? runAsyncPrefix(execute, options.onSuspend === undefined) : jobs.run(execute)
     );
     if (!options.nested) await jobs.drain();
     if (options.script !== undefined && evaluation.kind === "error" && referenceErrorDiagnostics.has(evaluation.error)) {
@@ -1194,7 +1203,9 @@ async function evaluateAssignmentExpression(
   const release = retainValues(context.budget, () => [current,
     ...(reference.kind === "object" ? [reference.object] : reference.kind === "binding" ? reference.scope.retainedDataRoots() : [])]);
   try {
-    const right = await evaluateNode(node.right, { ...context, inferredName: node.left.name });
+    const right = await evaluateNode(node.right, {
+      ...context, inferredName: node.parenthesizedLeft ? undefined : node.left.name
+    });
     if (right.kind !== "normal") {
       return right;
     }
@@ -1211,9 +1222,7 @@ async function evaluateAssignmentExpression(
       const global = getRealmGlobalObject(context.budget);
       await setSandboxProperty(global, node.left.name, value, context.budget, true, createCoercionContext(context), false);
     } else if (reference.kind === "object") {
-      if (context.strict !== false && !await bindingOperations(context).has(reference.object, reference.name))
-        throw new ReferenceError(`Cannot assign to undeclared binding '${reference.name}'.`);
-      await setSandboxProperty(reference.object, reference.name, value, context.budget, true, createCoercionContext(context), context.strict !== false);
+      await setObjectReferenceValue(reference, value, context);
     } else if (reference.kind === "binding") {
       reference.scope.assignOwnBinding(reference.name, value, context.strict !== false);
     } else throw new ReferenceError(`Cannot assign to undeclared binding '${node.left.name}'.`);
@@ -1474,12 +1483,34 @@ function bindingOperations(context: EvaluationContext) {
 function getReferenceValue(reference: Extract<BindingReference, {kind: "binding"}>, context: EvaluationContext): SandboxValue;
 function getReferenceValue(reference: BindingReference, context: EvaluationContext): SandboxValue | Promise<SandboxValue>;
 function getReferenceValue(reference: BindingReference, context: EvaluationContext): SandboxValue | Promise<SandboxValue> {
-  if (reference.kind === "object") return getPropertyValue(reference.object, reference.name, context);
+  if (reference.kind === "object") return getObjectReferenceValue(reference, context);
   if (reference.kind === "binding") {
     const binding = reference.scope.lookup(reference.name);
     if (binding.found) return binding.value;
   }
   throw new ReferenceError(`Identifier '${reference.name}' is not defined.`);
+}
+
+async function getObjectReferenceValue(
+  reference: Extract<BindingReference, {kind: "object"}>,
+  context: EvaluationContext
+): Promise<SandboxValue> {
+  if (!await bindingOperations(context).has(reference.object, reference.name)) {
+    if (context.strict !== false) throw new ReferenceError(`Identifier '${reference.name}' is not defined.`);
+    return undefined;
+  }
+  return getPropertyValue(reference.object, reference.name, context);
+}
+
+async function setObjectReferenceValue(
+  reference: Extract<BindingReference, {kind: "object"}>,
+  value: SandboxValue,
+  context: EvaluationContext
+): Promise<void> {
+  const stillExists = await bindingOperations(context).has(reference.object, reference.name);
+  if (!stillExists && context.strict !== false)
+    throw new ReferenceError(`Cannot assign to undeclared binding '${reference.name}'.`);
+  await setSandboxProperty(reference.object, reference.name, value, context.budget, true, createCoercionContext(context), context.strict !== false);
 }
 
 async function evaluateThisExpression(
@@ -2430,12 +2461,15 @@ async function evaluateForStatement(
     }
   }
 
+  let activeScope = restored !== undefined && resumePhase !== "init"
+    ? restored.activeScope
+    : loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
   while (true) {
     context.budget.visitNode();
     context.stats.nodeVisits += 1;
 
     if (node.test !== undefined && resumePhase !== "body" && resumePhase !== "update") {
-      const test = await evaluateNode(node.test, phaseContext("test", loopScope));
+      const test = await evaluateNode(node.test, phaseContext("test", activeScope));
       if (test.kind !== "normal") {
         return test;
       }
@@ -2449,11 +2483,8 @@ async function evaluateForStatement(
       }
     }
 
-    const iterationScope =
-      resumePhase === "body" || resumePhase === "update" ? restored!.activeScope
-        : loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
     if (resumePhase !== "update") {
-      const iterationContext = createLoopIterationContext(phaseContext("body", iterationScope), iterationScope);
+      const iterationContext = createLoopIterationContext(phaseContext("body", activeScope), activeScope);
       emitLoopIterationBreakpoint(node, iterationContext);
       const evaluated = await evaluateNode(node.body, iterationContext);
       const result = completion?.update(evaluated) ?? evaluated;
@@ -2473,8 +2504,8 @@ async function evaluateForStatement(
 
     const updateScope =
       resumePhase === "update" ? restored!.activeScope : loopBindingNames.length === 0
-        ? iterationScope
-        : iterationScope.iterationChild(loopBindingNames);
+        ? activeScope
+        : activeScope.iterationChild(loopBindingNames);
     const updateContext = phaseContext("update", updateScope);
 
     if (node.update !== undefined) {
@@ -2484,7 +2515,7 @@ async function evaluateForStatement(
       }
     }
 
-    loopScope.copyInitializedBindingsFrom(updateScope, loopBindingNames);
+    activeScope = updateScope;
     resumePhase = undefined;
   }
   });
@@ -3127,7 +3158,7 @@ async function evaluateIdentifierUpdateExpression(
     ? bigIntOperation(node.operator === "++" ? "+" : "-", current, 1n, context.budget)
     : node.operator === "++" ? current + 1 : current - 1;
   if (reference.kind === "object") {
-    await setSandboxProperty(reference.object, reference.name, next, context.budget, true, createCoercionContext(context), context.strict !== false);
+    await setObjectReferenceValue(reference, next, context);
   } else {
     reference.scope.assignOwnBinding(reference.name, next, context.strict !== false);
   }

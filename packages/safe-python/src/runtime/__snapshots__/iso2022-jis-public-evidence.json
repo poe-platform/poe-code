@@ -1,0 +1,173 @@
+{
+  "cancellation": [
+    {
+      "throws": false,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "again": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "readCount": 1,
+      "stdout": ""
+    },
+    {
+      "throws": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "again": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "readCount": 1,
+      "stdout": ""
+    }
+  ],
+  "driver": "import {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {readFileSync,writeFileSync,openSync,closeSync,readSync,writeSync,fsyncSync} from 'node:fs';\nimport {spawnSync} from 'node:child_process';\nimport {createHash} from 'node:crypto';\nfunction describe(session:PythonSession,result:ReturnType<PythonSession['exec']>){\n if(result.status!=='exception')return result;\n session.globals.set('failure',result.exception);\n const rendered=session.eval('repr(failure)');\n return {status:result.status,exception:rendered.status==='ok'?rendered.value.primitive:'rendering failed',filename:result.filename};\n}\nconst rows=[];\nfor(const name of ['iso2022_jp_3','iso2022_jp_2004'])for(const source of [\n  `import encodings.${name}\\nprint(encodings.${name}.getregentry().name)`,\n  `import codecs\\nprint(codecs.lookup('${name}').name)`,\n  `print('か\\\\u309a'.encode('${name}'))`,\n  `print(b'\\\\x1b$(P!!'.decode('${name}'))`\n]){\n  const path='/tmp/codec-jis-public-output.txt',fd=openSync(path,'w+');\n  const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],output:{write(text){writeSync(fd,text);},flush(){fsyncSync(fd);}}});\n  const result=describe(session,session.exec(source));closeSync(fd);\n  const reference=spawnSync('/opt/homebrew/bin/python3.14',['-I','-c',source],{encoding:'utf8'});\n  rows.push({name,source,result,stdout:readFileSync(path,'utf8'),reference:{status:reference.status,stdout:reference.stdout,stderr:reference.stderr}});\n}\nconst inputPath='/tmp/codec-jis-registry-input.txt',outputPath='/tmp/codec-jis-registry-output.txt';\nwriteFileSync(inputPath,'R\\n');\nconst inputFd=openSync(inputPath,'r'),outputFd=openSync(outputPath,'w+');\nlet reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],input:{readLine(){reads++;const b=Buffer.alloc(2);return b.subarray(0,readSync(inputFd,b)).toString('utf8');}},output:{write(text){writes++;writeSync(outputFd,text);},flush(){fsyncSync(outputFd);}}});\nconst source=`import codecs\nseen = []\ndef recovery(error):\n    seen.append((error.encoding, error.start, error.end))\n    return input(), -1\ncodecs.register_error('service_recovery', recovery)\nprint('éA'.encode('ascii', 'service_recovery'))\nprint(seen)\n`;\nconst result=describe(session,session.exec(source));closeSync(inputFd);closeSync(outputFd);\nconst reference=spawnSync('/opt/homebrew/bin/python3.14',['-I','-c',source],{encoding:'utf8',input:'R\\n'});\nconst output=readFileSync(outputPath,'utf8');\nconst cancellation=[];\nfor(const throws of [false,true]){\n const fd=openSync(inputPath,'r'),controller=new AbortController();let readCount=0,stdout='';\n const cancelled=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,input:{readLine(){const b=Buffer.alloc(2);const n=readSync(fd,b);readCount++;controller.abort();if(throws)throw Error('service failure after read');return b.subarray(0,n).toString('utf8');}},output:{write(text){stdout+=text;},flush(){}}});\n const result=describe(cancelled,cancelled.exec(source)),again=describe(cancelled,cancelled.exec('pass'));closeSync(fd);\n cancellation.push({throws,result,again,readCount,stdout});\n}\nconst evidence={cancellation,driver:readFileSync('/tmp/codec-jis-public-evidence.mts','utf8'),oracleSha256:createHash('sha256').update(readFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/iso2022-jis-revision-oracle.json')).digest('hex'),rows,registryService:{source,result,reads,writes,stdout:output,reference:{status:reference.status,stdout:reference.stdout,stderr:reference.stderr},matches:output===reference.stdout&&reference.status===0}};\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/iso2022-jis-public-evidence.json',JSON.stringify(evidence,null,2)+'\\n');\nconsole.log(JSON.stringify({rows:rows.map(r=>({name:r.name,result:r.result})),registry:evidence.registryService}));\n",
+  "oracleSha256": "c3e28e215074e755bdb4a72c667fe6c7886f1e47d6f1c464ffbb650e2b9b45e8",
+  "rows": [
+    {
+      "name": "iso2022_jp_3",
+      "source": "import encodings.iso2022_jp_3\nprint(encodings.iso2022_jp_3.getregentry().name)",
+      "result": {
+        "status": "exception",
+        "exception": "ModuleNotFoundError(\"No module named 'encodings.iso2022_jp_3'\")",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "iso2022_jp_3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "iso2022_jp_3",
+      "source": "import codecs\nprint(codecs.lookup('iso2022_jp_3').name)",
+      "result": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: iso2022_jp_3')",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "iso2022_jp_3\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "iso2022_jp_3",
+      "source": "print('か\\u309a'.encode('iso2022_jp_3'))",
+      "result": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: iso2022_jp_3')",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "b'\\x1b$(O$w\\x1b(B'\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "iso2022_jp_3",
+      "source": "print(b'\\x1b$(P!!'.decode('iso2022_jp_3'))",
+      "result": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: iso2022_jp_3')",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "𠂉\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "source": "import encodings.iso2022_jp_2004\nprint(encodings.iso2022_jp_2004.getregentry().name)",
+      "result": {
+        "status": "exception",
+        "exception": "ModuleNotFoundError(\"No module named 'encodings.iso2022_jp_2004'\")",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "iso2022_jp_2004\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "source": "import codecs\nprint(codecs.lookup('iso2022_jp_2004').name)",
+      "result": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: iso2022_jp_2004')",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "iso2022_jp_2004\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "source": "print('か\\u309a'.encode('iso2022_jp_2004'))",
+      "result": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: iso2022_jp_2004')",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "b'\\x1b$(Q$w\\x1b(B'\n",
+        "stderr": ""
+      }
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "source": "print(b'\\x1b$(P!!'.decode('iso2022_jp_2004'))",
+      "result": {
+        "status": "exception",
+        "exception": "LookupError('unknown encoding: iso2022_jp_2004')",
+        "filename": "<string>"
+      },
+      "stdout": "",
+      "reference": {
+        "status": 0,
+        "stdout": "𠂉\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "registryService": {
+    "source": "import codecs\nseen = []\ndef recovery(error):\n    seen.append((error.encoding, error.start, error.end))\n    return input(), -1\ncodecs.register_error('service_recovery', recovery)\nprint('éA'.encode('ascii', 'service_recovery'))\nprint(seen)\n",
+    "result": {
+      "status": "ok"
+    },
+    "reads": 1,
+    "writes": 4,
+    "stdout": "b'RA'\n[('ascii', 0, 1)]\n",
+    "reference": {
+      "status": 0,
+      "stdout": "b'RA'\n[('ascii', 0, 1)]\n",
+      "stderr": ""
+    },
+    "matches": true
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "python": "3.14.7",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "cases": [
+    {
+      "name": "set 'x'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('x')\nr = type.__setattr__(C, name, 37)\nresult = (r, C.__dict__['x'], [(type(k).__name__, k is name) for k in C.__dict__ if k == 'x'])\n",
+      "expected": "(None, 37, [('str', False)])"
+    },
+    {
+      "name": "delete 'x'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('x')\ntype.__setattr__(C, 'x', 37)\nr = type.__delattr__(C, name)\nresult = (r, 'x' in C.__dict__)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "set ''",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('')\nr = type.__setattr__(C, name, 37)\nresult = (r, C.__dict__[''], [(type(k).__name__, k is name) for k in C.__dict__ if k == ''])\n",
+      "expected": "(None, 37, [('str', False)])"
+    },
+    {
+      "name": "delete ''",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('')\ntype.__setattr__(C, '', 37)\nr = type.__delattr__(C, name)\nresult = (r, '' in C.__dict__)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "set 'a b'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('a b')\nr = type.__setattr__(C, name, 37)\nresult = (r, C.__dict__['a b'], [(type(k).__name__, k is name) for k in C.__dict__ if k == 'a b'])\n",
+      "expected": "(None, 37, [('str', False)])"
+    },
+    {
+      "name": "delete 'a b'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('a b')\ntype.__setattr__(C, 'a b', 37)\nr = type.__delattr__(C, name)\nresult = (r, 'a b' in C.__dict__)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "set 'a.b'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('a.b')\nr = type.__setattr__(C, name, 37)\nresult = (r, C.__dict__['a.b'], [(type(k).__name__, k is name) for k in C.__dict__ if k == 'a.b'])\n",
+      "expected": "(None, 37, [('str', False)])"
+    },
+    {
+      "name": "delete 'a.b'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('a.b')\ntype.__setattr__(C, 'a.b', 37)\nr = type.__delattr__(C, name)\nresult = (r, 'a.b' in C.__dict__)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "set '\\x00'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('\\x00')\nr = type.__setattr__(C, name, 37)\nresult = (r, C.__dict__['\\x00'], [(type(k).__name__, k is name) for k in C.__dict__ if k == '\\x00'])\n",
+      "expected": "(None, 37, [('str', False)])"
+    },
+    {
+      "name": "delete '\\x00'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('\\x00')\ntype.__setattr__(C, '\\x00', 37)\nr = type.__delattr__(C, name)\nresult = (r, '\\x00' in C.__dict__)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "set '\\U0001f40d'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('\ud83d\udc0d')\nr = type.__setattr__(C, name, 37)\nresult = (r, C.__dict__['\ud83d\udc0d'], [(type(k).__name__, k is name) for k in C.__dict__ if k == '\ud83d\udc0d'])\n",
+      "expected": "(None, 37, [('str', False)])"
+    },
+    {
+      "name": "delete '\\U0001f40d'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('\ud83d\udc0d')\ntype.__setattr__(C, '\ud83d\udc0d', 37)\nr = type.__delattr__(C, name)\nresult = (r, '\ud83d\udc0d' in C.__dict__)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "set '\\ud800'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('\\ud800')\nr = type.__setattr__(C, name, 37)\nresult = (r, C.__dict__['\\ud800'], [(type(k).__name__, k is name) for k in C.__dict__ if k == '\\ud800'])\n",
+      "expected": "(None, 37, [('str', False)])"
+    },
+    {
+      "name": "delete '\\ud800'",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nname = Name('\\ud800')\ntype.__setattr__(C, '\\ud800', 37)\nr = type.__delattr__(C, name)\nresult = (r, '\\ud800' in C.__dict__)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "set missing/immutable",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nresult = []\nfor target in [C, int]:\n try:\n  r = type.__setattr__(target, Name('absent'), 37)\n  result.append(('ok', r))\n except Exception as e:\n  result.append((type(e).__name__, str(e)))\n",
+      "expected": "[('ok', None), ('TypeError', \"cannot set 'absent' attribute of immutable type 'int'\")]"
+    },
+    {
+      "name": "set data descriptor",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nclass Descriptor:\n def __set__(self, obj, value): events.append(('set', obj is C, value))\n def __delete__(self, obj): events.append(('delete', obj is C))\ntype.__setattr__(Meta, 'x', Descriptor())\nr = type.__setattr__(C, Name('x'), 37)\nresult = (r, events, 'x' in C.__dict__)\n",
+      "expected": "(None, [('set', True, 37)], False)"
+    },
+    {
+      "name": "del missing/immutable",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nresult = []\nfor target in [C, int]:\n try:\n  r = type.__delattr__(target, Name('absent'))\n  result.append(('ok', r))\n except Exception as e:\n  result.append((type(e).__name__, str(e)))\n",
+      "expected": "[('AttributeError', \"type object 'C' has no attribute 'absent'\"), ('TypeError', \"cannot set 'absent' attribute of immutable type 'int'\")]"
+    },
+    {
+      "name": "del data descriptor",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nclass Descriptor:\n def __set__(self, obj, value): events.append(('set', obj is C, value))\n def __delete__(self, obj): events.append(('delete', obj is C))\ntype.__setattr__(Meta, 'x', Descriptor())\nr = type.__delattr__(C, Name('x'))\nresult = (r, events, 'x' in C.__dict__)\n",
+      "expected": "(None, [('delete', True)], False)"
+    },
+    {
+      "name": "set bound",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nmarker = []\nname = Name('x')\ntype.__setattr__(C, 'x', marker)\nr = type.__setattr__.__get__(C)(name, marker)\nresult = (r, C.__dict__.get('x') is marker)\n",
+      "expected": "(None, True)"
+    },
+    {
+      "name": "set descriptor exception",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nclass D:\n def __set__(self, obj, value): raise ValueError('setter')\n def __delete__(self, obj): raise LookupError('deleter')\ntype.__setattr__(Meta, 'x', D())\nmarker = []\ntry:\n type.__setattr__(C, Name('x'), marker)\nexcept Exception as e:\n result = (type(e).__name__, str(e))\n",
+      "expected": "('ValueError', 'setter')"
+    },
+    {
+      "name": "del bound",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nmarker = []\nname = Name('x')\ntype.__setattr__(C, 'x', marker)\nr = type.__delattr__.__get__(C)(name)\nresult = (r, C.__dict__.get('x') is marker)\n",
+      "expected": "(None, False)"
+    },
+    {
+      "name": "del descriptor exception",
+      "source": "events = []\nclass Name(str):\n def __str__(self): raise RuntimeError('str called')\n def __hash__(self): raise RuntimeError('hash called')\n def __eq__(self, other): raise RuntimeError('eq called')\nclass Meta(type):\n def __setattr__(self, name, value): raise RuntimeError('override set')\n def __delattr__(self, name): raise RuntimeError('override del')\nclass C(metaclass=Meta): pass\nclass D:\n def __set__(self, obj, value): raise ValueError('setter')\n def __delete__(self, obj): raise LookupError('deleter')\ntype.__setattr__(Meta, 'x', D())\nmarker = []\ntry:\n type.__delattr__(C, Name('x'))\nexcept Exception as e:\n result = (type(e).__name__, str(e))\n",
+      "expected": "('LookupError', 'deleter')"
+    }
+  ]
+}

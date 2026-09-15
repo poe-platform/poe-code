@@ -8,12 +8,12 @@ export function getCollectionProperties(value: SandboxMap | SandboxSet): Sandbox
   return properties;
 }
 
-export function copyCollectionProperties(source: SandboxMap | SandboxSet | Map<unknown, unknown> | Set<unknown>, target: object, encode: (value: unknown) => unknown): void {
+export function copyCollectionProperties(source: SandboxMap | SandboxSet | Map<unknown, unknown> | Set<unknown>, target: object, encode: (value: unknown, key: string | symbol) => unknown): void {
   const properties = collectionGuestProperties.get(source) ?? source;
   for (const key of Reflect.ownKeys(properties)) {
     const descriptor = Object.getOwnPropertyDescriptor(properties, key)!;
     if (!("value" in descriptor)) throw new TypeError("Collection accessor properties cannot be copied as data.");
-    Object.defineProperty(target, key, { ...descriptor, value: encode(descriptor.value) });
+    Object.defineProperty(target, key, { ...descriptor, value: encode(descriptor.value, key) });
   }
   if (!Object.isExtensible(properties)) Object.preventExtensions(target);
 }

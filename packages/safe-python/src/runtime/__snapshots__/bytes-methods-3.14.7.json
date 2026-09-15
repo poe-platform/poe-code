@@ -1,0 +1,212 @@
+[
+  {
+    "name": "capitalize",
+    "source": "b'aBc'.capitalize()",
+    "expected": "('bytes', \"b'Abc'\")"
+  },
+  {
+    "name": "center",
+    "source": "b'a'.center(4,b'-')",
+    "expected": "('bytes', \"b'-a--'\")"
+  },
+  {
+    "name": "count",
+    "source": "b'ababa'.count(b'ba')",
+    "expected": "('int', '2')"
+  },
+  {
+    "name": "decode",
+    "source": "b'abc'.decode()",
+    "expected": "('str', \"'abc'\")"
+  },
+  {
+    "name": "endswith",
+    "source": "b'abc'.endswith((b'x',b'bc'))",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "expandtabs",
+    "source": "b'a\\tb'.expandtabs(4)",
+    "expected": "('bytes', \"b'a   b'\")"
+  },
+  {
+    "name": "find",
+    "source": "b'ababa'.find(b'ba',2)",
+    "expected": "('int', '3')"
+  },
+  {
+    "name": "fromhex",
+    "source": "bytes.fromhex('00 41 ff')",
+    "expected": "('bytes', \"b'\\\\x00A\\\\xff'\")"
+  },
+  {
+    "name": "hex",
+    "source": "b'abc'.hex('-',2)",
+    "expected": "('str', \"'61-6263'\")"
+  },
+  {
+    "name": "index",
+    "source": "b'abc'.index(98)",
+    "expected": "('int', '1')"
+  },
+  {
+    "name": "isalnum",
+    "source": "b'abc42'.isalnum()",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "isalpha",
+    "source": "b'abc'.isalpha()",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "isascii",
+    "source": "b'\\xff'.isascii()",
+    "expected": "('bool', 'False')"
+  },
+  {
+    "name": "isdigit",
+    "source": "b'12'.isdigit()",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "islower",
+    "source": "b'aB'.islower()",
+    "expected": "('bool', 'False')"
+  },
+  {
+    "name": "isspace",
+    "source": "b' \\t\\v'.isspace()",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "istitle",
+    "source": "b'Hello World'.istitle()",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "isupper",
+    "source": "b'ABC'.isupper()",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "join",
+    "source": "b'-'.join([b'ab',b'cd'])",
+    "expected": "('bytes', \"b'ab-cd'\")"
+  },
+  {
+    "name": "ljust",
+    "source": "b'ab'.ljust(5,b'-')",
+    "expected": "('bytes', \"b'ab---'\")"
+  },
+  {
+    "name": "lower",
+    "source": "b'aBc'.lower()",
+    "expected": "('bytes', \"b'abc'\")"
+  },
+  {
+    "name": "lstrip",
+    "source": "b'abaXab'.lstrip(b'ab')",
+    "expected": "('bytes', \"b'Xab'\")"
+  },
+  {
+    "name": "maketrans",
+    "source": "bytes.maketrans(b'ab',b'xy')[97:100]",
+    "expected": "('bytes', \"b'xyc'\")"
+  },
+  {
+    "name": "partition",
+    "source": "b'abXcd'.partition(b'X')",
+    "expected": "('tuple', \"(b'ab', b'X', b'cd')\")"
+  },
+  {
+    "name": "replace",
+    "source": "b'abab'.replace(b'ab',b'X',1)",
+    "expected": "('bytes', \"b'Xab'\")"
+  },
+  {
+    "name": "removeprefix",
+    "source": "b'abc'.removeprefix(b'ab')",
+    "expected": "('bytes', \"b'c'\")"
+  },
+  {
+    "name": "removesuffix",
+    "source": "b'abc'.removesuffix(b'bc')",
+    "expected": "('bytes', \"b'a'\")"
+  },
+  {
+    "name": "rfind",
+    "source": "b'ababa'.rfind(b'ba')",
+    "expected": "('int', '3')"
+  },
+  {
+    "name": "rindex",
+    "source": "b'ababa'.rindex(b'ba')",
+    "expected": "('int', '3')"
+  },
+  {
+    "name": "rjust",
+    "source": "b'ab'.rjust(5,b'-')",
+    "expected": "('bytes', \"b'---ab'\")"
+  },
+  {
+    "name": "rpartition",
+    "source": "b'abXcdXef'.rpartition(b'X')",
+    "expected": "('tuple', \"(b'abXcd', b'X', b'ef')\")"
+  },
+  {
+    "name": "rsplit",
+    "source": "b'a b c'.rsplit(None,1)",
+    "expected": "('list', \"[b'a b', b'c']\")"
+  },
+  {
+    "name": "rstrip",
+    "source": "b'abaXab'.rstrip(b'ab')",
+    "expected": "('bytes', \"b'abaX'\")"
+  },
+  {
+    "name": "split",
+    "source": "b'a b c'.split(None,1)",
+    "expected": "('list', \"[b'a', b'b c']\")"
+  },
+  {
+    "name": "splitlines",
+    "source": "b'a\\r\\nb\\rc\\nd'.splitlines(True)",
+    "expected": "('list', \"[b'a\\\\r\\\\n', b'b\\\\r', b'c\\\\n', b'd']\")"
+  },
+  {
+    "name": "startswith",
+    "source": "b'abc'.startswith((b'x',b'ab'))",
+    "expected": "('bool', 'True')"
+  },
+  {
+    "name": "strip",
+    "source": "b'abaXab'.strip(b'ab')",
+    "expected": "('bytes', \"b'X'\")"
+  },
+  {
+    "name": "swapcase",
+    "source": "b'aBc'.swapcase()",
+    "expected": "('bytes', \"b'AbC'\")"
+  },
+  {
+    "name": "title",
+    "source": "b'hELLO wORLD'.title()",
+    "expected": "('bytes', \"b'Hello World'\")"
+  },
+  {
+    "name": "translate",
+    "source": "b'abc'.translate(None,b'b')",
+    "expected": "('bytes', \"b'ac'\")"
+  },
+  {
+    "name": "upper",
+    "source": "b'aBc'.upper()",
+    "expected": "('bytes', \"b'ABC'\")"
+  },
+  {
+    "name": "zfill",
+    "source": "b'-12'.zfill(5)",
+    "expected": "('bytes', \"b'-0012'\")"
+  }
+]

@@ -1,0 +1,7581 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "metadata": {
+    "hexlify": {
+      "doc": "Hexadecimal representation of binary data.\n\n  sep\n    An optional single character or byte to separate hex bytes.\n  bytes_per_sep\n    How many bytes between separators.  Positive values count from the\n    right, negative values count from the left.\n\nThe return value is a bytes object.  This function is also\navailable as \"b2a_hex()\".",
+      "textSignature": "($module, /, data, sep=<unrepresentable>, bytes_per_sep=1)"
+    },
+    "b2a_hex": {
+      "doc": "Hexadecimal representation of binary data.\n\n  sep\n    An optional single character or byte to separate hex bytes.\n  bytes_per_sep\n    How many bytes between separators.  Positive values count from the\n    right, negative values count from the left.\n\nThe return value is a bytes object.  This function is also\navailable as \"hexlify()\".\n\nExample:\n>>> binascii.b2a_hex(b'\\xb9\\x01\\xef')\nb'b901ef'\n>>> binascii.hexlify(b'\\xb9\\x01\\xef', ':')\nb'b9:01:ef'\n>>> binascii.b2a_hex(b'\\xb9\\x01\\xef', b'_', 2)\nb'b9_01ef'",
+      "textSignature": "($module, /, data, sep=<unrepresentable>, bytes_per_sep=1)"
+    },
+    "unhexlify": {
+      "doc": "Binary data of hexadecimal representation.\n\nhexstr must contain an even number of hex digits (upper or lower case).",
+      "textSignature": "($module, hexstr, /)"
+    },
+    "a2b_hex": {
+      "doc": "Binary data of hexadecimal representation.\n\nhexstr must contain an even number of hex digits (upper or lower case).\nThis function is also available as \"unhexlify()\".",
+      "textSignature": "($module, hexstr, /)"
+    }
+  },
+  "cases": [
+    {
+      "name": "hexlify",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "hex": "3431"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for hexlify() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() got an unexpected keyword argument 'hexstr'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "hex": "3431"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "'bytes' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() got an unexpected keyword argument 'unknown'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() got an unexpected keyword argument 'dat'. Did you mean 'data'?"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "str",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "list",
+          [
+            1
+          ]
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3738"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "7878"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "37383738"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "3461"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "33343631"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "hex": "3431"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_hex() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() got an unexpected keyword argument 'hexstr'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "hex": "3431"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "'bytes' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() got an unexpected keyword argument 'unknown'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() missing required argument 'data' (pos 1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() got an unexpected keyword argument 'dat'. Did you mean 'data'?"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "str",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'str'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'NoneType'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'int'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "list",
+          [
+            1
+          ]
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "a bytes-like object is required, not 'list'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3738"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "7878"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "37383738"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "3461"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "33343631"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.unhexlify() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "str",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "list",
+          [
+            1
+          ]
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Odd-length string"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "7878"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Non-hexadecimal digit found"
+      }
+    },
+    {
+      "name": "unhexlify",
+      "args": [
+        [
+          "bytes",
+          "3461"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "4a"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "hexstr": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "bytes_per_sep": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "unknown": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "41"
+        ]
+      ],
+      "kwargs": {
+        "dat": [
+          "bytes",
+          "41"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "binascii.a2b_hex() takes no keyword arguments"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "str",
+          "41"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "41"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "str",
+          "\u00e9"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "str",
+          "\ud800"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "string argument should contain only ASCII characters"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "list",
+          [
+            1
+          ]
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          ""
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": ""
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "78"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Odd-length string"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "7878"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "Error",
+        "message": "Non-hexadecimal digit found"
+      }
+    },
+    {
+      "name": "a2b_hex",
+      "args": [
+        [
+          "bytes",
+          "3461"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "4a"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313a30323a3033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313a30323a3033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313a30323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323a3033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031e93032e93033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031e93032e93033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031e930323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313032e93033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031ff3032ff3033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031ff3032ff3033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031ff30323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313032ff3033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ]
+      ],
+      "kwargs": {
+        "bytes_per_sep": [
+          "int",
+          "2"
+        ]
+      },
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ],
+        "sep": [
+          "str",
+          ":"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for hexlify() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "hexlify",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ]
+      ],
+      "kwargs": {
+        "unknown": [
+          "none",
+          null
+        ],
+        "sep": [
+          "str",
+          ":"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "hexlify() got an unexpected keyword argument 'unknown'"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ""
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313a30323a3033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313a30323a3033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313a30323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323a3033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          ":"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031e93032e93033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031e93032e93033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031e930323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313032e93033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u00e9"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be ASCII."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "\u0100"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "str",
+          "ab"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031ff3032ff3033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031ff3032ff3033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "3031ff30323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "30313032ff3033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          "ff"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "bytes",
+          ""
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "none",
+          null
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "object of type 'int' has no len()"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "int",
+          "1"
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "sep must be str or bytes."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          [
+            1
+          ]
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "0"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-1"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-2"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "2147483647"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "ValueError",
+        "message": "sep must be length 1."
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "2147483648"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "-2147483649"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "int",
+          "1267650600228229401496703205376"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "OverflowError",
+        "message": "Python int too large to convert to C int"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "none",
+          null
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ],
+        [
+          "list",
+          []
+        ],
+        [
+          "str",
+          "x"
+        ]
+      ],
+      "kwargs": {},
+      "result": {
+        "error": "TypeError",
+        "message": "'str' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ]
+      ],
+      "kwargs": {
+        "bytes_per_sep": [
+          "int",
+          "2"
+        ]
+      },
+      "result": {
+        "hex": "303130323033"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ]
+      ],
+      "kwargs": {
+        "data": [
+          "bytes",
+          "41"
+        ],
+        "sep": [
+          "str",
+          ":"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "argument for b2a_hex() given by name ('data') and position (1)"
+      }
+    },
+    {
+      "name": "b2a_hex",
+      "args": [
+        [
+          "bytes",
+          "010203"
+        ]
+      ],
+      "kwargs": {
+        "unknown": [
+          "none",
+          null
+        ],
+        "sep": [
+          "str",
+          ":"
+        ]
+      },
+      "result": {
+        "error": "TypeError",
+        "message": "b2a_hex() got an unexpected keyword argument 'unknown'"
+      }
+    }
+  ],
+  "driver": "import binascii, sys, unicodedata, json, itertools\nnames = ('hexlify', 'b2a_hex', 'unhexlify', 'a2b_hex')\ndef value(spec):\n    kind, data = spec\n    if kind == 'bytes': return bytes.fromhex(data)\n    if kind == 'int': return int(data)\n    if kind == 'str': return data\n    if kind == 'none': return None\n    if kind == 'list': return list(data)\ncases = []\ndef add(name, args, kwargs={}):\n    try: result = {'hex': getattr(binascii, name)(*[value(x) for x in args], **{k:value(v) for k,v in kwargs.items()}).hex()}\n    except Exception as e: result = {'error': type(e).__name__, 'message': str(e)}\n    cases.append(dict(name=name, args=args, kwargs=kwargs, result=result))\nfor name in names:\n    for args in ([], [('none',None)], [('bytes','')]*2, [('bytes','')]*4): add(name,args)\n    for key in ('data','hexstr','sep','bytes_per_sep','unknown','dat'):\n        add(name,[],{key:('bytes','41')})\n        add(name,[('bytes','41')],{key:('bytes','41')})\n    for kind,data in [('str','41'),('str','\u00e9'),('str','\\ud800'),('none',None),('int','1'),('list',[1]),('bytes',''),('bytes','78'),('bytes','7878'),('bytes','3461')]: add(name,[(kind,data)])\nfor name in names[:2]:\n    for sep, group in itertools.product([('str',''),('str',':'),('str','\u00e9'),('str','\u0100'),('str','ab'),('bytes','ff'),('bytes',''),('none',None),('int','1'),('list',[1]),('list',[])],[('int',str(x)) for x in [0,1,-1,2,-2,2147483647,-2147483648,2147483648,-2147483649,1<<100]]+[('none',None),('str','x')]):\n        add(name,[('bytes','010203'),sep,group])\n    for kwargs in ({'bytes_per_sep':('int','2')},{'data':('bytes','41'),'sep':('str',':')},{'unknown':('none',None),'sep':('str',':')}): add(name,[('bytes','010203')],kwargs)\nresult = dict(oracle={'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder}, metadata={name:{'doc':getattr(binascii,name).__doc__,'textSignature':getattr(binascii,name).__text_signature__} for name in names}, cases=cases)\nresult['driver']=open(__file__).read()\nwith open('packages/safe-python/src/runtime/__snapshots__/hexadecimal-native-binding-3.14.7.json','w') as file: json.dump(result,file,indent=2,ensure_ascii=True); file.write('\\n')\nprint(result['oracle'], len(cases))\n"
+}

@@ -33,6 +33,11 @@ it.each([
   "return ['select','selectRange','resolvedOptions'].map(key=>{const d=Object.getOwnPropertyDescriptor(Intl.PluralRules.prototype,key);return [d.value.name,d.value.length,d.writable,d.enumerable,d.configurable]})"
 ])("matches native PluralRules: %s", async source => {
  const expected = runInNewContext(`(function(){"use strict";${source}})()`);
+ // Older native implementations sort these alphabetically, contrary to 402 17.3.2.
+ if (expected?.pluralCategories !== undefined) {
+   const order = ["zero", "one", "two", "few", "many", "other"];
+   expected.pluralCategories.sort((a: string, b: string) => order.indexOf(a) - order.indexOf(b));
+ }
  const result = await run(`if(typeof Intl.PluralRules!=="function")throw new Error("Missing PluralRules");${source}`);
  if (!result.ok) throw result.error;
  expect(result.returnValue).toEqual(expected);

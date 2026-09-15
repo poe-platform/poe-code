@@ -1,0 +1,36 @@
+{
+  "directory": "/Users/kjopek/Workspace/safejs-contract-final-consumer-hqjz4vof",
+  "checks": [
+    {
+      "argv": [
+        "node",
+        "safe-packages-smoke.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safejs-contract-final-consumer-hqjz4vof",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "bun",
+        "safe-packages-smoke.mjs"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safejs-contract-final-consumer-hqjz4vof",
+      "exit": 0
+    },
+    {
+      "argv": [
+        "/Users/kjopek/Workspace/safejs-environment-main-itld68sy/node_modules/.bin/tsc",
+        "--noEmit",
+        "--module",
+        "NodeNext",
+        "--moduleResolution",
+        "NodeNext",
+        "--target",
+        "ES2022",
+        "safe-packages-types.mts"
+      ],
+      "cwd": "/Users/kjopek/Workspace/safejs-contract-final-consumer-hqjz4vof",
+      "exit": 0
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "start": "2026-09-14T02:48:00.276Z",
+  "finish": "2026-09-14T02:52:46.192Z",
+  "command": "npm run test:unit --workspace=@poe-code/safe-python -- src/runtime/utf7.test.ts src/runtime/utf7-shift-boundaries.test.ts src/runtime/utf-wide.test.ts src/runtime/utf8-decode.test.ts src/runtime/utf8-encode.test.ts single-byte-decode single-byte-encode punycode.test idna- gb18030-mapping gb18030-decoder-reentrancy iso2022-escape-audit iso2022-jp-restored-state iso2022-jp-recovery iso2022-kr-restored-state iso2022-kr-recovery iso2022-jis-revision iso2022-jp-escape-user iso2022-mixed-encoder-audit hz-decoder-reentrancy hz-encoder-reentrancy --maxWorkers=2 --pool=vmThreads --reporter=json",
+  "status": 1,
+  "totals": {
+    "tests": 17422,
+    "passed": 17421,
+    "failed": 1,
+    "pending": 0,
+    "suites": 46
+  },
+  "stderr": "npm error Lifecycle script `test:unit` failed with error:\nnpm error code 1\nnpm error path /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error workspace @poe-code/safe-python@0.0.0-dev\nnpm error location /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error command failed\nnpm error command sh -c vitest run --config vitest.config.ts src/runtime/utf7.test.ts src/runtime/utf7-shift-boundaries.test.ts src/runtime/utf-wide.test.ts src/runtime/utf8-decode.test.ts src/runtime/utf8-encode.test.ts single-byte-decode single-byte-encode punycode.test idna- gb18030-mapping gb18030-decoder-reentrancy iso2022-escape-audit iso2022-jp-restored-state iso2022-jp-recovery iso2022-kr-restored-state iso2022-kr-recovery iso2022-jis-revision iso2022-jp-escape-user iso2022-mixed-encoder-audit hz-decoder-reentrancy hz-encoder-reentrancy --maxWorkers=2 --pool=vmThreads --reporter=json\n",
+  "failures": [
+    {
+      "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-punycode.test.ts",
+      "name": "uses Punycode through real guest text consumers and exception storage",
+      "messages": [
+        "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-punycode.test.ts:40:39\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+      ]
+    }
+  ],
+  "punycodeReproduction": {
+    "source": "\nassert 'bücher'.encode('punycode') == b'bcher-kva'\nassert '例え'.encode('PUNYCODE') == b'r8jz45g'\nassert '\\ud800'.encode('punycode', 'unknown') == b'ib9b'\nassert b'BCHER-KVA'.decode('punycode') == 'BüCHER'\nassert str(b'bcher-kva', 'punycode') == 'bücher'\nassert b'abc-z'.decode('punycode', 'replace') == 'abc'\nassert b'abc-z'.decode('punycode', 'ignore') == 'abc'\nfor method in (lambda data, errors: data.decode('punycode', errors), lambda data, errors: str(data, 'punycode', errors)):\n    try:\n        method(b'z', 'strict')\n    except UnicodeDecodeError as error:\n        assert error.encoding == 'punycode'\n        assert error.object == b'z'\n        assert (error.start, error.end, error.reason) == (1, 2, 'incomplete punycode string')\n    else:\n        assert False\n    try:\n        method(b'999999999999999a', 'strict')\n    except UnicodeDecodeError as error:\n        assert (error.start, error.end) == (47638888888885384, 47638888888885385)\n        assert error.reason == 'Invalid character U+a93f5129b76109'\n        assert error.args[2:4] == (47638888888885384, 47638888888885385)\n    else:\n        assert False\n    for policy in ('unknown', 'surrogateescape', 'backslashreplace'):\n        try:\n            method(b'abc-', policy)\n        except UnicodeError as error:\n            assert error.args == ('Unsupported error handling: ' + policy,)\n        else:\n            assert False\n",
+    "oracle": {
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "actual": {
+      "status": "exception",
+      "error": "NameError(\"name 'bytearray' is not defined\")"
+    }
+  }
+}

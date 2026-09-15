@@ -1,0 +1,178 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nlittle\n",
+  "adapter": "PythonSession output to Node fs.writeSync/fsyncSync on explicitly opened descriptors, readSync verification",
+  "rows": [
+    {
+      "name": "UTF-16 text conversion corpus: strict",
+      "status": "ok",
+      "sourceSHA256": "ae9b96ee795c7691d2cc26121bdf5f84d2569e4149e06e07c265b6bff7250802",
+      "bytes": 3033,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: ignore",
+      "status": "ok",
+      "sourceSHA256": "1123ad6e9e3fd7ddbcfa93e8b897b813af0a99a10078f284925c5876d5dafbfe",
+      "bytes": 1467,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: replace",
+      "status": "ok",
+      "sourceSHA256": "d252acf69a839169970ff00f03ce2fb93d237ac263e009679797afdad9d5653a",
+      "bytes": 1572,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: surrogateescape",
+      "status": "ok",
+      "sourceSHA256": "4e574a0e973ef8a408111007c52af8d71cb7d0490e1a40c6f3a7f63d1c61c148",
+      "bytes": 3033,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: surrogatepass",
+      "status": "ok",
+      "sourceSHA256": "b16204c1bbc6891d6f0e76125c7d44646ca36fec107a836e79b265499b87d42e",
+      "bytes": 1974,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: backslashreplace",
+      "status": "ok",
+      "sourceSHA256": "b7d9e137212aeba907d85cf31f2dae8beb626c58128d13eea744b76a39b38841",
+      "bytes": 1959,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: xmlcharrefreplace",
+      "status": "ok",
+      "sourceSHA256": "0ece50be90b8664a6c6e7ccfb258d352abd1a0dd5bd01d1b7fb9f6fba659ed31",
+      "bytes": 3036,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: namereplace",
+      "status": "ok",
+      "sourceSHA256": "a366c9c55818de781f99ff85a22b4932c856797c508a5e66d786f9bd92f31f5e",
+      "bytes": 2928,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 text conversion corpus: missing",
+      "status": "ok",
+      "sourceSHA256": "70b7b7d8ba16068d4838c5cc88983e49ed47ae77cf24d68fc3f7fbc7edcef70d",
+      "bytes": 2559,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 handler shadowing and search bypass",
+      "status": "ok",
+      "sourceSHA256": "79b39cbfdd47bb962588fd6c0c186f22c964045bbf044b903d2a38586aa7f963",
+      "bytes": 1088,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 recovery index mutation and callback failure",
+      "status": "ok",
+      "sourceSHA256": "712a8a4553c39cde380903c1206db9d684647d027fa96952af59acad46b79295",
+      "bytes": 199,
+      "matched": true
+    },
+    {
+      "name": "UTF-16 native subtype payload and source identity",
+      "status": "ok",
+      "sourceSHA256": "a95c9a4b2e9d07db936d4dd522768e0740243a2eabe761895b3f89cc9035cb5a",
+      "bytes": 45,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: strict",
+      "status": "ok",
+      "sourceSHA256": "3bf1865589f15fc11f06044a65255cd822b8874f7cfb6b45b889993aee0d562d",
+      "bytes": 4908,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: ignore",
+      "status": "ok",
+      "sourceSHA256": "ebbf0a9b87184eafd8e41355614f6ace0190c76b4c9aca7bed163f241dce50dd",
+      "bytes": 1716,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: replace",
+      "status": "ok",
+      "sourceSHA256": "950749ed314e95a5f1bb3710dc083e987ccb7ee41d554ae6d5720d4d302c0713",
+      "bytes": 1980,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: surrogateescape",
+      "status": "ok",
+      "sourceSHA256": "9290ee3ea80d5f8ee49f586343079c7d19419f0875f4f13422ce73af86ecebac",
+      "bytes": 4578,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: surrogatepass",
+      "status": "ok",
+      "sourceSHA256": "f59680350fb8caa9bf52b5640a7e2eed52075824d6cf090701ec4dd377e8c93a",
+      "bytes": 4353,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: backslashreplace",
+      "status": "ok",
+      "sourceSHA256": "37a5d1434ebab6576db2fb0d9ad346b00a7ba058debcc61102a28cc05119cdc8",
+      "bytes": 3174,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: xmlcharrefreplace",
+      "status": "ok",
+      "sourceSHA256": "0f0aeed5e3f939a4407bc2dc1e3abc64f459e1b4fb6e640a20db5c5668c6cd85",
+      "bytes": 5628,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: namereplace",
+      "status": "ok",
+      "sourceSHA256": "eab0b07af140c215402b45c8e87ef7a070ed4b670797537ae03be9e1338c614f",
+      "bytes": 5328,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 text conversion corpus: missing",
+      "status": "ok",
+      "sourceSHA256": "00aa92ad852934493fbe87bc70f1b629a8001e4456229668910130acd2dfc493",
+      "bytes": 3780,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 handler shadowing and search bypass",
+      "status": "ok",
+      "sourceSHA256": "68f9f06b6f58668b1cb3d31bb60d79b5ef2fbef6967d2c1c4dbec748bdda8c96",
+      "bytes": 1552,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 recovery index mutation and callback failure",
+      "status": "ok",
+      "sourceSHA256": "e7ef1f907f6ae67da886cdf2f9c27b33bd51a83245f4c3c39b1a9a087ab79b7e",
+      "bytes": 223,
+      "matched": true
+    },
+    {
+      "name": "UTF-32 native subtype payload and source identity",
+      "status": "ok",
+      "sourceSHA256": "f973f0af0ac220e4f7a2b8d5a504da578e6f38f1637c7b12607f856668c879c4",
+      "bytes": 80,
+      "matched": true
+    }
+  ],
+  "writes": 6652,
+  "flushes": 0,
+  "bytes": 60193,
+  "driver": "import {openSync,closeSync,writeSync,readSync,fsyncSync,mkdtempSync,readFileSync,writeFileSync,fstatSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecNativeWideConversionCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-native-wide-conversion-cases.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__';\nconst reference=JSON.parse(readFileSync(join(root,'codec-native-wide-conversions-3.14.7.json'),'utf8'));\nconst folder=mkdtempSync(join(tmpdir(),'safe-python-wide-services-'));\nlet writes=0,flushes=0,bytes=0;\nconst rows=[];\nfor(const [index,row] of codecNativeWideConversionCases.entries()){\n const fd=openSync(join(folder,String(index)),'w+');\n try {\n  const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:32000000,maxDepth:100},hashSeed:[1n,2n],output:{write(text){writes++;writeSync(fd,text);},flush(){flushes++;fsyncSync(fd);}}});\n  const result=session.exec(row.source);\n  const data=Buffer.alloc(fstatSync(fd).size);readSync(fd,data,0,data.length,0);bytes+=data.length;\n  const stdout=data.toString('utf8');\n  const expected=reference.cases.find(x=>x.name===row.name);\n  rows.push({name:row.name,status:result.status,sourceSHA256:createHash('sha256').update(row.source).digest('hex'),bytes:data.length,matched:stdout===expected.stdout});\n }finally{closeSync(fd);}\n}\nconst evidence={version:reference.version,adapter:'PythonSession output to Node fs.writeSync/fsyncSync on explicitly opened descriptors, readSync verification',rows,writes,flushes,bytes,driver:readFileSync('/tmp/safe-python-wide-service-audit.mjs','utf8')};\nwriteFileSync(join(root,'codec-native-wide-conversion-services.json'),JSON.stringify(evidence,null,2)+'\\n');\nconsole.log({programs:rows.length,writes,flushes,bytes,failures:rows.filter(x=>x.status!=='ok'||!x.matched)});\nif(rows.some(x=>x.status!=='ok'||!x.matched))process.exitCode=1;\n"
+}

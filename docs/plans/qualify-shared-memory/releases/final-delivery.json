@@ -1,0 +1,182 @@
+{
+  "evidenceCommit": "711f06c1c5e291c29d58c801f637d7d26960ea9d",
+  "codeCommits": [
+    "069ae0b0913040c33feb0d8c07f0531d6d6c0dc8",
+    "85c0bb75933965e77c02a91f3c26af53acedf638",
+    "d63d1f4bb81b4514d873090b970b796bb15be702"
+  ],
+  "remoteMainVerified": "95989c1aebba4a415510a69777277183f1506918",
+  "originalHead": "947a383449d67460e060a5ac0ae77dcc87be6ad9",
+  "originalIndexSha256": "839e9e04f0f5e07fae2138a1c64a573e924875d6ccbb339c87774d51eaf251a8",
+  "preservedLedgerBeforeAppendSha256": "0133fdc479047faa3bc265e72755aea6b4eecac8a1e4213c8934dc75e3ea1222",
+  "rootWorkflow": 34817400344,
+  "rootPublication": {
+    "version": "15.0.38",
+    "sourceCommit": "711f06c1c5e291c29d58c801f637d7d26960ea9d",
+    "workflow": "https://github.com/poe-platform/poe-code/actions/runs/34817400344",
+    "conclusion": "success",
+    "registryAndInstalledReceipt": "root-registry-installed.json",
+    "cliVersionVerified": true
+  },
+  "receiptStatus": "Published runtime and scoped receipts verified; enclosing documentation workflow still requires monitoring; task OPEN",
+  "task": "OPEN",
+  "scopedFinal": {
+    "version": "0.1.595",
+    "source": "95989c1aebba4a415510a69777277183f1506918",
+    "allThreeVerified": true,
+    "receipts": "0.1.595.json"
+  },
+  "privateArtifactProbe": {
+    "result": "unavailable private entries; seven import failures, no semantic tests ran",
+    "receipt": "installed-rollback-594.json"
+  },
+  "rootCiSafeJs": {
+    "sourceCommit": "711f06c1c5e291c29d58c801f637d7d26960ea9d",
+    "passed": 29656,
+    "skipped": 47,
+    "filesPassed": 1370,
+    "filesSkipped": 2,
+    "logSha256": "dc2c23c70af9d917537b2920f6e73cce343a8b3fcd512ea1a2ad7c039483c4ee"
+  },
+  "conformanceCommit": "95989c1aebba4a415510a69777277183f1506918",
+  "conformanceUpstream": {
+    "passed": 730,
+    "failed": 18,
+    "unsupported": 238,
+    "variants": 986,
+    "exitCode": 1
+  },
+  "scopedPriorVerifiedVersions": [
+    "0.1.592",
+    "0.1.593",
+    "0.1.594"
+  ],
+  "workflowsAtReceiptCommit": [
+    {
+      "conclusion": "",
+      "databaseId": 34820626022,
+      "headSha": "95989c1aebba4a415510a69777277183f1506918",
+      "status": "in_progress",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34820626022",
+      "workflowName": "Release"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34820625885,
+      "headSha": "95989c1aebba4a415510a69777277183f1506918",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34820625885",
+      "workflowName": "Publish Schemas to GitHub Pages"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34820625705,
+      "headSha": "95989c1aebba4a415510a69777277183f1506918",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34820625705",
+      "workflowName": "Release scoped safe packages"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34817400111,
+      "headSha": "711f06c1c5e291c29d58c801f637d7d26960ea9d",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34817400111",
+      "workflowName": "Publish Schemas to GitHub Pages"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34817400344,
+      "headSha": "711f06c1c5e291c29d58c801f637d7d26960ea9d",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34817400344",
+      "workflowName": "Release"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34816549413,
+      "headSha": "d63d1f4bb81b4514d873090b970b796bb15be702",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34816549413",
+      "workflowName": "Publish Schemas to GitHub Pages"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34816549405,
+      "headSha": "d63d1f4bb81b4514d873090b970b796bb15be702",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34816549405",
+      "workflowName": "Release scoped safe packages"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 34816549695,
+      "headSha": "d63d1f4bb81b4514d873090b970b796bb15be702",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34816549695",
+      "workflowName": "Release"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34815610165,
+      "headSha": "85c0bb75933965e77c02a91f3c26af53acedf638",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34815610165",
+      "workflowName": "Publish Schemas to GitHub Pages"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34815610157,
+      "headSha": "85c0bb75933965e77c02a91f3c26af53acedf638",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34815610157",
+      "workflowName": "Release scoped safe packages"
+    },
+    {
+      "conclusion": "cancelled",
+      "databaseId": 34815610390,
+      "headSha": "85c0bb75933965e77c02a91f3c26af53acedf638",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34815610390",
+      "workflowName": "Release"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34813254084,
+      "headSha": "069ae0b0913040c33feb0d8c07f0531d6d6c0dc8",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34813254084",
+      "workflowName": "Release"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34813254022,
+      "headSha": "069ae0b0913040c33feb0d8c07f0531d6d6c0dc8",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34813254022",
+      "workflowName": "Publish Schemas to GitHub Pages"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 34813253991,
+      "headSha": "069ae0b0913040c33feb0d8c07f0531d6d6c0dc8",
+      "status": "completed",
+      "url": "https://github.com/poe-platform/poe-code/actions/runs/34813253991",
+      "workflowName": "Release scoped safe packages"
+    }
+  ],
+  "supersededRootRuns": [
+    {
+      "run": 34815610390,
+      "successor": 34817400344,
+      "ancestryVerified": true
+    },
+    {
+      "run": 34816549695,
+      "successor": 34817400344,
+      "ancestryVerified": true
+    }
+  ],
+  "latestIntegrationRootRun": 34820626022,
+  "runtimeSourcesUnchangedSinceRootPublication": true
+}

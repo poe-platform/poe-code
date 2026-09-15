@@ -1,0 +1,203 @@
+{
+  "provenance": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "rows": [
+    {
+      "name": "ascii paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('ascii')\nwriter = codecs.getwriter('ascii')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "normal",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "output": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "reads": 1,
+        "terminalIdentity": null
+      },
+      "passed": true
+    },
+    {
+      "name": "ascii paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('ascii')\nwriter = codecs.getwriter('ascii')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "",
+        "reads": 1,
+        "terminalIdentity": true
+      },
+      "passed": true
+    },
+    {
+      "name": "ascii paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('ascii')\nwriter = codecs.getwriter('ascii')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "",
+        "reads": 1,
+        "terminalIdentity": true
+      },
+      "passed": true
+    },
+    {
+      "name": "latin-1 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('latin-1')\nwriter = codecs.getwriter('latin-1')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "normal",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "output": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "reads": 1,
+        "terminalIdentity": null
+      },
+      "passed": true
+    },
+    {
+      "name": "latin-1 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('latin-1')\nwriter = codecs.getwriter('latin-1')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "",
+        "reads": 1,
+        "terminalIdentity": true
+      },
+      "passed": true
+    },
+    {
+      "name": "latin-1 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('latin-1')\nwriter = codecs.getwriter('latin-1')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "",
+        "reads": 1,
+        "terminalIdentity": true
+      },
+      "passed": true
+    },
+    {
+      "name": "utf-8 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('utf-8')\nwriter = codecs.getwriter('utf-8')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "normal",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "output": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "reads": 1,
+        "terminalIdentity": null
+      },
+      "passed": true
+    },
+    {
+      "name": "utf-8 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('utf-8')\nwriter = codecs.getwriter('utf-8')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "cancel-return",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "",
+        "reads": 1,
+        "terminalIdentity": true
+      },
+      "passed": true
+    },
+    {
+      "name": "utf-8 paired and recoded short-read streams",
+      "input": "410ac3a90a5a0a\n",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('utf-8')\nwriter = codecs.getwriter('utf-8')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "mode": "cancel-throw",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "",
+        "reads": 1,
+        "terminalIdentity": true
+      },
+      "passed": true
+    }
+  ]
+}

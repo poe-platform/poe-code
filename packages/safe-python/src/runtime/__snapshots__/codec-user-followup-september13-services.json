@@ -1,0 +1,2178 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "limits": {
+    "maxSteps": 4000000,
+    "maxAllocatedBytes": 64000000,
+    "maxDepth": 150
+  },
+  "services": "Real file descriptors; complete writes/fsync, bytewise input decoded only at full line, persisted output comparisons; cancellation after first read/write/flush returning and throwing",
+  "total": 96,
+  "passed": 96,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "ascii paired and recoded short-read streams",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('ascii')\nwriter = codecs.getwriter('ascii')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "input": "410ac3a90a5a0a\n",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 1,
+            "write": 72,
+            "flush": 1
+          },
+          "actual": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 1,
+            "write": 72,
+            "flush": 1
+          },
+          "actual": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 1,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 1,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "latin-1 paired and recoded short-read streams",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('latin-1')\nwriter = codecs.getwriter('latin-1')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "input": "410ac3a90a5a0a\n",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 1,
+            "write": 72,
+            "flush": 1
+          },
+          "actual": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 1,
+            "write": 72,
+            "flush": 1
+          },
+          "actual": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 1,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 1,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "utf-8 paired and recoded short-read streams",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.data = bytes.fromhex(input())\n        self.position = 0\n        self.closed = False\n    def read(self, size=-1):\n        count = 0 if size == 0 else 1\n        result = self.data[self.position:self.position + count]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        print('write', data.hex())\n        return len(data)\n    def tell(self):\n        return self.position\n    def seek(self, offset, whence=0):\n        if whence == 0:\n            self.position = offset\n        elif whence == 1:\n            self.position += offset\n        else:\n            self.position = len(self.data) + offset\n        return self.position\n    def close(self):\n        self.closed = True\nstream = Stream()\nreader = codecs.getreader('utf-8')\nwriter = codecs.getwriter('utf-8')\npaired = codecs.StreamReaderWriter(stream, reader, writer, 'replace')\nprint(paired.read(0), paired.tell())\nprint(repr(paired.readline()), paired.tell())\nprint(paired.readlines(1, False), paired.tell())\nprint(paired.seek(0), paired.tell())\nprint(list(paired), paired.tell())\nprint(paired.reset(), paired.reader.bytebuffer)\nprint(paired.write('Aé'), paired.writelines(['Z', '\\n']))\nrecoder = codecs.StreamRecoder(stream, codecs.utf_8_encode, codecs.utf_8_decode, reader, writer, 'replace')\nprint(recoder.seek(0), recoder.tell())\nprint(recoder.readline().hex(), recoder.tell())\nprint([line.hex() for line in recoder.readlines()], recoder.tell())\nprint(recoder.seek(0), recoder.read(2).hex())\nprint(recoder.reset())\nprint(recoder.write(b'A\\xc3\\xa9'), recoder.writelines([b'Z', b'\\n']))\nwith recoder as active:\n    print(active is recoder, stream.closed)\nprint(stream.closed)\n",
+      "input": "410ac3a90a5a0a\n",
+      "oracle": {
+        "status": 0,
+        "stdout": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 1,
+            "write": 72,
+            "flush": 1
+          },
+          "actual": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 1,
+            "write": 72,
+            "flush": 1
+          },
+          "actual": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 1,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 1,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "utf_7",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_7')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_7')(Stream())\nwriter = codecs.getwriter('utf_7')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "2b414f6b0a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "2b414f6b0a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "2b414f6b0a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "2b414f6b0a",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "2b414f6b0a",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "utf_16_le",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_16_le')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_16_le')(Stream())\nwriter = codecs.getwriter('utf_16_le')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "e9000a00\n41000a00\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e9000a00\n41000a00\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e9000a00\n41000a00\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e9000a00",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e9000a00",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "utf_16_be",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_16_be')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_16_be')(Stream())\nwriter = codecs.getwriter('utf_16_be')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "00e9000a\n0041000a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "00e9000a\n0041000a\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "00e9000a\n0041000a\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "00e9000a",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "00e9000a",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "utf_32_le",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_32_le')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_32_le')(Stream())\nwriter = codecs.getwriter('utf_32_le')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "e90000000a000000\n410000000a000000\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e90000000a000000\n410000000a000000\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e90000000a000000\n410000000a000000\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e90000000a000000",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e90000000a000000",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "utf_32_be",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_32_be')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_32_be')(Stream())\nwriter = codecs.getwriter('utf_32_be')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "000000e90000000a\n000000410000000a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "000000e90000000a\n000000410000000a\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "000000e90000000a\n000000410000000a\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "000000e90000000a",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "000000e90000000a",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "unicode_escape",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('unicode_escape')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('unicode_escape')(Stream())\nwriter = codecs.getwriter('unicode_escape')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "5c7865395c6e\n415c6e\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "5c7865395c6e\n415c6e\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "5c7865395c6e\n415c6e\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "5c7865395c6e",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "5c7865395c6e",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "raw_unicode_escape",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('raw_unicode_escape')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('raw_unicode_escape')(Stream())\nwriter = codecs.getwriter('raw_unicode_escape')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "e90a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e90a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e90a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e90a",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e90a",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "charmap",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('charmap')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('charmap')(Stream())\nwriter = codecs.getwriter('charmap')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "e90a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e90a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "e90a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e90a",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "e90a",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "utf_8_sig",
+      "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.buffer = b''\n        self.encoder = codecs.getincrementalencoder('utf_8_sig')()\n    def read(self, size=-1):\n        if not self.buffer:\n            try:\n                line = input() + '\\n'\n            except EOFError:\n                return b''\n            self.buffer = self.encoder.encode(line)\n        count = 1 if size != 0 else 0\n        result = self.buffer[:count]\n        self.buffer = self.buffer[count:]\n        return result\n    def write(self, data):\n        print(data.hex())\nreader = codecs.getreader('utf_8_sig')(Stream())\nwriter = codecs.getwriter('utf_8_sig')(Stream())\nassert reader.readline() == 'é\\n'\nwriter.write('é\\n')\nassert reader.readline() == 'A\\n'\nwriter.writelines(['A', '\\n'])\nassert reader.read() == ''\n",
+      "input": "é\nA\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "efbbbfc3a90a\n410a\n",
+        "stderr": ""
+      },
+      "runs": [
+        {
+          "phase": "baseline",
+          "throws": false,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "efbbbfc3a90a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "baseline",
+          "throws": true,
+          "result": {
+            "status": "ok"
+          },
+          "followup": {
+            "status": "ok"
+          },
+          "evalResult": "ok",
+          "counts": {
+            "read": 5,
+            "write": 4,
+            "flush": 5
+          },
+          "actual": "efbbbfc3a90a\n410a\n",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "read",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 1,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "efbbbfc3a90a",
+          "passed": true
+        },
+        {
+          "phase": "write",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 3,
+            "write": 1,
+            "flush": 3
+          },
+          "actual": "efbbbfc3a90a",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": false,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        },
+        {
+          "phase": "flush",
+          "throws": true,
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "followup": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "evalResult": "terminated",
+          "counts": {
+            "read": 0,
+            "write": 0,
+            "flush": 1
+          },
+          "actual": "",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

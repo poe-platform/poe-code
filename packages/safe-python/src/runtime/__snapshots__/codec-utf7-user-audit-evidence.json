@@ -1,0 +1,1247 @@
+{
+  "target": {
+    "version": "3.14.7",
+    "build": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "driver": "\nimport {readSync,writeSync} from 'node:fs';\nimport {setImmediate} from 'node:timers/promises';\nimport {PythonSession} from './packages/safe-python/src/index.ts';\nimport {codecUtf7UserAuditCases,codecUtf7UserAuditServiceSource} from './packages/safe-python/src/codec-utf7-user-audit-cases.ts';\nlet reads=0,writes=0;\nconst mode=process.argv[1],controller=new AbortController();\nconst output={write(text){writes++;writeSync(1,text);},flush(){}};\nconst input={readLine(){reads++;const data=Buffer.alloc(32);const length=readSync(0,data,0,data.length,null);if(mode.startsWith('abort'))controller.abort();if(mode==='abort-throw')throw Error('service failed after cancellation');return data.subarray(0,length).toString('utf8');}};\nlet results=[];\nfor(const source of mode==='corpus'?codecUtf7UserAuditCases.map(row=>row.source):[codecUtf7UserAuditServiceSource]){\n await setImmediate();\n const session=new PythonSession({limits:{maxSteps:3000000,maxAllocatedBytes:32000000,maxDepth:100},hashSeed:[1n,2n],output,input,signal:controller.signal});\n const result=session.exec(source);\n results.push(mode.startsWith('abort')?{result,next:session.eval('1')}:{status:result.status});\n}\nwriteSync(2,JSON.stringify({reads,writes,results}));\n",
+  "runs": [
+    {
+      "mode": "corpus",
+      "exitCode": 0,
+      "stdoutBytes": 2869406,
+      "stdoutSha256": "62fd6c8811374f091a8ad84094863e5d78796eed1011e19f9dba413a401a7e88",
+      "matches": true,
+      "details": {
+        "reads": 0,
+        "writes": 106000,
+        "results": [
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          },
+          {
+            "status": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "mode": "continue",
+      "exitCode": 0,
+      "stdoutBytes": 24,
+      "stdoutSha256": "aab54a299290ddc66199ec5183495ec44f903687cbed80953f475cb2f4fbdc0e",
+      "matches": true,
+      "details": {
+        "reads": 1,
+        "writes": 2,
+        "results": [
+          {
+            "status": "ok"
+          }
+        ]
+      }
+    },
+    {
+      "mode": "abort-return",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true,
+      "details": {
+        "reads": 1,
+        "writes": 0,
+        "results": [
+          {
+            "result": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "next": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "mode": "abort-throw",
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true,
+      "details": {
+        "reads": 1,
+        "writes": 0,
+        "results": [
+          {
+            "result": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "next": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "status": "unfinished",
+  "initial": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- session-codec-utf7-user-audit --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-utf7-user-audit.json",
+    "passed": 343,
+    "failed": 0,
+    "total": 343,
+    "pending": 0,
+    "files": 1,
+    "slowestMs": 618.1225830000003,
+    "failures": [],
+    "over500ms": [
+      {
+        "name": "UTF-7 user audit: 'ordinary and incremental batch 0'",
+        "duration": 618.1225830000003
+      }
+    ]
+  },
+  "final": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- session-codec-utf7-user-audit session-codec-reentrant-cache-audit session-codec-recovery-index-boundaries session-codec-incremental-replay session-codec-stream-adversarial session-codec-stream-eof session-codec-stream-cancellation session-core-codec-cancellation session-codec-native-failures session-codec-rot13-undefined-integration --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-utf7-user-final.json",
+    "passed": 615,
+    "failed": 12,
+    "total": 627,
+    "pending": 0,
+    "files": 10,
+    "slowestMs": 317.37008400000013,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+        "name": "'ROT13 bytes consumer nontext rejection'",
+        "messages": [
+          "AssertionError: expected 'LookupError unknown encoding: rot13\\n' to be 'LookupError \\'rot13\\' is not a text e…' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+        "name": "'undefined bytes consumer'",
+        "messages": [
+          "AssertionError: expected 'LookupError unknown encoding: undefin…' to be 'UnicodeError undefined encoding\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+        "name": "'guest module spec'",
+        "messages": [
+          "AssertionError: expected 'AttributeError module \\'encodings.rot…' to be 'encodings.rot_13\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+        "name": "'undefined traceback'",
+        "messages": [
+          "AssertionError: expected 'False\\n' to be 'True\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ],
+    "over500ms": []
+  },
+  "checks": [
+    {
+      "command": "npm run typecheck --workspace=@poe-code/safe-python",
+      "exitCode": 0
+    },
+    {
+      "command": "npx eslint packages/safe-python/src/codec-utf7-user-audit-cases.ts packages/safe-python/src/session-codec-utf7-user-audit.test.ts",
+      "exitCode": 0
+    }
+  ],
+  "reviewedSource": {
+    "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/unicodeobject.c",
+    "sha256": "dc0da0c0379a64bf3e6277d53678c5eb8181a409ceec44868150ba47f89d11a3"
+  },
+  "pipeline": {
+    "codecRows": 122,
+    "registry": {
+      "implement": "open",
+      "test": "open"
+    },
+    "rowsClosed": 0,
+    "reopened": "codec-registry.implement: done -> open; all other frontmatter fields verified unchanged"
+  }
+}

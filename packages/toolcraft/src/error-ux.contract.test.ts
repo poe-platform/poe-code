@@ -10,7 +10,8 @@ import {
   defineGroup
 } from "./index.js";
 
-vi.mock("toolcraft-design", () => ({
+vi.mock("toolcraft-design", async (importOriginal) => ({
+  ...await importOriginal<typeof import("toolcraft-design")>(),
   configureTheme: vi.fn(),
   createLogger: () => ({
     info: (message: string) => process.stdout.write(`${message}\n`),

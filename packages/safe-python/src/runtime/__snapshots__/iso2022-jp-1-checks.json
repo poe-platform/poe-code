@@ -1,0 +1,121 @@
+{
+  "oracles": [
+    {
+      "path": "packages/safe-python/src/runtime/__snapshots__/iso2022-jp-1-continuation-oracle.json",
+      "sha256": "cad43ce3ca28340cb000efb85989457d93e5e6df0eb7423eed7be43cdfa38af0",
+      "rows": 3036,
+      "command": "/opt/homebrew/bin/python3.14 -I /tmp/safe-python-jp1-continuation-oracle.py"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/__snapshots__/iso2022-jp-1-restored-oracle.json",
+      "sha256": "2d1b8c89e41f3186094fa684b37e65bba21311cf0545b43925a735f24f49be1c",
+      "rows": 3600,
+      "command": "/opt/homebrew/bin/python3.14 -I /tmp/safe-python-jp1-restored-oracle.py"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/__snapshots__/iso2022-jp-1-recovery-oracle.json",
+      "sha256": "3d02952caba65a2faea822b63030d5b8d03d0491b538196af6398c71ce1f64cc",
+      "rows": 60,
+      "command": "/opt/homebrew/bin/python3.14 -I /tmp/safe-python-jp1-recovery-oracle.py"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/__snapshots__/iso2022-jp-1-escape-oracle.json",
+      "sha256": "5e4bc0e369aa6a505e109efa91dfa1ee35aba9c9f56cfe373dffacef5efafb1d",
+      "rows": 6000,
+      "command": "/opt/homebrew/bin/python3.14 -I /tmp/safe-python-jp1-escape-oracle.py"
+    }
+  ],
+  "red": "\n> @poe-code/safe-python@0.0.0-dev test\n> vitest run --config vitest.config.ts iso2022-jp-codec iso2022-jp-restored-state iso2022-jp-recovery --maxWorkers=2\n\n\n RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-3/packages/safe-python\n\n ❯ src/runtime/iso2022-jp-codec.test.ts (0 test)\n ❯ src/runtime/iso2022-jp-restored-state.test.ts (0 test)\n ❯ src/runtime/iso2022-jp-recovery.test.ts (0 test)\n\n⎯⎯⎯⎯⎯⎯ Failed Suites 3 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  src/runtime/iso2022-jp-codec.test.ts [ src/runtime/iso2022-jp-codec.test.ts ]\nError: Cannot find module './iso2022-jp-1-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.test.ts\n ❯ src/runtime/iso2022-jp-codec.test.ts:12:1\n     10| import {iso2022JpCodec as baseCodec} from \"./iso2022-jp-codec.js\";\n     11| import variantEvidence from \"./__snapshots__/iso2022-jp-1-continuation…\n     12| import {iso2022Jp1Codec} from \"./iso2022-jp-1-codec.js\";\n       | ^\n     13|\n     14| describe.each([\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯\n\n FAIL  src/runtime/iso2022-jp-recovery.test.ts [ src/runtime/iso2022-jp-recovery.test.ts ]\nError: Cannot find module './iso2022-jp-1-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts\n ❯ src/runtime/iso2022-jp-recovery.test.ts:12:1\n     10| import {iso2022JpCodec as baseCodec} from \"./iso2022-jp-codec.js\";\n     11| import variantEvidence from \"./__snapshots__/iso2022-jp-1-recovery-ora…\n     12| import {iso2022Jp1Codec} from \"./iso2022-jp-1-codec.js\";\n       | ^\n     13|\n     14| describe.each([\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯\n\n FAIL  src/runtime/iso2022-jp-restored-state.test.ts [ src/runtime/iso2022-jp-restored-state.test.ts ]\nError: Cannot find module './iso2022-jp-1-codec.js' imported from /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-restored-state.test.ts\n ❯ src/runtime/iso2022-jp-restored-state.test.ts:12:1\n     10| import {iso2022JpCodec as baseCodec} from \"./iso2022-jp-codec.js\";\n     11| import variantEvidence from \"./__snapshots__/iso2022-jp-1-restored-ora…\n     12| import {iso2022Jp1Codec} from \"./iso2022-jp-1-codec.js\";\n       | ^\n     13|\n     14| describe.each([\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯\n\n\n Test Files  3 failed (3)\n      Tests  no tests\n   Start at  02:52:32\n   Duration  487ms (transform 499ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)\n\nnpm error Lifecycle script `test` failed with error:\nnpm error code 1\nnpm error path /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error workspace @poe-code/safe-python@0.0.0-dev\nnpm error location /Users/kjopek/Workspace/poe-code-3/packages/safe-python\nnpm error command failed\nnpm error command sh -c vitest run --config vitest.config.ts iso2022-jp-codec iso2022-jp-restored-state iso2022-jp-recovery --maxWorkers=2\n",
+  "focused": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- iso2022-jp iso2022-kr runtime-multibyte-recovery runtime-codec-registry session-codec-incremental-replay session-codec-recovery-index-boundaries session-core-codec-cancellation session-codec-stream-cancellation --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-jp1-final.json",
+    "exit": 0,
+    "total": 4923,
+    "passed": 4923,
+    "failed": 0,
+    "pending": 0,
+    "files": 15,
+    "maxCaseMs": 107.06854199999998,
+    "failures": []
+  },
+  "blockers": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- session-codec-decoder-consumers --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-jp1-public-blockers.json",
+    "exit": 1,
+    "total": 8,
+    "passed": 0,
+    "failed": 8,
+    "pending": 0,
+    "files": 1,
+    "maxCaseMs": 50.99083299999984,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+        "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+        "messages": [
+          "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "typecheck": {
+    "command": "npm run typecheck --workspace=@poe-code/safe-python",
+    "exit": 0
+  },
+  "eslint": {
+    "command": "npx eslint packages/safe-python/src/runtime/iso2022-jp-codec.ts packages/safe-python/src/runtime/iso2022-jp-1-codec.ts packages/safe-python/src/runtime/iso2022-jp-codec.test.ts packages/safe-python/src/runtime/iso2022-jp-restored-state.test.ts packages/safe-python/src/runtime/iso2022-jp-recovery.test.ts packages/safe-python/src/runtime/iso2022-jp-escape-user.test.ts packages/safe-python/src/runtime/runtime-multibyte-recovery.test.ts",
+    "exit": 0
+  },
+  "services": {
+    "path": "packages/safe-python/src/runtime/__snapshots__/iso2022-jp-1-evidence.json",
+    "command": "npx tsx /tmp/safe-python-iso2022-jp-1-services.mts",
+    "exit": 0
+  }
+}

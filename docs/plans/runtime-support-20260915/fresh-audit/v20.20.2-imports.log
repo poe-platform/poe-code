@@ -1,0 +1,50 @@
+TAP version 13
+# Subtest: Workerd public entry bundles without native filesystem authority
+ok 1 - Workerd public entry bundles without native filesystem authority
+  ---
+  duration_ms: 227.059917
+  ...
+# Subtest: built platform resolution does not add a nested canonical filesystem package scope
+ok 2 - built platform resolution does not add a nested canonical filesystem package scope
+  ---
+  duration_ms: 0.213125
+  ...
+# Subtest: built . export initializes in a fresh native ESM process
+ok 3 - built . export initializes in a fresh native ESM process
+  ---
+  duration_ms: 383.834083
+  ...
+# Subtest: built ./core export initializes in a fresh native ESM process
+ok 4 - built ./core export initializes in a fresh native ESM process
+  ---
+  duration_ms: 280.823833
+  ...
+# Subtest: built ./cli export initializes in a fresh native ESM process
+ok 5 - built ./cli export initializes in a fresh native ESM process
+  ---
+  duration_ms: 44.7265
+  ...
+# Subtest: built ./workerd export initializes in a fresh native ESM process
+ok 6 - built ./workerd export initializes in a fresh native ESM process
+  ---
+  duration_ms: 291.261542
+  ...
+# Subtest: built SDK and snapshot helpers initialize together without preloading value modules
+ok 7 - built SDK and snapshot helpers initialize together without preloading value modules
+  ---
+  duration_ms: 349.917041
+  ...
+# Subtest: built replay-data helpers initialize without preloading the SDK
+ok 8 - built replay-data helpers initialize without preloading the SDK
+  ---
+  duration_ms: 246.297666
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1921.024417

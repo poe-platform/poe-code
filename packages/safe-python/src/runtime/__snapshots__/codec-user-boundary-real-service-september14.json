@@ -1,0 +1,659 @@
+{
+  "initialAttempt": {
+    "note": "Missing output capability stopped input() before reading; setup corrected below, not counted as cancellation coverage.",
+    "adapter": "Real opened read-only file descriptors; bytewise readSync until newline; finally closeSync. Abort after read, then return or throw. Unchanged guest sources from codec-rewrite-real-service.json.",
+    "results": [
+      {
+        "seed": [
+          "1",
+          "2"
+        ],
+        "field": "start",
+        "throws": false,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "1",
+          "2"
+        ],
+        "field": "start",
+        "throws": true,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "1",
+          "2"
+        ],
+        "field": "end",
+        "throws": false,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "1",
+          "2"
+        ],
+        "field": "end",
+        "throws": true,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "1",
+          "2"
+        ],
+        "field": "reason",
+        "throws": false,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "1",
+          "2"
+        ],
+        "field": "reason",
+        "throws": true,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "3",
+          "4"
+        ],
+        "field": "start",
+        "throws": false,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "3",
+          "4"
+        ],
+        "field": "start",
+        "throws": true,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "3",
+          "4"
+        ],
+        "field": "end",
+        "throws": false,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "3",
+          "4"
+        ],
+        "field": "end",
+        "throws": true,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "3",
+          "4"
+        ],
+        "field": "reason",
+        "throws": false,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      },
+      {
+        "seed": [
+          "3",
+          "4"
+        ],
+        "field": "reason",
+        "throws": true,
+        "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+        "reads": 0,
+        "result": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "terminal": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "repeated": {
+          "status": "terminated",
+          "reason": "capability",
+          "message": "output capability is absent"
+        },
+        "sameTerminalValue": true,
+        "sameHostObject": true
+      }
+    ]
+  },
+  "adapter": "Real opened descriptors; bytewise readSync until newline; partial-write writeSync loop and fsyncSync; finally close and temporary-output cleanup. Abort after read, then return or throw. Unchanged guest sources from codec-rewrite-real-service.json.",
+  "results": [
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "field": "start",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "field": "start",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "field": "end",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "field": "end",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "field": "reason",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "1",
+        "2"
+      ],
+      "field": "reason",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "field": "start",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "field": "start",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'start':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "field": "end",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "field": "end",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'end':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "field": "reason",
+      "throws": false,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    },
+    {
+      "seed": [
+        "3",
+        "4"
+      ],
+      "field": "reason",
+      "throws": true,
+      "source": "import codecs\nclass Failure(UnicodeDecodeError):\n    def __getattribute__(self, name):\n        if name == 'reason':\n            input()\n        return super().__getattribute__(name)\ndef handler(error):\n    raise Failure('ascii', b'\\xff', 0, 1, 'original')\ncodecs.register_error('strict', handler)\nb'\\xff-a'.decode('punycode')\n",
+      "reads": 1,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "terminal": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "sameTerminal": true,
+      "output": ""
+    }
+  ]
+}

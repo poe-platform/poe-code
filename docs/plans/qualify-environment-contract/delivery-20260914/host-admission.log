@@ -1,0 +1,16 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/safejs-environment-main-itld68sy
+
+ ✓ packages/safe-js/src/named-host-objects.test.ts (41 tests) 969ms
+ ✓ packages/safe-js/src/indexed-host-objects.test.ts (37 tests) 881ms
+ ✓ packages/safe-js/src/interp/native-promise-admission.test.ts (23 tests) 1756ms
+ ✓ packages/safe-js/src/named-host-policy.test.ts (46 tests) 5627ms
+     ✓ replays recorded outcomes without calling a replacement or provider  331ms
+ ✓ packages/safe-js/src/interp/native-promise-admission-budgets.test.ts (8 tests) 695ms
+   ✓ enforces admitted symbol and value string limits through replay  488ms
+ ✓ packages/safe-js/src/interp/promise-import-properties.test.ts (2 tests) 5ms
+
+ Test Files  6 passed (6)
+      Tests  157 passed (157)
+   Start at  21:22:50
+   Duration  9.13s (transform 4.17s, setup 125ms, import 7.61s, tests 9.93s, environment 0ms)

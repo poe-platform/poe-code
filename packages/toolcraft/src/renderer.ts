@@ -1,6 +1,8 @@
 import YAML from "yaml";
 import { renderDetailCard } from "toolcraft-design";
 import type { Command, RenderPrimitives } from "./index.js";
+import type { CallToolResult } from "tiny-stdio-mcp-server";
+import { isMCPResult } from "./mcp-result.js";
 
 export type OutputMode = "rich" | "md" | "json" | (string & {});
 
@@ -9,13 +11,6 @@ type WriteFn = (chunk: string, stream?: WriteStream) => void;
 
 export interface RenderResultStatus {
   mcpError: boolean;
-}
-
-interface McpCallToolResult {
-  content?: unknown[];
-  structuredContent?: unknown;
-  isError?: boolean;
-  _meta?: unknown;
 }
 
 interface McpTextContent {
@@ -27,31 +22,17 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-function isMcpCallToolResult(value: unknown): value is McpCallToolResult {
-  if (!isObject(value)) {
-    return false;
-  }
-
-  const hasContent = Array.isArray(value.content);
-  const hasStructured = value.structuredContent !== undefined;
-  if (!hasContent && !hasStructured) {
-    return false;
-  }
-
-  return Object.keys(value).every(
-    (key) =>
-      key === "content" || key === "structuredContent" || key === "isError" || key === "_meta"
-  );
-}
-
 function isMcpTextContent(value: unknown): value is McpTextContent {
   return isObject(value) && value.type === "text" && typeof value.text === "string";
 }
 
-function extractMcpPayload(envelope: McpCallToolResult): unknown {
+function extractMcpPayload(envelope: CallToolResult): unknown {
   const structuredContent = envelope.structuredContent;
-  if (isObject(structuredContent) && "result" in structuredContent) {
-    return structuredContent.result;
+  if (isObject(structuredContent)) {
+    const keys = Object.keys(structuredContent);
+    if (keys.length === 1 && keys[0] === "result") {
+      return structuredContent.result;
+    }
   }
 
   if (structuredContent !== undefined) {
@@ -64,14 +45,17 @@ function extractMcpPayload(envelope: McpCallToolResult): unknown {
       .map((block) => block.text)
       .join("\n");
 
-    return text.length > 0 ? text : undefined;
+    if (text.length > 0) {
+      return text;
+    }
+    return envelope.isError === true ? "Upstream tool failed." : undefined;
   }
 
   return undefined;
 }
 
 function unwrapMcpEnvelope(result: unknown): { result: unknown; mcpError: boolean } {
-  if (!isMcpCallToolResult(result)) {
+  if (!isMCPResult(result)) {
     return { result, mcpError: false };
   }
 
@@ -140,14 +124,29 @@ function humanizeKey(key: string): string {
   return output;
 }
 
+function getResultLabels(result: Record<string, unknown>): Map<string, string> {
+  const labels = new Map<string, string>();
+  const counts = new Map<string, number>();
+  for (const key of Object.keys(result)) {
+    const label = humanizeKey(key);
+    labels.set(key, label);
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  for (const [key, label] of labels) {
+    if (counts.get(label)! > 1) labels.set(key, key);
+  }
+  return labels;
+}
+
 function detailRows(
   result: Record<string, unknown>,
   depth = 0
 ): Array<{ label: string; value: string }> {
   const rows: Array<{ label: string; value: string }> = [];
+  const labels = getResultLabels(result);
 
   for (const [key, value] of Object.entries(result)) {
-    const label = `${"  ".repeat(depth)}${humanizeKey(key)}`;
+    const label = `${"  ".repeat(depth)}${labels.get(key)!}`;
 
     if (isObject(value)) {
       if (Object.keys(value).length === 0) {
@@ -206,28 +205,29 @@ function displayRowValue(value: unknown): string {
   return displayScalar(value);
 }
 
-function directScalarRows(result: Record<string, unknown>): Array<{ label: string; value: string }> {
+function directScalarRows(result: Record<string, unknown>, labels: ReadonlyMap<string, string>): Array<{ label: string; value: string }> {
   return Object.entries(result)
     .filter(([, value]) => !isObject(value) && !Array.isArray(value))
-    .map(([key, value]) => ({ label: humanizeKey(key), value: displayRowValue(value) }));
+    .map(([key, value]) => ({ label: labels.get(key)!, value: displayRowValue(value) }));
 }
 
-function directObjectSections(result: Record<string, unknown>): Array<{ title: string; rows: Array<{ label: string; value: string }> }> {
+function directObjectSections(result: Record<string, unknown>, labels: ReadonlyMap<string, string>): Array<{ title: string; rows: Array<{ label: string; value: string }> }> {
   return Object.entries(result)
     .filter(([, value]) => isObject(value))
-    .map(([key, value]) => ({ title: humanizeKey(key), rows: detailRows(value as Record<string, unknown>) }))
+    .map(([key, value]) => ({ title: labels.get(key)!, rows: detailRows(value as Record<string, unknown>) }))
     .filter((section) => section.rows.length > 0);
 }
 
 function directArrayObjectSections(
-  result: Record<string, unknown>
+  result: Record<string, unknown>,
+  labels: ReadonlyMap<string, string>
 ): Array<{ title: string; rows: Array<{ label: string; value: string }> }> {
   return Object.entries(result).flatMap(([key, value]) => {
     if (!isNonEmptyArrayOfObjects(value)) {
       return [];
     }
 
-    const title = humanizeKey(key);
+    const title = labels.get(key)!;
     return value
       .map((entry, index) => ({
         title: value.length === 1 ? title : `${title} ${index + 1}`,
@@ -242,12 +242,13 @@ function renderObjectCard(
   primitives: RenderPrimitives,
   title: string
 ): string {
-  const scalarRows = directScalarRows(result);
-  const nestedSections = directObjectSections(result);
-  const arrayObjectSections = directArrayObjectSections(result);
+  const labels = getResultLabels(result);
+  const scalarRows = directScalarRows(result, labels);
+  const nestedSections = directObjectSections(result, labels);
+  const arrayObjectSections = directArrayObjectSections(result, labels);
   const listRows = Object.entries(result)
     .filter(([, value]) => Array.isArray(value) && !isNonEmptyArrayOfObjects(value))
-    .map(([key, value]) => ({ label: humanizeKey(key), value: stackedList(value as unknown[]) }));
+    .map(([key, value]) => ({ label: labels.get(key)!, value: stackedList(value as unknown[]) }));
 
   return renderDetailCard({
     theme: primitives.getTheme(),
@@ -439,10 +440,9 @@ export function renderResult(
   }
 ): RenderResultStatus {
   const unwrapped = unwrapMcpEnvelope(result);
-  result = unwrapped.result;
 
   if (unwrapped.mcpError) {
-    const payload = autoRender(command, result, output, primitives);
+    const payload = autoRender(command, unwrapped.result, output, primitives);
     if (payload.length > 0) {
       write(`${payload}\n`, "stderr");
     }
@@ -470,7 +470,7 @@ export function renderResult(
     return { mcpError: false };
   }
 
-  const payload = autoRender(command, result, output, primitives);
+  const payload = autoRender(command, unwrapped.result, output, primitives);
   if (payload.length > 0) {
     write(`${payload}\n`);
   }

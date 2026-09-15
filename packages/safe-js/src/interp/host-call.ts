@@ -25,7 +25,7 @@ import {
 } from "./values.js";
 import type { Budget, CompileOwner, CompileTicket } from "./budget.js";
 import { CompileScope } from "./regex/compile-guard.js";
-import { createReplayEncodingContext, decodeReplayData, encodeReplayData, type ReplayData } from "../snapshot/replay-data.js";
+import { createReplayEncodingContext, decodeReplayData, encodeReplayData, MissingReplayCapabilityError, type ReplayData } from "../snapshot/replay-data.js";
 import { validateSnapshotData } from "../snapshot/validation.js";
 import {
   pendingHostCallResumeIdentityMatches,
@@ -53,6 +53,7 @@ export type HostCallRecord = {
   asynchronous?: boolean;
   sharedPrefix?: ReplayData;
   sharedRegistry?: true;
+  sharedGraph?: true;
   sharedPrefixOrder?: number;
   sharedEffectOrder?: number;
   callbacks?: HostCallbackRecord[];
@@ -161,6 +162,7 @@ export class UnresolvedReplayCapabilityError extends TypeError {
 
 export class HostCallJournal {
   private disposed = false;
+  private sharedCallbackExported = false;
   private readonly pendingReconciliations = new Set<() => void>();
   private readonly promiseReplay = promiseReplayContext.getStore();
   readonly runId: string;
@@ -385,13 +387,35 @@ export class HostCallJournal {
     record.lifecycle = "running";
   }
 
-  registerSharedArguments(record:HostCallRecord, values:readonly SharedArrayBuffer[]):void {
+  registerSharedArguments(
+    record: HostCallRecord,
+    values: readonly SharedArrayBuffer[],
+    exported: readonly SharedArrayBuffer[] = [],
+    restored = this.recordedReplay
+  ): void {
+    // Keep the historical digest's block order. The export traversal also sees
+    // collection entries and named/symbol properties omitted by that digest.
+    const blocks = new Set(values.map(value => sharedArrayBufferStorage(value).block));
+    const additional = exported.filter(value => {
+      const { block } = sharedArrayBufferStorage(value);
+      if (blocks.has(block)) return false;
+      blocks.add(block);
+      return true;
+    });
+    if (additional.length > 0) {
+      if (restored && record.sharedGraph !== true &&
+          (record.sharedRegistry !== true || additional.some(value =>
+            !this.exposedSharedStorage.has(sharedArrayBufferStorage(value).block))))
+        throw new MissingReplayCapabilityError("Shared argument graph has no recorded recovery coverage.");
+      if (!restored) record.sharedGraph = true;
+    }
     for (const value of values) this.registerSharedStorage(value);
-    const tracked = !this.recordedReplay || record.sharedRegistry === true
+    for (const value of additional) this.registerSharedStorage(value);
+    const tracked = !restored || record.sharedRegistry === true
       ? [...this.exposedSharedStorage.values()] : [...values];
     if (tracked.length > 0) {
       this.sharedArguments.set(record.id, tracked);
-      if (!this.recordedReplay) record.sharedRegistry = true;
+      if (!restored) record.sharedRegistry = true;
     }
   }
 
@@ -400,6 +424,12 @@ export class HostCallJournal {
     if (this.exposedSharedStorage.has(block)) return;
     this.budget?.setRetainedDataUsage(this.exposedSharedStorage, this.exposedSharedStorage.size + 1);
     this.exposedSharedStorage.set(block, value);
+  }
+
+  markSharedCallbackExport(): void {
+    // Callback results are not replay events. Neither their storage association
+    // nor subsequent writes through the host's retained alias are captured.
+    this.sharedCallbackExported = true;
   }
 
   captureSharedPrefix(record:HostCallRecord):void {
@@ -907,6 +937,10 @@ export class HostCallJournal {
   }
 
   snapshotReplay(): HostCallReplay {
+    if (this.sharedCallbackExported)
+      throw new MissingReplayCapabilityError(
+        "Shared storage exported by a guest callback has no deterministic recovery history."
+      );
     for (const [callId, entries] of this.importedPromiseMemo) {
       for (const [node, promise] of entries) {
         if (!this.proofImportedPromises.has(promise)) continue;
@@ -1222,6 +1256,8 @@ function validateRestoredRecords(
   for (const record of records) {
     if (record.sharedRegistry !== undefined && record.sharedRegistry !== true)
       throw new TypeError("Invalid shared host registry marker.");
+    if (record.sharedGraph !== undefined && (record.sharedGraph !== true || record.sharedRegistry !== true))
+      throw new TypeError("Invalid shared argument graph marker.");
     for (const order of [record.sharedPrefixOrder, record.sharedEffectOrder, ...(record.callbacks ?? []).map(callback => callback.sharedOrder)]) {
       if (order === undefined) continue;
       if (!Number.isSafeInteger(order) || order < 1 || order >= Number.MAX_SAFE_INTEGER || sharedOrders.has(order))

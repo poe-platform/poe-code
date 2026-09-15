@@ -1,0 +1,366 @@
+{
+  "adapter": "Explicit PythonSession output.write calling node:fs.writeSync on an explicitly opened /dev/null descriptor, then aborting the supplied controller.",
+  "scope": "Public codec handler/index cancellation regression evidence; does not certify missing guest buffer exports or all codec compatibility.",
+  "rows": [
+    {
+      "operation": "ascii_encode",
+      "stage": "handler",
+      "throws": false,
+      "source": "from _codecs import ascii_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "ascii_encode",
+      "stage": "handler",
+      "throws": true,
+      "source": "from _codecs import ascii_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel'); raise ValueError('after cancellation')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "ascii_encode",
+      "stage": "index",
+      "throws": false,
+      "source": "from _codecs import ascii_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "ascii_encode",
+      "stage": "index",
+      "throws": true,
+      "source": "from _codecs import ascii_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel'); raise ValueError('after cancellation')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "latin_1_encode",
+      "stage": "handler",
+      "throws": false,
+      "source": "from _codecs import latin_1_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "latin_1_encode",
+      "stage": "handler",
+      "throws": true,
+      "source": "from _codecs import latin_1_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel'); raise ValueError('after cancellation')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "latin_1_encode",
+      "stage": "index",
+      "throws": false,
+      "source": "from _codecs import latin_1_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "latin_1_encode",
+      "stage": "index",
+      "throws": true,
+      "source": "from _codecs import latin_1_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel'); raise ValueError('after cancellation')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_encode",
+      "stage": "handler",
+      "throws": false,
+      "source": "from _codecs import utf_8_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_encode",
+      "stage": "handler",
+      "throws": true,
+      "source": "from _codecs import utf_8_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel'); raise ValueError('after cancellation')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_encode",
+      "stage": "index",
+      "throws": false,
+      "source": "from _codecs import utf_8_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_encode",
+      "stage": "index",
+      "throws": true,
+      "source": "from _codecs import utf_8_encode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel'); raise ValueError('after cancellation')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert('\\ud800Z', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "ascii_decode",
+      "stage": "handler",
+      "throws": false,
+      "source": "from _codecs import ascii_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "ascii_decode",
+      "stage": "handler",
+      "throws": true,
+      "source": "from _codecs import ascii_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel'); raise ValueError('after cancellation')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "ascii_decode",
+      "stage": "index",
+      "throws": false,
+      "source": "from _codecs import ascii_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "ascii_decode",
+      "stage": "index",
+      "throws": true,
+      "source": "from _codecs import ascii_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel'); raise ValueError('after cancellation')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_decode",
+      "stage": "handler",
+      "throws": false,
+      "source": "from _codecs import utf_8_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_decode",
+      "stage": "handler",
+      "throws": true,
+      "source": "from _codecs import utf_8_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        pass\n        return -1\ndef handler(error):\n    print('cancel'); raise ValueError('after cancellation')\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_decode",
+      "stage": "index",
+      "throws": false,
+      "source": "from _codecs import utf_8_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "operation": "utf_8_decode",
+      "stage": "index",
+      "throws": true,
+      "source": "from _codecs import utf_8_decode as convert, register_error\nclass Position:\n    def __index__(self):\n        print('cancel'); raise ValueError('after cancellation')\n        return -1\ndef handler(error):\n    pass\n    return ('!', Position())\nregister_error('public_core_cancellation', handler)\ntry:\n    convert(b'\\xffZ', 'public_core_cancellation')\nexcept BaseException:\n    print('recovered')\n",
+      "calls": 1,
+      "bytes": 6,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    }
+  ]
+}

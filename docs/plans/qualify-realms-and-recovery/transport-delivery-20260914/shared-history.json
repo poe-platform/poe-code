@@ -1,0 +1,107 @@
+{
+  "observationExit": 0,
+  "sourceBase": "5ad2344edc13cd11508cb0b4cee1828c8b9e2c26",
+  "versions": {
+    "node": "22.23.2",
+    "acorn": "8.16.0",
+    "ada": "2.9.2",
+    "amaro": "1.1.8",
+    "ares": "1.34.6",
+    "brotli": "1.1.0",
+    "cjs_module_lexer": "2.2.0",
+    "cldr": "48.0",
+    "icu": "78.2",
+    "llhttp": "9.4.3",
+    "modules": "127",
+    "napi": "10",
+    "nbytes": "0.1.3",
+    "ncrypto": "0.0.1",
+    "nghttp2": "1.69.0",
+    "openssl": "3.5.7",
+    "simdjson": "4.5.0",
+    "simdutf": "6.4.2",
+    "sqlite": "3.51.3",
+    "tz": "2026a",
+    "undici": "6.28.0",
+    "unicode": "17.0",
+    "uv": "1.51.0",
+    "uvwasi": "0.0.23",
+    "v8": "12.4.254.21-node.56",
+    "zlib": "1.3.1-e00f703",
+    "zstd": "1.5.7"
+  },
+  "stdinSha256": "864eef879378a4a050a0075e19a26e72d4339268c3c4960dd7b6fe8be1a973fd",
+  "rows": [
+    {
+      "withEffect": false,
+      "outOfBand": false,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "completedReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "saves": 1,
+      "effects": [],
+      "replayError": null
+    },
+    {
+      "withEffect": false,
+      "outOfBand": true,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 0
+      },
+      "completedReplay": {
+        "ok": true,
+        "value": 0
+      },
+      "saves": 1,
+      "effects": [],
+      "replayError": null
+    },
+    {
+      "withEffect": true,
+      "outOfBand": false,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "completedReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "saves": 1,
+      "effects": [
+        7,
+        7
+      ],
+      "replayError": null
+    },
+    {
+      "withEffect": true,
+      "outOfBand": true,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 0
+      },
+      "completedReplay": {
+        "error": "HostCallResumabilityError",
+        "message": "Host call c8009411-3db1-4c03-99eb-6bbd942de3a1:3 does not match the next restored invocation; reset is required."
+      },
+      "saves": 1,
+      "effects": [
+        7,
+        0
+      ],
+      "replayError": null
+    }
+  ],
+  "semanticAcceptance": false
+}

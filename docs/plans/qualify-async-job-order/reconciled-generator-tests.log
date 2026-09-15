@@ -1,0 +1,60 @@
+
+ RUN  v4.1.11 /private/tmp/poe-code-async-main-20260913
+
+ ❯ packages/safe-js/src/snapshot/async-generator-validation.test.ts (0 test)
+FAIL packages/safe-js/src/snapshot/async-generator-validation.test.ts
+Error: Cannot find module '../intl-data/dist/numberformat-engine.js' imported from /private/tmp/poe-code-async-main-20260913/packages/safe-js/src/interp/numberformat-portable.ts
+ ❯ packages/safe-js/src/interp/numberformat-portable.ts:1:1
+      1| import { NumberFormat as PortableNumberFormat } from "../intl-data/dis…
+       | ^
+      2| import { localeData } from "../intl-data/dist/numberformat.js";
+      3| import type { SandboxValue } from "./values.js";
+ ❯ packages/safe-js/src/interp/numberformat-backend.ts:2:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/safe-js/test/async-delegated-return-restore.test.ts (0 test)
+FAIL packages/safe-js/test/async-delegated-return-restore.test.ts
+Error: Cannot find module '../intl-data/dist/numberformat-engine.js' imported from /private/tmp/poe-code-async-main-20260913/packages/safe-js/src/interp/numberformat-portable.ts
+ ❯ packages/safe-js/src/interp/numberformat-portable.ts:1:1
+      1| import { NumberFormat as PortableNumberFormat } from "../intl-data/dis…
+       | ^
+      2| import { localeData } from "../intl-data/dist/numberformat.js";
+      3| import type { SandboxValue } from "./values.js";
+ ❯ packages/safe-js/src/interp/numberformat-backend.ts:2:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ ❯ packages/safe-js/test/async-generator-return-order.test.ts (0 test)
+FAIL packages/safe-js/test/async-generator-return-order.test.ts
+Error: Cannot find module '../intl-data/dist/numberformat-engine.js' imported from /private/tmp/poe-code-async-main-20260913/packages/safe-js/src/interp/numberformat-portable.ts
+ ❯ packages/safe-js/src/interp/numberformat-portable.ts:1:1
+      1| import { NumberFormat as PortableNumberFormat } from "../intl-data/dis…
+       | ^
+      2| import { localeData } from "../intl-data/dist/numberformat.js";
+      3| import type { SandboxValue } from "./values.js";
+ ❯ packages/safe-js/src/interp/numberformat-backend.ts:2:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/test/async-delegated-return-restore.test.ts [ packages/safe-js/test/async-delegated-return-restore.test.ts ]
+ FAIL  packages/safe-js/test/async-generator-return-order.test.ts [ packages/safe-js/test/async-generator-return-order.test.ts ]
+ FAIL  packages/safe-js/src/snapshot/async-generator-validation.test.ts [ packages/safe-js/src/snapshot/async-generator-validation.test.ts ]
+Error: Cannot find module '../intl-data/dist/numberformat-engine.js' imported from /private/tmp/poe-code-async-main-20260913/packages/safe-js/src/interp/numberformat-portable.ts
+ ❯ packages/safe-js/src/interp/numberformat-portable.ts:1:1
+      1| import { NumberFormat as PortableNumberFormat } from "../intl-data/dis…
+       | ^
+      2| import { localeData } from "../intl-data/dist/numberformat.js";
+      3| import type { SandboxValue } from "./values.js";
+ ❯ packages/safe-js/src/interp/numberformat-backend.ts:2:1
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+
+ Test Files  3 failed (3)
+      Tests  no tests
+   Start at  05:26:26
+   Duration  779ms (transform 908ms, setup 72ms, import 0ms, tests 0ms, environment 0ms)

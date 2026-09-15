@@ -1,10 +1,90 @@
 import { setImmediate } from "node:timers/promises";
 import { PassThrough } from "node:stream";
-import { describe, expect, it, vi } from "vitest";
+import { getEventListeners, setMaxListeners } from "node:events";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createServer, defineSchema } from "./index.js";
 import { ToolCallAdmission } from "./tool-call-admission.js";
 
-describe("shared tool-call admission", () => {
+const originalSignalAny = Object.getOwnPropertyDescriptor(AbortSignal, "any");
+
+describe.each(["native", "without AbortSignal.any"])("shared tool-call admission: %s", (runtime) => {
+  beforeEach(() => {
+    if (runtime !== "native") Object.defineProperty(AbortSignal, "any", { configurable: true, value: undefined });
+  });
+  afterEach(() => {
+    if (originalSignalAny === undefined) Reflect.deleteProperty(AbortSignal, "any");
+    else Object.defineProperty(AbortSignal, "any", originalSignalAny);
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it.each(["success", "failure", "timeout"])("releases session listeners and timers after %s", async (outcome) => {
+    vi.useFakeTimers();
+    const server = createServer({ name: "listener-cleanup", version: "1", toolCallTimeoutMs: 5 });
+    const session = server.createMessageSession();
+    let signal: AbortSignal | undefined;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    server.method("capture", (_params, context) => { signal = context.signal; return {}; });
+    server.tool("check", "Check cleanup", defineSchema({}), async () => {
+      if (outcome === "failure") throw new Error("expected failure");
+      if (outcome === "timeout") await gate;
+      return "done";
+    });
+    await session.handleMessage("initialize", {});
+    await session.handleMessage("capture", {});
+    const initialListeners = getEventListeners(signal!, "abort").length;
+    const calls: Array<ReturnType<typeof session.handleMessage>> = [];
+    try {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const call = session.handleMessage("tools/call", { name: "check" });
+        calls.push(call);
+        await vi.advanceTimersByTimeAsync(5);
+        const result = await call;
+        if (outcome === "timeout") expect(result).toMatchObject({ error: { message: "Tool call timed out: check" } });
+        else if (outcome === "failure") expect(result).toMatchObject({ result: { content: [{ text: "Error: expected failure" }], isError: true } });
+        else expect(result).toMatchObject({ result: { content: [{ text: "done" }] } });
+        expect(getEventListeners(signal!, "abort")).toHaveLength(initialListeners);
+        expect(vi.getTimerCount()).toBe(0);
+      }
+    } finally {
+      release();
+      await Promise.all(calls);
+      session.close();
+    }
+  });
+
+  it.each([undefined, 100])("keeps bounded session listeners with a full queue and timeout %s", async (toolCallTimeoutMs) => {
+    vi.useFakeTimers();
+    const server = createServer({ name: "queued-listeners", version: "1", maxConcurrentToolCalls: 1, maxQueuedToolCalls: 20, toolCallTimeoutMs });
+    const session = server.createMessageSession();
+    let signal: AbortSignal | undefined;
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    server.method("capture", (_params, context) => { signal = context.signal; return {}; });
+    server.tool("held", "Held work", defineSchema({}), async () => { await gate; return "done"; });
+    await session.handleMessage("initialize", {});
+    await session.handleMessage("capture", {});
+    setMaxListeners(10, signal!);
+    const initialListeners = getEventListeners(signal!, "abort").length;
+    const warning = vi.spyOn(process, "emitWarning").mockImplementation(() => {});
+    const calls = Array.from({ length: 21 }, () => session.handleMessage("tools/call", { name: "held" }));
+    try {
+      await vi.advanceTimersByTimeAsync(0);
+      expect(warning).not.toHaveBeenCalled();
+      expect(getEventListeners(signal!, "abort").length).toBeLessThanOrEqual(initialListeners + 1);
+      release();
+      const results = await Promise.all(calls);
+      expect(results.every((result) => result.error === undefined && (result.result as { isError?: boolean }).isError !== true)).toBe(true);
+      expect(getEventListeners(signal!, "abort")).toHaveLength(initialListeners);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      release();
+      await Promise.all(calls);
+      session.close();
+    }
+  });
+
   it("bounds handlers received through the stdio line protocol", async () => {
     const server = createServer({ name: "stdio-admission", version: "1" });
     const readable = new PassThrough();
@@ -85,8 +165,9 @@ describe("shared tool-call admission", () => {
     } finally { release(); await first; }
   });
 
-  for (const closeAfterRelease of [false, true]) it(`cancels closed-session waiting calls, after releasing prior work ${closeAfterRelease}`, async () => {
-    const server = createServer({ name: "closed-queue", version: "1", maxConcurrentToolCalls: 1, maxQueuedToolCalls: 1 });
+  for (const toolCallTimeoutMs of [undefined, 100]) for (const closeAfterRelease of [false, true]) it(`cancels closed-session waiting calls, after releasing prior work ${closeAfterRelease}, timeout ${toolCallTimeoutMs}`, async () => {
+    vi.useFakeTimers();
+    const server = createServer({ name: "closed-queue", version: "1", maxConcurrentToolCalls: 1, maxQueuedToolCalls: 1, toolCallTimeoutMs });
     const sessions = [server.createMessageSession(), server.createMessageSession()];
     const started: string[] = [];
     let release!: () => void;
@@ -98,7 +179,7 @@ describe("shared tool-call admission", () => {
     const first = sessions[0]!.handleMessage("tools/call", { name: "held", arguments: { label: "first" } });
     const cancelled = sessions[1]!.handleMessage("tools/call", { name: "held", arguments: { label: "cancelled" } });
     try {
-      await setImmediate();
+      await vi.advanceTimersByTimeAsync(0);
       if (closeAfterRelease) release();
       sessions[1]!.close();
       expect(await cancelled).toMatchObject({ result: { isError: true } });

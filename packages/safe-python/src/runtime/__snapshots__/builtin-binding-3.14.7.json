@@ -1,0 +1,2491 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "darwin",
+    "unicode": "16.0.0",
+    "machine": "arm64",
+    "maxsize": 9223372036854775807,
+    "siteEnabled": true
+  },
+  "builtins": [
+    {
+      "name": "ArithmeticError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "AssertionError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "AttributeError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "BaseException",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "BaseExceptionGroup",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "BlockingIOError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "BrokenPipeError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "BufferError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "BytesWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ChildProcessError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ConnectionAbortedError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ConnectionError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ConnectionRefusedError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ConnectionResetError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "DeprecationWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "EOFError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "Ellipsis",
+      "category": "constant",
+      "type": "ellipsis"
+    },
+    {
+      "name": "EncodingWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "EnvironmentError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "Exception",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ExceptionGroup",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "False",
+      "category": "constant",
+      "type": "bool"
+    },
+    {
+      "name": "FileExistsError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "FileNotFoundError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "FloatingPointError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "FutureWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "GeneratorExit",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "IOError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ImportError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ImportWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "IndentationError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "IndexError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "InterruptedError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "IsADirectoryError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "KeyError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "KeyboardInterrupt",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "LookupError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "MemoryError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ModuleNotFoundError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "NameError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "None",
+      "category": "constant",
+      "type": "NoneType"
+    },
+    {
+      "name": "NotADirectoryError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "NotImplemented",
+      "category": "constant",
+      "type": "NotImplementedType"
+    },
+    {
+      "name": "NotImplementedError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "OSError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "OverflowError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "PendingDeprecationWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "PermissionError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ProcessLookupError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "PythonFinalizationError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "RecursionError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ReferenceError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ResourceWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "RuntimeError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "RuntimeWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "StopAsyncIteration",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "StopIteration",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "SyntaxError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "SyntaxWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "SystemError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "SystemExit",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "TabError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "TimeoutError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "True",
+      "category": "constant",
+      "type": "bool"
+    },
+    {
+      "name": "TypeError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "UnboundLocalError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "UnicodeDecodeError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "UnicodeEncodeError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "UnicodeError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "UnicodeTranslateError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "UnicodeWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "UserWarning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ValueError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "Warning",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "ZeroDivisionError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "_IncompleteInputError",
+      "category": "exception",
+      "type": "type"
+    },
+    {
+      "name": "__build_class__",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "__debug__",
+      "category": "constant",
+      "type": "bool"
+    },
+    {
+      "name": "__doc__",
+      "category": "constant",
+      "type": "str"
+    },
+    {
+      "name": "__import__",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "__loader__",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "__name__",
+      "category": "constant",
+      "type": "str"
+    },
+    {
+      "name": "__package__",
+      "category": "constant",
+      "type": "str"
+    },
+    {
+      "name": "__spec__",
+      "category": "constant",
+      "type": "ModuleSpec"
+    },
+    {
+      "name": "abs",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "aiter",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "all",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "anext",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "any",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "ascii",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "bin",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "bool",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "breakpoint",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "bytearray",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "bytes",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "callable",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "chr",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "classmethod",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "compile",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "complex",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "copyright",
+      "category": "function",
+      "type": "_Printer"
+    },
+    {
+      "name": "credits",
+      "category": "function",
+      "type": "_Printer"
+    },
+    {
+      "name": "delattr",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "dict",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "dir",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "divmod",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "enumerate",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "eval",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "exec",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "exit",
+      "category": "function",
+      "type": "Quitter"
+    },
+    {
+      "name": "filter",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "float",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "format",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "frozenset",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "getattr",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "globals",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "hasattr",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "hash",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "help",
+      "category": "function",
+      "type": "_Helper"
+    },
+    {
+      "name": "hex",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "id",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "input",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "int",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "isinstance",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "issubclass",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "iter",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "len",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "license",
+      "category": "function",
+      "type": "_Printer"
+    },
+    {
+      "name": "list",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "locals",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "map",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "max",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "memoryview",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "min",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "next",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "object",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "oct",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "open",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "ord",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "pow",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "print",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "property",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "quit",
+      "category": "function",
+      "type": "Quitter"
+    },
+    {
+      "name": "range",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "repr",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "reversed",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "round",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "set",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "setattr",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "slice",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "sorted",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "staticmethod",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "str",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "sum",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "super",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "tuple",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "type",
+      "category": "type",
+      "type": "type"
+    },
+    {
+      "name": "vars",
+      "category": "function",
+      "type": "builtin_function_or_method"
+    },
+    {
+      "name": "zip",
+      "category": "type",
+      "type": "type"
+    }
+  ],
+  "bindingProbes": [
+    {
+      "source": "abs()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "abs() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "abs(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "bad operand type for abs(): 'NoneType'"
+      }
+    },
+    {
+      "source": "abs(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "abs() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "abs(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "abs() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "abs(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "abs() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "abs(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "abs() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "abs(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "abs() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "all()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "all() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "all(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "all(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "all() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "all(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "all() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "all(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "all() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "all(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "all() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "all(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "all() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "any()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "any() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "any(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "any(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "any() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "any(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "any() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "any(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "any() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "any(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "any() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "any(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "any() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "ascii()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ascii() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "ascii(None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'None'"
+      }
+    },
+    {
+      "source": "ascii(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ascii() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "ascii(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ascii() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "ascii(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ascii() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "ascii(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ascii() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "ascii(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ascii() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "bin()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "bin() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "bin(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "source": "bin(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "bin() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "bin(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "bin() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "bin(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "bin() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "bin(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "bin() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "bin(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "bin() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "callable()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "callable() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "callable(None)",
+      "expected": {
+        "status": "ok",
+        "type": "bool",
+        "repr": "False"
+      }
+    },
+    {
+      "source": "callable(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "callable() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "callable(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "callable() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "callable(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "callable() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "callable(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "callable() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "callable(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "callable() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "chr()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "chr() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "chr(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "source": "chr(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "chr() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "chr(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "chr() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "chr(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "chr() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "chr(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "chr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "chr(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "chr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "delattr()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "delattr expected 2 arguments, got 0"
+      }
+    },
+    {
+      "source": "delattr(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "delattr expected 2 arguments, got 1"
+      }
+    },
+    {
+      "source": "delattr(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "attribute name must be string, not 'NoneType'"
+      }
+    },
+    {
+      "source": "delattr(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "delattr expected 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "delattr(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "delattr expected 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "delattr(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "delattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "delattr(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "delattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "divmod()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "divmod expected 2 arguments, got 0"
+      }
+    },
+    {
+      "source": "divmod(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "divmod expected 2 arguments, got 1"
+      }
+    },
+    {
+      "source": "divmod(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "unsupported operand type(s) for divmod(): 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "divmod(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "divmod expected 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "divmod(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "divmod expected 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "divmod(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "divmod() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "divmod(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "divmod() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "format()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "format expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "source": "format(None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'None'"
+      }
+    },
+    {
+      "source": "format(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "format() argument 2 must be str, not None"
+      }
+    },
+    {
+      "source": "format(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "format expected at most 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "format(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "format expected at most 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "format(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "format() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "format(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "format() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "getattr()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "getattr expected at least 2 arguments, got 0"
+      }
+    },
+    {
+      "source": "getattr(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "getattr expected at least 2 arguments, got 1"
+      }
+    },
+    {
+      "source": "getattr(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "attribute name must be string, not 'NoneType'"
+      }
+    },
+    {
+      "source": "getattr(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "attribute name must be string, not 'NoneType'"
+      }
+    },
+    {
+      "source": "getattr(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "getattr expected at most 3 arguments, got 4"
+      }
+    },
+    {
+      "source": "getattr(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "getattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "getattr(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "getattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "hasattr()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hasattr expected 2 arguments, got 0"
+      }
+    },
+    {
+      "source": "hasattr(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hasattr expected 2 arguments, got 1"
+      }
+    },
+    {
+      "source": "hasattr(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "attribute name must be string, not 'NoneType'"
+      }
+    },
+    {
+      "source": "hasattr(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hasattr expected 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "hasattr(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hasattr expected 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "hasattr(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hasattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "hasattr(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hasattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "hash()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hash() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "hash(None)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "4238894112"
+      },
+      "contract": "process-dependent integer; verify stable identity and hash within the interpreter; do not compare addresses across processes"
+    },
+    {
+      "source": "hash(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hash() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "hash(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hash() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "hash(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hash() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "hash(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hash() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "hash(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hash() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "hex()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hex() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "hex(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "source": "hex(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hex() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "hex(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hex() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "hex(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hex() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "hex(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hex() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "hex(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "hex() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "id()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "id() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "id(None)",
+      "expected": {
+        "status": "ok",
+        "type": "int",
+        "repr": "4356287080"
+      },
+      "contract": "process-dependent integer; verify stable identity and hash within the interpreter; do not compare addresses across processes"
+    },
+    {
+      "source": "id(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "id() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "id(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "id() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "id(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "id() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "id(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "id() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "id(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "id() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "isinstance()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "isinstance expected 2 arguments, got 0"
+      }
+    },
+    {
+      "source": "isinstance(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "isinstance expected 2 arguments, got 1"
+      }
+    },
+    {
+      "source": "isinstance(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "isinstance() arg 2 must be a type, a tuple of types, or a union"
+      }
+    },
+    {
+      "source": "isinstance(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "isinstance expected 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "isinstance(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "isinstance expected 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "isinstance(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "isinstance() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "isinstance(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "isinstance() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "issubclass()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "issubclass expected 2 arguments, got 0"
+      }
+    },
+    {
+      "source": "issubclass(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "issubclass expected 2 arguments, got 1"
+      }
+    },
+    {
+      "source": "issubclass(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "issubclass() arg 1 must be a class"
+      }
+    },
+    {
+      "source": "issubclass(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "issubclass expected 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "issubclass(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "issubclass expected 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "issubclass(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "issubclass() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "issubclass(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "issubclass() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "iter()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "iter expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "source": "iter(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "iter(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "iter(v, w): v must be callable"
+      }
+    },
+    {
+      "source": "iter(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "iter expected at most 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "iter(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "iter expected at most 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "iter(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "iter() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "iter(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "iter() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "len()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "len() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "len(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "object of type 'NoneType' has no len()"
+      }
+    },
+    {
+      "source": "len(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "len() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "len(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "len() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "len(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "len() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "len(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "len() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "len(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "len() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "max()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "max expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "source": "max(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "max(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'>' not supported between instances of 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "max(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'>' not supported between instances of 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "max(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'>' not supported between instances of 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "max(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "max expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "source": "max(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "max() got an unexpected keyword argument 'unexpected'"
+      }
+    },
+    {
+      "source": "min()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "min expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "source": "min(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "min(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'<' not supported between instances of 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "min(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'<' not supported between instances of 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "min(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'<' not supported between instances of 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "min(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "min expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "source": "min(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "min() got an unexpected keyword argument 'unexpected'"
+      }
+    },
+    {
+      "source": "next()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "next expected at least 1 argument, got 0"
+      }
+    },
+    {
+      "source": "next(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not an iterator"
+      }
+    },
+    {
+      "source": "next(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not an iterator"
+      }
+    },
+    {
+      "source": "next(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "next expected at most 2 arguments, got 3"
+      }
+    },
+    {
+      "source": "next(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "next expected at most 2 arguments, got 4"
+      }
+    },
+    {
+      "source": "next(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "next() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "next(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "next() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "oct()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "oct() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "oct(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object cannot be interpreted as an integer"
+      }
+    },
+    {
+      "source": "oct(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "oct() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "oct(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "oct() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "oct(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "oct() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "oct(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "oct() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "oct(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "oct() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "ord()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ord() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "ord(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ord() expected string of length 1, but NoneType found"
+      }
+    },
+    {
+      "source": "ord(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ord() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "ord(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ord() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "ord(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ord() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "ord(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ord() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "ord(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "ord() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "pow()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "pow(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "unsupported operand type(s) for ** or pow(): 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "pow(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "unsupported operand type(s) for ** or pow(): 'NoneType' and 'NoneType'"
+      }
+    },
+    {
+      "source": "pow(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() takes at most 3 arguments (4 given)"
+      }
+    },
+    {
+      "source": "pow(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'base' (pos 1)"
+      }
+    },
+    {
+      "source": "pow(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "pow() missing required argument 'exp' (pos 2)"
+      }
+    },
+    {
+      "source": "repr()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "repr() takes exactly one argument (0 given)"
+      }
+    },
+    {
+      "source": "repr(None)",
+      "expected": {
+        "status": "ok",
+        "type": "str",
+        "repr": "'None'"
+      }
+    },
+    {
+      "source": "repr(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "repr() takes exactly one argument (2 given)"
+      }
+    },
+    {
+      "source": "repr(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "repr() takes exactly one argument (3 given)"
+      }
+    },
+    {
+      "source": "repr(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "repr() takes exactly one argument (4 given)"
+      }
+    },
+    {
+      "source": "repr(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "repr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "repr(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "repr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "round()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "type NoneType doesn't define __round__ method"
+      }
+    },
+    {
+      "source": "round(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "type NoneType doesn't define __round__ method"
+      }
+    },
+    {
+      "source": "round(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "round(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "round(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() missing required argument 'number' (pos 1)"
+      }
+    },
+    {
+      "source": "round(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "round() got an unexpected keyword argument 'unexpected'"
+      }
+    },
+    {
+      "source": "setattr()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "setattr expected 3 arguments, got 0"
+      }
+    },
+    {
+      "source": "setattr(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "setattr expected 3 arguments, got 1"
+      }
+    },
+    {
+      "source": "setattr(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "setattr expected 3 arguments, got 2"
+      }
+    },
+    {
+      "source": "setattr(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "attribute name must be string, not 'NoneType'"
+      }
+    },
+    {
+      "source": "setattr(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "setattr expected 3 arguments, got 4"
+      }
+    },
+    {
+      "source": "setattr(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "setattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "setattr(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "setattr() takes no keyword arguments"
+      }
+    },
+    {
+      "source": "sorted()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sorted expected 1 argument, got 0"
+      }
+    },
+    {
+      "source": "sorted(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "sorted(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sorted expected 1 argument, got 2"
+      }
+    },
+    {
+      "source": "sorted(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sorted expected 1 argument, got 3"
+      }
+    },
+    {
+      "source": "sorted(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sorted expected 1 argument, got 4"
+      }
+    },
+    {
+      "source": "sorted(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sorted expected 1 argument, got 0"
+      }
+    },
+    {
+      "source": "sorted(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "sum()",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sum() takes at least 1 positional argument (0 given)"
+      }
+    },
+    {
+      "source": "sum(None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "sum(None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "'NoneType' object is not iterable"
+      }
+    },
+    {
+      "source": "sum(None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sum() takes at most 2 arguments (3 given)"
+      }
+    },
+    {
+      "source": "sum(None,None,None,None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sum() takes at most 2 arguments (4 given)"
+      }
+    },
+    {
+      "source": "sum(unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sum() takes at least 1 positional argument (0 given)"
+      }
+    },
+    {
+      "source": "sum(None,unexpected=None)",
+      "expected": {
+        "status": "exception",
+        "type": "TypeError",
+        "message": "sum() got an unexpected keyword argument 'unexpected'"
+      }
+    }
+  ]
+}

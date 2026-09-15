@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/safejs-environment-main-itld68sy
+
+ ✓ scripts/package-safe.test.ts (2 tests) 17ms
+ ✓ scripts/package-safe-native.test.ts (3 tests) 26ms
+
+ Test Files  2 passed (2)
+      Tests  5 passed (5)
+   Start at  21:08:29
+   Duration  375ms (transform 162ms, setup 66ms, import 506ms, tests 42ms, environment 0ms)

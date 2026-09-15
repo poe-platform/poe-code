@@ -49,7 +49,7 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
       return new UserError(`Request timed out: ${redactedUrl}.`, { cause: error });
   }
 
-  if (findAbortError(error) !== null) {
+  if (isAbortError(error)) {
     return new UserError(`Request aborted: ${redactedUrl}.`, { cause: error });
   }
 
@@ -62,8 +62,10 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
 
 function findNetworkError(error: unknown): NetworkErrorLike | null {
   let current: unknown = error;
+  const visited = new Set<object>();
 
-  while (isErrorLikeObject(current)) {
+  while (isErrorLikeObject(current) && !visited.has(current)) {
+    visited.add(current);
     if (readStringProperty(current, "code") !== undefined) {
       return current;
     }
@@ -74,22 +76,20 @@ function findNetworkError(error: unknown): NetworkErrorLike | null {
   return null;
 }
 
-function isAbortError(error: unknown): boolean {
-  return isErrorLikeObject(error) && error.name === "AbortError";
-}
-
-function findAbortError(error: unknown): NetworkErrorLike | null {
+export function isAbortError(error: unknown): boolean {
   let current: unknown = error;
+  const visited = new Set<object>();
 
-  while (isErrorLikeObject(current)) {
-    if (isAbortError(current)) {
-      return current;
+  while (isErrorLikeObject(current) && !visited.has(current)) {
+    visited.add(current);
+    if (current.name === "AbortError") {
+      return true;
     }
 
     current = readOwnProperty(current, "cause");
   }
 
-  return null;
+  return false;
 }
 
 function hasCause(error: Error): boolean {

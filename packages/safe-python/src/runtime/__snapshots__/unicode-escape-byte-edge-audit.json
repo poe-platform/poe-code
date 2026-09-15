@@ -1,0 +1,40 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "oracleSource": "import sys,json,_codecs,warnings,unicodedata\nrows=json.load(sys.stdin)\nout=[]\nfor r in rows:\n with warnings.catch_warnings(record=True) as ws:\n  warnings.simplefilter('always')\n  try:\n   s,n=getattr(_codecs,'raw_unicode_escape_decode' if r['raw'] else 'unicode_escape_decode')(bytes(r['bytes']),r['errors'],r['final'])\n   result={'result':[list(map(ord,s)),n]}\n  except UnicodeDecodeError as e: result={'error':[e.encoding,list(e.object),e.start,e.end,e.reason]}\n  result['warnings']=[str(w.message) for w in ws]\n  out.append(result)\njson.dump({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder},'results':out},sys.stdout)\n",
+  "generator": {
+    "seed": 731,
+    "count": 1000,
+    "lengthModulo": 17,
+    "multiplier": 1664525,
+    "increment": 1013904223,
+    "alphabet": [
+      0,
+      10,
+      13,
+      48,
+      49,
+      55,
+      56,
+      65,
+      78,
+      85,
+      92,
+      97,
+      120,
+      117,
+      123,
+      125,
+      127,
+      128,
+      255
+    ]
+  },
+  "caseCount": 16000,
+  "resultSha256": "50d029397f75243b7c5fefd5ccfe40aef8d16bb9f9351d2f3d175f5f8c8858c4",
+  "mismatches": []
+}

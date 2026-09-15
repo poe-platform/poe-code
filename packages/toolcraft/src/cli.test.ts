@@ -28,8 +28,7 @@ const promptState = {
   select: vi.fn(),
   confirm: vi.fn(),
   isCancel: vi.fn((value: unknown) => typeof value === "symbol"),
-  cancel: vi.fn(),
-  resetOutputFormatCache: vi.fn()
+  cancel: vi.fn()
 };
 
 const formatterState = {
@@ -64,14 +63,15 @@ async function withObjectPrototypeProperties<T>(
   }
 }
 
-vi.mock("toolcraft-design", () => ({
+vi.mock("toolcraft-design", async (importOriginal) => ({
+  ...await importOriginal<typeof import("toolcraft-design")>(),
   configureTheme: vi.fn(),
   createLogger: () => ({
     info: (message: string) => loggerState.info.push(message),
     success: (message: string) => loggerState.success.push(message),
     warn: (message: string) => loggerState.warn.push(message),
     error: (message: string) => {
-      loggerState.errorOutputFormats.push(process.env.OUTPUT_FORMAT);
+      loggerState.errorOutputFormats.push(resolveOutputFormat());
       loggerState.error.push(message);
     },
     resolved: (label: string, value: string) => loggerState.resolved.push({ label, value }),
@@ -173,7 +173,6 @@ vi.mock("toolcraft-design", () => ({
   confirm: promptState.confirm,
   isCancel: promptState.isCancel,
   cancel: promptState.cancel,
-  resetOutputFormatCache: promptState.resetOutputFormatCache,
   note: vi.fn()
 }));
 
@@ -187,6 +186,7 @@ vi.mock("node:fs", async () => {
   return fs;
 });
 
+const { resolveOutputFormat } = await import("toolcraft-design");
 const { runCLI: runCLIWithoutControls } = await import("./cli.js");
 const { createHumanInLoop } = await import("./human-in-loop/index.js");
 const runCLI: typeof runCLIWithoutControls = (roots, options = {}) =>
@@ -1403,7 +1403,7 @@ describe("runCLI", () => {
       argv: ["node", "toolcraft", "init"]
     });
 
-    expect(promptState.cancel).toHaveBeenCalledWith("Operation cancelled.");
+    expect(promptState.cancel).not.toHaveBeenCalled();
     expect(process.exitCode).toBe(1);
   });
 
@@ -1904,6 +1904,31 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it.each([
+    { value: "😀", minLength: 2, valid: false },
+    { value: "😀", maxLength: 1, valid: true },
+    { value: "😀a", maxLength: 1, valid: false },
+    { value: "e\u0301", minLength: 2, maxLength: 2, valid: true }
+  ])("uses Unicode code-point lengths for preset strings: %j", async ({ value, minLength, maxLength, valid }) => {
+    const handler = vi.fn(() => "ok");
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [defineCommand({
+        name: "check",
+        params: S.Object({ text: S.String({ minLength, maxLength }) }),
+        handler
+      })]
+    });
+    vol.fromJSON({ "/presets/unicode.json": JSON.stringify({ text: value }) });
+    process.argv = ["node", "toolcraft", "check", "--preset", "/presets/unicode.json", "--yes"];
+
+    await runCLI(root, { presets: true });
+
+    expect(process.exitCode ?? 0).toBe(valid ? 0 : 1);
+    expect(handler).toHaveBeenCalledTimes(valid ? 1 : 0);
+    if (!valid) expect(loggerState.error.join("\n")).toContain(`got string with length ${[...value].length}`);
+  });
+
   it("rejects preset values that violate numeric and array bounds", async () => {
     const handler = vi.fn(async ({ params }: { params: unknown }) => params);
 
@@ -2210,7 +2235,7 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
-      handler: async () => ({
+      handler: async () => asMCPResult({
         content: [{ type: "text", text: "tool failed" }],
         isError: true
       })
@@ -2246,14 +2271,14 @@ describe("runCLI", () => {
       expected: "json",
       label: "json"
     }
-  ])("sets OUTPUT_FORMAT to $expected while running $label output", async ({ argv, expected }) => {
+  ])("uses the $expected design context while running $label output", async ({ argv, expected }) => {
     const seenOutputFormats: Array<string | undefined> = [];
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
       handler: async () => {
-        seenOutputFormats.push(process.env.OUTPUT_FORMAT);
+        seenOutputFormats.push(resolveOutputFormat());
         return null;
       }
     });
@@ -2269,7 +2294,6 @@ describe("runCLI", () => {
 
     expect(seenOutputFormats).toEqual([expected]);
     expect(process.env.OUTPUT_FORMAT).toBe(originalOutputFormat);
-    expect(promptState.resetOutputFormatCache).toHaveBeenCalledTimes(2);
     expect(stdoutWrite).toHaveBeenCalled();
   });
 
@@ -4245,7 +4269,7 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
       withUsagePointer(
-        'Unsupported parameter type "oneof" for "routes.primary". Supported types: string, number, integer, boolean, array, object, enum, oneof.',
+        'Unsupported CLI argument shape for "routes.primary" (type "oneof").',
         "configure"
       )
     ]);
@@ -6712,3 +6736,4 @@ describe("runCLI", () => {
     expect(output).not.toMatch(/values: client_secret_supplied, internal_keystore, none, required/);
   });
 });
+import { asMCPResult } from "./mcp-result.js";

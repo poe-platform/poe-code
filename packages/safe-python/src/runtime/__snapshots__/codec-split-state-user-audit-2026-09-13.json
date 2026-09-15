@@ -1,0 +1,1101 @@
+{
+  "scope": "Fresh audit only; no runtime change or task completion. Full CPython compatibility remains unfinished.",
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "reports": {
+    "baseline": {
+      "passed": 182,
+      "failed": 16,
+      "pending": 0,
+      "files": 8,
+      "reportSha256": "ec617809d5b7968424ee5dfb5dacdc2dbbdbe7fbf3b300ae73c96654d617fd9f",
+      "slowestMilliseconds": 61.01741700000002,
+      "testStatusSha256": "eda3d5b646ac64f88030213b24c1c011d4d3edbcc1a983d3cae53db7155d45fc",
+      "failures": [
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; keep; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; keep; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; reset; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; reset; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; setstate; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; setstate; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; nested; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; nested; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; keep; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; keep; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; reset; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; reset; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; setstate; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; setstate; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; nested; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; nested; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        }
+      ]
+    },
+    "broad": {
+      "passed": 22382,
+      "failed": 113,
+      "pending": 0,
+      "files": 180,
+      "reportSha256": "d49c605241673f517e6d3394f109dbfc3392f0ae15fb623573a6fbb8fccf562f",
+      "slowestMilliseconds": 1003.1480420000003,
+      "testStatusSha256": "83fc9456d02e73d600edccd53b02bc3c4c7cd94edaa0e1d7786130088050b218",
+      "failures": [
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts",
+          "name": "preserves 'encode' 'mapping' failure identity",
+          "messages": [
+            "AssertionError: mapping traceback: expected 'exception' to be 'ok' // Object.is equality\n    at run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:13:32)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:135:5\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts",
+          "name": "preserves 'encode' 'handler' failure identity",
+          "messages": [
+            "AssertionError: handler traceback: expected 'exception' to be 'ok' // Object.is equality\n    at run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:13:32)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:135:5\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts",
+          "name": "preserves 'decode' 'mapping' failure identity",
+          "messages": [
+            "AssertionError: mapping traceback: expected 'exception' to be 'ok' // Object.is equality\n    at run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:13:32)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:135:5\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts",
+          "name": "preserves 'decode' 'handler' failure identity",
+          "messages": [
+            "AssertionError: handler traceback: expected 'exception' to be 'ok' // Object.is equality\n    at run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:13:32)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-charmap-codec-api.test.ts:135:5\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+          "messages": [
+            "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; keep; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; keep; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; reset; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; reset; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; setstate; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; setstate; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; nested; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-16; nested; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; keep; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; keep; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; reset; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; reset; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; setstate; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; setstate; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; nested; negative resume'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+          "name": "'utf-32; nested; index failure'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-encoder-callback-state.test.ts:22:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-frozen-execution.test.ts",
+          "name": "frozen execution: 'late frozen import failure retains es…'",
+          "messages": [
+            "AssertionError: 'code' object has no attribute 'co_consts': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-frozen-execution.test.ts:42:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-8; reenter; return'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-8; reenter; raise'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-8; reenter; overflow'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-8-sig; reenter; return'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-8-sig; reenter; raise'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-8-sig; reenter; overflow'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-16-le; reenter; return'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-16-le; reenter; raise'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-16-le; reenter; overflow'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-16-be; reenter; return'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-16-be; reenter; raise'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-16-be; reenter; overflow'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-32-le; reenter; return'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-32-le; reenter; raise'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-32-le; reenter; overflow'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-32-be; reenter; return'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-32-be; reenter; raise'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "name": "incremental callback user audit: 'utf-32-be; reenter; overflow'",
+          "messages": [
+            "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-module.test.ts",
+          "name": "shares imported registrations with native text methods and constructors",
+          "messages": [
+            "AssertionError: unknown encoding: public_text: expected 'exception' to be 'ok' // Object.is equality\n    at run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-module.test.ts:13:32)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-module.test.ts:77:3\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u16: text.encode(encoding)'",
+          "messages": [
+            "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u16: str.encode(text, encoding)'",
+          "messages": [
+            "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u16: bytes(text, encoding)'",
+          "messages": [
+            "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+          "messages": [
+            "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u32: text.encode(encoding)'",
+          "messages": [
+            "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u32: str.encode(text, encoding)'",
+          "messages": [
+            "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u32: bytes(text, encoding)'",
+          "messages": [
+            "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+          "name": "native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+          "messages": [
+            "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts",
+          "name": "native codec slots: 'hash inheritance failure 1'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts",
+          "name": "native codec slots: 'hash inheritance failure 2'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts",
+          "name": "native codec slots: 'hash inheritance failure 3'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 registry and module API'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 incremental encoder state and …'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 every incremental split and st…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-16 stream adapters BOM and reset'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 registry and module API'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 incremental encoder state and …'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 every incremental split and st…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "name": "native wide codec module: 'utf-32 stream adapters BOM and reset'",
+          "messages": [
+            "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-platform-modules.test.ts",
+          "name": "platform codec: 'mbcs import failure and registry cache'",
+          "messages": [
+            "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-platform-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-platform-modules.test.ts",
+          "name": "platform codec: 'oem import failure and registry cache'",
+          "messages": [
+            "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-platform-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-platform-modules.test.ts",
+          "name": "platform codec: 'Windows code-page factory imports laz…'",
+          "messages": [
+            "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-platform-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'byte escape types, argument precedenc…'",
+          "messages": [
+            "AssertionError: No module named 'warnings': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'Punycode public decoder factories ret…'",
+          "messages": [
+            "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'charmap surrogateescape retains origi…'",
+          "messages": [
+            "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'callback failures preserve identity, …'",
+          "messages": [
+            "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'all standard handlers through publish…'",
+          "messages": [
+            "AssertionError: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'custom codecs shared by encode/decode…'",
+          "messages": [
+            "AssertionError: unknown encoding: public_consumer: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'decoder subtype identity and tuple ov…'",
+          "messages": [
+            "AssertionError: unknown encoding: public_subtype: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'stream reader/writer adapters over a …'",
+          "messages": [
+            "AssertionError: No module named 'io': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts",
+          "name": "public codec contract: 'UTF-16/32 rejected replacements resto…'",
+          "messages": [
+            "AssertionError: unknown encoding: utf-16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:23:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+          "name": "'ROT13 bytes consumer nontext rejection'",
+          "messages": [
+            "AssertionError: expected 'LookupError unknown encoding: rot13\\n' to be 'LookupError \\'rot13\\' is not a text e…' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+          "name": "'undefined bytes consumer'",
+          "messages": [
+            "AssertionError: expected 'LookupError unknown encoding: undefin…' to be 'UnicodeError undefined encoding\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+          "name": "'guest module spec'",
+          "messages": [
+            "AssertionError: expected 'AttributeError module \\'encodings.rot…' to be 'encodings.rot_13\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts",
+          "name": "'undefined traceback'",
+          "messages": [
+            "AssertionError: expected 'False\\n' to be 'True\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts:14:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+          "name": "source registry: 'source decoder receives an ownerless …'",
+          "messages": [
+            "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:28)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at deepClone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:161:9)\n    at printDiffOrStringify (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/diff.js:2122:25)\n    at processError (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/error.js:19:14)\n    at failTask (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:3071:101)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2966:6\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+          "name": "source registry: 'source callback failures retain nativ…'",
+          "messages": [
+            "AssertionError: expected { result: { status: 'ok' }, …(1) } to deeply equal { result: { status: 'ok' }, …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts:15:28\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+          "name": "source registry: 'source codec callbacks use the suppli…'",
+          "messages": [
+            "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:28)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at deepClone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:161:9)\n    at printDiffOrStringify (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/diff.js:2122:25)\n    at processError (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/error.js:19:14)\n    at failTask (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:3071:101)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2966:6\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+          "name": "keeps cancellation in source decoder callbacks terminal",
+          "messages": [
+            "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:76\n    at Array.map (<anonymous>)\n    at inspectObject (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:51)\n    at Object.inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:785:12)\n    at inspectProperty (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:372:19)\n    at inspectList (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:343:24)\n    at inspectObject (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:28)\n    at inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:785:12)\n    at inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:920:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-mutation.test.ts",
+          "name": "'stream reader bytearray and memoryvie…'",
+          "messages": [
+            "AssertionError: exception: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-mutation.test.ts:20:37\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-traceback.test.ts",
+          "name": "retains caller and codec frames with pinned instruction positions",
+          "messages": [
+            "AssertionError: expected '' to be '<module> 3 66\\nencode 204 12\\n' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-traceback.test.ts:19:18\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'ascii inherited buffer failure preced…'",
+          "messages": [
+            "AssertionError: decoder ignored __buffer__: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'ascii validates buffer hook result be…'",
+          "messages": [
+            "AssertionError: invalid buffer hook result accepted: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'ascii uses and releases an overridden…'",
+          "messages": [
+            "AssertionError: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'ascii rejects a strided memoryview'",
+          "messages": [
+            "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'latin_1 inherited buffer failure prec…'",
+          "messages": [
+            "AssertionError: decoder ignored __buffer__: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'latin_1 validates buffer hook result …'",
+          "messages": [
+            "AssertionError: invalid buffer hook result accepted: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'latin_1 uses and releases an overridd…'",
+          "messages": [
+            "AssertionError: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'latin_1 rejects a strided memoryview'",
+          "messages": [
+            "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'utf_8 inherited buffer failure preced…'",
+          "messages": [
+            "AssertionError: decoder ignored __buffer__: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'utf_8 validates buffer hook result be…'",
+          "messages": [
+            "AssertionError: invalid buffer hook result accepted: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'utf_8 uses and releases an overridden…'",
+          "messages": [
+            "AssertionError: name 'bytearray' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "public codec buffer contract: 'utf_8 rejects a strided memoryview'",
+          "messages": [
+            "AssertionError: name 'memoryview' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "keeps cancellation in 'ascii' buffer acquisition fatal (throws=false)",
+          "messages": [
+            "AssertionError: throws=false: expected [] to deeply equal [ 'cancel' ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:34:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "keeps cancellation in 'ascii' buffer acquisition fatal (throws=true)",
+          "messages": [
+            "AssertionError: throws=true: expected [] to deeply equal [ 'cancel' ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:34:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false)",
+          "messages": [
+            "AssertionError: throws=false: expected [] to deeply equal [ 'cancel' ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:34:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true)",
+          "messages": [
+            "AssertionError: throws=true: expected [] to deeply equal [ 'cancel' ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:34:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false)",
+          "messages": [
+            "AssertionError: throws=false: expected [] to deeply equal [ 'cancel' ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:34:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts",
+          "name": "keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true)",
+          "messages": [
+            "AssertionError: throws=true: expected [] to deeply equal [ 'cancel' ]\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-buffers.test.ts:34:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-utf7-codec-api.test.ts",
+          "name": "preserves decoder guest failures, traceback and native-call note behavior",
+          "messages": [
+            "AssertionError: UTF-7 callback traceback: expected 'exception' to be 'ok' // Object.is equality\n    at run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-utf7-codec-api.test.ts:13:32)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-utf7-codec-api.test.ts:194:3\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts",
+          "name": "retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields",
+          "messages": [
+            "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:167:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts",
+          "name": "retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields",
+          "messages": [
+            "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:167:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+          ]
+        },
+        {
+          "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts",
+          "name": "retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields",
+          "messages": [
+            "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:167:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+          ]
+        }
+      ]
+    },
+    "priorFailureIdentityComparison": {
+      "previousCount": 113,
+      "currentCount": 113,
+      "added": [],
+      "removed": [],
+      "limitation": "Compares the preceding retained gate, not a fresh pre-change broad baseline; this audit made no runtime changes."
+    }
+  },
+  "differential": {
+    "seed": "0xc0decafe",
+    "count": 9000,
+    "mismatches": [],
+    "oracle": "import sys,json,codecs\nrows=json.load(sys.stdin)\nout=[]\nfor row in rows:\n d=codecs.getincrementaldecoder(row['name'])(row['policy'])\n steps=[]\n for chunk,final in zip(row['chunks'],row['finals']):\n  try:r=['ok',list(map(ord,d.decode(bytes(chunk),final)))]\n  except BaseException as e:\n   r=['error',type(e).__name__,str(e)]\n   if isinstance(e,UnicodeDecodeError):r += [e.encoding,list(e.object),e.start,e.end,e.reason]\n  pending,flags=d.getstate()\n  steps.append([r,list(pending),str(flags)])\n  copy=codecs.getincrementaldecoder(row['name'])(row['policy']);copy.setstate(d.getstate());d=copy\n out.append(steps)\njson.dump(out,sys.stdout)\n",
+    "inputSha256": "ab99f6897e8c9dc681d063573b4def492725045b91c6a2be44f69691df9903ef",
+    "oracleSha256": "e8026b94a262c2f85676b2b439476f72c9743fe32e076e24b6c2c22f4c086444",
+    "driver": "import {createHash} from 'node:crypto';\nimport {execFileSync} from 'node:child_process';\nimport {writeFileSync} from 'node:fs';\nimport {DoubleByteIncrementalDecoder} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-incremental-decoder.ts';\nimport {ExecutionBudget} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nimport {iso2022JpCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.ts';\nimport {iso2022Jp1Codec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-1-codec.ts';\nimport {iso2022Jp2Codec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-2-codec.ts';\nimport {iso2022JpExtCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-ext-codec.ts';\nimport {iso2022KrCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-kr-codec.ts';\nimport {hzCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/hz-codec.ts';\nconst codecs=[iso2022JpCodec,iso2022Jp1Codec,iso2022Jp2Codec,iso2022JpExtCodec,iso2022KrCodec,hzCodec];\nlet seed=0xc0decafe;const next=(n:number)=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed%n;};\nconst parts=[[27,36,66],[27,40,66],[27,36,41,67],[27,46,70],[27,78],[27,38,64,27,36,66],[126,123],[126,125],[126,126],[14],[15],[10],[0],[255],[33,64],[65],[27],[]];\nconst rows=[];\nfor(const codec of codecs)for(let i=0;i<1500;i++){\n const data=[];for(let j=0,n=next(7)+1;j<n;j++)data.push(...(next(3)?parts[next(parts.length)]:[next(256)]));\n const a=next(data.length+1),b=a+next(data.length-a+1);\n rows.push({name:codec.name,policy:['strict','replace','ignore'][next(3)],chunks:[data.slice(0,a),data.slice(a,b),data.slice(b),[65],[]],finals:[false,false,!!next(2),false,true]});\n}\nconst oracle=String.raw`import sys,json,codecs\nrows=json.load(sys.stdin)\nout=[]\nfor row in rows:\n d=codecs.getincrementaldecoder(row['name'])(row['policy'])\n steps=[]\n for chunk,final in zip(row['chunks'],row['finals']):\n  try:r=['ok',list(map(ord,d.decode(bytes(chunk),final)))]\n  except BaseException as e:\n   r=['error',type(e).__name__,str(e)]\n   if isinstance(e,UnicodeDecodeError):r += [e.encoding,list(e.object),e.start,e.end,e.reason]\n  pending,flags=d.getstate()\n  steps.append([r,list(pending),str(flags)])\n  copy=codecs.getincrementaldecoder(row['name'])(row['policy']);copy.setstate(d.getstate());d=copy\n out.append(steps)\njson.dump(out,sys.stdout)\n`;\nconst expected=JSON.parse(execFileSync('/opt/homebrew/bin/python3.14',['-I','-c',oracle],{input:JSON.stringify(rows),encoding:'utf8',maxBuffer:100*1024*1024}));\nconst mismatches=[];\nfor(let i=0;i<rows.length;i++){\n const row=rows[i],codec=codecs.find(c=>c.name===row.name)!;\n const meter=new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:10000000});\n let d=new DoubleByteIncrementalDecoder(codec,row.policy as any);const actual=[];\n for(let j=0;j<row.chunks.length;j++){\n  let r:any;\n  try{r=['ok',[...d.decode(Uint8Array.from(row.chunks[j]),row.finals[j],meter)]];}\n  catch(e:any){r=['error',e.name,e.message];if(e.encoding!==undefined)r.push(e.encoding,[...e.object],Number(e.start),Number(e.end),e.reason);}\n  const state=d.getstate(meter);actual.push([r,[...state[0]],String(state[1])]);\n  d=new DoubleByteIncrementalDecoder(codec,row.policy as any);d.setstate(state,meter);\n }\n if(JSON.stringify(actual)!==JSON.stringify(expected[i]))mismatches.push({row,actual,expected:expected[i]});\n}\nwriteFileSync('/tmp/codec-user-state-probe.json',JSON.stringify({seed:'0xc0decafe',count:rows.length,mismatches,oracle,inputSha256:createHash('sha256').update(JSON.stringify(rows)).digest('hex'),oracleSha256:createHash('sha256').update(JSON.stringify(expected)).digest('hex')},null,2));\nconsole.log(JSON.stringify({count:rows.length,mismatches:mismatches.length,first:mismatches.slice(0,3)},null,2));\n"
+  },
+  "realServices": {
+    "results": [
+      {
+        "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+        "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+        "source": "\nimport codecs\nclass Stream:\n    def __init__(self):\n        self.calls = []\n        self.position = 0\n    def read(self, size=-1):\n        self.calls.append(size)\n        data = input()\n        result = b'' if data == '-' else bytes.fromhex(data)\n        self.position += len(result)\n        return result\n    def tell(self):\n        return self.position\nstream = Stream()\nreader = codecs.getreader('utf8')(stream)\nfor operation in ('read', 'readline', 'readline', 'read'):\n    result = getattr(reader, operation)()\n    print(operation, repr(result), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, reader.tell(), stream.calls)\nprint(reader.reset(), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, reader.tell())\n",
+        "expected": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\nreadline 'Z' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144]\nread '' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144, -1]\nNone b'' '' None 6\n",
+        "actual": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\nreadline 'Z' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144]\nread '' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144, -1]\nNone b'' '' None 6\n",
+        "status": "ok",
+        "match": true
+      },
+      {
+        "name": "UTF-8 final failure preserves state for policy changes and retry",
+        "input": "e282\n",
+        "source": "\nimport codecs\ndata = bytes.fromhex(input())\nfor policy in ('strict', 'replace', 'ignore', 'surrogateescape', 'backslashreplace'):\n    decoder = codecs.getincrementaldecoder('utf8')()\n    print(repr(decoder.decode(data)), decoder.getstate())\n    state = decoder.getstate()\n    try:\n        decoder.decode(b'', True)\n    except UnicodeDecodeError as error:\n        print(error.args, decoder.getstate() == state)\n    decoder.errors = policy\n    try:\n        print(policy, repr(decoder.decode(b'', True)), decoder.getstate())\n    except UnicodeDecodeError as error:\n        print(policy, error.args, decoder.getstate())\n    decoder.setstate(state)\n    print(repr(decoder.decode(b'\\xac', True)), decoder.getstate())\n    decoder.setstate(state)\n    print(decoder.reset(), decoder.getstate(), repr(decoder.decode(b'A', True)))\nfor chunks in ((data,), (b'\\xe2', b'\\x82'), (b'', b'\\xe2', b'', b'\\x82', b'')):\n    iterator = codecs.iterdecode(chunks, 'utf8')\n    try:\n        next(iterator)\n    except UnicodeDecodeError as error:\n        print(error.args)\n    try:\n        next(iterator)\n    except StopIteration as error:\n        print(error.args)\n",
+        "expected": "'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nstrict ('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') (b'\\xe2\\x82', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nreplace '�' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nignore '' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nsurrogateescape '\\udce2\\udc82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nbackslashreplace '\\\\xe2\\\\x82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n",
+        "actual": "'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nstrict ('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') (b'\\xe2\\x82', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nreplace '�' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nignore '' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nsurrogateescape '\\udce2\\udc82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nbackslashreplace '\\\\xe2\\\\x82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n",
+        "status": "ok",
+        "match": true
+      },
+      {
+        "name": "ascii stream retry after sink failure preserves writes and policy",
+        "input": "41\n",
+        "source": "\nimport codecs\nevents = []\nfailure = OSError('sink failure')\nclass Stream:\n    def write(self, data):\n        events.append(data)\n        print('sink', data.hex())\n        if broken:\n            raise failure\n        return 0\nwriter = codecs.getwriter('ascii')(Stream(), 'replace')\ntext = bytes.fromhex(input()).decode('ascii') + 'é\\ud800'\nbroken = True\ntry:\n    writer.write(text)\nexcept OSError as error:\n    print(error is failure, error.args, writer.errors)\nbroken = False\nprint(writer.write(text), writer.reset(), writer.writelines([text, 'Z']))\nprint([data.hex() for data in events])\n",
+        "expected": "sink 413f3f\nTrue ('sink failure',) replace\nsink 413f3f\nsink 413f3f5a\nNone None None\n['413f3f', '413f3f', '413f3f5a']\n",
+        "actual": "sink 413f3f\nTrue ('sink failure',) replace\nsink 413f3f\nsink 413f3f5a\nNone None None\n['413f3f', '413f3f', '413f3f5a']\n",
+        "status": "ok",
+        "match": true
+      },
+      {
+        "name": "latin-1 stream retry after sink failure preserves writes and policy",
+        "input": "41\n",
+        "source": "\nimport codecs\nevents = []\nfailure = OSError('sink failure')\nclass Stream:\n    def write(self, data):\n        events.append(data)\n        print('sink', data.hex())\n        if broken:\n            raise failure\n        return 0\nwriter = codecs.getwriter('latin-1')(Stream(), 'replace')\ntext = bytes.fromhex(input()).decode('ascii') + 'é\\ud800'\nbroken = True\ntry:\n    writer.write(text)\nexcept OSError as error:\n    print(error is failure, error.args, writer.errors)\nbroken = False\nprint(writer.write(text), writer.reset(), writer.writelines([text, 'Z']))\nprint([data.hex() for data in events])\n",
+        "expected": "sink 41e93f\nTrue ('sink failure',) replace\nsink 41e93f\nsink 41e93f5a\nNone None None\n['41e93f', '41e93f', '41e93f5a']\n",
+        "actual": "sink 41e93f\nTrue ('sink failure',) replace\nsink 41e93f\nsink 41e93f5a\nNone None None\n['41e93f', '41e93f', '41e93f5a']\n",
+        "status": "ok",
+        "match": true
+      },
+      {
+        "name": "utf-8 stream retry after sink failure preserves writes and policy",
+        "input": "41\n",
+        "source": "\nimport codecs\nevents = []\nfailure = OSError('sink failure')\nclass Stream:\n    def write(self, data):\n        events.append(data)\n        print('sink', data.hex())\n        if broken:\n            raise failure\n        return 0\nwriter = codecs.getwriter('utf-8')(Stream(), 'replace')\ntext = bytes.fromhex(input()).decode('ascii') + 'é\\ud800'\nbroken = True\ntry:\n    writer.write(text)\nexcept OSError as error:\n    print(error is failure, error.args, writer.errors)\nbroken = False\nprint(writer.write(text), writer.reset(), writer.writelines([text, 'Z']))\nprint([data.hex() for data in events])\n",
+        "expected": "sink 41c3a93f\nTrue ('sink failure',) replace\nsink 41c3a93f\nsink 41c3a93f5a\nNone None None\n['41c3a93f', '41c3a93f', '41c3a93f5a']\n",
+        "actual": "sink 41c3a93f\nTrue ('sink failure',) replace\nsink 41c3a93f\nsink 41c3a93f5a\nNone None None\n['41c3a93f', '41c3a93f', '41c3a93f5a']\n",
+        "status": "ok",
+        "match": true
+      },
+      {
+        "name": "encode mapping cancellation",
+        "source": "import _codecs\nclass Mapping:\n    def __getitem__(self, point):\n        input()\n        raise AssertionError('resumed')\ndef recover(error):\n    input()\n    raise AssertionError('resumed')\n_codecs.register_error('custom', recover)\n_codecs.charmap_encode('a', 'custom', Mapping())\n",
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "retry": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "callbacks": 1,
+        "match": true
+      },
+      {
+        "name": "encode handler cancellation",
+        "source": "import _codecs\nclass Mapping:\n    def __getitem__(self, point):\n        return None\ndef recover(error):\n    input()\n    raise AssertionError('resumed')\n_codecs.register_error('custom', recover)\n_codecs.charmap_encode('a', 'custom', Mapping())\n",
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "retry": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "callbacks": 1,
+        "match": true
+      },
+      {
+        "name": "decode mapping cancellation",
+        "source": "import _codecs\nclass Mapping:\n    def __getitem__(self, point):\n        input()\n        raise AssertionError('resumed')\ndef recover(error):\n    input()\n    raise AssertionError('resumed')\n_codecs.register_error('custom', recover)\n_codecs.charmap_decode(b'a', 'custom', Mapping())\n",
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "retry": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "callbacks": 1,
+        "match": true
+      },
+      {
+        "name": "decode handler cancellation",
+        "source": "import _codecs\nclass Mapping:\n    def __getitem__(self, point):\n        return None\ndef recover(error):\n    input()\n    raise AssertionError('resumed')\n_codecs.register_error('custom', recover)\n_codecs.charmap_decode(b'a', 'custom', Mapping())\n",
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "retry": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "callbacks": 1,
+        "match": true
+      }
+    ],
+    "reads": 48,
+    "writes": 285,
+    "syncs": 26,
+    "driver": "import {execFileSync} from 'node:child_process';\nimport {openSync,closeSync,readSync,writeSync,fsyncSync,fstatSync,mkdtempSync,rmSync,writeFileSync} from 'node:fs';\nimport {join} from 'node:path';\nimport {tmpdir} from 'node:os';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecStreamEofCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-stream-eof-cases.ts';\nconst root=mkdtempSync(join(tmpdir(),'codec-edge-services-'));let reads=0,writes=0,syncs=0;\nconst results=[];\nfunction write(fd:number,text:string){const data=Buffer.from(text);for(let pos=0;pos<data.length;){const n=writeSync(fd,data,pos,data.length-pos);if(n===0)throw Error('write made no progress');pos+=n;writes++;}}\ntry{\n for(const [index,row] of codecStreamEofCases.entries()){\n  const expected=execFileSync('/opt/homebrew/bin/python3.14',['-I','-c',row.source],{input:row.input,encoding:'utf8'});\n  const input=openSync(join(root,`input-${index}`),'w+'),output=openSync(join(root,`output-${index}`),'w+');\n  try{\n   write(input,row.input);fsyncSync(input);syncs++;let offset=0;\n   const session=new PythonSession({hashSeed:[1n,2n],limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},input:{readLine(){const data=[];while(true){const byte=Buffer.alloc(1);const n=readSync(input,byte,0,1,offset);reads++;if(n===0)return data.length?Buffer.from(data).toString('utf8'):null;offset++;data.push(byte[0]);if(byte[0]===10)return Buffer.from(data).toString('utf8');}}},output:{write:text=>write(output,text),flush(){fsyncSync(output);syncs++;}}});\n   const outcome=session.exec(row.source);fsyncSync(output);syncs++;const data=Buffer.alloc(fstatSync(output).size);for(let pos=0;pos<data.length;){const n=readSync(output,data,pos,data.length-pos,pos);reads++;if(n===0)throw Error('read made no progress');pos+=n;}\n   results.push({...row,expected,actual:data.toString('utf8'),status:outcome.status,match:outcome.status==='ok'&&data.toString('utf8')===expected});\n  }finally{closeSync(input);closeSync(output);}\n }\n for(const operation of ['encode','decode'])for(const stage of ['mapping','handler']){\n  const fd=openSync(join(root,`${operation}-${stage}`),'w+');\n  try{\n   write(fd,'value\\n');fsyncSync(fd);syncs++;const controller=new AbortController();let callbacks=0;\n   const source=`import _codecs\\nclass Mapping:\\n    def __getitem__(self, point):\\n        ${stage==='mapping'?\"input()\\n        raise AssertionError('resumed')\":\"return None\"}\\ndef recover(error):\\n    input()\\n    raise AssertionError('resumed')\\n_codecs.register_error('custom', recover)\\n_codecs.charmap_${operation}(${operation==='encode'?\"'a'\":\"b'a'\"}, 'custom', Mapping())\\n`;\n   const session=new PythonSession({hashSeed:[1n,2n],limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},signal:controller.signal,input:{readLine(){callbacks++;const data=Buffer.alloc(6);const n=readSync(fd,data,0,6,0);reads++;controller.abort();return data.subarray(0,n).toString('utf8');}},output:{write(){throw Error('unexpected output');},flush(){}}});\n   const result=session.exec(source),retry=session.eval('1');results.push({name:`${operation} ${stage} cancellation`,source,result,retry,callbacks,match:result.status==='terminated'&&result.reason==='cancelled'&&retry.status==='terminated'&&retry.reason==='cancelled'&&callbacks===1});\n  }finally{closeSync(fd);}\n }\n}finally{rmSync(root,{recursive:true,force:true});}\nconst result={results,reads,writes,syncs};writeFileSync('/tmp/codec-user-public-services.json',JSON.stringify(result,null,2)+'\\n');console.log({cases:results.length,passed:results.filter(r=>r.match).length,reads,writes,syncs});\n"
+  },
+  "referenceSources": [
+    "https://raw.githubusercontent.com/python/cpython/v3.14.7/Modules/cjkcodecs/_codecs_iso2022.c"
+  ],
+  "invalidStateProbe": {
+    "exitCode": 139,
+    "stdout": "",
+    "firstOperation": "d=codecs.getincrementaldecoder('iso2022_jp')(); d.setstate((b'',0)); d.decode(b'AB',True)",
+    "limitation": "Compound exploratory oracle probe stopped before first output. No guest exception contract inferred and no subsequent case counted as executed or passed. Unsafe native-state behavior remains unresolved."
+  },
+  "validation": {
+    "typecheck": {
+      "command": "npm run typecheck --workspace=@poe-code/safe-python",
+      "exit": 0
+    },
+    "eslint": {
+      "command": "npx eslint packages/safe-python/src/runtime/runtime-codec-registry.ts packages/safe-python/src/runtime/utf8-incremental.ts packages/safe-python/src/runtime/utf-wide-incremental.ts packages/safe-python/src/runtime/runtime-charmap.ts packages/safe-python/src/runtime/iso2022-jp-codec.ts packages/safe-python/src/runtime/iso2022-kr-codec.ts packages/safe-python/src/runtime/double-byte-incremental-decoder.ts",
+      "exit": 0
+    },
+    "baselineCommand": "npm run test:unit --workspace=@poe-code/safe-python -- runtime-codec-registry utf8-incremental utf-wide-incremental session-codec-stream-state session-codec-stream-eof session-codec-encoder-callback-state --maxWorkers=2 --reporter=json --outputFile=/tmp/codec-user-edge-baseline.json",
+    "broadCommand": "npm run test:unit --workspace=@poe-code/safe-python -- codec runtime-uu uuencode runtime-binary-classification-cancellation runtime-binary-missing-buffer --maxWorkers=2 --reporter=json --outputFile=/tmp/codec-user-edge-broad.json"
+  },
+  "sourceHashes": {
+    "runtime/runtime-codec-registry.ts": "7666694d5ae514b754e208e6816dc6cffb95874d2949c712310cbdfcff2b25b6",
+    "runtime/utf8-incremental.ts": "44ceea8a9b62e241cab259962625d3302168be60abdc4636ec1729de633679b8",
+    "runtime/utf-wide-incremental.ts": "f3b3a0734c304550002c80b0b5d475c89e7ec3dadf5c2a98786462d1a0e1a8ac",
+    "runtime/runtime-charmap.ts": "1f43b8c47a0e229621b46dc3030ff714396e9ad963b018212025bd2cef250b71",
+    "runtime/iso2022-jp-codec.ts": "cc26c413942440e688e9fa046e1b361b152fae3468aec59b36ebfeb5334b279f",
+    "runtime/iso2022-kr-codec.ts": "5f8b97b9525ee537087410c6edf5f54c5c252cef337022a714ad0d5006c543df",
+    "runtime/double-byte-incremental-decoder.ts": "d2f9c2c898a04a87b250f70f4f120799265ac40bf6129c5cc76f8d35c632ca48",
+    "codec-stream-eof-cases.ts": "cdf45667bc5e0f6b21e0d0a9d79ed5eb0394f84124821ab3cf5f2cc1fcf5141d"
+  }
+}

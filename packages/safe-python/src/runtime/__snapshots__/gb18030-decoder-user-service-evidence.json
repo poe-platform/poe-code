@@ -1,0 +1,58 @@
+{
+  "target": "CPython 3.14.7 / Unicode 16.0.0",
+  "scope": "Public UTF split-state/replay, nested decoder recovery and real input/output services; GB18030 remains unpublished.",
+  "source": "import codecs\ntext = 'A\\u0080\\u4e2d\\U0001f600Z'\nfor encoding in ('utf_8', 'utf_8_sig', 'utf_7', 'utf_16_le', 'utf_16_be', 'utf_32_le', 'utf_32_be'):\n    data = text.encode(encoding)\n    for split in range(len(data) + 1):\n        decoder = codecs.getincrementaldecoder(encoding)()\n        prefix = decoder.decode(data[:split], False)\n        state = decoder.getstate()\n        replay = codecs.getincrementaldecoder(encoding)()\n        replay.setstate(state)\n        assert prefix + decoder.decode(data[split:], True) == text\n        assert prefix + replay.decode(data[split:], True) == text\n        decoder.reset()\n        assert decoder.decode(data, True) == text\n    print(encoding, len(data) + 1)\nfailure = ValueError('decoder callback')\ndef fail(error):\n    raise failure\ncodecs.register_error('user-failure', fail)\ntry:\n    codecs.getincrementaldecoder('utf_8')('user-failure').decode(b'\\xff', True)\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\ndef inner(error):\n    assert (error.object, error.start, error.end) == (b'\\xffA', 0, 1)\n    return (input(), -1)\ndef outer(error):\n    assert (error.object, error.start, error.end) == (b'\\xe2\\x82', 0, 2)\n    nested = codecs.getincrementaldecoder('ascii')('inner')\n    return (nested.decode(b'\\xffA', True), error.end)\ncodecs.register_error('inner', inner)\ncodecs.register_error('outer', outer)\ndecoder = codecs.getincrementaldecoder('utf_8')('outer')\nassert decoder.decode(b'\\xe2', False) == ''\nassert decoder.decode(b'\\x82', True) == '?A'\nassert decoder.getstate() == (b'', 0)\nprint('recovery verified')\n",
+  "stdin": "?\n",
+  "driver": "import {readSync,writeSync} from \"node:fs\";\nimport {strict as assert} from \"node:assert\";\nimport {PythonSession} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts\";\nconst task=JSON.parse(process.argv[2]);\nconst controller=new AbortController();\nlet reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:10000000,maxAllocatedBytes:128000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\n  input:{readLine(){\n    reads++;\n    const bytes:number[]=[];\n    const byte=Buffer.alloc(1);\n    while(readSync(0,byte,0,1,null)!==0){bytes.push(byte[0]);if(byte[0]===10)break;}\n    if(task.cancel){controller.abort();if(task.cancel===\"throw\")throw Error(\"service failure\");}\n    return bytes.length===0?null:Buffer.from(bytes).toString(\"utf8\");\n  }},\n  output:{write(text){writes++;writeSync(1,text);},flush(){}}\n});\nconst result=session.exec(task.source);\nif(task.cancel){\n  const expected={status:\"terminated\",reason:\"cancelled\",message:\"execution cancelled\"};\n  assert.deepEqual(result,expected);assert.deepEqual(session.eval(\"1\"),expected);\n  assert.equal(reads,1);assert.equal(writes,0);\n}else{\n  if(result.status===\"exception\"){\n    session.globals.set(\"failure\",result.exception);\n    throw Error(JSON.stringify(session.eval(\"str(failure)\")));\n  }\n  assert.equal(result.status,\"ok\",JSON.stringify(result));assert.equal(reads,task.reads);\n}\n",
+  "initialDriver": "import {readSync,writeSync} from \"node:fs\";\nimport {strict as assert} from \"node:assert\";\nimport {PythonSession} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts\";\nconst task=JSON.parse(process.argv[2]);\nconst controller=new AbortController();\nlet reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:2000000,maxAllocatedBytes:24000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\n  input:{readLine(){\n    reads++;\n    const bytes:number[]=[];\n    const byte=Buffer.alloc(1);\n    while(readSync(0,byte,0,1,null)!==0){bytes.push(byte[0]);if(byte[0]===10)break;}\n    if(task.cancel){controller.abort();if(task.cancel===\"throw\")throw Error(\"service failure\");}\n    return bytes.length===0?null:Buffer.from(bytes).toString(\"utf8\");\n  }},\n  output:{write(text){writes++;writeSync(1,text);},flush(){}}\n});\nconst result=session.exec(task.source);\nif(task.cancel){\n  const expected={status:\"terminated\",reason:\"cancelled\",message:\"execution cancelled\"};\n  assert.deepEqual(result,expected);assert.deepEqual(session.eval(\"1\"),expected);\n  assert.equal(reads,1);assert.equal(writes,0);\n}else{\n  if(result.status===\"exception\"){\n    session.globals.set(\"failure\",result.exception);\n    throw Error(JSON.stringify(session.eval(\"str(failure)\")));\n  }\n  assert.equal(result.status,\"ok\",JSON.stringify(result));assert.equal(reads,task.reads);\n}\n",
+  "initial": {
+    "status": 1,
+    "signal": null,
+    "stdout": "utf_8 12\nutf_8_sig 15\nutf_7 16\nutf_16_le 13\nutf_16_be 13\n",
+    "stderr": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: {\"status\":\"terminated\",\"reason\":\"allocation\",\"message\":\"execution allocation limit exceeded\"}\n\n'terminated' !== 'ok'\n\n    at assert (/private/tmp/safe-python-decoder-user-driver.ts:28:10)\n    at Object.<anonymous> (/private/tmp/safe-python-decoder-user-driver.ts:29:1)\n    at Module._compile (node:internal/modules/cjs/loader:1781:14)\n    at Object.transformer (/Users/kjopek/Workspace/poe-code-3/node_modules/tsx/dist/register-BOkp8V6j.cjs:9:3176)\n    at Module.load (node:internal/modules/cjs/loader:1505:32)\n    at Function._load (node:internal/modules/cjs/loader:1309:12)\n    at wrapModuleLoad (node:internal/modules/cjs/loader:254:19)\n    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:335:3)\n    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:235:7)\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25) {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 'terminated',\n  expected: 'ok',\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n\nNode.js v22.23.2\n"
+  },
+  "native": {
+    "status": 0,
+    "signal": null,
+    "stdout": "utf_8 12\nutf_8_sig 15\nutf_7 16\nutf_16_le 13\nutf_16_be 13\nutf_32_le 21\nutf_32_be 21\nrecovery verified\n",
+    "stderr": ""
+  },
+  "session": {
+    "status": 0,
+    "signal": null,
+    "stdout": "utf_8 12\nutf_8_sig 15\nutf_7 16\nutf_16_le 13\nutf_16_be 13\nutf_32_le 21\nutf_32_be 21\nrecovery verified\n",
+    "stderr": ""
+  },
+  "cancellationSource": "import codecs\nfailure = ValueError('decoder callback')\ndef fail(error):\n    raise failure\ncodecs.register_error('user-failure', fail)\ntry:\n    codecs.getincrementaldecoder('utf_8')('user-failure').decode(b'\\xff', True)\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\ndef inner(error):\n    assert (error.object, error.start, error.end) == (b'\\xffA', 0, 1)\n    return (input(), -1)\ndef outer(error):\n    assert (error.object, error.start, error.end) == (b'\\xe2\\x82', 0, 2)\n    nested = codecs.getincrementaldecoder('ascii')('inner')\n    return (nested.decode(b'\\xffA', True), error.end)\ncodecs.register_error('inner', inner)\ncodecs.register_error('outer', outer)\ndecoder = codecs.getincrementaldecoder('utf_8')('outer')\nassert decoder.decode(b'\\xe2', False) == ''\nassert decoder.decode(b'\\x82', True) == '?A'\nassert decoder.getstate() == (b'', 0)\nprint('recovery verified')\n",
+  "cancellations": [
+    {
+      "cancel": "return",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cancel": "throw",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "publication": {
+    "source": "import codecs\ntry:\n    print(codecs.lookup('gb18030').name)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\n",
+    "native": {
+      "status": 0,
+      "signal": null,
+      "stdout": "gb18030\n",
+      "stderr": ""
+    },
+    "session": {
+      "status": 0,
+      "signal": null,
+      "stdout": "LookupError unknown encoding: gb18030\n",
+      "stderr": ""
+    }
+  }
+}

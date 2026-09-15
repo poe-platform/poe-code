@@ -1,0 +1,53 @@
+{
+  "adapter": "Real filesystem descriptors: bytewise readSync input, complete writeSync loops, fsyncSync; descriptors closed and owned temporary directories removed in finally. External oracle only, never runtime delegation.",
+  "results": [
+    {
+      "name": "standard error handler rejection metadata",
+      "source": "import codecs\nfor name in ('strict', 'ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    handler = codecs.lookup_error(name)\n    for operation in (lambda: handler(), lambda: handler(None, None), lambda: handler(object=None), lambda: handler(None)):\n        try:\n            operation()\n        except TypeError as error:\n            print(name, type(error).__name__, error.args, error.__context__, getattr(error, '__notes__', None), error.__traceback__ is not None)\n        else:\n            raise AssertionError('missing rejection')\nfor name, exception, field, missing in (('ignore', UnicodeEncodeError, 'object', True), ('replace', UnicodeDecodeError, 'object', False), ('surrogatepass', UnicodeEncodeError, 'encoding', True), ('surrogatepass', UnicodeDecodeError, 'encoding', False)):\n    original = exception('utf-8', b'x' if exception is UnicodeDecodeError else 'x', 0, 1, 'reason')\n    if missing:\n        delattr(original, field)\n    else:\n        setattr(original, field, None)\n    try:\n        codecs.lookup_error(name)(original)\n    except TypeError as error:\n        print(name, field, type(error).__name__, error.args, error is original, error.__traceback__ is not None)\n    else:\n        raise AssertionError('missing field rejection')\nprint(input())\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "strict TypeError ('strict_errors() takes exactly one argument (0 given)',) None None True\nstrict TypeError ('strict_errors() takes exactly one argument (2 given)',) None None True\nstrict TypeError ('strict_errors() takes no keyword arguments',) None None True\nstrict TypeError ('codec must pass exception instance',) None None True\nignore TypeError ('ignore_errors() takes exactly one argument (0 given)',) None None True\nignore TypeError ('ignore_errors() takes exactly one argument (2 given)',) None None True\nignore TypeError ('ignore_errors() takes no keyword arguments',) None None True\nignore TypeError (\"don't know how to handle NoneType in error callback\",) None None True\nreplace TypeError ('replace_errors() takes exactly one argument (0 given)',) None None True\nreplace TypeError ('replace_errors() takes exactly one argument (2 given)',) None None True\nreplace TypeError ('replace_errors() takes no keyword arguments',) None None True\nreplace TypeError (\"don't know how to handle NoneType in error callback\",) None None True\nxmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (0 given)',) None None True\nxmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (2 given)',) None None True\nxmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes no keyword arguments',) None None True\nxmlcharrefreplace TypeError (\"don't know how to handle NoneType in error callback\",) None None True\nbackslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (0 given)',) None None True\nbackslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (2 given)',) None None True\nbackslashreplace TypeError ('backslashreplace_errors() takes no keyword arguments',) None None True\nbackslashreplace TypeError (\"don't know how to handle NoneType in error callback\",) None None True\nnamereplace TypeError ('namereplace_errors() takes exactly one argument (0 given)',) None None True\nnamereplace TypeError ('namereplace_errors() takes exactly one argument (2 given)',) None None True\nnamereplace TypeError ('namereplace_errors() takes no keyword arguments',) None None True\nnamereplace TypeError (\"don't know how to handle NoneType in error callback\",) None None True\nsurrogatepass TypeError ('surrogatepass() takes exactly one argument (0 given)',) None None True\nsurrogatepass TypeError ('surrogatepass() takes exactly one argument (2 given)',) None None True\nsurrogatepass TypeError ('surrogatepass() takes no keyword arguments',) None None True\nsurrogatepass TypeError (\"don't know how to handle NoneType in error callback\",) None None True\nsurrogateescape TypeError ('surrogateescape() takes exactly one argument (0 given)',) None None True\nsurrogateescape TypeError ('surrogateescape() takes exactly one argument (2 given)',) None None True\nsurrogateescape TypeError ('surrogateescape() takes no keyword arguments',) None None True\nsurrogateescape TypeError (\"don't know how to handle NoneType in error callback\",) None None True\nignore object TypeError (\"UnicodeError 'object' attribute is not set\",) False True\nreplace object TypeError (\"UnicodeError 'object' attribute must be a bytes\",) False True\nsurrogatepass encoding TypeError (\"UnicodeError 'encoding' attribute is not set\",) False True\nsurrogatepass encoding TypeError (\"UnicodeError 'encoding' attribute must be a string\",) False True\ncontinue\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "strict TypeError ('strict_errors() takes exactly one argument (0 given)',) None None False\nstrict TypeError ('strict_errors() takes exactly one argument (2 given)',) None None False\nstrict TypeError ('strict_errors() takes no keyword arguments',) None None False\nstrict TypeError ('codec must pass exception instance',) None None False\nignore TypeError ('ignore_errors() takes exactly one argument (0 given)',) None None False\nignore TypeError ('ignore_errors() takes exactly one argument (2 given)',) None None False\nignore TypeError ('ignore_errors() takes no keyword arguments',) None None False\nignore TypeError (\"don't know how to handle NoneType in error callback\",) None None False\nreplace TypeError ('replace_errors() takes exactly one argument (0 given)',) None None False\nreplace TypeError ('replace_errors() takes exactly one argument (2 given)',) None None False\nreplace TypeError ('replace_errors() takes no keyword arguments',) None None False\nreplace TypeError (\"don't know how to handle NoneType in error callback\",) None None False\nxmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (0 given)',) None None False\nxmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes exactly one argument (2 given)',) None None False\nxmlcharrefreplace TypeError ('xmlcharrefreplace_errors() takes no keyword arguments',) None None False\nxmlcharrefreplace TypeError (\"don't know how to handle NoneType in error callback\",) None None False\nbackslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (0 given)',) None None False\nbackslashreplace TypeError ('backslashreplace_errors() takes exactly one argument (2 given)',) None None False\nbackslashreplace TypeError ('backslashreplace_errors() takes no keyword arguments',) None None False\nbackslashreplace TypeError (\"don't know how to handle NoneType in error callback\",) None None False\nnamereplace TypeError ('namereplace_errors() takes exactly one argument (0 given)',) None None False\nnamereplace TypeError ('namereplace_errors() takes exactly one argument (2 given)',) None None False\nnamereplace TypeError ('namereplace_errors() takes no keyword arguments',) None None False\nnamereplace TypeError (\"don't know how to handle NoneType in error callback\",) None None False\nsurrogatepass TypeError ('surrogatepass() takes exactly one argument (0 given)',) None None False\nsurrogatepass TypeError ('surrogatepass() takes exactly one argument (2 given)',) None None False\nsurrogatepass TypeError ('surrogatepass() takes no keyword arguments',) None None False\nsurrogatepass TypeError (\"don't know how to handle NoneType in error callback\",) None None False\nsurrogateescape TypeError ('surrogateescape() takes exactly one argument (0 given)',) None None False\nsurrogateescape TypeError ('surrogateescape() takes exactly one argument (2 given)',) None None False\nsurrogateescape TypeError ('surrogateescape() takes no keyword arguments',) None None False\nsurrogateescape TypeError (\"don't know how to handle NoneType in error callback\",) None None False\nignore object TypeError (\"UnicodeError 'object' attribute is not set\",) False False\nreplace object TypeError (\"UnicodeError 'object' attribute must be a bytes\",) False False\nsurrogatepass encoding TypeError (\"UnicodeError 'encoding' attribute is not set\",) False False\nsurrogatepass encoding TypeError (\"UnicodeError 'encoding' attribute must be a string\",) False False\ncontinue\n",
+        "reads": 1,
+        "writes": 434
+      },
+      "match": false
+    },
+    {
+      "name": "platform module import preserves a serviced guest failure",
+      "source": "\nimport codecs\nfailure = ValueError('attribute service')\ndef missing(name):\n    assert name == '__path__'\n    assert input() == 'service'\n    raise failure\ncodecs.__getattr__ = missing\ntry:\n    import encodings.mbcs\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nprint('verified')\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "import error filename formatting uses the supplied input service",
+      "source": "\nimport codecs\nclass Path(str):\n    def __str__(self):\n        return input()\nmodule = type(codecs)('probe')\npath = Path('/guest/probe.py')\nmodule.__file__ = path\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ImportError as error:\n    assert error.args == (\"cannot import name 'absent' from 'probe' (service)\",)\n    assert error.path is path\nelse:\n    assert False\nprint('verified')\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    }
+  ]
+}

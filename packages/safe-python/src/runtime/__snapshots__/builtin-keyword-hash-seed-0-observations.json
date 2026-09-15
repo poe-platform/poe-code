@@ -1,0 +1,859 @@
+{
+  "reference": {
+    "version": "3.14.7",
+    "unicode": "16.0.0",
+    "pythonHashSeed": 0,
+    "guestHashKey": [
+      "0",
+      "0"
+    ],
+    "sourceSnapshot": "builtin-keyword-subtypes-3.14.7.json",
+    "sha256": "b02588e678d5d10152a11cbfdab40c182f5432ec5b16f27b5f974192634bac4b"
+  },
+  "cases": [
+    {
+      "caseIndex": 0,
+      "expression": "min([3,1,2], **{Keyword('key'):key})",
+      "oracle": "(('ok', 'int', '3', False), [('key', 3), ('key', 1), ('key', 2)], [3, 1, 2])",
+      "guest": "(('ok', 'int', '3', False), [('key', 3), ('key', 1), ('key', 2)], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 1,
+      "expression": "max([3,1,2], **{Keyword('key'):key})",
+      "oracle": "(('ok', 'int', '1', False), [('key', 3), ('key', 1), ('key', 2)], [3, 1, 2])",
+      "guest": "(('ok', 'int', '1', False), [('key', 3), ('key', 1), ('key', 2)], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 2,
+      "expression": "min([], **{Keyword('default'):items})",
+      "oracle": "(('ok', 'list', '[3, 1, 2]', True), [], [3, 1, 2])",
+      "guest": "(('ok', 'list', '[3, 1, 2]', True), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 3,
+      "expression": "max([], **{Keyword('default'):items})",
+      "oracle": "(('ok', 'list', '[3, 1, 2]', True), [], [3, 1, 2])",
+      "guest": "(('ok', 'list', '[3, 1, 2]', True), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 4,
+      "expression": "min([3,1,2], **{Keyword('key'):None,Keyword('default'):7})",
+      "oracle": "(('ok', 'int', '1', False), [], [3, 1, 2])",
+      "guest": "(('ok', 'int', '1', False), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 5,
+      "expression": "max([3,1,2], **{Keyword('default'):7,Keyword('key'):None})",
+      "oracle": "(('ok', 'int', '3', False), [], [3, 1, 2])",
+      "guest": "(('ok', 'int', '3', False), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 6,
+      "expression": "sorted(Source(), **{Keyword('key'):key,Keyword('reverse'):Reverse()})",
+      "oracle": "(('ok', 'list', '[1, 2, 3]', False), ['iter', 'len', 'reverse', ('key', 3), ('key', 1), ('key', 2)], [3, 1, 2])",
+      "guest": "(('ok', 'list', '[1, 2, 3]', False), ['iter', 'len', 'reverse', ('key', 3), ('key', 1), ('key', 2)], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 7,
+      "expression": "items.sort(**{Keyword('key'):key,Keyword('reverse'):Reverse()})",
+      "oracle": "(('ok', 'NoneType', 'None', False), ['reverse', ('key', 3), ('key', 1), ('key', 2)], [1, 2, 3])",
+      "guest": "(('ok', 'NoneType', 'None', False), ['reverse', ('key', 3), ('key', 1), ('key', 2)], [1, 2, 3])",
+      "matches": true
+    },
+    {
+      "caseIndex": 8,
+      "expression": "list.sort(items, **{Keyword('key'):key,Keyword('reverse'):Reverse()})",
+      "oracle": "(('ok', 'NoneType', 'None', False), ['reverse', ('key', 3), ('key', 1), ('key', 2)], [1, 2, 3])",
+      "guest": "(('ok', 'NoneType', 'None', False), ['reverse', ('key', 3), ('key', 1), ('key', 2)], [1, 2, 3])",
+      "matches": true
+    },
+    {
+      "caseIndex": 9,
+      "expression": "sum([1,2], **{Keyword('start'):10})",
+      "oracle": "(('ok', 'int', '13', False), [], [3, 1, 2])",
+      "guest": "(('ok', 'int', '13', False), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 10,
+      "expression": "pow(**{Keyword('base'):2,Keyword('exp'):5,Keyword('mod'):7})",
+      "oracle": "(('ok', 'int', '4', False), [], [3, 1, 2])",
+      "guest": "(('ok', 'int', '4', False), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 11,
+      "expression": "round(**{Keyword('number'):1.25,Keyword('ndigits'):1})",
+      "oracle": "(('ok', 'float', '1.2', False), [], [3, 1, 2])",
+      "guest": "(('ok', 'float', '1.2', False), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 12,
+      "expression": "min(Source(), **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 13,
+      "expression": "min(Source(), **{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 14,
+      "expression": "min(Source(), **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 15,
+      "expression": "min(Source(), **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 16,
+      "expression": "min(Source(), **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 17,
+      "expression": "min(Source(), **{Keyword('key'):None})",
+      "oracle": "(('ok', 'int', '1', False), ['iter'], [3, 1, 2])",
+      "guest": "(('ok', 'int', '1', False), ['iter'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 18,
+      "expression": "max(Source(), **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 19,
+      "expression": "max(Source(), **{Keyword('defaultx'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 20,
+      "expression": "max(Source(), **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 21,
+      "expression": "max(Source(), **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 22,
+      "expression": "max(Source(), **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 23,
+      "expression": "max(Source(), **{Keyword('default'):None})",
+      "oracle": "(('ok', 'int', '3', False), ['iter'], [3, 1, 2])",
+      "guest": "(('ok', 'int', '3', False), ['iter'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 24,
+      "expression": "sorted(Source(), **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 25,
+      "expression": "sorted(Source(), **{Keyword('reversex'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 26,
+      "expression": "sorted(Source(), **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 27,
+      "expression": "sorted(Source(), **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 28,
+      "expression": "sorted(Source(), **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), ['iter', 'len'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 29,
+      "expression": "sorted(Source(), **{Keyword('reverse'):None})",
+      "oracle": "(('ok', 'list', '[1, 2, 3]', False), ['iter', 'len'], [3, 1, 2])",
+      "guest": "(('ok', 'list', '[1, 2, 3]', False), ['iter', 'len'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 30,
+      "expression": "items.sort( **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 31,
+      "expression": "items.sort( **{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 32,
+      "expression": "items.sort( **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 33,
+      "expression": "items.sort( **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 34,
+      "expression": "items.sort( **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 35,
+      "expression": "items.sort( **{Keyword('key'):None})",
+      "oracle": "(('ok', 'NoneType', 'None', False), [], [1, 2, 3])",
+      "guest": "(('ok', 'NoneType', 'None', False), [], [1, 2, 3])",
+      "matches": true
+    },
+    {
+      "caseIndex": 36,
+      "expression": "list.sort(items, **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 37,
+      "expression": "list.sort(items, **{Keyword('reversex'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 38,
+      "expression": "list.sort(items, **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 39,
+      "expression": "list.sort(items, **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 40,
+      "expression": "list.sort(items, **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 41,
+      "expression": "list.sort(items, **{Keyword('reverse'):None})",
+      "oracle": "(('ok', 'NoneType', 'None', False), [], [1, 2, 3])",
+      "guest": "(('ok', 'NoneType', 'None', False), [], [1, 2, 3])",
+      "matches": true
+    },
+    {
+      "caseIndex": 42,
+      "expression": "sum(Source(), **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 43,
+      "expression": "sum(Source(), **{Keyword('startx'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 44,
+      "expression": "sum(Source(), **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 45,
+      "expression": "sum(Source(), **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 46,
+      "expression": "sum(Source(), **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 47,
+      "expression": "sum(Source(), **{Keyword('start'):None})",
+      "oracle": "(('exception', 'TypeError', \"unsupported operand type(s) for +: 'NoneType' and 'int'\", (\"unsupported operand type(s) for +: 'NoneType' and 'int'\",)), ['iter'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"unsupported operand type(s) for +: 'NoneType' and 'int'\", (\"unsupported operand type(s) for +: 'NoneType' and 'int'\",)), ['iter'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 48,
+      "expression": "pow(2,3, **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 49,
+      "expression": "pow(2,3, **{Keyword('modx'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 50,
+      "expression": "pow(2,3, **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 51,
+      "expression": "pow(2,3, **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 52,
+      "expression": "pow(2,3, **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 53,
+      "expression": "pow(2,3, **{Keyword('mod'):None})",
+      "oracle": "(('ok', 'int', '8', False), [], [3, 1, 2])",
+      "guest": "(('ok', 'int', '8', False), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 54,
+      "expression": "round(1.25, **{Keyword('unknown'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 55,
+      "expression": "round(1.25, **{Keyword('ndigitsx'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 56,
+      "expression": "round(1.25, **{Keyword(''):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 57,
+      "expression": "round(1.25, **{Keyword('a😀'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 58,
+      "expression": "round(1.25, **{Keyword('a\\\\ud800'):None})",
+      "oracle": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'AssertionError', 'keyword equality override', ('keyword equality override',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 59,
+      "expression": "round(1.25, **{Keyword('ndigits'):None})",
+      "oracle": "(('ok', 'int', '1', False), [], [3, 1, 2])",
+      "guest": "(('ok', 'int', '1', False), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 60,
+      "expression": "min(1,2, **{Keyword('default'):0})",
+      "oracle": "(('exception', 'TypeError', 'Cannot specify a default for min() with multiple positional arguments', ('Cannot specify a default for min() with multiple positional arguments',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'Cannot specify a default for min() with multiple positional arguments', ('Cannot specify a default for min() with multiple positional arguments',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 61,
+      "expression": "max(1,2, **{Keyword('default'):0})",
+      "oracle": "(('exception', 'TypeError', 'Cannot specify a default for max() with multiple positional arguments', ('Cannot specify a default for max() with multiple positional arguments',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'Cannot specify a default for max() with multiple positional arguments', ('Cannot specify a default for max() with multiple positional arguments',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 62,
+      "expression": "pow(2, **{Keyword('base'):3})",
+      "oracle": "(('exception', 'TypeError', \"pow() missing required argument 'exp' (pos 2)\", (\"pow() missing required argument 'exp' (pos 2)\",)), [], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() missing required argument 'exp' (pos 2)\", (\"pow() missing required argument 'exp' (pos 2)\",)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 63,
+      "expression": "round(1.5, **{Keyword('number'):2})",
+      "oracle": "(('exception', 'TypeError', \"argument for round() given by name ('number') and position (1)\", (\"argument for round() given by name ('number') and position (1)\",)), [], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"argument for round() given by name ('number') and position (1)\", (\"argument for round() given by name ('number') and position (1)\",)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 64,
+      "expression": "sum(**{Keyword('start'):2})",
+      "oracle": "(('exception', 'TypeError', 'sum() takes at least 1 positional argument (0 given)', ('sum() takes at least 1 positional argument (0 given)',)), [], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'sum() takes at least 1 positional argument (0 given)', ('sum() takes at least 1 positional argument (0 given)',)), [], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 65,
+      "expression": "sorted(Source(), **{Keyword('key'):None,Keyword('reverse'):False,Keyword('bad'):0})",
+      "oracle": "(('exception', 'TypeError', 'sort() takes at most 2 keyword arguments (3 given)', ('sort() takes at most 2 keyword arguments (3 given)',)), ['iter', 'len'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'sort() takes at most 2 keyword arguments (3 given)', ('sort() takes at most 2 keyword arguments (3 given)',)), ['iter', 'len'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 66,
+      "expression": "false: min(Source(),**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'default'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'default'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 67,
+      "expression": "false: max(Source(),**{Keyword('defaultx'):None})",
+      "oracle": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\", (\"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\",)), [('eq', \"'defaultx'\", 'key'), ('eq', \"'defaultx'\", 'default'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\", (\"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\",)), [('eq', \"'defaultx'\", 'key'), ('eq', \"'defaultx'\", 'default'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 68,
+      "expression": "false: sorted(Source(),**{Keyword('reversex'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\",)), ['iter', 'len', ('eq', \"'reversex'\", 'key'), ('eq', \"'reversex'\", 'reverse'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\",)), ['iter', 'len', ('eq', \"'reversex'\", 'key'), ('eq', \"'reversex'\", 'reverse'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 69,
+      "expression": "false: items.sort(**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 70,
+      "expression": "false: list.sort(items,**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 71,
+      "expression": "false: sum(Source(),**{Keyword('startx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\", (\"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\",)), [('eq', \"'startx'\", 'start'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\", (\"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\",)), [('eq', \"'startx'\", 'start'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 72,
+      "expression": "false: round(1.25,**{Keyword('ndigitsx'):None})",
+      "oracle": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\", (\"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\",)), [('eq', \"'ndigitsx'\", 'number'), ('eq', \"'ndigitsx'\", 'ndigits'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\", (\"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\",)), [('eq', \"'ndigitsx'\", 'number'), ('eq', \"'ndigitsx'\", 'ndigits'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 73,
+      "expression": "false: pow(2,3,**{Keyword('modx'):None})",
+      "oracle": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\", (\"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\",)), [('eq', \"'modx'\", 'base'), ('eq', \"'modx'\", 'exp'), ('eq', \"'modx'\", 'mod'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\", (\"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\",)), [('eq', \"'modx'\", 'base'), ('eq', \"'modx'\", 'exp'), ('eq', \"'modx'\", 'mod'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 74,
+      "expression": "true: min(Source(),**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for min()', ('invalid keyword argument for min()',)), [('eq', \"'keyx'\", 'key')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for min()', ('invalid keyword argument for min()',)), [('eq', \"'keyx'\", 'key')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 75,
+      "expression": "true: max(Source(),**{Keyword('defaultx'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for max()', ('invalid keyword argument for max()',)), [('eq', \"'defaultx'\", 'key')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for max()', ('invalid keyword argument for max()',)), [('eq', \"'defaultx'\", 'key')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 76,
+      "expression": "true: sorted(Source(),**{Keyword('reversex'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for sort()', ('invalid keyword argument for sort()',)), ['iter', 'len', ('eq', \"'reversex'\", 'key')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for sort()', ('invalid keyword argument for sort()',)), ['iter', 'len', ('eq', \"'reversex'\", 'key')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 77,
+      "expression": "true: items.sort(**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for sort()', ('invalid keyword argument for sort()',)), [('eq', \"'keyx'\", 'key')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for sort()', ('invalid keyword argument for sort()',)), [('eq', \"'keyx'\", 'key')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 78,
+      "expression": "true: list.sort(items,**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for sort()', ('invalid keyword argument for sort()',)), [('eq', \"'keyx'\", 'key')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for sort()', ('invalid keyword argument for sort()',)), [('eq', \"'keyx'\", 'key')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 79,
+      "expression": "true: sum(Source(),**{Keyword('startx'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for sum()', ('invalid keyword argument for sum()',)), [('eq', \"'startx'\", 'start')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for sum()', ('invalid keyword argument for sum()',)), [('eq', \"'startx'\", 'start')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 80,
+      "expression": "true: round(1.25,**{Keyword('ndigitsx'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for round()', ('invalid keyword argument for round()',)), [('eq', \"'ndigitsx'\", 'number')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for round()', ('invalid keyword argument for round()',)), [('eq', \"'ndigitsx'\", 'number')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 81,
+      "expression": "true: pow(2,3,**{Keyword('modx'):None})",
+      "oracle": "(('exception', 'TypeError', 'invalid keyword argument for pow()', ('invalid keyword argument for pow()',)), [('eq', \"'modx'\", 'base')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', 'invalid keyword argument for pow()', ('invalid keyword argument for pow()',)), [('eq', \"'modx'\", 'base')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 82,
+      "expression": "notimplemented: min(Source(),**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\", (\"min() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'default'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\", (\"min() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'default'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 83,
+      "expression": "notimplemented: max(Source(),**{Keyword('defaultx'):None})",
+      "oracle": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'defaultx'. Did you mean 'default'?\", (\"max() got an unexpected keyword argument 'defaultx'. Did you mean 'default'?\",)), [('eq', \"'defaultx'\", 'key'), ('eq', \"'defaultx'\", 'default'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'defaultx'. Did you mean 'default'?\", (\"max() got an unexpected keyword argument 'defaultx'. Did you mean 'default'?\",)), [('eq', \"'defaultx'\", 'key'), ('eq', \"'defaultx'\", 'default'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 84,
+      "expression": "notimplemented: sorted(Source(),**{Keyword('reversex'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'reversex'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'reversex'. Did you mean 'reverse'?\",)), ['iter', 'len', ('eq', \"'reversex'\", 'key'), ('eq', \"'reversex'\", 'reverse'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'reversex'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'reversex'. Did you mean 'reverse'?\",)), ['iter', 'len', ('eq', \"'reversex'\", 'key'), ('eq', \"'reversex'\", 'reverse'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 85,
+      "expression": "notimplemented: items.sort(**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 86,
+      "expression": "notimplemented: list.sort(items,**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'keyx'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), ('eq', \"'keyx'\", 'reverse'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 87,
+      "expression": "notimplemented: sum(Source(),**{Keyword('startx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sum() got an unexpected keyword argument 'startx'. Did you mean 'start'?\", (\"sum() got an unexpected keyword argument 'startx'. Did you mean 'start'?\",)), [('eq', \"'startx'\", 'start'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sum() got an unexpected keyword argument 'startx'. Did you mean 'start'?\", (\"sum() got an unexpected keyword argument 'startx'. Did you mean 'start'?\",)), [('eq', \"'startx'\", 'start'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 88,
+      "expression": "notimplemented: round(1.25,**{Keyword('ndigitsx'):None})",
+      "oracle": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'ndigitsx'. Did you mean 'ndigits'?\", (\"round() got an unexpected keyword argument 'ndigitsx'. Did you mean 'ndigits'?\",)), [('eq', \"'ndigitsx'\", 'number'), ('eq', \"'ndigitsx'\", 'ndigits'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'ndigitsx'. Did you mean 'ndigits'?\", (\"round() got an unexpected keyword argument 'ndigitsx'. Did you mean 'ndigits'?\",)), [('eq', \"'ndigitsx'\", 'number'), ('eq', \"'ndigitsx'\", 'ndigits'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 89,
+      "expression": "notimplemented: pow(2,3,**{Keyword('modx'):None})",
+      "oracle": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'modx'. Did you mean 'mod'?\", (\"pow() got an unexpected keyword argument 'modx'. Did you mean 'mod'?\",)), [('eq', \"'modx'\", 'base'), ('eq', \"'modx'\", 'exp'), ('eq', \"'modx'\", 'mod'), 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'modx'. Did you mean 'mod'?\", (\"pow() got an unexpected keyword argument 'modx'. Did you mean 'mod'?\",)), [('eq', \"'modx'\", 'base'), ('eq', \"'modx'\", 'exp'), ('eq', \"'modx'\", 'mod'), 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 90,
+      "expression": "truth: min(Source(),**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), 'truth', ('eq', \"'keyx'\", 'default'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"min() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), 'truth', ('eq', \"'keyx'\", 'default'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 91,
+      "expression": "truth: max(Source(),**{Keyword('defaultx'):None})",
+      "oracle": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\", (\"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\",)), [('eq', \"'defaultx'\", 'key'), 'truth', ('eq', \"'defaultx'\", 'default'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\", (\"max() got an unexpected keyword argument 'rendered'. Did you mean 'default'?\",)), [('eq', \"'defaultx'\", 'key'), 'truth', ('eq', \"'defaultx'\", 'default'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 92,
+      "expression": "truth: sorted(Source(),**{Keyword('reversex'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\",)), ['iter', 'len', ('eq', \"'reversex'\", 'key'), 'truth', ('eq', \"'reversex'\", 'reverse'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'reverse'?\",)), ['iter', 'len', ('eq', \"'reversex'\", 'key'), 'truth', ('eq', \"'reversex'\", 'reverse'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 93,
+      "expression": "truth: items.sort(**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), 'truth', ('eq', \"'keyx'\", 'reverse'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), 'truth', ('eq', \"'keyx'\", 'reverse'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 94,
+      "expression": "truth: list.sort(items,**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), 'truth', ('eq', \"'keyx'\", 'reverse'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\", (\"sort() got an unexpected keyword argument 'rendered'. Did you mean 'key'?\",)), [('eq', \"'keyx'\", 'key'), 'truth', ('eq', \"'keyx'\", 'reverse'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 95,
+      "expression": "truth: sum(Source(),**{Keyword('startx'):None})",
+      "oracle": "(('exception', 'TypeError', \"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\", (\"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\",)), [('eq', \"'startx'\", 'start'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\", (\"sum() got an unexpected keyword argument 'rendered'. Did you mean 'start'?\",)), [('eq', \"'startx'\", 'start'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 96,
+      "expression": "truth: round(1.25,**{Keyword('ndigitsx'):None})",
+      "oracle": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\", (\"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\",)), [('eq', \"'ndigitsx'\", 'number'), 'truth', ('eq', \"'ndigitsx'\", 'ndigits'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\", (\"round() got an unexpected keyword argument 'rendered'. Did you mean 'ndigits'?\",)), [('eq', \"'ndigitsx'\", 'number'), 'truth', ('eq', \"'ndigitsx'\", 'ndigits'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 97,
+      "expression": "truth: pow(2,3,**{Keyword('modx'):None})",
+      "oracle": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\", (\"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\",)), [('eq', \"'modx'\", 'base'), 'truth', ('eq', \"'modx'\", 'exp'), 'truth', ('eq', \"'modx'\", 'mod'), 'truth', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\", (\"pow() got an unexpected keyword argument 'rendered'. Did you mean 'mod'?\",)), [('eq', \"'modx'\", 'base'), 'truth', ('eq', \"'modx'\", 'exp'), 'truth', ('eq', \"'modx'\", 'mod'), 'truth', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 98,
+      "expression": "badstr: min(Source(),**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 99,
+      "expression": "badstr: max(Source(),**{Keyword('defaultx'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 100,
+      "expression": "badstr: sorted(Source(),**{Keyword('reversex'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['iter', 'len', 'str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['iter', 'len', 'str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 101,
+      "expression": "badstr: items.sort(**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 102,
+      "expression": "badstr: list.sort(items,**{Keyword('keyx'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 103,
+      "expression": "badstr: sum(Source(),**{Keyword('startx'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 104,
+      "expression": "badstr: round(1.25,**{Keyword('ndigitsx'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 105,
+      "expression": "badstr: pow(2,3,**{Keyword('modx'):None})",
+      "oracle": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), ['str'], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 106,
+      "expression": "min([1,2],**{Keyword('key'):None,Keyword('key'):key})",
+      "oracle": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'key'\", (\"min() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'default')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'key'\", (\"min() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'default')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 107,
+      "expression": "max([1,2],**{Keyword('default'):1,Keyword('default'):2})",
+      "oracle": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'default'\", (\"max() got an unexpected keyword argument 'default'\",)), [('eq', \"'default'\", 'default'), ('eq', \"'default'\", 'key'), ('eq', \"'default'\", 'default')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'default'\", (\"max() got an unexpected keyword argument 'default'\",)), [('eq', \"'default'\", 'default'), ('eq', \"'default'\", 'key'), ('eq', \"'default'\", 'default')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 108,
+      "expression": "sorted([1,2],**{Keyword('reverse'):False,Keyword('reverse'):True})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'reverse'\", (\"sort() got an unexpected keyword argument 'reverse'\",)), [('eq', \"'reverse'\", 'reverse'), ('eq', \"'reverse'\", 'key'), ('eq', \"'reverse'\", 'reverse')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'reverse'\", (\"sort() got an unexpected keyword argument 'reverse'\",)), [('eq', \"'reverse'\", 'reverse'), ('eq', \"'reverse'\", 'key'), ('eq', \"'reverse'\", 'reverse')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 109,
+      "expression": "items.sort(**{Keyword('key'):None,Keyword('key'):key})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'key'\", (\"sort() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'reverse')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'key'\", (\"sort() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'reverse')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 110,
+      "expression": "round(**{Keyword('number'):1.2,Keyword('number'):2.3})",
+      "oracle": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'number'\", (\"round() got an unexpected keyword argument 'number'\",)), [('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'ndigits')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'number'\", (\"round() got an unexpected keyword argument 'number'\",)), [('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'ndigits')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 111,
+      "expression": "pow(**{Keyword('base'):2,Keyword('base'):3})",
+      "oracle": "(('exception', 'TypeError', \"pow() missing required argument 'exp' (pos 2)\", (\"pow() missing required argument 'exp' (pos 2)\",)), [('eq', \"'base'\", 'base')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() missing required argument 'exp' (pos 2)\", (\"pow() missing required argument 'exp' (pos 2)\",)), [('eq', \"'base'\", 'base')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 112,
+      "expression": "pow(2,**{Keyword('exp'):2,Keyword('exp'):3})",
+      "oracle": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'exp'\", (\"pow() got an unexpected keyword argument 'exp'\",)), [('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'base'), ('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'mod')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'exp'\", (\"pow() got an unexpected keyword argument 'exp'\",)), [('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'base'), ('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'mod')], [3, 1, 2])",
+      "matches": false
+    },
+    {
+      "caseIndex": 113,
+      "expression": "fixed hash: min([1,2],**{Keyword('key'):None,Keyword('key'):key})",
+      "oracle": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'key'\", (\"min() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'default')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"min() got an unexpected keyword argument 'key'\", (\"min() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'default')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 114,
+      "expression": "fixed hash: max([1,2],**{Keyword('default'):1,Keyword('default'):2})",
+      "oracle": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'default'\", (\"max() got an unexpected keyword argument 'default'\",)), [('eq', \"'default'\", 'default'), ('eq', \"'default'\", 'key'), ('eq', \"'default'\", 'default')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"max() got an unexpected keyword argument 'default'\", (\"max() got an unexpected keyword argument 'default'\",)), [('eq', \"'default'\", 'default'), ('eq', \"'default'\", 'key'), ('eq', \"'default'\", 'default')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 115,
+      "expression": "fixed hash: sorted([1,2],**{Keyword('reverse'):False,Keyword('reverse'):True})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'reverse'\", (\"sort() got an unexpected keyword argument 'reverse'\",)), [('eq', \"'reverse'\", 'reverse'), ('eq', \"'reverse'\", 'key'), ('eq', \"'reverse'\", 'reverse')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'reverse'\", (\"sort() got an unexpected keyword argument 'reverse'\",)), [('eq', \"'reverse'\", 'reverse'), ('eq', \"'reverse'\", 'key'), ('eq', \"'reverse'\", 'reverse')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 116,
+      "expression": "fixed hash: items.sort(**{Keyword('key'):None,Keyword('key'):key})",
+      "oracle": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'key'\", (\"sort() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'reverse')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"sort() got an unexpected keyword argument 'key'\", (\"sort() got an unexpected keyword argument 'key'\",)), [('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'key'), ('eq', \"'key'\", 'reverse')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 117,
+      "expression": "fixed hash: round(**{Keyword('number'):1.2,Keyword('number'):2.3})",
+      "oracle": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'number'\", (\"round() got an unexpected keyword argument 'number'\",)), [('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'ndigits')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"round() got an unexpected keyword argument 'number'\", (\"round() got an unexpected keyword argument 'number'\",)), [('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'number'), ('eq', \"'number'\", 'ndigits')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 118,
+      "expression": "fixed hash: pow(**{Keyword('base'):2,Keyword('base'):3})",
+      "oracle": "(('exception', 'TypeError', \"pow() missing required argument 'exp' (pos 2)\", (\"pow() missing required argument 'exp' (pos 2)\",)), [('eq', \"'base'\", 'base')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() missing required argument 'exp' (pos 2)\", (\"pow() missing required argument 'exp' (pos 2)\",)), [('eq', \"'base'\", 'base')], [3, 1, 2])",
+      "matches": true
+    },
+    {
+      "caseIndex": 119,
+      "expression": "fixed hash: pow(2,**{Keyword('exp'):2,Keyword('exp'):3})",
+      "oracle": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'exp'\", (\"pow() got an unexpected keyword argument 'exp'\",)), [('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'base'), ('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'mod')], [3, 1, 2])",
+      "guest": "(('exception', 'TypeError', \"pow() got an unexpected keyword argument 'exp'\", (\"pow() got an unexpected keyword argument 'exp'\",)), [('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'base'), ('eq', \"'exp'\", 'exp'), ('eq', \"'exp'\", 'mod')], [3, 1, 2])",
+      "matches": true
+    }
+  ],
+  "summary": {
+    "matched": 119,
+    "mismatched": 1
+  }
+}

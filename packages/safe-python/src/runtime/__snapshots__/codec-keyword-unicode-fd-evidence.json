@@ -1,0 +1,315 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "node": "v22.23.2",
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100
+  },
+  "sources": [
+    {
+      "name": "registry encode",
+      "source": "\nimport codecs\nevents = []\nfailure = ValueError('keyword rendering failed')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('compare', other))\n        return False\n    def __str__(self):\n        events.append(('render', input()))\n        if broken:\n            raise failure\n        return rendered\nfor spelling in ('\\ud800\\udc00', '\\U00010000', 'encoding\\ud800\\udc00'):\n    for subclass in (False, True):\n        broken = False\n        rendered = spelling\n        key = Key('encodign') if subclass else spelling\n        events.clear()\n        try:\n            codecs.encode('x', **{key: 'ascii'})\n        except TypeError as error:\n            expected = \"encode() got an unexpected keyword argument '\" + spelling + \"'\"\n            if subclass:\n                expected += \". Did you mean 'encoding'?\"\n            assert error.args == (expected,)\n            assert str(error) == expected\n            print([ord(character) for character in error.args[0]], events)\n        else:\n            raise AssertionError('keyword accepted')\nbroken = True\nevents.clear()\ntry:\n    codecs.encode('x', **{Key('encodign'): 'ascii'})\nexcept ValueError as error:\n    assert error is failure\n    print(error.args, events)\nelse:\n    raise AssertionError('rendering failure swallowed')\n"
+    },
+    {
+      "name": "registry decode",
+      "source": "\nimport codecs\nevents = []\nfailure = ValueError('keyword rendering failed')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('compare', other))\n        return False\n    def __str__(self):\n        events.append(('render', input()))\n        if broken:\n            raise failure\n        return rendered\nfor spelling in ('\\ud800\\udc00', '\\U00010000', 'encoding\\ud800\\udc00'):\n    for subclass in (False, True):\n        broken = False\n        rendered = spelling\n        key = Key('encodign') if subclass else spelling\n        events.clear()\n        try:\n            codecs.decode(b'x', **{key: 'ascii'})\n        except TypeError as error:\n            expected = \"decode() got an unexpected keyword argument '\" + spelling + \"'\"\n            if subclass:\n                expected += \". Did you mean 'encoding'?\"\n            assert error.args == (expected,)\n            assert str(error) == expected\n            print([ord(character) for character in error.args[0]], events)\n        else:\n            raise AssertionError('keyword accepted')\nbroken = True\nevents.clear()\ntry:\n    codecs.decode(b'x', **{Key('encodign'): 'ascii'})\nexcept ValueError as error:\n    assert error is failure\n    print(error.args, events)\nelse:\n    raise AssertionError('rendering failure swallowed')\n"
+    },
+    {
+      "name": "str encode",
+      "source": "\nimport codecs\nevents = []\nfailure = ValueError('keyword rendering failed')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('compare', other))\n        return False\n    def __str__(self):\n        events.append(('render', input()))\n        if broken:\n            raise failure\n        return rendered\nfor spelling in ('\\ud800\\udc00', '\\U00010000', 'encoding\\ud800\\udc00'):\n    for subclass in (False, True):\n        broken = False\n        rendered = spelling\n        key = Key('encodign') if subclass else spelling\n        events.clear()\n        try:\n            str.encode('x', **{key: 'ascii'})\n        except TypeError as error:\n            expected = \"encode() got an unexpected keyword argument '\" + spelling + \"'\"\n            if subclass:\n                expected += \". Did you mean 'encoding'?\"\n            assert error.args == (expected,)\n            assert str(error) == expected\n            print([ord(character) for character in error.args[0]], events)\n        else:\n            raise AssertionError('keyword accepted')\nbroken = True\nevents.clear()\ntry:\n    str.encode('x', **{Key('encodign'): 'ascii'})\nexcept ValueError as error:\n    assert error is failure\n    print(error.args, events)\nelse:\n    raise AssertionError('rendering failure swallowed')\n"
+    },
+    {
+      "name": "bytes decode",
+      "source": "\nimport codecs\nevents = []\nfailure = ValueError('keyword rendering failed')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('compare', other))\n        return False\n    def __str__(self):\n        events.append(('render', input()))\n        if broken:\n            raise failure\n        return rendered\nfor spelling in ('\\ud800\\udc00', '\\U00010000', 'encoding\\ud800\\udc00'):\n    for subclass in (False, True):\n        broken = False\n        rendered = spelling\n        key = Key('encodign') if subclass else spelling\n        events.clear()\n        try:\n            bytes.decode(b'x', **{key: 'ascii'})\n        except TypeError as error:\n            expected = \"decode() got an unexpected keyword argument '\" + spelling + \"'\"\n            if subclass:\n                expected += \". Did you mean 'encoding'?\"\n            assert error.args == (expected,)\n            assert str(error) == expected\n            print([ord(character) for character in error.args[0]], events)\n        else:\n            raise AssertionError('keyword accepted')\nbroken = True\nevents.clear()\ntry:\n    bytes.decode(b'x', **{Key('encodign'): 'ascii'})\nexcept ValueError as error:\n    assert error is failure\n    print(error.args, events)\nelse:\n    raise AssertionError('rendering failure swallowed')\n"
+    }
+  ],
+  "adapters": "fs.readSync line input, full fs.writeSync output, fs.fsyncSync flush; no guest filesystem capability",
+  "runs": [
+    {
+      "name": "registry encode",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39] []\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39] []\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n('keyword rendering failed',) [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n",
+      "counts": {
+        "read": 4,
+        "write": 28,
+        "flush": 4
+      },
+      "passed": true
+    },
+    {
+      "name": "registry encode",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "registry encode",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "registry decode",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39] []\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39] []\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n('keyword rendering failed',) [('compare', 'obj'), ('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n",
+      "counts": {
+        "read": 4,
+        "write": 28,
+        "flush": 4
+      },
+      "passed": true
+    },
+    {
+      "name": "registry decode",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "registry decode",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "str encode",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39] []\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39] []\n[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n('keyword rendering failed',) [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n",
+      "counts": {
+        "read": 4,
+        "write": 28,
+        "flush": 4
+      },
+      "passed": true
+    },
+    {
+      "name": "str encode",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "str encode",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[101, 110, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "bytes decode",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39] []\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 65536, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39] []\n[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 55296, 56320, 39, 46, 32, 68, 105, 100, 32, 121, 111, 117, 32, 109, 101, 97, 110, 32, 39, 101, 110, 99, 111, 100, 105, 110, 103, 39, 63] [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n('keyword rendering failed',) [('compare', 'encoding'), ('compare', 'errors'), ('render', 'continue')]\n",
+      "counts": {
+        "read": 4,
+        "write": 28,
+        "flush": 4
+      },
+      "passed": true
+    },
+    {
+      "name": "bytes decode",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    },
+    {
+      "name": "bytes decode",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "[100, 101, 99, 111, 100, 101, 40, 41, 32, 103, 111, 116, 32, 97, 110, 32, 117, 110, 101, 120, 112, 101, 99, 116, 101, 100, 32, 107, 101, 121, 119, 111, 114, 100, 32, 97, 114, 103, 117, 109, 101, 110, 116, 32, 39, 55296, 56320, 39] []\n",
+      "counts": {
+        "read": 1,
+        "write": 4,
+        "flush": 1
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "passed": true
+    }
+  ]
+}

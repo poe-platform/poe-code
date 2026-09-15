@@ -1,0 +1,213 @@
+{
+  "research_date": "2026-09-14",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "binary": "/opt/homebrew/bin/ffmpeg",
+  "version": "ffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers\nbuilt with Apple clang version 21.0.0 (clang-2100.0.123.102)\nconfiguration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1_1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\nlibavutil      60. 26.100 / 60. 26.100\nlibavcodec     62. 28.100 / 62. 28.100\nlibavformat    62. 12.100 / 62. 12.100\nlibavdevice    62.  3.100 / 62.  3.100\nlibavfilter    11. 14.100 / 11. 14.100\nlibswscale      9.  5.100 /  9.  5.100\nlibswresample   6.  3.100 /  6.  3.100\n\nExiting with exit code 0\n",
+  "scope": "Native local oracle only; no JS frontend, remote server, cloud or visual qualification",
+  "scratch": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/poe-media-oracle-t4emsvxx",
+  "results": [
+    {
+      "case": "valid_single",
+      "argv": [
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=size=16x16:rate=1:duration=1",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "ffv1",
+        "one.mkv"
+      ],
+      "exit_code": 0,
+      "stdout_bytes": 0,
+      "stderr": "Input #0, lavfi, from 'testsrc=size=16x16:rate=1:duration=1':\n  Duration: N/A, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: wrapped_avframe, rgb24, 16x16 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn\nStream mapping:\n  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> ffv1 (native))\nOutput #0, matroska, to 'one.mkv':\n  Metadata:\n    encoder         : Lavf62.12.100\n  Stream #0:0: Video: ffv1 (FFV1 / 0x31564646), bgr0(pc, gbr/unknown/unknown, progressive), 16x16 [SAR 1:1 DAR 1:1], q=2-31, 200 kb/s, 1 fps, 1k tbn\n    Metadata:\n      encoder         : Lavc62.28.100 ffv1\n[out#0/matroska @ 0x80ec089c0] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 144.907407%\nframe=    1 fps=0.0 q=-0.0 Lsize=       1KiB time=00:00:01.00 bitrate=   8.5kbits/s speed= 377x elapsed=0:00:00.00    \n",
+      "files": [
+        {
+          "path": "one.mkv",
+          "size": 1058,
+          "sentinel": false,
+          "sha256": "a1695296adb7ef9920665ef27d6a0836baa843d2ab7539204e145af1292a24b0"
+        }
+      ]
+    },
+    {
+      "case": "unknown_late_option",
+      "argv": [
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=size=16x16:rate=1:duration=1",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "ffv1",
+        "one.mkv",
+        "-not_a_real_option",
+        "1",
+        "two.mkv"
+      ],
+      "exit_code": 8,
+      "stdout_bytes": 0,
+      "stderr": "Unrecognized option 'not_a_real_option'.\nError splitting the argument list: Option not found\n",
+      "files": [
+        {
+          "path": "one.mkv",
+          "size": 20,
+          "sentinel": true,
+          "sha256": "efa5d0cd58e140ee561f1904b3ea04f4f7517444302de3bc6371aa80164cec57"
+        }
+      ]
+    },
+    {
+      "case": "missing_second_parent",
+      "argv": [
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=size=16x16:rate=1:duration=1",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "ffv1",
+        "one.mkv",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "ffv1",
+        "absent/two.mkv"
+      ],
+      "exit_code": 254,
+      "stdout_bytes": 0,
+      "stderr": "Input #0, lavfi, from 'testsrc=size=16x16:rate=1:duration=1':\n  Duration: N/A, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: wrapped_avframe, rgb24, 16x16 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn\n[out#1/matroska @ 0xb77014b40] Error opening output absent/two.mkv: No such file or directory\nError opening output file absent/two.mkv.\nError opening output files: No such file or directory\n",
+      "files": [
+        {
+          "path": "one.mkv",
+          "size": 0,
+          "sentinel": false,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "case": "missing_lut",
+      "argv": [
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=size=16x16:rate=1:duration=1",
+        "-vf",
+        "lut3d=file=missing.cube",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "ffv1",
+        "one.mkv"
+      ],
+      "exit_code": 254,
+      "stdout_bytes": 0,
+      "stderr": "Input #0, lavfi, from 'testsrc=size=16x16:rate=1:duration=1':\n  Duration: N/A, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: wrapped_avframe, rgb24, 16x16 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn\n[Parsed_lut3d_0 @ 0xca1010780] missing.cube: No such file or directory\n[AVFilterGraph @ 0xca0c1c100] Error initializing filters\nError opening output file one.mkv.\nError opening output files: No such file or directory\n",
+      "files": [
+        {
+          "path": "one.mkv",
+          "size": 20,
+          "sentinel": true,
+          "sha256": "efa5d0cd58e140ee561f1904b3ea04f4f7517444302de3bc6371aa80164cec57"
+        }
+      ]
+    },
+    {
+      "case": "nonseekable_mp4",
+      "argv": [
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=size=16x16:rate=1:duration=1",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "libx264",
+        "-f",
+        "mp4",
+        "pipe:1"
+      ],
+      "exit_code": 234,
+      "stdout_bytes": 0,
+      "stderr": "Input #0, lavfi, from 'testsrc=size=16x16:rate=1:duration=1':\n  Duration: N/A, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: wrapped_avframe, rgb24, 16x16 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn\nStream mapping:\n  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> h264 (libx264))\n[libx264 @ 0x797038e00] using SAR=1/1\n[libx264 @ 0x797038e00] using cpu capabilities: ARMv8 NEON DotProd I8MM\n[libx264 @ 0x797038e00] profile High 4:4:4 Predictive, level 1.0, 4:4:4, 8-bit\n[libx264 @ 0x797038e00] 264 - core 165 r3222 b35605a - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=4 threads=1 lookahead_threads=1 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=3 b_pyramid=2 b_adapt=1 b_bias=0 direct=1 weightb=1 open_gop=0 weightp=2 keyint=250 keyint_min=1 scenecut=40 intra_refresh=0 rc_lookahead=40 rc=crf mbtree=1 crf=23.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00\n[mp4 @ 0x79701c280] muxer does not support non seekable output\n[out#0/mp4 @ 0x797024480] Could not write header (incorrect codec parameters ?): Invalid argument\n[vf#0:0 @ 0x79703c000] Error sending frames to consumers: Invalid argument\n[vf#0:0 @ 0x79703c000] Task finished with error code: -22 (Invalid argument)\n[vf#0:0 @ 0x79703c000] Terminating thread with return code -22 (Invalid argument)\n[out#0/mp4 @ 0x797024480] Nothing was written into output file, because at least one of its streams received no packets.\nframe=    0 fps=0.0 q=0.0 Lsize=       0KiB time=N/A bitrate=N/A speed=N/A elapsed=0:00:00.00    \nConversion failed!\n",
+      "files": []
+    },
+    {
+      "case": "empty_optional_map",
+      "argv": [
+        "-hide_banner",
+        "-nostdin",
+        "-y",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=size=16x16:rate=1:duration=1",
+        "-map",
+        "0:a?",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "ffv1",
+        "one.mkv"
+      ],
+      "exit_code": 0,
+      "stdout_bytes": 0,
+      "stderr": "Input #0, lavfi, from 'testsrc=size=16x16:rate=1:duration=1':\n  Duration: N/A, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: wrapped_avframe, rgb24, 16x16 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn\nStream mapping:\n  Stream #0:0 -> #0:0 (wrapped_avframe (native) -> ffv1 (native))\nOutput #0, matroska, to 'one.mkv':\n  Metadata:\n    encoder         : Lavf62.12.100\n  Stream #0:0: Video: ffv1 (FFV1 / 0x31564646), bgr0(pc, gbr/unknown/unknown, progressive), 16x16 [SAR 1:1 DAR 1:1], q=2-31, 200 kb/s, 1 fps, 1k tbn\n    Metadata:\n      encoder         : Lavc62.28.100 ffv1\n[out#0/matroska @ 0x9db41c480] video:0KiB audio:0KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 144.907407%\nframe=    1 fps=0.0 q=-0.0 Lsize=       1KiB time=00:00:01.00 bitrate=   8.5kbits/s speed= 585x elapsed=0:00:00.00    \n",
+      "files": [
+        {
+          "path": "one.mkv",
+          "size": 1058,
+          "sentinel": false,
+          "sha256": "7fba0940a79e3714c05917848bdd84c9778e2dca65b4f5f5066f8344b92d47e2"
+        }
+      ]
+    },
+    {
+      "case": "overwrite_refusal",
+      "argv": [
+        "-hide_banner",
+        "-nostdin",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc=size=16x16:rate=1:duration=1",
+        "-n",
+        "-frames:v",
+        "1",
+        "-c:v",
+        "ffv1",
+        "one.mkv"
+      ],
+      "exit_code": 0,
+      "stdout_bytes": 0,
+      "stderr": "Input #0, lavfi, from 'testsrc=size=16x16:rate=1:duration=1':\n  Duration: N/A, start: 0.000000, bitrate: N/A\n  Stream #0:0: Video: wrapped_avframe, rgb24, 16x16 [SAR 1:1 DAR 1:1], 1 fps, 1 tbr, 1 tbn\nFile 'one.mkv' already exists. Exiting.\nError opening output file one.mkv.\n",
+      "files": [
+        {
+          "path": "one.mkv",
+          "size": 20,
+          "sentinel": true,
+          "sha256": "efa5d0cd58e140ee561f1904b3ea04f4f7517444302de3bc6371aa80164cec57"
+        }
+      ]
+    }
+  ]
+}

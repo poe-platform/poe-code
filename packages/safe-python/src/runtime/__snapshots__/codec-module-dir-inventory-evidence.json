@@ -1,0 +1,109 @@
+{
+  "reference": "CPython 3.14.7; Unicode 16.0.0; Darwin arm64",
+  "rows": [
+    {
+      "module": "codecs",
+      "source": "import codecs as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "module": "_codecs",
+      "source": "import _codecs as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "module": "encodings",
+      "source": "import encodings as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "module": "encodings.aliases",
+      "source": "import encodings.aliases as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "module": "encodings.ascii",
+      "source": "import encodings.ascii as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "module": "encodings.latin_1",
+      "source": "import encodings.latin_1 as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "module": "encodings.utf_8",
+      "source": "import encodings.utf_8 as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "module": "encodings.charmap",
+      "source": "import encodings.charmap as module\nModule = type(module)\nassert Module.__dir__(module) == list(module.__dict__)\nmarker = []\nmodule.__dir__ = lambda: marker\nassert Module.__dir__(module) is marker\ndel module.__dir__\nassert Module.__dir__(module) == list(module.__dict__)\nprint('verified')\n",
+      "oracle": {
+        "exit": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": "ok",
+        "stdout": "verified\n"
+      }
+    }
+  ]
+}

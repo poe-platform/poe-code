@@ -1,0 +1,648 @@
+{
+  "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "hashSeed": 0,
+  "rows": [
+    {
+      "name": "source normal",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return str.__eq__(self, other)\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'A'), [('eq', 'source')])"
+    },
+    {
+      "name": "source false",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'source'), ('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "source true",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'A'), [('eq', 'source')])"
+    },
+    {
+      "name": "source raise",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        raise ValueError('equality')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'equality', ('equality',)), [('eq', 'source')])"
+    },
+    {
+      "name": "source notimplemented",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return NotImplemented\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'A'), [('eq', 'source')])"
+    },
+    {
+      "name": "source truth",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return Truth()\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'source'), 'bool', ('eq', 'source'), 'bool', ('eq', 'encoding'), 'bool', ('eq', 'errors'), 'bool', 'str'])"
+    },
+    {
+      "name": "source badstr",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 12\nkwargs = {Key('source'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), [('eq', 'source'), ('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "encoding normal",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return str.__eq__(self, other)\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', Key('encoding'): 'utf-8'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'\\xc3\\xa9'), [('eq', 'encoding')])"
+    },
+    {
+      "name": "encoding false",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', Key('encoding'): 'utf-8'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'encoding'), ('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "encoding true",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', Key('encoding'): 'utf-8'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'\\xc3\\xa9'), [('eq', 'encoding')])"
+    },
+    {
+      "name": "encoding raise",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        raise ValueError('equality')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', Key('encoding'): 'utf-8'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'equality', ('equality',)), [('eq', 'encoding')])"
+    },
+    {
+      "name": "encoding notimplemented",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return NotImplemented\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', Key('encoding'): 'utf-8'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'\\xc3\\xa9'), [('eq', 'encoding')])"
+    },
+    {
+      "name": "encoding truth",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return Truth()\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', Key('encoding'): 'utf-8'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'encoding'), 'bool', ('eq', 'source'), 'bool', ('eq', 'encoding'), 'bool', ('eq', 'errors'), 'bool', 'str'])"
+    },
+    {
+      "name": "encoding badstr",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 12\nkwargs = {'source': '\u00e9', Key('encoding'): 'utf-8'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), [('eq', 'encoding'), ('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "errors normal",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return str.__eq__(self, other)\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', 'encoding': 'ascii', Key('errors'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'?'), [('eq', 'errors')])"
+    },
+    {
+      "name": "errors false",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', 'encoding': 'ascii', Key('errors'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'errors'), ('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "errors true",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', 'encoding': 'ascii', Key('errors'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'?'), [('eq', 'errors')])"
+    },
+    {
+      "name": "errors raise",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        raise ValueError('equality')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', 'encoding': 'ascii', Key('errors'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'equality', ('equality',)), [('eq', 'errors')])"
+    },
+    {
+      "name": "errors notimplemented",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return NotImplemented\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', 'encoding': 'ascii', Key('errors'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'?'), [('eq', 'errors')])"
+    },
+    {
+      "name": "errors truth",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return Truth()\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {'source': '\u00e9', 'encoding': 'ascii', Key('errors'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'errors'), 'bool', ('eq', 'source'), 'bool', ('eq', 'encoding'), 'bool', ('eq', 'errors'), 'bool', 'str'])"
+    },
+    {
+      "name": "errors badstr",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 12\nkwargs = {'source': '\u00e9', 'encoding': 'ascii', Key('errors'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), [('eq', 'errors'), ('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "sourc normal",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return str.__eq__(self, other)\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('sourc'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\", (\"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\",)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "sourc false",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('sourc'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\", (\"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\",)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "sourc true",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('sourc'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), [('eq', 'source')])"
+    },
+    {
+      "name": "sourc raise",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        raise ValueError('equality')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('sourc'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'equality', ('equality',)), [('eq', 'source')])"
+    },
+    {
+      "name": "sourc notimplemented",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return NotImplemented\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('sourc'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\", (\"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\",)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "sourc truth",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return Truth()\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('sourc'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\", (\"bytes() got an unexpected keyword argument 'visible'. Did you mean 'source'?\",)), [('eq', 'source'), 'bool', ('eq', 'encoding'), 'bool', ('eq', 'errors'), 'bool', 'str'])"
+    },
+    {
+      "name": "sourc badstr",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 12\nkwargs = {Key('sourc'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": " normal",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return str.__eq__(self, other)\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key(''): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": " false",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key(''): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": " true",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key(''): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), [('eq', 'source')])"
+    },
+    {
+      "name": " raise",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        raise ValueError('equality')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key(''): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'equality', ('equality',)), [('eq', 'source')])"
+    },
+    {
+      "name": " notimplemented",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return NotImplemented\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key(''): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": " truth",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return Truth()\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key(''): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), [('eq', 'source'), 'bool', ('eq', 'encoding'), 'bool', ('eq', 'errors'), 'bool', 'str'])"
+    },
+    {
+      "name": " badstr",
+      "source": "\nevents = []\nclass Truth:\n    def __bool__(self):\n        events.append('bool')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(('eq', other))\n        return False\n    def __str__(self):\n        events.append('str')\n        return 12\nkwargs = {Key(''): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)', ('__str__ returned non-string (type int)',)), [('eq', 'source'), ('eq', 'encoding'), ('eq', 'errors'), 'str'])"
+    },
+    {
+      "name": "source alias return False bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['source', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "source alias return False bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['source', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "source alias return False bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['source', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "source alias return str.__eq__(self, other) bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['source', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "source alias return str.__eq__(self, other) bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['source', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "source alias return str.__eq__(self, other) bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['source', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "source alias raise ValueError('lookup') bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "source alias raise ValueError('lookup') bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "source alias raise ValueError('lookup') bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "encoding alias return False bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['encoding', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "encoding alias return False bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['encoding', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "encoding alias return False bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['encoding', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "encoding alias return str.__eq__(self, other) bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['encoding', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "encoding alias return str.__eq__(self, other) bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['encoding', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "encoding alias return str.__eq__(self, other) bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['encoding', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "encoding alias raise ValueError('lookup') bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['encoding'])"
+    },
+    {
+      "name": "encoding alias raise ValueError('lookup') bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['encoding'])"
+    },
+    {
+      "name": "encoding alias raise ValueError('lookup') bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['encoding'])"
+    },
+    {
+      "name": "errors alias return False bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['errors', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "errors alias return False bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['errors', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "errors alias return False bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return False\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['errors', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "errors alias return str.__eq__(self, other) bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['errors', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "errors alias return str.__eq__(self, other) bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['errors', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "errors alias return str.__eq__(self, other) bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['errors', 'source', 'encoding', 'errors'])"
+    },
+    {
+      "name": "errors alias raise ValueError('lookup') bytes(**kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['errors'])"
+    },
+    {
+      "name": "errors alias raise ValueError('lookup') bytes('a', **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes('a', **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['errors'])"
+    },
+    {
+      "name": "errors alias raise ValueError('lookup') bytes.__new__(bytes, **kwargs)",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['errors'])"
+    },
+    {
+      "name": "source mutation true",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return True\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('ok', 'bytes', b'A'), ['source'], [[65]])"
+    },
+    {
+      "name": "source mutation normal",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['source', 'source', 'encoding', 'errors'], [[65]])"
+    },
+    {
+      "name": "source mutation clear",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        kwargs.clear()\n        return True\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('ok', 'bytes', b'A'), ['source'], [])"
+    },
+    {
+      "name": "source mutation replace",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        kwargs['source'] = [90]\n        return True\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('RecursionError', 'maximum recursion depth exceeded', ('maximum recursion depth exceeded',)), ['source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source', 'source'], [[65]])"
+    },
+    {
+      "name": "source mutation raise",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'], [[65]])"
+    },
+    {
+      "name": "encoding mutation true",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return True\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'encoding without a string argument', ('encoding without a string argument',)), ['encoding'], ['ascii'])"
+    },
+    {
+      "name": "encoding mutation normal",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['encoding', 'source', 'encoding', 'errors'], ['ascii'])"
+    },
+    {
+      "name": "encoding mutation clear",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        kwargs.clear()\n        return True\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'encoding without a string argument', ('encoding without a string argument',)), ['encoding'], [])"
+    },
+    {
+      "name": "encoding mutation replace",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        kwargs['source'] = [90]\n        return True\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'encoding without a string argument', ('encoding without a string argument',)), ['encoding'], ['ascii', [90]])"
+    },
+    {
+      "name": "encoding mutation raise",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['encoding'], ['ascii'])"
+    },
+    {
+      "name": "errors mutation true",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return True\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'errors without a string argument', ('errors without a string argument',)), ['errors'], ['replace'])"
+    },
+    {
+      "name": "errors mutation normal",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'alias'\", (\"bytes() got an unexpected keyword argument 'alias'\",)), ['errors', 'source', 'encoding', 'errors'], ['replace'])"
+    },
+    {
+      "name": "errors mutation clear",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        kwargs.clear()\n        return True\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'errors without a string argument', ('errors without a string argument',)), ['errors'], [])"
+    },
+    {
+      "name": "errors mutation replace",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        kwargs['source'] = [90]\n        return True\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'errors without a string argument', ('errors without a string argument',)), ['errors'], ['replace', [90]])"
+    },
+    {
+      "name": "errors mutation raise",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        raise ValueError('lookup')\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['errors'], ['replace'])"
+    },
+    {
+      "name": "bytes(**kwargs) false duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), ['source', 'source', 'encoding', 'errors', 'str'])"
+    },
+    {
+      "name": "bytes(**kwargs) false duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), ['source', 'source', 'source', 'encoding', 'errors', 'str'])"
+    },
+    {
+      "name": "bytes(**kwargs) true duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'A'), ['source'])"
+    },
+    {
+      "name": "bytes(**kwargs) true duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source', 'source'])"
+    },
+    {
+      "name": "bytes(**kwargs) alternate duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return len(events) % 2 == 0\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source'])"
+    },
+    {
+      "name": "bytes(**kwargs) alternate duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return len(events) % 2 == 0\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source', 'source', 'encoding', 'source', 'encoding'])"
+    },
+    {
+      "name": "bytes(**kwargs) raise duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        raise ValueError('lookup')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "bytes(**kwargs) raise duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        raise ValueError('lookup')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) false duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), ['source', 'source', 'encoding', 'errors', 'str'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) false duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), ['source', 'source', 'source', 'encoding', 'errors', 'str'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) true duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'bytes', b'A'), ['source'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) true duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source', 'source'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) alternate duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return len(events) % 2 == 0\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) alternate duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return len(events) % 2 == 0\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source', 'source', 'encoding', 'source', 'encoding'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) raise duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        raise ValueError('lookup')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "bytes.__new__(bytes, **kwargs) raise duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        raise ValueError('lookup')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = bytes.__new__(bytes, **kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "B(**kwargs) false duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), ['source', 'source', 'encoding', 'errors', 'str'])"
+    },
+    {
+      "name": "B(**kwargs) false duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return False\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', \"bytes() got an unexpected keyword argument 'visible'\", (\"bytes() got an unexpected keyword argument 'visible'\",)), ['source', 'source', 'source', 'encoding', 'errors', 'str'])"
+    },
+    {
+      "name": "B(**kwargs) true duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ok', 'B', b'A'), ['source'])"
+    },
+    {
+      "name": "B(**kwargs) true duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return True\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source', 'source'])"
+    },
+    {
+      "name": "B(**kwargs) alternate duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return len(events) % 2 == 0\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source'])"
+    },
+    {
+      "name": "B(**kwargs) alternate duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        return len(events) % 2 == 0\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('TypeError', 'invalid keyword argument for bytes()', ('invalid keyword argument for bytes()',)), ['source', 'source', 'source', 'encoding', 'source', 'encoding'])"
+    },
+    {
+      "name": "B(**kwargs) raise duplicates False",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        raise ValueError('lookup')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "B(**kwargs) raise duplicates True",
+      "source": "\nevents = []\nactive = False\nclass B(bytes):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if not active:\n            return False\n        events.append(other)\n        raise ValueError('lookup')\n    def __str__(self):\n        events.append('str')\n        return 'visible'\nkwargs = {Key('source'): [65], Key('source'): [66]}\nactive = True\ntry:\n    value = B(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events)\n",
+      "expected": "(('ValueError', 'lookup', ('lookup',)), ['source'])"
+    },
+    {
+      "name": "source mutation replace once",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('source')\n    def __eq__(self, other):\n        events.append(other)\n        if len(events) == 1:\n            kwargs['source'] = [90]\n        return True\nkwargs = {Key('alias'): [65]}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('ok', 'bytes', b'A'), ['source', 'source'], [[90]])"
+    },
+    {
+      "name": "encoding mutation replace once",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        if len(events) == 1:\n            kwargs['source'] = [90]\n        return True\nkwargs = {Key('alias'): 'ascii'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'encoding without a string argument', ('encoding without a string argument',)), ['encoding'], ['ascii', [90]])"
+    },
+    {
+      "name": "errors mutation replace once",
+      "source": "\nevents = []\nclass Key(str):\n    def __hash__(self):\n        return hash('errors')\n    def __eq__(self, other):\n        events.append(other)\n        if len(events) == 1:\n            kwargs['source'] = [90]\n        return True\nkwargs = {Key('alias'): 'replace'}\nevents.clear()\ntry:\n    value = bytes(**kwargs)\n    outcome = ('ok', type(value).__name__, value)\nexcept BaseException as error:\n    outcome = (type(error).__name__, str(error), error.args)\nactual = (outcome, events, list(kwargs.values()))\n",
+      "expected": "(('TypeError', 'errors without a string argument', ('errors without a string argument',)), ['errors'], ['replace', [90]])"
+    },
+    {
+      "name": "string comparison key == 'source' return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append('__eq__')\n        return NotImplemented\nkey = Key('source')\nactual = (key == 'source', events)\n",
+      "expected": "(True, ['__eq__'])"
+    },
+    {
+      "name": "string comparison 'source' == key return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append('__eq__')\n        return NotImplemented\nkey = Key('source')\nactual = ('source' == key, events)\n",
+      "expected": "(True, ['__eq__'])"
+    },
+    {
+      "name": "string comparison key == 'source' return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append('__eq__')\n        return True\nkey = Key('source')\nactual = (key == 'source', events)\n",
+      "expected": "(True, ['__eq__'])"
+    },
+    {
+      "name": "string comparison 'source' == key return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __eq__(self, other):\n        events.append('__eq__')\n        return True\nkey = Key('source')\nactual = ('source' == key, events)\n",
+      "expected": "(True, ['__eq__'])"
+    },
+    {
+      "name": "string comparison key != 'source' return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __ne__(self, other):\n        events.append('__ne__')\n        return NotImplemented\nkey = Key('source')\nactual = (key != 'source', events)\n",
+      "expected": "(False, ['__ne__'])"
+    },
+    {
+      "name": "string comparison 'source' != key return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __ne__(self, other):\n        events.append('__ne__')\n        return NotImplemented\nkey = Key('source')\nactual = ('source' != key, events)\n",
+      "expected": "(False, ['__ne__'])"
+    },
+    {
+      "name": "string comparison key != 'source' return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __ne__(self, other):\n        events.append('__ne__')\n        return True\nkey = Key('source')\nactual = (key != 'source', events)\n",
+      "expected": "(True, ['__ne__'])"
+    },
+    {
+      "name": "string comparison 'source' != key return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __ne__(self, other):\n        events.append('__ne__')\n        return True\nkey = Key('source')\nactual = ('source' != key, events)\n",
+      "expected": "(True, ['__ne__'])"
+    },
+    {
+      "name": "string comparison key < 'source' return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __lt__(self, other):\n        events.append('__lt__')\n        return NotImplemented\nkey = Key('source')\nactual = (key < 'source', events)\n",
+      "expected": "(False, ['__lt__'])"
+    },
+    {
+      "name": "string comparison 'source' < key return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __lt__(self, other):\n        events.append('__lt__')\n        return NotImplemented\nkey = Key('source')\nactual = ('source' < key, events)\n",
+      "expected": "(False, [])"
+    },
+    {
+      "name": "string comparison key < 'source' return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __lt__(self, other):\n        events.append('__lt__')\n        return True\nkey = Key('source')\nactual = (key < 'source', events)\n",
+      "expected": "(True, ['__lt__'])"
+    },
+    {
+      "name": "string comparison 'source' < key return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __lt__(self, other):\n        events.append('__lt__')\n        return True\nkey = Key('source')\nactual = ('source' < key, events)\n",
+      "expected": "(False, [])"
+    },
+    {
+      "name": "string comparison key <= 'source' return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __le__(self, other):\n        events.append('__le__')\n        return NotImplemented\nkey = Key('source')\nactual = (key <= 'source', events)\n",
+      "expected": "(True, ['__le__'])"
+    },
+    {
+      "name": "string comparison 'source' <= key return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __le__(self, other):\n        events.append('__le__')\n        return NotImplemented\nkey = Key('source')\nactual = ('source' <= key, events)\n",
+      "expected": "(True, [])"
+    },
+    {
+      "name": "string comparison key <= 'source' return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __le__(self, other):\n        events.append('__le__')\n        return True\nkey = Key('source')\nactual = (key <= 'source', events)\n",
+      "expected": "(True, ['__le__'])"
+    },
+    {
+      "name": "string comparison 'source' <= key return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __le__(self, other):\n        events.append('__le__')\n        return True\nkey = Key('source')\nactual = ('source' <= key, events)\n",
+      "expected": "(True, [])"
+    },
+    {
+      "name": "string comparison key > 'source' return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __gt__(self, other):\n        events.append('__gt__')\n        return NotImplemented\nkey = Key('source')\nactual = (key > 'source', events)\n",
+      "expected": "(False, ['__gt__'])"
+    },
+    {
+      "name": "string comparison 'source' > key return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __gt__(self, other):\n        events.append('__gt__')\n        return NotImplemented\nkey = Key('source')\nactual = ('source' > key, events)\n",
+      "expected": "(False, [])"
+    },
+    {
+      "name": "string comparison key > 'source' return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __gt__(self, other):\n        events.append('__gt__')\n        return True\nkey = Key('source')\nactual = (key > 'source', events)\n",
+      "expected": "(True, ['__gt__'])"
+    },
+    {
+      "name": "string comparison 'source' > key return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __gt__(self, other):\n        events.append('__gt__')\n        return True\nkey = Key('source')\nactual = ('source' > key, events)\n",
+      "expected": "(False, [])"
+    },
+    {
+      "name": "string comparison key >= 'source' return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __ge__(self, other):\n        events.append('__ge__')\n        return NotImplemented\nkey = Key('source')\nactual = (key >= 'source', events)\n",
+      "expected": "(True, ['__ge__'])"
+    },
+    {
+      "name": "string comparison 'source' >= key return NotImplemented",
+      "source": "\nevents = []\nclass Key(str):\n    def __ge__(self, other):\n        events.append('__ge__')\n        return NotImplemented\nkey = Key('source')\nactual = ('source' >= key, events)\n",
+      "expected": "(True, [])"
+    },
+    {
+      "name": "string comparison key >= 'source' return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __ge__(self, other):\n        events.append('__ge__')\n        return True\nkey = Key('source')\nactual = (key >= 'source', events)\n",
+      "expected": "(True, ['__ge__'])"
+    },
+    {
+      "name": "string comparison 'source' >= key return True",
+      "source": "\nevents = []\nclass Key(str):\n    def __ge__(self, other):\n        events.append('__ge__')\n        return True\nkey = Key('source')\nactual = ('source' >= key, events)\n",
+      "expected": "(True, [])"
+    }
+  ]
+}

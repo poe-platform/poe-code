@@ -1,0 +1,264 @@
+{
+  "executable": "/opt/homebrew/bin/python3.14",
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "len",
+      "source": "import codecs\nvalue = len\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle builtin_function_or_method in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "[].append",
+      "source": "import codecs\nvalue = [].append\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle builtin_function_or_method in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "str.encode",
+      "source": "import codecs\nvalue = str.encode\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle method_descriptor in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "object.__str__",
+      "source": "import codecs\nvalue = object.__str__\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle wrapper_descriptor in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "object().__str__",
+      "source": "import codecs\nvalue = object().__str__\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle method-wrapper in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "lambda: None",
+      "source": "import codecs\nvalue = lambda: None\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle function in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter([])",
+      "source": "import codecs\nvalue = iter([])\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle list_iterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter(())",
+      "source": "import codecs\nvalue = iter(())\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle tuple_iterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter('')",
+      "source": "import codecs\nvalue = iter('')\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle str_ascii_iterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter('é')",
+      "source": "import codecs\nvalue = iter('é')\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle str_iterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter(b'')",
+      "source": "import codecs\nvalue = iter(b'')\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle bytes_iterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter({})",
+      "source": "import codecs\nvalue = iter({})\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle dict_keyiterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter(set())",
+      "source": "import codecs\nvalue = iter(set())\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle set_iterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iter(range(0))",
+      "source": "import codecs\nvalue = iter(range(0))\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle range_iterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "reversed([])",
+      "source": "import codecs\nvalue = reversed([])\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle list_reverseiterator in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "{}.keys()",
+      "source": "import codecs\nvalue = {}.keys()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle dict_keys in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "{}.values()",
+      "source": "import codecs\nvalue = {}.values()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle dict_values in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "{}.items()",
+      "source": "import codecs\nvalue = {}.items()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle dict_items in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "classmethod(lambda: None)",
+      "source": "import codecs\nvalue = classmethod(lambda: None)\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle classmethod in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "staticmethod(lambda: None)",
+      "source": "import codecs\nvalue = staticmethod(lambda: None)\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle staticmethod in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "property(lambda: None)",
+      "source": "import codecs\nvalue = property(lambda: None)\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle property in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "None",
+      "source": "import codecs\nvalue = None\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle NoneType in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "NotImplemented",
+      "source": "import codecs\nvalue = NotImplemented\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle NotImplementedType in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "...",
+      "source": "import codecs\nvalue = ...\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle ellipsis in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "True",
+      "source": "import codecs\nvalue = True\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle bool in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "object",
+      "source": "import codecs\nvalue = object\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle type in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type('X', (), {'__module__': '', '__qualname__': 'Outer.X'})()",
+      "source": "import codecs\nvalue = type('X', (), {'__module__': '', '__qualname__': 'Outer.X'})()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle .Outer.X in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type('X', (), {'__module__': '__main__', '__qualname__': 'Outer.X'})()",
+      "source": "import codecs\nvalue = type('X', (), {'__module__': '__main__', '__qualname__': 'Outer.X'})()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle Outer.X in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type('X', (), {'__module__': 'builtins', '__qualname__': 'Outer.X'})()",
+      "source": "import codecs\nvalue = type('X', (), {'__module__': 'builtins', '__qualname__': 'Outer.X'})()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle Outer.X in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type('X', (), {'__module__': 'pkg', '__qualname__': 'Outer.X'})()",
+      "source": "import codecs\nvalue = type('X', (), {'__module__': 'pkg', '__qualname__': 'Outer.X'})()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle pkg.Outer.X in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type('X', (), {'__module__': None, '__qualname__': 'Outer.X'})()",
+      "source": "import codecs\nvalue = type('X', (), {'__module__': None, '__qualname__': 'Outer.X'})()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle Outer.X in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "type('X', (), {'__module__': 1, '__qualname__': 'Outer.X'})()",
+      "source": "import codecs\nvalue = type('X', (), {'__module__': 1, '__qualname__': 'Outer.X'})()\ntry:\n    codecs.strict_errors(value)\nexcept TypeError as error:\n    assert str(error) == 'codec must pass exception instance', str(error)\nelse:\n    raise AssertionError('strict')\nfor name in ('ignore', 'replace', 'xmlcharrefreplace', 'backslashreplace', 'namereplace', 'surrogatepass', 'surrogateescape'):\n    try:\n        codecs.lookup_error(name)(value)\n    except TypeError as error:\n        assert str(error) == \"don't know how to handle Outer.X in error callback\", str(error)\n    else:\n        raise AssertionError(name)\n",
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

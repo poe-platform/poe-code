@@ -304,7 +304,7 @@ test("AbortSignal reaches commands and releases blocked pipelines", { timeout: 3
   let ready!: () => void;
   const started = new Promise<void>((resolve) => { ready = resolve; });
   let observed: AbortSignal | undefined;
-  commands.register({ name: "wait", async execute({ signal }) {
+  commands.register({ name: "host-wait", async execute({ signal }) {
     observed = signal;
     ready();
     await new Promise<void>((resolve) => signal.addEventListener("abort", () => resolve(), { once: true }));
@@ -312,7 +312,7 @@ test("AbortSignal reaches commands and releases blocked pipelines", { timeout: 3
     return { exitCode: 0 };
   } });
   const controller = new AbortController();
-  const task = shell.exec("bytes | wait", { signal: controller.signal });
+  const task = shell.exec("bytes | host-wait", { signal: controller.signal });
   await started;
   const reason = new Error("cancelled by test");
   controller.abort(reason);

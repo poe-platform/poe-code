@@ -1,0 +1,211 @@
+{
+  "identity": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "reference": {
+    "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c",
+    "sha256": "fbfe5ac18847548ffd203a1b5e2d14f5464010c3cc6ecdc5adb790d4fd36ae8c"
+  },
+  "driver": "import {spawnSync} from 'node:child_process';\nimport {writeFileSync,readFileSync} from 'node:fs';\nimport {createHash} from 'node:crypto';\nimport {codecIterationSlotCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-iteration-slot-cases.ts';\nconst python='/opt/homebrew/bin/python3.14';\nconst identity=spawnSync(python,['-I','-c','import sys,unicodedata,platform,json; print(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),byteorder=sys.byteorder)))'],{encoding:'utf8'});\nconst rows=codecIterationSlotCases.map(row=>{const result=spawnSync(python,['-I','-c',row.source],{encoding:'utf8',input:'ready\\n'}); return {...row,status:result.status,stdout:result.stdout,stderr:result.stderr};});\nconst url='https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c';\nconst source=await (await fetch(url)).text();\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/codec-iteration-slot-oracle.json',JSON.stringify({identity:JSON.parse(identity.stdout),reference:{url,sha256:createHash('sha256').update(source).digest('hex')},driver:readFileSync('/tmp/codec-iteration-oracle.mts','utf8'),rows},null,2)+'\\n');\nconsole.log(JSON.stringify({total:rows.length,failures:rows.filter(row=>row.status!==0)}));\n",
+  "rows": [
+    {
+      "name": "CodecInfo __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.CodecInfo,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "CodecInfo __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.CodecInfo,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "IncrementalEncoder __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.IncrementalEncoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "IncrementalEncoder __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.IncrementalEncoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "IncrementalDecoder __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.IncrementalDecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "IncrementalDecoder __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.IncrementalDecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalEncoder __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.BufferedIncrementalEncoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalEncoder __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.BufferedIncrementalEncoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalDecoder __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.BufferedIncrementalDecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "BufferedIncrementalDecoder __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.BufferedIncrementalDecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamReader __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamReader,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamReader __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamReader,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamWriter __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamWriter,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamWriter __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamWriter,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamReaderWriter __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamReaderWriter,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamReaderWriter __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamReaderWriter,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamRecoder __iter__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__iter__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamRecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "StreamRecoder __next__ readiness query",
+      "source": "import codecs\nseen = []\nexpected = '__next__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (codecs.StreamRecoder,), namespace)\nassert seen == [True], seen\nassert next(iter(namespace)) is key\nassert next(key for key in C.__dict__ if key == expected) is key\nassert getattr(C, expected) is None\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "__iter__ failed fixup and repair",
+      "source": "import codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                raise ValueError('iteration fixup')\n        return str.__eq__(self, other)\ndef method(self):\n    return iter([7])\nC = type('C', (codecs.IncrementalDecoder,), {Key('__iter__'): method})\nassert seen == ['__iter__'], seen\nvalue = C()\ntry:\n    iter(value)\nexcept TypeError as error:\n    assert error.args == (\"'C' object is not iterable\",), error.args\nelse:\n    raise AssertionError('failed slot remained callable')\nassert list(C.__iter__(value)) == [7]\nsetattr(C, '__iter__', method)\nassert list(value) == [7]\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "__next__ failed fixup and repair",
+      "source": "import codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                raise ValueError('iteration fixup')\n        return str.__eq__(self, other)\ndef method(self):\n    return 7\nC = type('C', (codecs.IncrementalDecoder,), {Key('__next__'): method})\nassert seen == ['__next__'], seen\nvalue = C()\ntry:\n    next(value)\nexcept TypeError as error:\n    assert error.args == (\"'C' object is not an iterator\",), error.args\nelse:\n    raise AssertionError('failed slot remained callable')\nassert C.__next__(value) == 7\nsetattr(C, '__next__', method)\nassert next(value) == 7\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iteration mutation descendants and descriptor binding",
+      "source": "import codecs\nevents = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance, owner))\n        return lambda: iter([1, 2])\nclass Base(codecs.IncrementalDecoder):\n    __iter__ = Descriptor()\nclass Child(Base):\n    pass\nvalue = Child()\nassert events == []\nassert list(value) == [1, 2]\nassert events == [(value, Child)], events\nBase.__iter__ = lambda self: iter([3])\nassert list(value) == [3]\nChild.__iter__ = lambda self: iter([4])\nBase.__iter__ = None\nassert list(value) == [4]\ndel Child.__iter__\ntry:\n    iter(value)\nexcept TypeError as error:\n    assert error.args == (\"'Child' object is not iterable\",), error.args\nelse:\n    assert False\ndel Base.__iter__\nBase.__getitem__ = lambda self, index: [5][index]\nassert list(value) == [5]\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "next slot does not bind during iterator eligibility",
+      "source": "import codecs\nevents = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance, owner))\n        return lambda: 9\nclass C(codecs.IncrementalDecoder):\n    def __iter__(self):\n        return self\n    __next__ = Descriptor()\nvalue = C()\nassert iter(value) is value\nassert events == []\nassert next(value) == 9\nassert events == [(value, C)], events\nC.__next__ = None\nassert iter(value) is value\ntry:\n    next(value)\nexcept TypeError as error:\n    assert error.args == (\"'NoneType' object is not callable\",), error.args\nelse:\n    assert False\ndel C.__next__\ntry:\n    iter(value)\nexcept TypeError as error:\n    assert error.args == (\"iter() returned non-iterator of type 'C'\",), error.args\nelse:\n    assert False\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "__iter__ published class inheritance",
+      "source": "import codecs\nseen = []\ncell = (lambda value: lambda: value)(None).__closure__[0]\nclass Base(codecs.IncrementalDecoder):\n    def __iter__(self):\n        return iter([8])\n    def __next__(self):\n        return 8\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            value = object.__new__(cell.cell_contents)\n            try:\n                seen.append(list(iter(value)))\n            except TypeError as error:\n                seen.append(error.args)\n        return str.__eq__(self, other)\nC = type('C', (Base,), {Key('__hash__'): None, '__classcell__': cell})\nprint(seen)\n",
+      "status": 0,
+      "stdout": "[(\"'C' object is not iterable\",), [8], [8], [8], [8]]\n",
+      "stderr": ""
+    },
+    {
+      "name": "__next__ published class inheritance",
+      "source": "import codecs\nseen = []\ncell = (lambda value: lambda: value)(None).__closure__[0]\nclass Base(codecs.IncrementalDecoder):\n    def __iter__(self):\n        return iter([8])\n    def __next__(self):\n        return 8\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            value = object.__new__(cell.cell_contents)\n            try:\n                seen.append(next(value))\n            except TypeError as error:\n                seen.append(error.args)\n        return str.__eq__(self, other)\nC = type('C', (Base,), {Key('__hash__'): None, '__classcell__': cell})\nprint(seen)\n",
+      "status": 0,
+      "stdout": "[(\"'C' object is not an iterator\",), 8, 8, 8, 8]\n",
+      "stderr": ""
+    },
+    {
+      "name": "native tuple iterator restoration and legacy fallback",
+      "source": "import codecs\nclass C(codecs.CodecInfo):\n    __iter__ = lambda self: iter([7])\nvalue = C(None, None)\nassert list(value) == [7]\nC.__iter__ = tuple.__iter__\nassert list(value) == [None, None, None, None]\ndel C.__iter__\nassert list(value) == [None, None, None, None]\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "iteration initialization query order",
+      "source": "import codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__next__'): None, Key('__init__'): None, Key('__iter__'): None})\nassert seen == ['__iter__', '__next__', '__init__'], seen\n",
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "__iter__ readiness serviced callback",
+      "source": "import codecs\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            assert input() == 'ready'\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__iter__'): None})\nprint('ready')\n",
+      "status": 0,
+      "stdout": "ready\n",
+      "stderr": ""
+    },
+    {
+      "name": "__next__ readiness serviced callback",
+      "source": "import codecs\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            assert input() == 'ready'\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__next__'): None})\nprint('ready')\n",
+      "status": 0,
+      "stdout": "ready\n",
+      "stderr": ""
+    }
+  ]
+}

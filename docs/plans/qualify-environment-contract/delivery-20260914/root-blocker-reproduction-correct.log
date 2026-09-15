@@ -1,0 +1,340 @@
+
+> @poe-code/safe-python@0.0.0-dev test:unit
+> vitest run --config vitest.config.ts src/session-bytes-iterator.test.ts src/session-union-construction-descriptors.test.ts
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/safejs-environment-main-itld68sy/packages/safe-python
+
+ ❯ src/session-bytes-iterator.test.ts (77 tests | 1 failed) 330ms
+   × matches bytes iterator oracle: 'builtin lookup failures retain guest …' 9ms
+ ❯ src/session-union-construction-descriptors.test.ts (125 tests | 17 failed) 513ms
+   × matches union construction descriptor behavior: 'cls.__or__(u, other)' 11ms
+   × matches union construction descriptor behavior: 'u.__or__(other)' 4ms
+   × matches union construction descriptor behavior: 'cls.__or__(u, 0)' 5ms
+   × matches union construction descriptor behavior: 'u.__or__(0)' 5ms
+   × matches union construction descriptor behavior: 'cls.__or__(u, list[int])' 5ms
+   × matches union construction descriptor behavior: 'u.__or__(list[int])' 7ms
+   × matches union construction descriptor behavior: 'cls.__ror__(u, other)' 4ms
+   × matches union construction descriptor behavior: 'u.__ror__(other)' 4ms
+   × matches union construction descriptor behavior: 'cls.__ror__(u, 0)' 4ms
+   × matches union construction descriptor behavior: 'u.__ror__(0)' 3ms
+   × matches union construction descriptor behavior: 'cls.__ror__(u, list[int])' 5ms
+   × matches union construction descriptor behavior: 'u.__ror__(list[int])' 4ms
+   × matches union construction descriptor behavior: 'type.__or__(int, list[int])' 3ms
+   × matches union construction descriptor behavior: 'int.__or__(list[int])' 4ms
+   × matches union construction descriptor behavior: 'type.__ror__(int, list[int])' 4ms
+   × matches union construction descriptor behavior: 'int.__ror__(list[int])' 3ms
+   × matches union construction descriptor behavior: 'u|other' 4ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 18 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/session-bytes-iterator.test.ts > matches bytes iterator oracle: 'builtin lookup failures retain guest …'
+AssertionError: {"status":"ok","value":{"kind":"str","primitive":"AssertionError([])"}}: expected 'exception' to be 'ok' // Object.is equality
+
+Expected: "ok"
+Received: "exception"
+
+ ❯ src/session-bytes-iterator.test.ts:169:110
+    167|   let diagnostic:unknown=result;
+    168|   if(result.status==="exception"){session.globals.set("failure",result…
+    169|   expect(result.status,JSON.stringify(diagnostic,(_key,value)=>typeof …
+       |                                                                                                              ^
+    170| });
+    171|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'cls.__or__(u, other)'
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'u.__or__(other)'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'int | str | Other()'), [])",
++     "primitive": "(('ok', True, 'NotImplemented'), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'cls.__or__(u, 0)'
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'u.__or__(0)'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'int | str | 0'), [])",
++     "primitive": "(('ok', True, 'NotImplemented'), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'cls.__or__(u, list[int])'
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'u.__or__(list[int])'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'int | str | list[int]'), [])",
++     "primitive": "(('TypeError', \"type 'list' is not subscriptable\", (\"type 'list' is not subscriptable\",)), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'cls.__ror__(u, other)'
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'u.__ror__(other)'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'Other() | int | str'), [])",
++     "primitive": "(('ok', True, 'NotImplemented'), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'cls.__ror__(u, 0)'
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'u.__ror__(0)'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, '0 | int | str'), [])",
++     "primitive": "(('ok', True, 'NotImplemented'), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'cls.__ror__(u, list[int])'
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'u.__ror__(list[int])'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'list[int] | int | str'), [])",
++     "primitive": "(('TypeError', \"type 'list' is not subscriptable\", (\"type 'list' is not subscriptable\",)), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'type.__or__(int, list[int])'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'int | list[int]'), [])",
++     "primitive": "(('TypeError', \"type 'list' is not subscriptable\", (\"type 'list' is not subscriptable\",)), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'int.__or__(list[int])'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('TypeError', \"descriptor '__or__' requires a 'int' object but received a 'types.GenericAlias'\", (\"descriptor '__or__' requires a 'int' object but received a 'types.GenericAlias'\",)), [])",
++     "primitive": "(('TypeError', \"type 'list' is not subscriptable\", (\"type 'list' is not subscriptable\",)), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'type.__ror__(int, list[int])'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'list[int] | int'), [])",
++     "primitive": "(('TypeError', \"type 'list' is not subscriptable\", (\"type 'list' is not subscriptable\",)), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'int.__ror__(list[int])'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('TypeError', \"descriptor '__ror__' requires a 'int' object but received a 'types.GenericAlias'\", (\"descriptor '__ror__' requires a 'int' object but received a 'types.GenericAlias'\",)), [])",
++     "primitive": "(('TypeError', \"type 'list' is not subscriptable\", (\"type 'list' is not subscriptable\",)), [])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/18]⎯
+
+ FAIL  src/session-union-construction-descriptors.test.ts > matches union construction descriptor behavior: 'u|other'
+AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "status": "ok",
+    "value": {
+-     "primitive": "(('ok', False, 'int | str | Other()'), [])",
++     "primitive": "(('ok', False, '23'), ['ror'])",
+    },
+  }
+
+ ❯ src/session-union-construction-descriptors.test.ts:8:40
+      6|   const session = new PythonSession({ limits: { maxSteps: 100_000, max…
+      7|   expect(session.exec(source)).toEqual({ status: "ok" });
+      8|   expect(session.eval("repr(result)")).toMatchObject({ status: "ok", v…
+       |                                        ^
+      9| });
+     10|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/18]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  18 failed | 184 passed (202)
+   Start at  22:02:09
+   Duration  3.10s (transform 3.91s, setup 0ms, import 4.98s, tests 843ms, environment 0ms)
+
+npm error Lifecycle script `test:unit` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/safejs-environment-main-itld68sy/packages/safe-python
+npm error workspace @poe-code/safe-python@0.0.0-dev
+npm error location /Users/kjopek/Workspace/safejs-environment-main-itld68sy/packages/safe-python
+npm error command failed
+npm error command sh -c vitest run --config vitest.config.ts src/session-bytes-iterator.test.ts src/session-union-construction-descriptors.test.ts

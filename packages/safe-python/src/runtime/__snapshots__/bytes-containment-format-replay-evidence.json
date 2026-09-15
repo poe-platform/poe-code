@@ -1,0 +1,8 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "programs": 4233,
+  "failures": [],
+  "sourceSha256": "ea6bfb93b159d0d8279d48cd64cd2a052c3a52d45dc30817d0ded06442b268b0"
+}

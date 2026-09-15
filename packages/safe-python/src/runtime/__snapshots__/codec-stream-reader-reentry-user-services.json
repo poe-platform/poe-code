@@ -1,0 +1,739 @@
+{
+  "metadata": {
+    "status": 0,
+    "stdout": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\ndarwin little\n",
+    "stderr": ""
+  },
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 150
+  },
+  "hashSeed": [
+    1,
+    2
+  ],
+  "service": "Explicit output.write using fs.writeSync with partial-write handling; output.flush using fs.fsyncSync; owned descriptors closed and files removed.",
+  "cases": [
+    {
+      "name": "utf-8; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('reset', reader.reset()))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8')\nreader = codecs.getreader('utf-8')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "14d354cbcabe376906ddc1dfc171c8c2fd69bb06b108e3a488ffb4b2dd0a690e",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '�' str\nstate b'' '' None 2 [('read', -1, 0), ('read', -1, 1), ('reset', None)]\nvalue '😀' str\nstate b'' '' None 6 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '�' str\nstate b'' '' None 2 [('read', -1, 0), ('read', -1, 1), ('reset', None)]\nvalue '😀' str\nstate b'' '' None 6 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-8; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('nested', reader.read(chars=1)))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8')\nreader = codecs.getreader('utf-8')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "04a64bda3037c4136c6c5a40af5a145af95369379b73ed0a0152332f43162397",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '𩟘' str\nstate b'' '' None 5 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('nested', '�'), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 6 [('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '𩟘' str\nstate b'' '' None 5 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('nested', '�'), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 6 [('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-8; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            raise failure\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8')\nreader = codecs.getreader('utf-8')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "60a7a66241ba2afa949433c482d40b0dcb8f49e66b4f55bd383b8c81e55ca9ac",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xc3' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xf0' '' None 3 [('read', -1, 2)]\nvalue '😀' str\nstate b'' '' None 6 [('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xc3' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xf0' '' None 3 [('read', -1, 2)]\nvalue '😀' str\nstate b'' '' None 6 [('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-8; wrong-type",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            return 'wrong type'\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8')\nreader = codecs.getreader('utf-8')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "033226d704a7f85e85c363f9c4e3340272aa6265b1fc89ba512ff91b3fc8b08a",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xc3' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xf0' '' None 3 [('read', -1, 2)]\nvalue '😀' str\nstate b'' '' None 6 [('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xc3' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xf0' '' None 3 [('read', -1, 2)]\nvalue '😀' str\nstate b'' '' None 6 [('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '\\n' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'Z' str\nstate b'' '' None 9 [('read', -1, 8)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nvalue '' str\nstate b'' '' None 9 [('read', -1, 9)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-8-sig; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('reset', reader.reset()))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8-sig')\nreader = codecs.getreader('utf-8-sig')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "2f7030e2a6a2f095bce5789bdc87935af917df3827db6d4767dc2080d4b575de",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '�' str\nstate b'' '' None 2 [('read', -1, 0), ('read', -1, 1), ('reset', None)]\nvalue '�' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '�' str\nstate b'' '' None 2 [('read', -1, 0), ('read', -1, 1), ('reset', None)]\nvalue '�' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-8-sig; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('nested', reader.read(chars=1)))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8-sig')\nreader = codecs.getreader('utf-8-sig')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "ec52fae152aa08f768aab84f1289a3cf44015709d3e29ce3e688c9ee95d9f43d",
+      "oracle": {
+        "status": 0,
+        "stdout": "value 'û' str\nstate b'' '' None 4 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('nested', '�')]\nvalue '�' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value 'û' str\nstate b'' '' None 4 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('nested', '�')]\nvalue '�' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-8-sig; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            raise failure\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8-sig')\nreader = codecs.getreader('utf-8-sig')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "1e2a2b0560277c869dd8acd626f232e7844b8fda55127a428745acf6686aa2ff",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xef' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xc3' '' None 4 [('read', -1, 2), ('read', -1, 3)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xef' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xc3' '' None 4 [('read', -1, 2), ('read', -1, 3)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-8-sig; wrong-type",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            return 'wrong type'\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-8-sig')\nreader = codecs.getreader('utf-8-sig')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "c29fef1cba82fc0ddd9174514bc39c9769e16826abe19486d8b08a8abbde213a",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xef' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xc3' '' None 4 [('read', -1, 2), ('read', -1, 3)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xef' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '�' str\nstate b'\\xc3' '' None 4 [('read', -1, 2), ('read', -1, 3)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue '😀' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '\\r' str\nstate b'' '' None 10 [('read', -1, 9)]\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-7; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('reset', reader.reset()))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-7')\nreader = codecs.getreader('utf-7')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "cee403b33b365777c220827a49e650e1c5e2cd0c8fd43bbc0010c08b2958c6c7",
+      "oracle": {
+        "status": 0,
+        "stdout": "value 'A' str\nstate b'' '' None 2 [('read', -1, 0), ('read', -1, 1), ('reset', None)]\nvalue 'O' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'n' str\nstate b'' '' None 4 [('read', -1, 3)]\nvalue 'Y' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue 'P' str\nstate b'' '' None 6 [('read', -1, 5)]\nvalue 'd' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '4' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'A' str\nstate b'' '' None 9 [('read', -1, 8)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value 'A' str\nstate b'' '' None 2 [('read', -1, 0), ('read', -1, 1), ('reset', None)]\nvalue 'O' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'n' str\nstate b'' '' None 4 [('read', -1, 3)]\nvalue 'Y' str\nstate b'' '' None 5 [('read', -1, 4)]\nvalue 'P' str\nstate b'' '' None 6 [('read', -1, 5)]\nvalue 'd' str\nstate b'' '' None 7 [('read', -1, 6)]\nvalue '4' str\nstate b'' '' None 8 [('read', -1, 7)]\nvalue 'A' str\nstate b'' '' None 9 [('read', -1, 8)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-7; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('nested', reader.read(chars=1)))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-7')\nreader = codecs.getreader('utf-7')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "bd909277701233b8aa61c3c825bc9fc14bd59011cca6e0683c8fc6ca49ce9230",
+      "oracle": {
+        "status": 0,
+        "stdout": "value 'ཷ' str\nstate b'' '�A' None 10 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('nested', '㩶')]\nvalue '�' str\nstate b'' 'A' None 10 []\nvalue 'A' str\nstate b'' '' None 10 []\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value 'ཷ' str\nstate b'' '�A' None 10 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('nested', '㩶')]\nvalue '�' str\nstate b'' 'A' None 10 []\nvalue 'A' str\nstate b'' '' None 10 []\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-7; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            raise failure\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-7')\nreader = codecs.getreader('utf-7')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "de4aaa6170baa088e15ffd866f375b139a0df70ed3ff47f5966c80859a476942",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'+' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㩶' str\nstate b'' 'ཷ�' None 10 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\nvalue 'ཷ' str\nstate b'' '�' None 10 []\nvalue '�' str\nstate b'' '' None 10 []\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'+' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㩶' str\nstate b'' 'ཷ�' None 10 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\nvalue 'ཷ' str\nstate b'' '�' None 10 []\nvalue '�' str\nstate b'' '' None 10 []\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-7; wrong-type",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            return 'wrong type'\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-7')\nreader = codecs.getreader('utf-7')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "95fab1e1938a956d7a043b8235d90f0bf2ffa2a1400e257824f03c9689e27687",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'+' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㩶' str\nstate b'' 'ཷ�' None 10 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\nvalue 'ཷ' str\nstate b'' '�' None 10 []\nvalue '�' str\nstate b'' '' None 10 []\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'+' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㩶' str\nstate b'' 'ཷ�' None 10 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9)]\nvalue 'ཷ' str\nstate b'' '�' None 10 []\nvalue '�' str\nstate b'' '' None 10 []\nvalue '\\n' str\nstate b'' '' None 11 [('read', -1, 10)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-le; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('reset', reader.reset()))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-le')\nreader = codecs.getreader('utf-16-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "5dfc8dc83fed705ff33b9d505c3a5797c7b8341f40bd1bae5a91cf228d1f35f3",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '㴀' str\nstate b'' '' None 3 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2)]\nvalue 'Ø' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue 'ෞ' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue '\\u0a00' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '娀' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '㴀' str\nstate b'' '' None 3 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2)]\nvalue 'Ø' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue 'ෞ' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue '\\u0a00' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '娀' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-le; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('nested', reader.read(chars=1)))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-le')\nreader = codecs.getreader('utf-16-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "f09a1ada40628218302e3ce6088e7ecb547901957e6ef593133d17d28e3bb82d",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '\\U00010200' str\nstate b'' '' None 6 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('nested', '㷩'), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 8 [('read', -1, 6), ('read', -1, 7)]\nvalue '\\n' str\nstate b'' '' None 10 [('read', -1, 8), ('read', -1, 9)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 10), ('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '\\U00010200' str\nstate b'' '' None 6 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('nested', '㷩'), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 8 [('read', -1, 6), ('read', -1, 7)]\nvalue '\\n' str\nstate b'' '' None 10 [('read', -1, 8), ('read', -1, 9)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 10), ('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-le; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            raise failure\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-le')\nreader = codecs.getreader('utf-16-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "be93e2a47d9e529a8bb51084bba19a0446662183c9fe50a0b793619e2b5bdd15",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㷩' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'Ø' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue 'ෞ' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue '\\u0a00' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '娀' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㷩' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'Ø' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue 'ෞ' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue '\\u0a00' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '娀' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-le; wrong-type",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            return 'wrong type'\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-le')\nreader = codecs.getreader('utf-16-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "5a2739734522cb55ddbdf5d6afb0fa5e1ee39039988bc8a27c39ee2f11557c43",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㷩' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'Ø' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue 'ෞ' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue '\\u0a00' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '娀' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '㷩' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue 'Ø' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue 'ෞ' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue '\\u0a00' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '娀' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'\\x00' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-be; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('reset', reader.reset()))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-be')\nreader = codecs.getreader('utf-16-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "998f5006f17bbafefa3758404e24f877f78d5ff51b2aedf4acef8289cb299d1c",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '\\ue9d8' str\nstate b'' '' None 3 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2)]\nvalue '㷞' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '\\x00' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue 'ഀ' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '\\u0a00' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '\\ue9d8' str\nstate b'' '' None 3 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2)]\nvalue '㷞' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '\\x00' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue 'ഀ' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '\\u0a00' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-be; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('nested', reader.read(chars=1)))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-be')\nreader = codecs.getreader('utf-16-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "31448868487677a33ccb324893ac3a221261277f30839b67fd673658e2abbe6c",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '\\ue93d' str\nstate b'' '' None 4 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('nested', 'Ø'), ('read', -1, 3)]\nvalue '�' str\nstate b'' '' None 6 [('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 8 [('read', -1, 6), ('read', -1, 7)]\nvalue '\\n' str\nstate b'' '' None 10 [('read', -1, 8), ('read', -1, 9)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 10), ('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '\\ue93d' str\nstate b'' '' None 4 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('nested', 'Ø'), ('read', -1, 3)]\nvalue '�' str\nstate b'' '' None 6 [('read', -1, 4), ('read', -1, 5)]\nvalue '\\r' str\nstate b'' '' None 8 [('read', -1, 6), ('read', -1, 7)]\nvalue '\\n' str\nstate b'' '' None 10 [('read', -1, 8), ('read', -1, 9)]\nvalue 'Z' str\nstate b'' '' None 12 [('read', -1, 10), ('read', -1, 11)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nvalue '' str\nstate b'' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-be; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            raise failure\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-be')\nreader = codecs.getreader('utf-16-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "994fca4b3c0c22e5b7b88f432ef138d10b9f208232157186515adfe3ffbd3544",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'Ø' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue '㷞' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '\\x00' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue 'ഀ' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '\\u0a00' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'Ø' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue '㷞' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '\\x00' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue 'ഀ' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '\\u0a00' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-16-be; wrong-type",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            return 'wrong type'\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-16-be')\nreader = codecs.getreader('utf-16-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "12095c002d28b964340fbaa852858615bf6af44d9365bc363e3b7fcdf6471076",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'Ø' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue '㷞' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '\\x00' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue 'ഀ' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '\\u0a00' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'Ø' str\nstate b'' '' None 3 [('read', -1, 2)]\nvalue '㷞' str\nstate b'' '' None 5 [('read', -1, 3), ('read', -1, 4)]\nvalue '\\x00' str\nstate b'' '' None 7 [('read', -1, 5), ('read', -1, 6)]\nvalue 'ഀ' str\nstate b'' '' None 9 [('read', -1, 7), ('read', -1, 8)]\nvalue '\\u0a00' str\nstate b'' '' None 11 [('read', -1, 9), ('read', -1, 10)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 11), ('read', -1, 12)]\nvalue '' str\nstate b'Z' '' None 12 [('read', -1, 12)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-le; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('reset', reader.reset()))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-le')\nreader = codecs.getreader('utf-32-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "9f16a923ef089bc98ec852f2c09e6636cca4eadcf5d6af0284ccaa6fc4eabf9c",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '\\x00' str\nstate b'' '' None 5 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '�' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '�' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '\\x00' str\nstate b'' '' None 5 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '�' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '�' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-le; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('nested', reader.read(chars=1)))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-le')\nreader = codecs.getreader('utf-32-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "987913b4688ab63620b4fe622fdf23f20187562dc407928a1769a82f7e8ad6af",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '😀' str\nstate b'' '' None 8 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('nested', 'é'), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7)]\nvalue '\\r' str\nstate b'' '' None 12 [('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11)]\nvalue '\\n' str\nstate b'' '' None 16 [('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15)]\nvalue 'Z' str\nstate b'' '' None 20 [('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '😀' str\nstate b'' '' None 8 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('nested', 'é'), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7)]\nvalue '\\r' str\nstate b'' '' None 12 [('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11)]\nvalue '\\n' str\nstate b'' '' None 16 [('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15)]\nvalue 'Z' str\nstate b'' '' None 20 [('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-le; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            raise failure\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-le')\nreader = codecs.getreader('utf-32-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "6fe4629cf35fdc86841312ed5d1c25bd17b9a08d7d1550f6f1ac9c5a1c4f121f",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '�' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '�' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '�' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '�' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-le; wrong-type",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            return 'wrong type'\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-le')\nreader = codecs.getreader('utf-32-le')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "b14f4901264b9ff5445740942ec8cda9dc30fe557d3f15d1bca17685f318f1c6",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '�' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '�' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\xe9' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue 'é' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue '�' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '�' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00\\x00' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-be; reset",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('reset', reader.reset()))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-be')\nreader = codecs.getreader('utf-32-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "b4d7498c4d9796fe33782e3c8c0736eb3716c009f67f4ac1430fed89b1668096",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '\\ue900' str\nstate b'' '' None 5 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue 'ഀ' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '\\u0a00' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '\\ue900' str\nstate b'' '' None 5 [('read', -1, 0), ('read', -1, 1), ('reset', None), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue 'ഀ' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '\\u0a00' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-be; reenter",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            events.append(('nested', reader.read(chars=1)))\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-be')\nreader = codecs.getreader('utf-32-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "dd4a07e0d2a69b3b9bae4136b832a2654113ae34b12ccc98c1b4927b17d93226",
+      "oracle": {
+        "status": 0,
+        "stdout": "value '😀' str\nstate b'' '' None 8 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('nested', '\\ue900'), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7)]\nvalue '\\r' str\nstate b'' '' None 12 [('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11)]\nvalue '\\n' str\nstate b'' '' None 16 [('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15)]\nvalue 'Z' str\nstate b'' '' None 20 [('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "value '😀' str\nstate b'' '' None 8 [('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('nested', '\\ue900'), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7)]\nvalue '\\r' str\nstate b'' '' None 12 [('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11)]\nvalue '\\n' str\nstate b'' '' None 16 [('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15)]\nvalue 'Z' str\nstate b'' '' None 20 [('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-be; raise",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            raise failure\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-be')\nreader = codecs.getreader('utf-32-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "044348bf77282ac550452260ab78a4a85641ab694a451a63e0106f227ec66bc2",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '\\ue900' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue 'ഀ' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '\\u0a00' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure True OSError ('source advanced then failed',)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '\\ue900' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue 'ഀ' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '\\u0a00' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "utf-32-be; wrong-type",
+      "source": "import codecs\nevents = []\nfailure = OSError('source advanced then failed')\nclass Source:\n    position = 0\n    active = False\n    def read(self, size=-1):\n        events.append(('read', size, self.position))\n        part = self.data[self.position:self.position + 1]\n        self.position += len(part)\n        if self.position >= 2 and not self.active:\n            self.active = True\n            return 'wrong type'\n        return part\n    def seek(self, offset, whence=0):\n        events.append(('seek', offset, whence))\n        self.position = offset\n        return offset\nstream = Source()\nstream.data = 'é😀\\r\\nZ'.encode('utf-32-be')\nreader = codecs.getreader('utf-32-be')(stream, 'replace')\nfor step in range(8):\n    try:\n        value = reader.read(chars=1)\n        print('value', repr(value), type(value).__name__)\n    except BaseException as error:\n        print('failure', error is failure, type(error).__name__, error.args)\n    print('state', reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer, stream.position, events)\n    events.clear()\nprint('seek', reader.seek(0))\nprint('replay', repr(reader.read()), reader.bytebuffer, repr(reader.charbuffer), reader.linebuffer)\nprint('events', events)\n",
+      "sha256": "41d405bfec7ce0a12b491650285526ad362e0977ab976fa89308c7b09b377b42",
+      "oracle": {
+        "status": 0,
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '\\ue900' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue 'ഀ' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '\\u0a00' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "failure False TypeError (\"can't concat str to bytes\",)\nstate b'\\x00' '' None 2 [('read', -1, 0), ('read', -1, 1)]\nvalue '\\ue900' str\nstate b'' '' None 5 [('read', -1, 2), ('read', -1, 3), ('read', -1, 4)]\nvalue '�' str\nstate b'' '' None 9 [('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8)]\nvalue 'ഀ' str\nstate b'' '' None 13 [('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12)]\nvalue '\\u0a00' str\nstate b'' '' None 17 [('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nvalue '' str\nstate b'\\x00\\x00Z' '' None 20 [('read', -1, 20)]\nseek None\nreplay 'é😀\\r\\nZ' b'' '' None\nevents [('seek', 0, 0), ('read', -1, 0), ('read', -1, 1), ('read', -1, 2), ('read', -1, 3), ('read', -1, 4), ('read', -1, 5), ('read', -1, 6), ('read', -1, 7), ('read', -1, 8), ('read', -1, 9), ('read', -1, 10), ('read', -1, 11), ('read', -1, 12), ('read', -1, 13), ('read', -1, 14), ('read', -1, 15), ('read', -1, 16), ('read', -1, 17), ('read', -1, 18), ('read', -1, 19), ('read', -1, 20)]\n"
+      },
+      "match": true
+    },
+    {
+      "name": "byte escape types, argument precedence, warnings and buffer exports",
+      "source": "from _codecs import escape_encode, escape_decode\nimport warnings\n\nclass Buffer(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes')\n    def __len__(self):\n        raise AssertionError('virtual length')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual text')\nsource = Buffer(b\"A\\n\\xff'\")\nencoded = escape_encode(source, Text('unknown'))\nassert encoded == (b\"A\\\\n\\\\xff\\\\'\", 4)\nassert type(encoded) is tuple and type(encoded[0]) is bytes\nassert escape_decode(encoded[0]) == (source, len(encoded[0]))\nassert escape_decode(Text('é🐍')) == (b'\\xc3\\xa9\\xf0\\x9f\\x90\\x8d', 6)\nsingle = b'A'\nassert escape_encode(single)[0] is not single\nassert escape_decode(single)[0] is single\nempty = b''\nassert escape_encode(empty)[0] is empty\nassert escape_decode(empty)[0] is empty\nfor function in (escape_encode, escape_decode):\n    assert function.__module__ == '_codecs'\n    assert function.__doc__ is None\n    assert function.__text_signature__ == '($module, data, errors=None, /)'\n    try:\n        function(data=b'')\n    except TypeError as error:\n        assert error.args == ('_codecs.' + function.__name__ + '() takes no keyword arguments',)\n    else:\n        assert False\n    try:\n        function(b'', 'strict\\0')\n    except ValueError as error:\n        assert error.args == ('embedded null character',)\n    else:\n        assert False\nbad = Text('x\\ud800')\nfor args in [(bad, 42), (b'', bad)]:\n    try:\n        escape_decode(*args)\n    except UnicodeEncodeError as error:\n        assert error.object is bad\n        assert (error.encoding, error.start, error.end, error.reason) == ('utf-8', 1, 2, 'surrogates not allowed')\n        assert error.__traceback__ is not None\n    else:\n        assert False\ndata = bytearray(b'\\\\x41')\nassert escape_decode(data) == (b'A', 4)\ndata.extend(b'Z')\nassert escape_decode(memoryview(data)) == (b'AZ', 5)\ntry:\n    escape_decode(memoryview(data)[::2])\nexcept BufferError:\n    pass\nelse:\n    assert False\nview = memoryview(data)\nview.release()\ntry:\n    escape_decode(view)\nexcept ValueError:\n    pass\nelse:\n    assert False\nfor policy in ('strict', 'replace', 'ignore', 'unknown'):\n    try:\n        escape_decode(b'\\\\', policy)\n    except ValueError as error:\n        assert error.args == ('Trailing \\\\ in string',)\n    else:\n        assert False\nassert escape_decode(b'\\\\x0Z', 'replace') == (b'?Z', 4)\nassert escape_decode(b'\\\\x0Z', 'ignore') == (b'Z', 4)\nwith warnings.catch_warnings(record=True) as seen:\n    warnings.simplefilter('always')\n    assert escape_decode(b'\\\\q\\\\400') == (b'\\\\q\\x00', 6)\n    assert len(seen) == 1\n    assert seen[0].category is DeprecationWarning\n    assert str(seen[0].message) == 'b\"\\\\q\" is an invalid escape sequence. Such sequences will not work in the future. '\nwith warnings.catch_warnings(record=True) as seen:\n    warnings.simplefilter('always')\n    try:\n        escape_decode(b'\\\\q\\\\x')\n    except ValueError as error:\n        assert error.args == ('invalid \\\\x escape at position 2',)\n    else:\n        assert False\n    assert len(seen) == 0\nwith warnings.catch_warnings():\n    warnings.simplefilter('error')\n    try:\n        escape_decode(b'\\\\400')\n    except DeprecationWarning as error:\n        assert str(error) == 'b\"\\\\400\" is an invalid octal escape sequence. Such sequences will not work in the future. '\n        assert error.__traceback__ is not None\n    else:\n        assert False\n",
+      "sha256": "b4dc3a0ce0fde3e93a9b8e2b7fd438049c83ee281041daf89e17952a2ac1a870",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "readbuffer_encode native copying, subtype and argument contracts",
+      "source": "from _codecs import readbuffer_encode\n\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual text')\nclass Buffer(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes')\n    def __len__(self):\n        raise AssertionError('virtual length')\nfor source, expected in [(b'abc', b'abc'), (Buffer(b'abc'), b'abc'), (Text('é🐍'), b'\\xc3\\xa9\\xf0\\x9f\\x90\\x8d')]:\n    result = readbuffer_encode(source, Text('unknown'))\n    assert result == (expected, len(expected))\n    assert type(result[0]) is type(b'')\n    assert result[0] is not source\nempty = b''\nassert readbuffer_encode(empty, None)[0] is empty\nfor args, message in [((), 'readbuffer_encode expected at least 1 argument, got 0'), ((b'', None, None), 'readbuffer_encode expected at most 2 arguments, got 3'), ((None,), \"a bytes-like object is required, not 'NoneType'\"), (([],), \"a bytes-like object is required, not 'list'\"), ((b'', 42), 'readbuffer_encode() argument 2 must be str or None, not int')]:\n    try:\n        readbuffer_encode(*args)\n    except TypeError as error:\n        assert error.args == (message,)\n    else:\n        assert False\ntry:\n    readbuffer_encode(data=b'')\nexcept TypeError as error:\n    assert error.args == ('_codecs.readbuffer_encode() takes no keyword arguments',)\nelse:\n    assert False\ntry:\n    readbuffer_encode(b'', 'unknown\\0')\nexcept ValueError as error:\n    assert error.args == ('embedded null character',)\nelse:\n    assert False\nbad = Text('prefix\\ud800suffix')\nfor args in [(bad, 42), (bad, 'ignore'), (b'', bad)]:\n    try:\n        readbuffer_encode(*args)\n    except UnicodeEncodeError as error:\n        assert error.object is bad\n        assert error.args[1] is bad\n        assert (error.encoding, error.start, error.end, error.reason) == ('utf-8', 6, 7, 'surrogates not allowed')\n    else:\n        assert False\n",
+      "sha256": "b2cf84aaae58b0ba34b7d38089fcbd2d5d50a1af88bcbce7942042b04fe3aa9a",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "Punycode public decoder factories retain rewritten exception chains and tracebacks",
+      "source": "import codecs\nimport encodings.punycode\nfor decode in (lambda data: codecs.decode(data, 'punycode'), lambda data: codecs.getdecoder('punycode')(data), lambda data: codecs.getincrementaldecoder('punycode')().decode(data, True), lambda data: encodings.punycode.punycode_decode(data, 'strict')):\n    for data, inner_object, start, end, reason in (\n        (b'A\\xff-z', b'A\\xff', 1, 2, 'ordinal not in range(128)'),\n        (b'abc-z', b'Z', 1, 2, 'incomplete punycode string'),\n        (b'abc-?', b'?', 0, 1, \"Invalid extended code point '63'\"),\n    ):\n        outer = ValueError('active')\n        try:\n            try:\n                raise outer\n            except ValueError:\n                decode(data)\n        except UnicodeDecodeError as error:\n            assert error.__traceback__ is not None\n            assert error.__cause__ is None\n            assert error.__suppress_context__ is True\n            assert error.object == data\n            inner = error.__context__\n            assert type(inner) is UnicodeDecodeError\n            assert inner.args == (error.encoding, inner_object, start, end, reason)\n            assert inner.__traceback__ is not None\n            assert inner.__cause__ is None\n            assert inner.__suppress_context__ is False\n            if data == b'abc-z':\n                indexing = inner.__context__\n                assert type(indexing) is IndexError\n                assert indexing.args == ('index out of range',)\n                assert indexing.__traceback__ is not None\n                assert indexing.__context__ is outer\n            else:\n                assert inner.__context__ is outer\n        else:\n            assert False\n",
+      "sha256": "06edd02633e2705342f17aa955db991971d33a3aee14da55a8a46a9a14c52514",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "charmap surrogateescape retains original decode exception arguments",
+      "source": "import codecs\nfor mapping in ({}, '', '\\ufffe' * 256):\n    source = b'\\xff\\xfea'\n    try:\n        codecs.charmap_decode(source, 'surrogateescape', mapping)\n    except UnicodeDecodeError as error:\n        assert error.args == ('charmap', source, 0, 1, 'character maps to <undefined>')\n        assert (error.start, error.end, error.reason) == (2, 3, 'character maps to <undefined>')\n        assert error.object == source\n        assert error.__traceback__ is not None\n    else:\n        assert False\nsource = b'\\x80\\x70'\ntry:\n    source.decode('cp424', 'surrogateescape')\nexcept UnicodeDecodeError as error:\n    assert error.args == ('charmap', source, 0, 1, 'character maps to <undefined>')\n    assert (error.start, error.end) == (1, 2)\n    assert error.__traceback__ is not None\nelse:\n    assert False\n",
+      "sha256": "1affb1f419eca814afc6d02d4048bbd051568e11616013994f87df3fbe12d9d3",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "normalized search names retain identity across misses and cache invalidation",
+      "source": "import codecs\nseen = []\nmode = 'miss'\ninfo = (None, None, None, None)\ndef search(name):\n    seen.append(name)\n    if mode == 'failure':\n        raise ValueError('search failed')\n    if mode == 'success':\n        return info\ncodecs.register(search)\nfor spelling, mode in [('Codec-Identity-Probe', 'miss'), ('CODEC IDENTITY PROBE', 'failure'), ('codec_identity_probe', 'success')]:\n    try:\n        codecs.lookup(spelling)\n    except (LookupError, ValueError):\n        pass\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('codec-identity-probe') is info\nassert len(seen) == 4\nfor name in seen:\n    assert name is seen[0]\n",
+      "sha256": "1dd66a167545a691042572c3d22147bc59ad21febef04536a8a76e6947364702",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "callback failures preserve identity, notes and guest traceback frames",
+      "source": "import codecs\nfailure = ValueError('callback failed')\ndef codec(value):\n    raise failure\ncodecs.register(lambda name: (codec, codec, None, None) if name == 'public_traceback' else None)\nfor operation, value in [(codecs.encode, 'x'), (codecs.decode, b'x')]:\n    failure.__traceback__ = None\n    try:\n        operation(value, 'public_traceback')\n    except ValueError as error:\n        assert error is failure and error.args == ('callback failed',)\n        traceback = error.__traceback__\n        assert traceback.tb_frame.f_code.co_name == '<module>'\n        assert traceback.tb_next.tb_frame.f_code.co_name == 'codec'\n        assert traceback.tb_next.tb_next is None\n    else:\n        assert False\nassert failure.__notes__ == [\"encoding with 'public_traceback' codec failed\", \"decoding with 'public_traceback' codec failed\"]\n",
+      "sha256": "4ccf68bae724758eff2fee16a772374a0db798c633f31997f12975748ff8c9d7",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "generator error callbacks are rejected without starting their body",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append('started')\n    yield ('?', 1)\ncodecs.register_error('public_generator', handler)\nfor operation, expected in [(lambda: b'\\xff'.decode('ascii', 'public_generator'), 'decoding error handler must return (str, int) tuple'), (lambda: 'é'.encode('ascii', 'public_generator'), 'encoding error handler must return (str/bytes, int) tuple')]:\n    try:\n        operation()\n    except TypeError as error:\n        assert error.args == (expected,)\n    else:\n        assert False\nassert events == []\n",
+      "sha256": "b34c121be767ee7a07bb98d18c17d4963a81cdd08c4087d04f234d93c8a4229f",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "handler result validation precedes index and mutated-object validation",
+      "source": "import codecs\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ndef handler(error):\n    error.object = None\n    return (b'?', Index())\ncodecs.register_error('public_validation', handler)\ntry:\n    b'\\xff'.decode('ascii', 'public_validation')\nexcept TypeError as error:\n    assert error.args == ('decoding error handler must return (str, int) tuple',)\nelse:\n    assert False\nassert events == []\ndef handler(error):\n    error.object = None\n    return ('?', Index())\ncodecs.register_error('public_validation', handler)\ntry:\n    b'\\xff'.decode('ascii', 'public_validation')\nexcept TypeError as error:\n    assert error.args == (\"UnicodeError 'object' attribute must be a bytes\",)\nelse:\n    assert False\nassert events == ['index']\n",
+      "sha256": "f0fbc8e8a088a3c0b599f7d3eace511d785fe3c2d3a1af09aea37da7c4aee4fb",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "CodecInfo tuple layout, metadata, subclassing and attribute independence",
+      "source": "import codecs\ndef encode(value, errors='strict'):\n    return (b'encoded', len(value))\ndef decode(value, errors='strict'):\n    return ('decoded', len(value))\nclass Info(codecs.CodecInfo):\n    pass\ninfo = Info(encode, decode, name='custom')\nassert isinstance(info, tuple)\nassert type(info) is Info\nassert len(info) == 4\nassert tuple(info) == (encode, decode, None, None)\nassert info.encode is encode and info.decode is decode\nassert info.incrementalencoder is None and info.incrementaldecoder is None\nassert info.name == 'custom' and info._is_text_encoding is True\ninfo.encode = None\nassert info[0] is encode and info.encode is None\nassert codecs.CodecInfo.__module__ == 'codecs'\n",
+      "sha256": "8d0222742d9aeea47c8ad06cace3b55bdb1c71797f88578e3431181b69e77eac",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "search normalization, cache identity, duplicate registration and invalidation",
+      "source": "import codecs\nevents = []\ninfo = codecs.CodecInfo(lambda value: (value, 0), lambda value: (value, 0), name='public_test')\ndef search(name):\n    events.append(name)\n    if name == 'public_test':\n        return info\ncodecs.register(search)\ncodecs.register(search)\nassert codecs.lookup(' PUBLIC---TEST ') is info\nassert codecs.lookup('public_test') is info\nassert events == ['public_test']\ncodecs.unregister(search)\nassert codecs.lookup('public_test') is info\nassert events == ['public_test', 'public_test']\ncodecs.unregister(search)\ntry:\n    codecs.lookup('public_test')\nexcept LookupError as error:\n    assert error.args == ('unknown encoding: public_test',)\nelse:\n    assert False\n",
+      "sha256": "ed02632449481f95c1001f97b938ff7ac2d35f5060df3bd93f93a0c765149a5e",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "recursive handlers and exception.object mutation after __index__",
+      "source": "import codecs\nevents = []\nreplacement = b'ABCD'\nclass Index:\n    def __index__(self):\n        events[-1].object = replacement\n        return -2\ndef handler(error):\n    events.append(error)\n    if len(events) == 1:\n        assert b'\\xff'.decode('ascii', 'public_recursive') == '?CD'\n        error.object = b'WXYZ'\n        return ('!', -1)\n    return ('?', Index())\ncodecs.register_error('public_recursive', handler)\nassert b'\\xff'.decode('ascii', 'public_recursive') == '!Z'\nassert len(events) == 2\nassert events[0] is not events[1]\nassert events[0].args == ('ascii', b'\\xff', 0, 1, 'ordinal not in range(128)')\nassert events[1].object is replacement\n",
+      "sha256": "dac59e29041aa84953ca1bfef7a714a1a8eaa87aa703402a8e1a966d545b7509",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "all standard handlers through published registry identities",
+      "source": "import codecs\nimport _codecs\nerror = UnicodeEncodeError('ascii', 'é', 0, 1, 'reason')\nfor name, result in [('ignore', ''), ('replace', '?'), ('backslashreplace', '\\\\xe9'), ('xmlcharrefreplace', '&#233;'), ('namereplace', '\\\\N{LATIN SMALL LETTER E WITH ACUTE}')]:\n    handler = codecs.lookup_error(name)\n    assert handler(error) == (result, 1)\n    assert handler is getattr(codecs, name + '_errors')\n    assert handler is _codecs.lookup_error(name)\ntry:\n    codecs.lookup_error('strict')(error)\nexcept UnicodeEncodeError as caught:\n    assert caught is error\n    assert caught.__traceback__ is not None\nelse:\n    assert False\nassert codecs.lookup_error('surrogateescape')(UnicodeDecodeError('ascii', b'\\xff', 0, 1, 'reason')) == ('\\udcff', 1)\nassert codecs.lookup_error('surrogatepass')(UnicodeEncodeError('utf-8', '\\ud800', 0, 1, 'reason')) == (b'\\xed\\xa0\\x80', 1)\n",
+      "sha256": "692463013bca24736ce0f7c06ad2f9c10a718251132eaf4a923e025eb7fdfa48",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "standard handler rejection chains the active exception without changing cause",
+      "source": "import codecs\nfor name in ('strict', 'surrogatepass', 'surrogateescape'):\n    original = UnicodeEncodeError('ascii', 'é', 0, 1, 'original')\n    arguments = original.args\n    prior = ValueError('active')\n    cause = ValueError('explicit cause')\n    original.__cause__ = cause\n    try:\n        raise prior\n    except ValueError:\n        prior.__context__ = original\n        try:\n            codecs.lookup_error(name)(original)\n        except UnicodeEncodeError as caught:\n            assert caught is original\n            assert caught.__context__ is prior\n            assert prior.__context__ is None\n            assert caught.__cause__ is cause\n            assert caught.__suppress_context__ is True\n            assert caught.args is arguments\n        else:\n            assert False\n    try:\n        codecs.lookup_error(name)(original)\n    except UnicodeEncodeError as caught:\n        assert caught.__context__ is prior\n    else:\n        assert False\n",
+      "sha256": "abe2fad00cd23fe2ec23fc41b58825f52cf56a50ff6288e25237a7030cbe7897",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "custom codecs shared by encode/decode and str/bytes constructors",
+      "source": "import codecs\nevents = []\ndef encode(value, errors='strict'):\n    events.append(('encode', value, errors))\n    return (b'custom', len(value))\ndef decode(value, errors='strict'):\n    events.append(('decode', bytes(value), errors))\n    return ('custom', len(value))\ndef search(name):\n    if name == 'public_consumer':\n        return codecs.CodecInfo(encode, decode, name=name)\ncodecs.register(search)\nassert 'x'.encode('public_consumer') == b'custom'\nassert bytes('x', 'public_consumer') == b'custom'\nassert codecs.encode('x', 'public_consumer') == b'custom'\nassert b'x'.decode('public_consumer') == 'custom'\nassert str(b'x', 'public_consumer') == 'custom'\nassert codecs.decode(b'x', 'public_consumer') == 'custom'\nassert events == [('encode', 'x', 'strict')] * 3 + [('decode', b'x', 'strict')] * 3\n",
+      "sha256": "ec5011097bc79fc96305990e6bba74a089150280072cbba0070801eb289ee122",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "core fast paths survive codec shadowing and distinguish handler shadowing",
+      "source": "import codecs\nevents = []\ndef search(name):\n    events.append(name)\n    return (None, None, None, None)\ndef handler(error):\n    return ('!', error.end)\ncodecs.register(search)\nfor encoding in ('ascii', 'latin-1', 'utf-8'):\n    assert 'A'.encode(encoding) == b'A'\n    assert b'A'.decode(encoding) == 'A'\nassert events == []\ncodecs.register_error('replace', handler)\ncodecs.register_error('strict', handler)\nassert '\\ud800'.encode('utf-8', 'replace') == b'?'\nassert '\\ud800'.encode('utf-8', 'strict') == b'!'\ntry:\n    'é'.encode('ascii', 'strict')\nexcept UnicodeEncodeError as error:\n    assert (error.encoding, error.object, error.start, error.end, error.reason) == ('ascii', 'é', 0, 1, 'ordinal not in range(128)')\nelse:\n    assert False\n",
+      "sha256": "f6b389451e7d19d39c7cedaf17168a2f9ba9436fc323c5d35a07d0a930b681bb",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decoder subtype identity and tuple override avoidance",
+      "source": "import codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str')\nclass Pair(tuple):\n    def __getitem__(self, key):\n        raise AssertionError('virtual item')\n    def __len__(self):\n        raise AssertionError('virtual length')\ndef decode(value, errors='strict'):\n    return Pair((result, None))\ncodecs.register(lambda name: codecs.CodecInfo(None, decode, name=name) if name == 'public_subtype' else None)\nfor content in ('', 'A', 'é', 'Ā', 'two', '\\ud800'):\n    result = Text(content)\n    assert codecs.decode(b'x', 'public_subtype') is result\n    for actual in (b'x'.decode('public_subtype'), str(b'x', 'public_subtype')):\n        if content in ('', 'A', 'é'):\n            assert type(actual) is str and actual is content\n        else:\n            assert actual is result\n",
+      "sha256": "709f2af8a478cbcb6ca24bb13413e9b6a21269f657253eed0e832c0c9f58dedf",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "incremental UTF-8 split input, state restoration, reset and final failure",
+      "source": "import codecs\nimport encodings.utf_8\nfactory = codecs.getincrementaldecoder('utf8')\nassert factory is encodings.utf_8.IncrementalDecoder\ndecoder = factory()\nassert isinstance(decoder, codecs.BufferedIncrementalDecoder)\nassert decoder.decode(b'\\xf0\\x9f') == ''\nstate = decoder.getstate()\nassert state == (b'\\xf0\\x9f', 0)\nassert decoder.decode(b'\\x90\\x8d', True) == '🐍'\ndecoder.setstate(state)\ntry:\n    decoder.decode(b'', True)\nexcept UnicodeDecodeError as error:\n    assert (error.object, error.start, error.end, error.reason) == (b'\\xf0\\x9f', 0, 2, 'unexpected end of data')\nelse:\n    assert False\nassert decoder.getstate() == state\ndecoder.reset()\nassert decoder.getstate() == (b'', 0)\n",
+      "sha256": "78911b138a9db3ed09e549826fed732dc36bcfeaec6ca2756057e1dffd6f0a21",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "stream reader/writer adapters over a real in-memory binary stream",
+      "source": "import codecs\nimport io\nstream = io.BytesIO()\nwriter = codecs.getwriter('utf8')(stream)\nwriter.write('é\\n🐍\\n')\nwriter.writelines(['A', 'B'])\nassert stream.getvalue() == b'\\xc3\\xa9\\n\\xf0\\x9f\\x90\\x8d\\nAB'\nstream.seek(0)\nreader = codecs.getreader('utf8')(stream)\nassert reader.readline() == 'é\\n'\nassert reader.readline() == '🐍\\n'\nassert reader.read() == 'AB'\nassert reader.read() == ''\nreader.seek(0)\nassert reader.read() == 'é\\n🐍\\nAB'\n",
+      "sha256": "77eb22952da0c102ef6d22b25ebdd8efc4121ce9da5e1e873d37f20a07374951",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    },
+    {
+      "name": "owned charmap module and undefined-character recovery",
+      "source": "import codecs\nimport encodings.charmap\ninfo = encodings.charmap.getregentry()\nassert info.name == 'charmap'\nassert isinstance(info, codecs.CodecInfo)\nassert codecs.charmap_decode(b'\\x00\\x01', 'strict', 'BA') == ('BA', 2)\nassert codecs.charmap_encode('BA', 'strict', {66: 0, 65: 1}) == (b'\\x00\\x01', 2)\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('?', error.end)\ncodecs.register_error('public_charmap', handler)\nassert codecs.charmap_decode(b'\\x00\\x01', 'public_charmap', 'A\\ufffe') == ('A?', 2)\nassert events == [('charmap', b'\\x00\\x01', 1, 2, 'character maps to <undefined>')]\n",
+      "sha256": "3810d168ba19239f75e2fa2907722ae5dc56e3b3a829625edfb3e7d0784863f6",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "match": true
+    },
+    {
+      "name": "UTF-16/32 rejected replacements restore cached faults and retain incremental BOM state",
+      "source": "import codecs\nfor encoding in ('utf-16', 'utf-16-le', 'utf-16-be', 'utf-32', 'utf-32-le', 'utf-32-be'):\n    for replacement in ('\\ud800', b'!'):\n        for reused in (False, True):\n            source = '\\ud800A\\udfffZ'\n            seen = []\n            events = []\n            class Position:\n                def __index__(self):\n                    events.append('index')\n                    seen[-1].start = 90\n                    seen[-1].end = 91\n                    seen[-1].reason = 'index mutation'\n                    return -1\n            def handler(error):\n                seen.append(error)\n                if reused and len(seen) == 1:\n                    return ('?', error.end)\n                error.encoding = 'changed encoding'\n                error.object = 'changed object'\n                error.start = 42\n                error.end = 43\n                error.reason = 'changed reason'\n                return (replacement, Position())\n            codecs.register_error('public_wide_rejection', handler)\n            encoder = codecs.getincrementalencoder(encoding)('public_wide_rejection')\n            state = encoder.getstate()\n            try:\n                encoder.encode(source)\n            except UnicodeEncodeError as error:\n                assert error is seen[0] and error is seen[-1]\n                assert error.encoding == 'changed encoding'\n                assert error.object == 'changed object'\n                assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n                assert error.args == (encoding, source, 0, 1, 'surrogates not allowed')\n                assert error.__traceback__ is not None\n            else:\n                assert False\n            assert encoder.getstate() == state\n            assert events == ['index']\n            assert len(seen) == (2 if reused else 1)\n            assert encoder.encode('A') == 'A'.encode(encoding)\n",
+      "sha256": "55db968eec94db1eea8ae369cdd11178fc7ae9b536091f3ead4eee7445867d45",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "match": false
+    }
+  ]
+}

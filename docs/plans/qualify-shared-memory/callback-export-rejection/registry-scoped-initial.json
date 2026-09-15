@@ -1,0 +1,44 @@
+{
+  "observedAt": "2026-09-14T06:31:17.264753+00:00",
+  "packages": [
+    {
+      "name": "@poe-platform/safe-fs",
+      "version": "0.1.592",
+      "sourceCommit": "069ae0b0913040c33feb0d8c07f0531d6d6c0dc8",
+      "registryIntegrity": "sha512-Wc0BumzpZo3ctlUYLd01VwI85xCbTvC5DPKgW3MqQ+aNwKzunrkt8+0PLaoNeCn8olifQxFnxfCOy52fO8bx+A==",
+      "tarballSha512": "59cd01ba6ce9668ddcb655182ddd3557023ce7109b4ef0b90cf2a05b732a43e68dc0acee9eb92df3ed0f2daa0d7829fca2589f431167c5f08ecb9d9f3bc6f1f8",
+      "integrityMatches": true,
+      "provenanceSubjectMatches": true,
+      "attestationsUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-fs@0.1.592",
+      "workflow": {
+        "ref": "refs/heads/main",
+        "repository": "https://github.com/poe-platform/poe-code",
+        "path": ".github/workflows/release-safe.yml"
+      },
+      "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34813253991/attempts/1",
+      "artifact": "/tmp/qualify-shared-memory-registry-artifacts/safe-fs-0.1.592.tgz"
+    },
+    {
+      "name": "@poe-platform/safe-js",
+      "version": "0.1.592",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "name": "@poe-platform/safe-bash",
+      "version": "0.1.592",
+      "sourceCommit": "069ae0b0913040c33feb0d8c07f0531d6d6c0dc8",
+      "registryIntegrity": "sha512-C8s5pDENFq9Xmgo6c+MZDpEpOhttA+kBtBmxOz8bmNpLvRC531J7aGnDDfVZbro56FI7lRgdDxOUWPRYMJ4iZA==",
+      "tarballSha512": "0bcb39a4310d16af579a0a3a73e3190e91293a1b6d03e901b419b13b3f1b98da4bbd10b9df527b6869c30df5596eba39e8523b95181d0f139458f458309e2264",
+      "integrityMatches": true,
+      "provenanceSubjectMatches": true,
+      "attestationsUrl": "https://registry.npmjs.org/-/npm/v1/attestations/@poe-platform%2fsafe-bash@0.1.592",
+      "workflow": {
+        "ref": "refs/heads/main",
+        "repository": "https://github.com/poe-platform/poe-code",
+        "path": ".github/workflows/release-safe.yml"
+      },
+      "invocation": "https://github.com/poe-platform/poe-code/actions/runs/34813253991/attempts/1",
+      "artifact": "/tmp/qualify-shared-memory-registry-artifacts/safe-bash-0.1.592.tgz"
+    }
+  ]
+}

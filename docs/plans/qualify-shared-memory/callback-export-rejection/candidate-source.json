@@ -1,0 +1,9 @@
+{
+  "base": "da2ff844e7e72e96fc74e059e896822b0e920a86",
+  "files": {
+    "packages/safe-js/src/interp/host-call.ts": "56746c23e9d4515631f55c13cfaf4574f6f2259797dce5cc148b7bbb2bfa60aa",
+    "packages/safe-js/src/interp/host-bridge.ts": "8a025afa8132df8615bd7f30750a4e359da844e4184399d81ad95be7ea6d27ba",
+    "packages/safe-js/src/interp/values.ts": "3b800f352042a1628aed741186844540076433e3f6ab45f9826fd2d4ece7d57f",
+    "packages/safe-js/src/interp/shared-callback-export.test.ts": "a43f899ccf0e4863b59ffa07ccda166d04c4e31bba8f305baa9dfc707920eaf5"
+  }
+}

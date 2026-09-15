@@ -1,0 +1,275 @@
+{
+  "driver": "import {mkdtempSync,openSync,closeSync,writeFileSync,readFileSync,readSync,writeSync,fsyncSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecInitSlotCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-init-slot-cases.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst oracle=JSON.parse(readFileSync(root+'codec-init-slot-oracle.json','utf8'));\nconst scratch=mkdtempSync(join(tmpdir(),'safe-python-init-services-'));\nconst digest=(s:string)=>createHash('sha256').update(s).digest('hex');\nlet writes=0,reads=0,flushes=0;\nfunction replay(source:string,cancel?:boolean){\n  const input=join(scratch,'input'),output=join(scratch,'output');\n  writeFileSync(input,'ready\\n');\n  const readFd=openSync(input,'r'),writeFd=openSync(output,'w');\n  const controller=new AbortController();\n  const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\n    input:{readLine(){reads++;let text='';const byte=Buffer.alloc(1);while(readSync(readFd,byte,0,1,null)){text+=byte.toString();if(byte[0]===10)break;}if(cancel!==undefined){controller.abort();if(cancel)throw Error('cancelled after real read');}return text;}},\n    output:{write(text){writes++;writeSync(writeFd,text);},flush(){flushes++;fsyncSync(writeFd);}}});\n  try{const result=session.exec(source);const stdout=readFileSync(output,'utf8');let error;\n    if(result.status==='exception'){session.globals.set('failure',result.exception);const r=session.eval('str(failure)');if(r.status==='ok')error=r.value.primitive;}\n    return {result:result.status==='exception'?{status:result.status,error}:result,stdout,usage:session.usage,...(cancel===undefined?{}:{repeated:session.eval('1')})};\n  }finally{closeSync(readFd);closeSync(writeFd);}\n}\ntry{\n  const rows=codecInitSlotCases.map((c,i)=>{const result=replay(c.source);return {name:c.name,sourceSha256:digest(c.source),...result,matches:result.result.status==='ok'&&result.stdout===oracle.rows[i].oracle.stdout};});\n  const cancellation=[false,true].map(throws=>({throws,...replay(codecInitSlotCases.at(-1)!.source,throws)}));\n  const evidence={driver:readFileSync(import.meta.filename,'utf8'),reference:oracle.reference,oracleSha256:digest(readFileSync(root+'codec-init-slot-oracle.json','utf8')),rows,cancellation,services:{writes,reads,flushes}};\n  writeFileSync(root+'codec-init-slot-services.json',JSON.stringify(evidence,null,2)+'\\n');\n  console.log(JSON.stringify({failures:rows.filter(r=>!r.matches),cancellation,services:evidence.services},null,2));\n}finally{rmSync(scratch,{recursive:true,force:true});}\n",
+  "reference": {
+    "status": 0,
+    "stdout": "{\"version\": \"3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\", \"unicode\": \"16.0.0\", \"platform\": \"macOS-26.4.1-arm64-arm-64bit-Mach-O\"}\n",
+    "stderr": ""
+  },
+  "oracleSha256": "9ed82fbfa317deb165fa15c1642bc0623c449470c4d630a679b2c56de613ae37",
+  "rows": [
+    {
+      "name": "CodecInfo initialization query identity and source key",
+      "sourceSha256": "f97451936933be69cbbfea21717f7595b7ea77fb57b8ce0c77ab8f81cb3b6287",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145533,
+        "allocatedBytes": 1957125
+      },
+      "matches": true
+    },
+    {
+      "name": "IncrementalEncoder initialization query identity and source key",
+      "sourceSha256": "520bf9b8b7ca60d3e6298167e736af9e639b3b666ccb04326b738da5f6dad382",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145552,
+        "allocatedBytes": 1957319
+      },
+      "matches": true
+    },
+    {
+      "name": "IncrementalDecoder initialization query identity and source key",
+      "sourceSha256": "1bc20ead36a9514ac067379eeccd5dfa050214ba85dfc013299231f231ac119d",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145552,
+        "allocatedBytes": 1957319
+      },
+      "matches": true
+    },
+    {
+      "name": "BufferedIncrementalEncoder initialization query identity and source key",
+      "sourceSha256": "d2b0ca23ed1761e3abd1f389476caa1b9b76b2968cd519fec8f491dd230d1ab7",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145706,
+        "allocatedBytes": 1957591
+      },
+      "matches": true
+    },
+    {
+      "name": "BufferedIncrementalDecoder initialization query identity and source key",
+      "sourceSha256": "abf993e5e1cdeea6c21296f9516ec803738004423ac715b6b69431140e264a35",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145706,
+        "allocatedBytes": 1957591
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamReader initialization query identity and source key",
+      "sourceSha256": "8524b5c361325e0e0800c303959ccfc09fbdab6a9898277e3692063919596031",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145504,
+        "allocatedBytes": 1957035
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamWriter initialization query identity and source key",
+      "sourceSha256": "5f525b13af2b8bdc797610c141858c173f0aea2f600aa74329cf62647e914664",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145504,
+        "allocatedBytes": 1957035
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamReaderWriter initialization query identity and source key",
+      "sourceSha256": "13f4ade624bf766ab07c092cc815bea2dfdc7f8487b92831213bac7883fe726e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145552,
+        "allocatedBytes": 1957319
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamRecoder initialization query identity and source key",
+      "sourceSha256": "b9d6afd6b650ef1190770f80dccb660686e44e2e42f61cdbf91d9fcf304ee819",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 145492,
+        "allocatedBytes": 1957149
+      },
+      "matches": true
+    },
+    {
+      "name": "failed initialization fixup suppresses implicit initialization only",
+      "sourceSha256": "35ff55f7e7aef318e7aefcc2b3fc7ce667558a71d6d8e42034c26885fd3fa8fb",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 157383,
+        "allocatedBytes": 2189457
+      },
+      "matches": true
+    },
+    {
+      "name": "initializer descriptor binds only on invocation",
+      "sourceSha256": "c0746d13ebfedac2d95605d5fcb6afd971167a856467cc5a641460f648c4c8eb",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 142672,
+        "allocatedBytes": 1894047
+      },
+      "matches": true
+    },
+    {
+      "name": "initializer mutation tracks descendants overrides and deletion",
+      "sourceSha256": "ac8a2b514e6463b875d303bad61c3ab6a6df84c8bc26102768c1fbaa3da9e839",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 146843,
+        "allocatedBytes": 2006551
+      },
+      "matches": true
+    },
+    {
+      "name": "copied initializer survives source mutation",
+      "sourceSha256": "3b0830ad278d925f608b758f4360bc3a0a65e55585197d8e25dcb48416893d8f",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143149,
+        "allocatedBytes": 1913285
+      },
+      "matches": true
+    },
+    {
+      "name": "new return type selects initialization and validates return value",
+      "sourceSha256": "8cf6db738d1a5b8bcd907c00b343ff191c2fe6c5641ede0958f9d6d0a8673a38",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 144963,
+        "allocatedBytes": 1952782
+      },
+      "matches": true
+    },
+    {
+      "name": "initialization fixup precedes allocation fixup",
+      "sourceSha256": "e26cc727d3e6a394dee829bdeb468bd044462b3a0cd8336419718fa3e356fd1a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 140509,
+        "allocatedBytes": 1868033
+      },
+      "matches": true
+    },
+    {
+      "name": "published class inherits initialization between readiness probes",
+      "sourceSha256": "a7dc96b77bd1cda7201870fb8309133dc63e27fa1ffa19a21500970e36f80a2b",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 147693,
+        "allocatedBytes": 2023418
+      },
+      "matches": true
+    },
+    {
+      "name": "supported service callback during initialization readiness",
+      "sourceSha256": "b454a4bcc3fc5a20c9e7148457199e40766e0975f48121146cbdb0d2a4cce2c6",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "init slot ready\n",
+      "usage": {
+        "steps": 142401,
+        "allocatedBytes": 1911220
+      },
+      "matches": true
+    }
+  ],
+  "cancellation": [
+    {
+      "throws": false,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 140188,
+        "allocatedBytes": 1870334
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "throws": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 140188,
+        "allocatedBytes": 1870334
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    }
+  ],
+  "services": {
+    "writes": 2,
+    "reads": 3,
+    "flushes": 4
+  }
+}

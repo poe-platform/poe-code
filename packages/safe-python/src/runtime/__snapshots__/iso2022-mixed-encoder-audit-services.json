@@ -1,0 +1,520 @@
+{
+  "driver": "import {readFileSync,writeFileSync,openSync,closeSync,readSync,writeSync,fsyncSync,mkdtempSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecIncrementalReplayCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-incremental-replay-cases.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst raw=readFileSync(root+'codec-incremental-replay-3.14.7.json','utf8'),oracle=JSON.parse(raw);\nconst directory=mkdtempSync(join(tmpdir(),'codec-escape-services-'));\nconst rows=[];let reads=0,writes=0,flushes=0;\ntry {\n for(const row of codecIncrementalReplayCases){\n  writeFileSync(join(directory,'in'),'continue\\ncontinue\\n');\n  const input=openSync(join(directory,'in'),'r'),output=openSync(join(directory,'out'),'w');\n  const session=new PythonSession({limits:{maxSteps:8000000,maxAllocatedBytes:64000000,maxDepth:100},hashSeed:[1n,2n],\n   input:{readLine(){reads++;let line='';const byte=Buffer.alloc(1);while(readSync(input,byte)){line+=byte.toString('utf8');if(byte[0]===10)break;}return line;}},\n   output:{write(text){writes++;writeSync(output,text);},flush(){flushes++;fsyncSync(output);}}});\n  let result;try{result=session.exec(row.source);}finally{closeSync(input);closeSync(output);}\n  const stdout=readFileSync(join(directory,'out'),'utf8'),expected=oracle.rows.find(candidate=>candidate.name===row.name);\n  rows.push({name:row.name,sourceSha256:createHash('sha256').update(row.source).digest('hex'),status:result.status,stdout,match:result.status==='ok'&&row.source===expected.source&&stdout===expected.oracle.stdout});\n }\n}finally{rmSync(directory,{recursive:true,force:true});}\nconst evidence={driver:readFileSync('/tmp/codec-mixed-encoder-services.mts','utf8'),oracleSha256:createHash('sha256').update(raw).digest('hex'),rows,reads,writes,flushes};\nwriteFileSync(root+'iso2022-mixed-encoder-audit-services.json',JSON.stringify(evidence,null,2)+'\\n');\nconsole.log(JSON.stringify({programs:rows.length,reads,writes,flushes,failures:rows.filter(row=>!row.match)}));\nif(rows.some(row=>!row.match))process.exitCode=1;\n",
+  "oracleSha256": "8b4071a97a32b1e6ce97367c8195cf145cf0db6f720cf46d709ab1fd4806f2c7",
+  "rows": [
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "a49b06260a5dcaf6327b45584eb62904286c4cd588c8e74c17fb2d8755c91f2f",
+      "status": "ok",
+      "stdout": "utf-8 15 24\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "237ab42191714d55b11c28168c728241bd9eb4b8dc7c35070abb1e01c4b2367d",
+      "status": "ok",
+      "stdout": "utf-8 15 22\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "c8e3715d44efa4cd468e222547ead6025fd60f16acb4377db4a824f548eb2629",
+      "status": "ok",
+      "stdout": "utf-8 15 20\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "3db338f63ff4fabe0adf51d28f69d928a2d4e4cfa0b2336454b911030883bf33",
+      "status": "ok",
+      "stdout": "utf-8 15 18\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "dce0571df7a9d32773aab30417975254470837f400c2a91a4ef3c0cb69de3d4f",
+      "status": "ok",
+      "stdout": "utf-8 15 16\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "e447827a39c677cbf47bbcda9ce1bc4efc1dd3bd5972423ac5118dde850e3735",
+      "status": "ok",
+      "stdout": "utf-8 15 14\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "ff060eb4bd28ef3358a852eca6ebfe2f4228556b2a3e1b9ba44c772b8208f591",
+      "status": "ok",
+      "stdout": "utf-8 15 12\n",
+      "match": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "2260f146492ca7f37fb1a12b3b107f77b97ab769f67c661ea86c5a3419202827",
+      "status": "ok",
+      "stdout": "utf-8 15 10\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "a0e6699638aaf62ecc78c1f7d57aefdb8480823c213e7c01a7573ae1e9096546",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 33\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "959c53b131ca6f9b0786914fd29d4834f5bfc40495f282876a0560fdb2a797cb",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 30\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "580926c2f486427efb717f52130cd7b73c45cf608a42e03e176a8e0e463ac7c3",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 27\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "a0f99ae528b27b08329e2b0c5ab9cbceaec40b32bea3960f290820c5fe65a543",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 24\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "a4bb1811ea0b10d6b73564df192e802d08cbc03facedbc78ad2cd0ed3a100fb0",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 22\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "b4cd6ab9a8ac3d36cce515ab338978b23ca1c337c73e9ed25f744b329f1915d8",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 20\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "063d3231ce2a3ae45340501657f7237784cb2511ad4f1281e541a6e3fcfa09ac",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 18\n",
+      "match": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "9c402933b47ce77900280e9434961b8d62e7cec0ef85beea6213d6407b7fbe10",
+      "status": "ok",
+      "stdout": "utf-8-sig 18 16\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "610b98ff724ab8043d1a987a0135fb0a1cbb84166a76cb814bf2e9da190f7963",
+      "status": "ok",
+      "stdout": "utf-7 20 39\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "99f1f68db5645a34a14f6a05454fd9a10f01b3790e3247a99f65ec27be8baeef",
+      "status": "ok",
+      "stdout": "utf-7 20 36\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "74c44a53d714ba47e5fe3711e0f0b48944ae265fe48f50d3f4def429e43b3823",
+      "status": "ok",
+      "stdout": "utf-7 20 33\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "131f59650f8899c38a339384cff078cdca64ebaeda8e465ea36bb5591d084bd6",
+      "status": "ok",
+      "stdout": "utf-7 20 30\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "ff4b7d1d682e4aee6085c25147a7b06ba4d0ba71eee671f22476288be19fdefa",
+      "status": "ok",
+      "stdout": "utf-7 20 27\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "eb3d709db93db3584005176699c39b84094a3a17d9340f97d888470e8f06fec4",
+      "status": "ok",
+      "stdout": "utf-7 20 24\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "e29c9329ce6cdea35a0c2e8a7baf7f1388d423124427db3f3814fbf92e59ddba",
+      "status": "ok",
+      "stdout": "utf-7 20 22\n",
+      "match": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "43500aeb1b86b3fdb433194f2ed57465e0744349912f4c70a9ee996c9ba285a7",
+      "status": "ok",
+      "stdout": "utf-7 20 20\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "ce453f78c1765811317fbbecc4d60246306117cba7ddfe8446c455206645a7c1",
+      "status": "ok",
+      "stdout": "utf-16-le 16 27\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "13c45a618ad53d435d9a24a180ad1c4391ae9bd76cffa198f6fc1b10ee26b8a4",
+      "status": "ok",
+      "stdout": "utf-16-le 16 24\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "3504e44b3150716ce0b5a02cf139b2b3309234865ac4b0b8d03f040fd93fefe9",
+      "status": "ok",
+      "stdout": "utf-16-le 16 22\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "fcaf026ae1f2c97baf720424965a96d89be9dd01888556d10d4afd581a900693",
+      "status": "ok",
+      "stdout": "utf-16-le 16 20\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "43e7eb05d6e10ff440bb3ff13729264e07793662922dec114c0d09891a925ec7",
+      "status": "ok",
+      "stdout": "utf-16-le 16 18\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "65ac3d6f2488b76815584df35489eabedaa28d7a57aca6c1045a3fe27f3294bb",
+      "status": "ok",
+      "stdout": "utf-16-le 16 16\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "df2b2bf90b2a8b526445978aa0e038b1d89660b4532ea49a90a33d51b1b2dcca",
+      "status": "ok",
+      "stdout": "utf-16-le 16 14\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "2da3df3fbef6256bc50b4ba1e20d28726f2db48c15aab390dc5912b2dfbb4a83",
+      "status": "ok",
+      "stdout": "utf-16-le 16 12\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "303dcb646f6bb7f4052b31187ebc6f2460ab33440a0ae5eec823648fa9f63b67",
+      "status": "ok",
+      "stdout": "utf-16-be 16 27\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "7ab75524679b01c58508529b8827b8a691683b14b1dc7d9ba216b8a2f64ca84d",
+      "status": "ok",
+      "stdout": "utf-16-be 16 24\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "9d363c9b273a4cd986560da9dbb35eec19bcae6fbc7a7be384d7d94ea9f487c3",
+      "status": "ok",
+      "stdout": "utf-16-be 16 22\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "18530f907eca729bca35f08c95b9b4223eab3e5b4086b63058f59a25a37074ca",
+      "status": "ok",
+      "stdout": "utf-16-be 16 20\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "5a571ed2fe6f6a6beefe50db044450240b8b805a38c328d96ce3e3c955b3964f",
+      "status": "ok",
+      "stdout": "utf-16-be 16 18\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "74bfb583078168c7b5da906b4b719a980920e936015102a771a0c5bdf880239d",
+      "status": "ok",
+      "stdout": "utf-16-be 16 16\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "359e4cc0d65dcde566617c9b274a3e28f35ad273e704d59e6a97564d7aa168a3",
+      "status": "ok",
+      "stdout": "utf-16-be 16 14\n",
+      "match": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "01f2d17854a1e41e15a3f3b36233fcc5f65d166b3cbe89790b691d9f003ee3ae",
+      "status": "ok",
+      "stdout": "utf-16-be 16 12\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "ac7543f4275c43992d095aca8602d53147bf059892f76c43413d2862dc4980cd",
+      "status": "ok",
+      "stdout": "utf-32-le 28 68\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "40e6cf411f7571251de7b7768e146f7d6dea830b5c19fa690ab991beff9d8f62",
+      "status": "ok",
+      "stdout": "utf-32-le 28 64\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "3ebc3023ef10b60df581b18aeaa1a0ad3b166fbc1e403bcc7326d0bda128b6e0",
+      "status": "ok",
+      "stdout": "utf-32-le 28 60\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "f5ea53793b5b35ca6aa4cde15a7d5d7697eecfa242bd163d4ec0ea37b029092f",
+      "status": "ok",
+      "stdout": "utf-32-le 28 56\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "e76e36f811911b0a141b5b47428540802dba527da8bb7069d87414e99c5aa022",
+      "status": "ok",
+      "stdout": "utf-32-le 28 52\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "fc6a23cfdcf2268991474196635ca27015ed4b4ccf06509d29d5272981aae93c",
+      "status": "ok",
+      "stdout": "utf-32-le 28 48\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "028b3f48152dff1954d512d9d15e0cb1e44a318716a4029a98c0daee036f849d",
+      "status": "ok",
+      "stdout": "utf-32-le 28 45\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "dc7ff51ae2773498bd0b0a1e4d437d5b22d2e24da04199e5503de6bcffd3aaa1",
+      "status": "ok",
+      "stdout": "utf-32-le 28 42\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "7190b9a354bd986bc1295b6dcdcc55642f1db9c8b25a58d04fa18ae3ca30d7bb",
+      "status": "ok",
+      "stdout": "utf-32-be 28 68\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "8f5756d9f916c4a3ec04212f3483ea5dd1007b89fc01060bdb3a4d7bb20749e8",
+      "status": "ok",
+      "stdout": "utf-32-be 28 64\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "47b2d791d2d7c8554b93976dc252a80424b79a4321b13a53a0cc9100797283d6",
+      "status": "ok",
+      "stdout": "utf-32-be 28 60\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "d38bfb223c7189c817b7c79e19c1bedb61b95896f85f5ea70847bdbe6b7a3cb1",
+      "status": "ok",
+      "stdout": "utf-32-be 28 56\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "7d65603d9d153663da255a3439e44e242fd79edc55214950fdaf9ffe6eadd3f0",
+      "status": "ok",
+      "stdout": "utf-32-be 28 52\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "b0c3e085049b76d9d011a738286d2ee8c7ad68b83f88ed9c6bf1ba0af033b5c1",
+      "status": "ok",
+      "stdout": "utf-32-be 28 48\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "5f45097f7ccc40a2ccb16620f72a6e0d2d4ff1ed93900cb783d64790de7aee5a",
+      "status": "ok",
+      "stdout": "utf-32-be 28 45\n",
+      "match": true
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "36bf8ddbc74c0a334fc1a767c1011930baa7bacfe5d605be25b2f8cd2d26e414",
+      "status": "ok",
+      "stdout": "utf-32-be 28 42\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "e14e0a3c361c73e3fe4e703bcaca14ccbd460a9735d256883267d5935907628a",
+      "status": "ok",
+      "stdout": "unicode-escape 29 72\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "6276da7f076169f731c49898b5965433b7776d44772141f2dd43ccc46f8b6ac1",
+      "status": "ok",
+      "stdout": "unicode-escape 29 68\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "8980f55d1186332a44f6a8798307dcc51b5e3265d0c904d85c47ce4134c47a0c",
+      "status": "ok",
+      "stdout": "unicode-escape 29 64\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "203677fa4972542ebdd50849abfd5cae0d1a23bbd87be006ff7ca1f311828736",
+      "status": "ok",
+      "stdout": "unicode-escape 29 60\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "be110cf48769a7d8927a62cfdbf4d204f41671a53e13fae8690552feb2dcb090",
+      "status": "ok",
+      "stdout": "unicode-escape 29 56\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "83680b53b96f7fab095ab9257af0720a1e721348c05e8ecf48965b7413735b85",
+      "status": "ok",
+      "stdout": "unicode-escape 29 52\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "732a14001ac60c497cf9db6208a6329f26147f894555f2af83b9416cb61b8ecc",
+      "status": "ok",
+      "stdout": "unicode-escape 29 48\n",
+      "match": true
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "ec9472babc0baef58ac23b0bfd4734968731e3ee168ad5373d8b74e1b96a84a9",
+      "status": "ok",
+      "stdout": "unicode-escape 29 45\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 0",
+      "sourceSha256": "83d19a493042e452f89bad3f7cfbdfd4d625eaa14c1c34662c28aec242f2d6ca",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 60\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 1",
+      "sourceSha256": "2f2e7e301bb8894e0d96b6cdb2eac4018a086bfb90a6781914012ceeaf037559",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 56\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 2",
+      "sourceSha256": "b60141c31e0d3fe681e11f8e0392ad4490258794d36e81b62b6a09f2e5c398d0",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 52\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 3",
+      "sourceSha256": "d30d420547b3e068146b4a388b7fc5e47b512cb7e136a92ce06484b987fc0525",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 48\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 4",
+      "sourceSha256": "7a29d89f6244aa4f96444362d05648c34ae86555a4540fe712146958b92565f4",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 45\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 5",
+      "sourceSha256": "9ec1e7bf3b9e1a630520946a9de701c45f969f376531752249a762282b6422d3",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 42\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 6",
+      "sourceSha256": "f2e8aba0310ddb2d4fae40cec98e895c20b28e82e03f4363c94b751dce30d857",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 39\n",
+      "match": true
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 7",
+      "sourceSha256": "92dc64ad36225e8d3bdf7eca3917a78aece665b40e13dbe4561dab15a9dbef2d",
+      "status": "ok",
+      "stdout": "raw-unicode-escape 26 36\n",
+      "match": true
+    },
+    {
+      "name": "UTF-8 callback state mutation, failure, negative resume and retry",
+      "sourceSha256": "1319a0436fe48599ece4a369e72fa9642810fb37d10130238edb74d143c3547d",
+      "status": "ok",
+      "stdout": "callback retry verified\n",
+      "match": true
+    }
+  ],
+  "reads": 2,
+  "writes": 434,
+  "flushes": 2
+}

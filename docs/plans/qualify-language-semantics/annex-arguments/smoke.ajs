@@ -1,0 +1,1 @@
+const f=Function("x=1","const before=arguments;{function arguments(){return 7}}return [before===arguments,Object.prototype.toString.call(arguments)]");await 0;return [f(),f.toString(),f.constructor("return typeof process+','+typeof require")()];

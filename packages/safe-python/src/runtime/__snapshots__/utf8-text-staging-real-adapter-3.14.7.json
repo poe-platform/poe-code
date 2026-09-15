@@ -1,0 +1,3810 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "scope": "Manual real RealFileSystem adapter and FileSystemAccess UTF-8 whole-file read differential; not guest TextIOWrapper certification",
+  "oracleSource": "import json, sys, unicodedata\nrows=json.load(sys.stdin)\nresults=[]\nfor row in rows:\n    try:\n        with open(sys.argv[1] + '/' + row['file'], encoding='utf-8', errors=row['errors'], newline=row['newline']) as stream:\n            result={'points':list(map(ord,stream.read()))}\n    except UnicodeDecodeError as error:\n        result={'error':[type(error).__name__,error.encoding,list(error.object),error.start,error.end,error.reason]}\n    results.append(result)\nprint(json.dumps({'target':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder},'results':results}))\n",
+  "cases": [
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": null,
+      "errors": "strict",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": null,
+      "errors": "ignore",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": null,
+      "errors": "replace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": null,
+      "errors": "surrogateescape",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": null,
+      "errors": "surrogatepass",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": null,
+      "errors": "backslashreplace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "",
+      "errors": "strict",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "",
+      "errors": "ignore",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "",
+      "errors": "replace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\n",
+      "errors": "strict",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\n",
+      "errors": "ignore",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\n",
+      "errors": "replace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r",
+      "errors": "strict",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r",
+      "errors": "ignore",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r",
+      "errors": "replace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r\n",
+      "errors": "strict",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r\n",
+      "errors": "ignore",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r\n",
+      "errors": "replace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-0",
+      "input": [],
+      "newline": "\r\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": []
+      },
+      "expected": {
+        "points": []
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": null,
+      "errors": "strict",
+      "actual": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": null,
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": null,
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": null,
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": null,
+      "errors": "surrogatepass",
+      "actual": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": null,
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          10,
+          8364,
+          10,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "",
+      "errors": "strict",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\n",
+      "errors": "strict",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\n",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\n",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r",
+      "errors": "strict",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r\n",
+      "errors": "strict",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r\n",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r\n",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-1",
+      "input": [
+        65,
+        13,
+        10,
+        226,
+        130,
+        172,
+        13,
+        240,
+        159,
+        152,
+        128,
+        10
+      ],
+      "newline": "\r\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13,
+          10,
+          8364,
+          13,
+          128512,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": null,
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": null,
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": null,
+      "errors": "replace",
+      "actual": {
+        "points": [
+          10,
+          65533
+        ]
+      },
+      "expected": {
+        "points": [
+          10,
+          65533
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": null,
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          10,
+          56546,
+          56450
+        ]
+      },
+      "expected": {
+        "points": [
+          10,
+          56546,
+          56450
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": null,
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": null,
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          10,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "expected": {
+        "points": [
+          10,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\n",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\n",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\n",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r\n",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r\n",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r\n",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          65533
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          56546,
+          56450
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            13,
+            226,
+            130
+          ],
+          1,
+          3,
+          "unexpected end of data"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-2",
+      "input": [
+        13,
+        226,
+        130
+      ],
+      "newline": "\r\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "expected": {
+        "points": [
+          13,
+          92,
+          120,
+          101,
+          50,
+          92,
+          120,
+          56,
+          50
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": null,
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": null,
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": null,
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": null,
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": null,
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": null,
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          10
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          10
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\n",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\n",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\n",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r\n",
+      "errors": "strict",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          1,
+          2,
+          "invalid continuation byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r\n",
+      "errors": "ignore",
+      "actual": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r\n",
+      "errors": "replace",
+      "actual": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          65533,
+          65533,
+          65533,
+          65533,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r\n",
+      "errors": "surrogateescape",
+      "actual": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          56557,
+          56480,
+          56448,
+          56575,
+          13
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r\n",
+      "errors": "surrogatepass",
+      "actual": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "expected": {
+        "error": [
+          "UnicodeDecodeError",
+          "utf-8",
+          [
+            65,
+            237,
+            160,
+            128,
+            255,
+            13
+          ],
+          4,
+          5,
+          "invalid start byte"
+        ]
+      },
+      "matches": true
+    },
+    {
+      "file": "sample-3",
+      "input": [
+        65,
+        237,
+        160,
+        128,
+        255,
+        13
+      ],
+      "newline": "\r\n",
+      "errors": "backslashreplace",
+      "actual": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "expected": {
+        "points": [
+          65,
+          92,
+          120,
+          101,
+          100,
+          92,
+          120,
+          97,
+          48,
+          92,
+          120,
+          56,
+          48,
+          92,
+          120,
+          102,
+          102,
+          13
+        ]
+      },
+      "matches": true
+    }
+  ]
+}

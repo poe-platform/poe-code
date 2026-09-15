@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-language-delivery
+
+ ✓ packages/safe-js/src/interp/globals/eval-global-block-functions.test.ts (6 tests) 204ms
+ ✓ packages/safe-js/src/interp/globals/eval-global-declarations.test.ts (14 tests) 379ms
+
+ Test Files  2 passed (2)
+      Tests  20 passed (20)
+   Start at  11:31:31
+   Duration  2.36s (transform 2.96s, setup 70ms, import 3.75s, tests 583ms, environment 0ms)
+

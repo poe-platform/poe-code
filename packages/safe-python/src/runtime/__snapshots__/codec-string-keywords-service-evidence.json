@@ -1,0 +1,144 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "cases": [
+    {
+      "name": "dictionary hash and equality determine parameter binding",
+      "source": "\nevents = []\nfailure = LookupError('binding')\nclass Key(str):\n    def __hash__(self):\n        return hash('encoding')\n    def __eq__(self, other):\n        events.append(other)\n        if broken:\n            raise failure\n        return other == 'encoding'\n    def __str__(self):\n        raise AssertionError('rendered a bound keyword')\nfor convert in (str, lambda *args, **kwargs: str.__new__(str, *args, **kwargs)):\n    broken = False\n    events.clear()\n    assert convert(b'\\xe9', **{Key('alias'): 'latin1'}) == 'é'\n    assert events == ['encoding'], events\n    broken = True\n    events.clear()\n    try:\n        convert(b'\\xe9', **{Key('alias'): 'latin1'})\n    except LookupError as error:\n        assert error is failure\n    else:\n        assert False\n    assert events == ['encoding'], events\n\nprint('verified')\n",
+      "sha256": "5e9776e097d799e81a36a656682fc6ecd2d9052be3ba34b4f728120069a1abc1",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "service": {
+        "adapter": "explicit synchronous file descriptor output; partial-write loop and fsync",
+        "cancelled": false,
+        "result": {
+          "status": "ok"
+        },
+        "output": "verified\n",
+        "writes": 2
+      }
+    },
+    {
+      "name": "parameter-order keyword equality, duplicate precedence and text subtype construction",
+      "source": "\nevents = []\nclass Text(str):\n    pass\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        return str.__eq__(self, other)\n    def __str__(self):\n        raise AssertionError('keyword rendering')\nfor convert in (str, Text, lambda *args, **kwargs: str.__new__(str, *args, **kwargs)):\n    events.clear()\n    result = convert(**{Key('errors'): 'strict', Key('encoding'): 'latin1', Key('object'): b'\\xe9'})\n    assert result == 'é'\n    assert type(result) is (Text if convert is Text else str)\n    assert events == ['object', 'encoding', 'errors'], events\n    try:\n        convert(b'x', **{Key('object'): b'y'})\n    except TypeError as error:\n        assert error.args == (\"argument for str() given by name ('object') and position (1)\",)\n    else:\n        assert False\n\nprint('verified')\n",
+      "sha256": "441bed2abfd834cb28451a26ff4be69a97d11315dfefa2658ba6472aec37e875",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "service": {
+        "adapter": "explicit synchronous file descriptor output; partial-write loop and fsync",
+        "cancelled": false,
+        "result": {
+          "status": "ok"
+        },
+        "output": "verified\n",
+        "writes": 2
+      }
+    },
+    {
+      "name": "unexpected keyword equality, truth, rendering and guest failures",
+      "source": "\nevents = []\nmode = 'false'\nfailure = ValueError('keyword failure')\nclass Truth:\n    def __bool__(self):\n        events.append('truth')\n        return mode == 'true'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        if mode == 'raise':\n            raise failure\n        return Truth()\n    def __str__(self):\n        events.append('str')\n        if mode == 'render-failure':\n            raise failure\n        return 'visible'\nfor convert in (str, lambda **kwargs: str.__new__(str, **kwargs)):\n    for mode, expected in (\n        ('false', ['object', 'truth', 'encoding', 'truth', 'errors', 'truth', 'str']),\n        ('true', ['object', 'truth']),\n        ('raise', ['object']),\n        ('render-failure', ['object', 'truth', 'encoding', 'truth', 'errors', 'truth', 'str'])\n    ):\n        events.clear()\n        try:\n            convert(**{Key('encodign'): 'ascii'})\n        except ValueError as error:\n            assert mode in ('raise', 'render-failure') and error is failure\n        except TypeError as error:\n            assert mode in ('false', 'true')\n            message = \"invalid keyword argument for str()\" if mode == 'true' else \"str() got an unexpected keyword argument 'visible'. Did you mean 'encoding'?\"\n            assert error.args == (message,), error.args\n        else:\n            assert False\n        assert events == expected, events\n\nprint('verified')\n",
+      "sha256": "a96e65316621a4716f240c6053d89bceb34a240ed0c5ad2abfae62d3cf029896",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "service": {
+        "adapter": "explicit synchronous file descriptor output; partial-write loop and fsync",
+        "cancelled": false,
+        "result": {
+          "status": "ok"
+        },
+        "output": "verified\n",
+        "writes": 2
+      }
+    },
+    {
+      "name": "equality",
+      "source": "\nclass Truth:\n    def __bool__(self):\n        pass\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        print('cancel')\n        return Truth()\n    def __str__(self):\n        pass\n        return 'visible'\ntry:\n    str(**{Key('encodign'): 'ascii'})\nexcept BaseException:\n    print('recovered')\n",
+      "sha256": "1737e98f6fd8031d78d8f1d04ce7d46de88aab3b24b583faf465cb6993e80d54",
+      "oracle": {
+        "status": 0,
+        "stdout": "cancel\ncancel\ncancel\nrecovered\n",
+        "stderr": ""
+      },
+      "service": {
+        "adapter": "explicit synchronous file descriptor output; partial-write loop and fsync",
+        "cancelled": true,
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "cancel",
+        "writes": 1,
+        "next": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      }
+    },
+    {
+      "name": "truth",
+      "source": "\nclass Truth:\n    def __bool__(self):\n        print('cancel')\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        pass\n        return Truth()\n    def __str__(self):\n        pass\n        return 'visible'\ntry:\n    str(**{Key('encodign'): 'ascii'})\nexcept BaseException:\n    print('recovered')\n",
+      "sha256": "e758c79ae4715bc61f4025b418b77e277500e88354849bd668e27db849638127",
+      "oracle": {
+        "status": 0,
+        "stdout": "cancel\ncancel\ncancel\nrecovered\n",
+        "stderr": ""
+      },
+      "service": {
+        "adapter": "explicit synchronous file descriptor output; partial-write loop and fsync",
+        "cancelled": true,
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "cancel",
+        "writes": 1,
+        "next": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      }
+    },
+    {
+      "name": "render",
+      "source": "\nclass Truth:\n    def __bool__(self):\n        pass\n        return False\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        pass\n        return Truth()\n    def __str__(self):\n        print('cancel')\n        return 'visible'\ntry:\n    str(**{Key('encodign'): 'ascii'})\nexcept BaseException:\n    print('recovered')\n",
+      "sha256": "4d0db4cf8e8f33b66de1737e3a0a46ca65457f0f866eb17137827030a200151e",
+      "oracle": {
+        "status": 0,
+        "stdout": "cancel\nrecovered\n",
+        "stderr": ""
+      },
+      "service": {
+        "adapter": "explicit synchronous file descriptor output; partial-write loop and fsync",
+        "cancelled": true,
+        "result": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "output": "cancel",
+        "writes": 1,
+        "next": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      }
+    }
+  ]
+}

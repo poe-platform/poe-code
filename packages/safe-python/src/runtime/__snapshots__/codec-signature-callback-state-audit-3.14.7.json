@@ -1,0 +1,25 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "byteorder": "little",
+    "platform": "darwin"
+  },
+  "cases": [
+    {
+      "name": "encoder reset during negative-position recovery",
+      "source": "\nimport codecs\nencoder = codecs.getincrementalencoder('utf-8-sig')('audit')\nevents = []\ndef recover(error):\n    events.append((encoder.getstate(), error.object, error.start, error.end))\n    encoder.reset()\n    return ('?', -1)\ncodecs.register_error('audit', recover)\nprint(encoder.encode('A\\ud800Z'), encoder.getstate())\nprint(encoder.encode('B', True), encoder.getstate())\nprint(events)\n",
+      "stdout": "b'\\xef\\xbb\\xbfA?Z' 1\nb'\\xef\\xbb\\xbfB' 0\n[(0, 'A\\ud800Z', 1, 2)]\n"
+    },
+    {
+      "name": "decoder input replacement retains original buffered slicing",
+      "source": "\nimport codecs\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('audit')\nevents = []\ndef recover(error):\n    events.append((decoder.getstate(), error.object, error.start, error.end))\n    error.object = b'Z\\xe2'\n    return ('?', -2)\ncodecs.register_error('audit', recover)\nprint(repr(decoder.decode(b'\\xef')))\nprint(repr(decoder.decode(b'\\xbb\\xbf\\xffA')), decoder.getstate())\nprint(events)\n",
+      "stdout": "''\n'?Z' (b'A', 0)\n[((b'\\xef', 0), b'\\xffA', 0, 1)]\n"
+    },
+    {
+      "name": "decoder reset persists after a guest callback failure",
+      "source": "\nimport codecs\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('audit')\nfailure = RuntimeError('callback')\ndef recover(error):\n    print(decoder.getstate(), error.object, error.start, error.end)\n    decoder.reset()\n    raise failure\ncodecs.register_error('audit', recover)\nprint(repr(decoder.decode(b'\\xef')))\ntry:\n    decoder.decode(b'\\xbb\\xbf\\xff')\nexcept RuntimeError as error:\n    print(error is failure, error.args, decoder.getstate())\nprint(repr(decoder.decode(b'\\xef\\xbb\\xbfZ', True)), decoder.getstate())\n",
+      "stdout": "''\n(b'\\xef', 0) b'\\xff' 0 1\nTrue ('callback',) (b'', 1)\n'Z' (b'', 0)\n"
+    }
+  ]
+}

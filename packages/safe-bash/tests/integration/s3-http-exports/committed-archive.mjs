@@ -290,7 +290,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
-    else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs"].includes(path), `unadmitted root archive path: ${path}`);
+    else assert.ok(["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", "packages/op/package.json", "packages/op/tsconfig.json"].includes(path) || path.startsWith("packages/op/src/"), `unadmitted root archive path: ${path}`);
     const entry = tree.get(path);
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
@@ -306,7 +306,22 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   admit("package.json", 300000);
   admit("package-lock.json");
   admit(`${packagePrefix}/README.md`);
+  const hasOp = tree.has("packages/op/package.json");
+  if (hasOp) {
+    admit("packages/op/package.json", 300000);
+    admit("packages/op/tsconfig.json", 300000);
+  }
   const bootstrapCount = admitted.size;
+  if (hasOp) {
+    const foldedOp = new Set();
+    for (const path of tree.keys()) {
+      if (!path.startsWith("packages/op/src/")) continue;
+      assert.ok(!foldedOp.has(path.toLowerCase()), `case alias of committed op source: ${path}`);
+      foldedOp.add(path.toLowerCase());
+      admit(path);
+    }
+  }
+
   const withheldPaths = [];
   const heldCode = [];
   const folded = new Set();
@@ -328,7 +343,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   }
   assert.ok(admitted.has(`${packagePrefix}/src/index.ts`), "missing committed source entrypoint");
   assert.deepEqual(heldCode.sort(), boundaries.heldSourceFiles.filter(path => path.endsWith(".ts")).sort(), "committed held source metadata inventory changed");
-  let manifest, rootManifest, lock;
+  let manifest, rootManifest, lock, opManifest;
   const files = readCommittedBlobs([...admitted.values()], hashAlgorithm, git, {
     bootstrapCount,
     validateBootstrap(bootstrap) {
@@ -360,10 +375,22 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       }
       assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
       assertArchiveDependencyLock(manifest, lock);
+      if (manifest.devDependencies?.["@poe-platform/op"] !== undefined) {
+        assert.equal(manifest.devDependencies["@poe-platform/op"], "*");
+        assert.ok(hasOp, "missing committed op build prerequisite");
+        opManifest = JSON.parse(bootstrap.get("packages/op/package.json"));
+        assert.equal(opManifest.name, "@poe-platform/op");
+        assert.equal(opManifest.private, true);
+        assert.equal(opManifest.exports?.["."]?.types, "./dist/index.d.ts");
+        assert.deepEqual(lock.packages["packages/op"]?.dependencies ?? {}, opManifest.dependencies ?? {}, "op dependency workspace lock drift");
+        assert.deepEqual(lock.packages["node_modules/@poe-platform/op"], { resolved: "packages/op", link: true }, "op workspace link drift");
+        assert.ok(bootstrap.get("packages/op/tsconfig.json").equals(readRegularInput(resolve(authority, "../op"), "tsconfig.json", 300000)), "committed op compiler config differs from reviewed authority");
+        assert.ok(admitted.has("packages/op/src/index.ts"), "missing committed op source entrypoint");
+      } else assert.equal(hasOp, false, "unrequested op workspace archive");
     },
   });
   const blobReads = [...files.keys()];
-  return { sourceCommit, files, blobReads, withheldPaths, manifest, rootManifest, lock, boundaries, environment };
+  return { sourceCommit, files, blobReads, withheldPaths, manifest, rootManifest, lock, opManifest, boundaries, environment };
 }
 
 export function resolveTools() {
@@ -388,7 +415,7 @@ export function resolveTools() {
   return { packages, identities, npmCli, pack: npmRequire.resolve("libnpmpack"), tar: npmRequire("tar"), dependencyArtifactPath: integrity => contentPath(dependencyCache, integrity) };
 }
 
-export function copyRegularTree(source, destination, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }) {
+export function copyRegularTree(source, destination, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }, hardlinkedInputs = []) {
   const inventory = [];
   const pending = [];
   const folded = new Set();
@@ -456,7 +483,10 @@ export function copyRegularTree(source, destination, fileSystem = { lstatSync, r
       const stat = fileSystem.lstatSync(join(source, path));
       if (stat.isDirectory()) visit(path);
       else {
-        assert.ok(stat.isFile() && stat.nlink === 1, `copy input must be regular single-link: ${path}`);
+        // npm's esbuild installer links its launcher to the native package binary.
+        // Explicitly admitted pairs are copied to fresh files, with the same
+        // before/after identity checks as every other input.
+        assert.ok(stat.isFile() && (stat.nlink === 1 || (stat.nlink === 2 && hardlinkedInputs.includes(path))), `copy input must be regular single-link: ${path}`);
         assert.ok(Number.isSafeInteger(stat.size) && stat.size >= 0 && stat.size <= 32 * 1024 * 1024, `copy input byte budget: ${path}`);
         pending.push({ path, identity: identity(stat) });
       }

@@ -1,0 +1,7780 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "byteorder": "little",
+  "cases": [
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          63,
+          63,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          63,
+          63,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          38,
+          35,
+          54,
+          53,
+          59,
+          38,
+          35,
+          54,
+          54,
+          59,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          38,
+          35,
+          54,
+          53,
+          59,
+          38,
+          35,
+          54,
+          54,
+          59,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67,
+          92,
+          78,
+          123,
+          76,
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": null,
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(256)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          255,
+          0,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, bytes or None, not float",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          63,
+          63,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          63,
+          63,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          38,
+          35,
+          54,
+          53,
+          59,
+          38,
+          35,
+          54,
+          54,
+          59,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          38,
+          35,
+          54,
+          53,
+          59,
+          38,
+          35,
+          54,
+          54,
+          59,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67,
+          92,
+          78,
+          123,
+          76,
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          63,
+          63,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          63,
+          63,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          38,
+          35,
+          54,
+          53,
+          59,
+          38,
+          35,
+          54,
+          54,
+          59,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67,
+          38,
+          35,
+          54,
+          53,
+          59,
+          38,
+          35,
+          54,
+          54,
+          59,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67,
+          92,
+          78,
+          123,
+          76,
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeEncodeError",
+        "message": "'charmap' codec can't encode characters in position 0-1: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 2,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "encode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65533,
+          65533,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": null,
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "0"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          0,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "255"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          255,
+          255,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "256"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          256,
+          256,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65533,
+          65533,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "65534"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114111"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1114111,
+          1114111,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1114112"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "1267650600228229401496703205376"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "int": "-1267650600228229401496703205376"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must be in range(0x110000)",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": []
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65533,
+          65533,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          65534,
+          65
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65534,
+          65,
+          65534,
+          65,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "text": [
+          0,
+          55296,
+          128512
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          0,
+          55296,
+          128512,
+          0,
+          55296,
+          128512,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": []
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bytes": [
+          0,
+          255
+        ]
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "bool": true
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          1,
+          1,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "float": 1.0
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "character mapping must return integer, None or str",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65533,
+          65533,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "LookupError"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          65533,
+          65533,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "output": [
+          92,
+          120,
+          52,
+          49,
+          92,
+          120,
+          52,
+          50,
+          67
+        ],
+        "consumed": 3,
+        "events": [
+          65,
+          66,
+          67
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "TypeError",
+        "message": "don't know how to handle UnicodeDecodeError in error callback",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "IndexError"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "UnicodeDecodeError",
+        "message": "'charmap' codec can't decode byte 0x41 in position 0: character maps to <undefined>",
+        "encoding": "charmap",
+        "object": [
+          65,
+          66,
+          67
+        ],
+        "start": 0,
+        "end": 1,
+        "reason": "character maps to <undefined>",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "strict",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "ignore",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "replace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "backslashreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "xmlcharrefreplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "namereplace",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "surrogateescape",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    },
+    {
+      "operation": "decode",
+      "mapping": {
+        "error": "ValueError"
+      },
+      "policy": "surrogatepass",
+      "input": [
+        65,
+        66,
+        67
+      ],
+      "expected": {
+        "error": "ValueError",
+        "message": "mapping failure",
+        "events": [
+          65
+        ]
+      }
+    }
+  ]
+}

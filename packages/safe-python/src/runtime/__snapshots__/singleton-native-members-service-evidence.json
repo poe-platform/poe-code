@@ -1,0 +1,10 @@
+{
+  "programs": 480,
+  "bytes": 22014,
+  "sourceSha256": "bb6fd15d549ff0c8d452d8e7d592c3dc219da479c452d8b5b31d9473d010d678",
+  "outputSha256": "660bbb18a93dfa9d59bc9791618d8c4c3ca90ea97dcdf1435c44f2b1ef345202",
+  "adapter": "explicit PythonSession output adapter using an owned file descriptor, writeSync and fsyncSync",
+  "oracle": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "matched": true
+}

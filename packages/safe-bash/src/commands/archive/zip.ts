@@ -1,12 +1,13 @@
 import { collectBytes, dirname, getCommandArguments, writeBytes, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
+import { createOutputOperation } from "../../contracts/output.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
-import { publishZip, ZipScope } from "./zip/safety.js";
+import { publishZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, ZipFailure } from "./zip/options.js";
 
@@ -145,9 +146,12 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       operands.push(argument);
     }
   }
-  if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "expected zip [-r] [-q] [-j] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]");
-  if (archive === "-") throw new ZipFailure(16, "Invalid command arguments", "standard output archives are unsupported");
-  if (!archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
+  if (archive === undefined) {
+    if (action !== "add") throw new ZipFailure(16, "Invalid command arguments", "expected archive name");
+    archive = "-";
+    if (!stdinNames) operands.push("-");
+  }
+  if (archive !== "-" && !archive.slice(archive.lastIndexOf("/") + 1).includes(".")) archive += ".zip";
   checkPath(archive, limits);
   const names: string[] = [];
   if (stdinNames) {
@@ -219,21 +223,29 @@ async function filterName(name: string, selection: Selection, includeCount: numb
 async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const context = scope.context;
   const limits = budget.limits;
-  const outputName = vfsPath(context.cwd, parsed.archive);
-  const parentName = dirname(outputName);
-  const parent = await scope.operation(() => context.fs.realpath(parentName, { signal: context.signal }));
-  const parentStat = await scope.operation(() => context.fs.lstat(parent, { signal: context.signal }));
-  const output = `${parent === "/" ? "" : parent}/${outputName.slice(outputName.lastIndexOf("/") + 1)}`;
-  checkPath(output, limits);
-  const existing = await scope.stat(output);
+  if (parsed.archive === "-" && parsed.action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g on stdout\n");
+  let publication: Omit<ZipPublication, "bytes"> | undefined;
+  if (parsed.archive !== "-") {
+    const outputName = vfsPath(context.cwd, parsed.archive);
+    const parentName = dirname(outputName);
+    const parent = await scope.operation(() => context.fs.realpath(parentName, { signal: context.signal }));
+    const parentStat = await scope.operation(() => context.fs.lstat(parent, { signal: context.signal }));
+    const output = `${parent === "/" ? "" : parent}/${outputName.slice(outputName.lastIndexOf("/") + 1)}`;
+    checkPath(output, limits);
+    const existing = await scope.stat(output);
+    publication = { output, parentName, parent, parentStat, existing };
+  }
+  const output = publication?.output;
+  const existing = publication?.existing;
+  if (parsed.archive === "-" && parsed.test && !parsed.quiet) await budget.output("\tzip warning: can't use -T on stdout, -T ignored\n");
   if (existing && (existing.type !== "file" || !hasIdentity(existing) || existing.nlink !== 1)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
   let archive: ZipArchive = { entries: [], comment: new Uint8Array() };
-  if (existing) {
+  if (existing && publication) {
     if (!Number.isSafeInteger(existing.size) || existing.size < 0 || existing.size > limits.maxArchiveBytes) fail("archive byte limit exceeded");
-    const bytes = await collectBytes(scope.input(output), { maxBytes: limits.maxArchiveBytes, signal: context.signal });
+    const bytes = await collectBytes(scope.input(publication.output), { maxBytes: limits.maxArchiveBytes, signal: context.signal });
     if (bytes.length !== existing.size) fail("archive changed while reading");
     archive = await readZipArchive(bytes, limits, context.signal);
-    const current = await scope.stat(output);
+    const current = await scope.stat(publication.output);
     if (!current || !unchanged(existing, current)) fail("archive changed while reading");
   }
   const old = new Map(archive.entries.map(entry => [entry.name, entry]));
@@ -249,7 +261,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
     if (!store && parsed.level === 0 && bytes.length && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
     const level = store ? 0 : parsed.level;
-    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level);
+    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, parsed.archive === "-" && !store);
     const prior = old.get(name);
     if (prior?.comment) entry = { ...entry, comment: prior.comment };
     if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
@@ -387,8 +399,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
   if (!entries.length) queue("\tzip warning: zip file empty\n");
-  const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal);
-  if (parsed.test) {
+  const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal, parsed.archive === "-");
+  if (parsed.test && parsed.archive !== "-") {
     for (const message of progress) await budget.output(message);
     progress.length = 0;
     progressBytes = 0;
@@ -411,7 +423,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       queue(`test of ${parsed.archive} OK\n`);
     }
   }
-  return { output, parentName, parent, parentStat, existing, bytes, progress };
+  return { publication, bytes, progress };
 }
 
 export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
@@ -420,13 +432,22 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     original.signal.throwIfAborted();
     const scope = new ZipScope(original, limits);
     const context = scope.context;
-    const budget = new Budget(context, limits);
+    let budget = new Budget(context, limits);
     try {
       const parsed = await parse(scope, limits);
+      if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);
       const prepared = await prepare(scope, parsed, budget);
       if (!prepared) return { exitCode: 12 };
-      await writeFileOutput(context, prepared.bytes, () => scope.operation(() => publishZip(scope, prepared)));
-      for (const message of prepared.progress) await budget.output(message);
+      const publication = prepared.publication;
+      if (publication) {
+        await writeFileOutput(context, prepared.bytes, () => scope.operation(() => publishZip(scope, { ...publication, bytes: prepared.bytes })));
+        for (const message of prepared.progress) await budget.output(message);
+      } else {
+        for (const message of prepared.progress) await budget.output(message);
+        const output = createOutputOperation(context, context.stdout);
+        try { await writeBytes(output.output, prepared.bytes, output.signal); }
+        finally { await output.close(); }
+      }
       return { exitCode: 0 };
     } catch (error) {
       original.signal.throwIfAborted();

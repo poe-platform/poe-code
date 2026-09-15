@@ -60,8 +60,19 @@ Filename-list input and payload input share one owned iterator, so a completed
 `maxEntryBytes` and the remaining aggregate payload budget. Pipe-mode Unix
 metadata is preserved; extraction creates a regular file with the payload and
 permission bits, matching native UnZip rather than creating a FIFO. Invocation
-cancellation drains admitted input reads before settlement. Stdout archives and
-default filter-mode invocation remain streaming implementation work.
+cancellation drains admitted input reads before settlement.
+
+`zip - FILES...` writes archive bytes to stdout and progress, warnings and fatal
+diagnostics to stderr. It performs no archive file publication or staging and
+uses stdout accounting and owned-output cleanup. With no archive argument,
+`zip` (or `zip -q`) reads a stdin payload and writes its archive to stdout.
+An explicit `zip -` with no file operands returns `Nothing to do!` and status 12.
+Stream archives use signed data descriptors; default DEFLATE is retained even
+when it expands a small or empty file. Storage mode remains available with `-0`
+or `-Z store`. `-T` is ignored with a nonquiet advisory warning on stdout archives.
+Archive update/freshen/delete actions on stdout are rejected with status 16.
+The bounded candidate is prepared before stdout writes begin; incremental
+serialization and native stdin ZIP64 records remain implementation work.
 
 `-u` updates existing members only when the source has a newer whole-second
 modification time, and adds new members. `-f` freshens only existing newer members.

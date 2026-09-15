@@ -163,3 +163,24 @@ draining cancellation and a native-validated collision with a literal `./-` sour
 Format and extraction cases also cover FIFO admission
 while continuing to reject device/socket modes. Native stdin ZIP64 records,
 stdout archives and default filter invocation remain in scope and unimplemented.
+
+## Stdout archives and default filter invocation
+
+`zip - FILES...` bypasses archive filesystem metadata/publication entirely and
+writes binary bytes through owned stdout operations; progress and fatal messages
+use stderr. Default no-archive invocation selects stdin's `-` member, while explicit
+`zip -` without operands returns 12. Stream format writing now emits signed data
+descriptors with correct flags, extraction versions, offsets, sizes and CRCs.
+Default DEFLATE is retained even for expansion; file-output mode keeps its existing
+stored fallback. Native captures establish channel separation, negative compression
+progress, default filter behavior, ignored stdout `-T` and action rejection.
+Nine memory cases cover those effects, no-filesystem filter invocation, output-only
+budgeting, Shell binary pipelines/limits and draining enrolled cancelled writes.
+Incremental serialization, ZIP64 stdin records and the remaining option/format
+areas are still open; bounded prepublication candidate construction is not a
+claim of complete streaming parity.
+
+Manual interoperability verification generated an actual virtual stdout archive
+for a one-byte file, then read it with native UnZip and Python's independent ZIP
+reader in an isolated temporary directory. UnZip returned 0 and the exact `a`
+payload; Python confirmed DEFLATE, descriptor flag 8 and extraction version 20.

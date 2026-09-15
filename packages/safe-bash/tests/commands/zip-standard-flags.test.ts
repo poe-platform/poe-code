@@ -12,6 +12,95 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+test("zip stdout archive uses binary stdout and stderr progress with descriptors", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/tiny", Buffer.from("a"));
+  const result = await execute("zip", fs, ["-", "tiny"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "  adding: tiny (deflated -199%)\n");
+  const archive = await readZipArchive(result.stdout, settings({}), new AbortController().signal);
+  assert.equal(archive.entries[0]!.method, 8);
+  assert.equal(archive.entries[0]!.flags! & 8, 8);
+  await fs.writeFile("/work/stream.zip", result.stdout);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "stream.zip"])).stdout, Buffer.from("a"));
+});
+
+test("zip default filter creates stdout archive from binary stdin without filesystem operations", async () => {
+  const fs = await fixture();
+  const unavailable = new Proxy(fs, { get(target, property) {
+    const value = Reflect.get(target, property);
+    if (typeof value === "function") return () => { throw new Error(`unexpected filesystem operation ${String(property)}`); };
+    return value;
+  } });
+  const result = await execute("zip", unavailable, ["-q"], {}, { stdin: toByteSource(binary) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  const archive = await readZipArchive(result.stdout, settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => [entry.name, entry.size]), [["-", binary.length]]);
+});
+
+test("zip explicit stdout archive without operands has Nothing to do on stderr", async () => {
+  const result = await execute("zip", await fixture(), ["-q", "-"]);
+  assert.deepEqual(result, { exitCode: 12, stdout: Buffer.alloc(0), stderr: "\nzip error: Nothing to do! (-)\n" });
+});
+
+test("zip stdout ignores integrity testing and retains binary output accounting", async () => {
+  const fs = await fixture();
+  const registerCleanup = () => {};
+  bindFileOutputBudget({ registerCleanup }, () => { throw new Error("filesystem budget used for stdout"); });
+  const result = await execute("zip", fs, ["-T", "-", "binary"], {}, { registerCleanup });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stderr.startsWith("\tzip warning: can't use -T on stdout, -T ignored\n"));
+  assert.equal(result.stderr.includes("test of"), false);
+  await readZipArchive(result.stdout, settings({}), new AbortController().signal);
+});
+
+for (const action of ["-u", "-f", "-d"]) {
+  test(`zip stdout rejects ${action} on stderr`, async () => {
+    const result = await execute("zip", await fixture(), [action, "-", "binary"]);
+    assert.deepEqual(result, { exitCode: 16, stdout: Buffer.alloc(0), stderr: "\nzip error: Invalid command arguments (can't use -d, -f, -u, -U, or -g on stdout\n)\n" });
+  });
+}
+
+test("zip stdout archive works through Shell binary pipelines and output limits", async () => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(archiveCommands()).use(standardCommands());
+  try {
+    const result = await shell.exec("zip -q - binary | cat > piped.zip");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "piped.zip"])).stdout, binary);
+  } finally { await shell.dispose(); }
+  const limited = new Shell({ fs, cwd: "/work", limits: { maxOutputBytes: 1 } }).use(archiveCommands());
+  try { await assert.rejects(limited.exec("zip -q - binary"), ShellLimitError); }
+  finally { await limited.dispose(); }
+});
+
+test("zip stdout drains an enrolled pending output write before cancellation settles", async () => {
+  const fs = await fixture();
+  const controller = new AbortController();
+  const consumer = new AbortController();
+  const cleanups: InvocationCleanup[] = [];
+  let entered!: () => void;
+  let release!: () => void;
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  const held = new Promise<void>(resolve => { release = resolve; });
+  let settled = false;
+  const write = async () => { entered(); await held; };
+  const pending = execute("zip", fs, ["-q", "-", "binary"], {}, {
+    signal: controller.signal,
+    registerCleanup(cleanup) { cleanups.push(cleanup); },
+    stdout: { write, ownedOutput: { consumerClosed: consumer.signal, write } },
+  }).then(value => { settled = true; return value; }, reason => { settled = true; return reason; });
+  try {
+    await started;
+    controller.abort(false);
+    await setImmediate();
+    assert.equal(settled, false);
+  } finally { release(); }
+  assert.equal(await pending, false);
+  await Promise.all(cleanups.map(cleanup => cleanup()));
+});
+
 test("zip stdin payload preserves binary bytes and pipe metadata", async () => {
   const fs = await fixture();
   const result = await execute("zip", fs, ["-qT", "output.zip", "-"], {}, { stdin: toByteSource(binary) });

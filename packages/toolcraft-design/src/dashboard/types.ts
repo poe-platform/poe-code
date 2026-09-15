@@ -16,7 +16,18 @@ export type DashboardStats = {
   currentAction?: string;
 };
 
-export type Command = "quit" | "forceQuit" | "edit" | "pause" | "retry" | "view-log";
+export type Command =
+  | "quit"
+  | "forceQuit"
+  | "edit"
+  | "pause"
+  | "retry"
+  | "view-log"
+  | "scroll-up"
+  | "scroll-down"
+  | "page-up"
+  | "page-down"
+  | "follow";
 
 export type DashboardState = {
   output: OutputItem[];

@@ -17,15 +17,33 @@ export type VisualLine = {
   segments?: StyledSegment[];
 };
 
-export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, items: OutputItem[]): void {
+export function renderOutputPane(
+  buffer: ScreenBuffer,
+  rect: Rect,
+  items: OutputItem[],
+  scrollOffset = 0
+): number {
   buffer.clearRect(rect);
 
   if (rect.width <= 0 || rect.height <= 0) {
-    return;
+    return 0;
   }
 
-  const visualLines = computeVisualLines(items, rect.width);
-  const startLine = Math.max(visualLines.length - rect.height, 0);
+  const chunks: VisualLine[][] = [];
+  let retainedRows = 0;
+  const requestedRows = rect.height + Math.max(0, scrollOffset);
+  for (let index = items.length - 1; index >= 0 && retainedRows < requestedRows; index -= 1) {
+    const lines = computeVisualLines([items[index]!], rect.width);
+    const visible = lines.slice(-Math.max(requestedRows - retainedRows, 0));
+    chunks.push(visible);
+    retainedRows += visible.length;
+  }
+  const visualLines = chunks.reverse().flat();
+  const actualOffset = Math.min(
+    Math.max(0, scrollOffset),
+    Math.max(0, visualLines.length - rect.height)
+  );
+  const startLine = Math.max(visualLines.length - rect.height - actualOffset, 0);
   const textRect: Rect = {
     x: rect.x + TEXT_OFFSET,
     y: rect.y,
@@ -69,6 +87,7 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, items: Output
 
     buffer.putInRect(textRect, row, line.text, line.style);
   }
+  return actualOffset;
 }
 
 export function computeVisualLines(items: OutputItem[], width: number): VisualLine[] {

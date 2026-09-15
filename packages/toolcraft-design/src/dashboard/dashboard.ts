@@ -56,6 +56,8 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   let unsubscribeResize: (() => void) | undefined;
   let started = false;
   let destroyed = false;
+  let scrollOffset = 0;
+  let heldOutput: OutputItem[] | undefined;
 
   function appendOutput(item: OutputItem): void {
     if (destroyed) {
@@ -102,6 +104,35 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       const command = resolveCommand(event);
 
       if (command === undefined) {
+        return;
+      }
+
+      if (command === "follow") {
+        heldOutput = undefined;
+        scrollOffset = 0;
+        render();
+        return;
+      }
+      if (
+        command === "scroll-up" ||
+        command === "scroll-down" ||
+        command === "page-up" ||
+        command === "page-down"
+      ) {
+        const page = Math.max(
+          1,
+          computeDashboardLayout({
+            totalWidth: driver!.getSize().cols,
+            totalHeight: driver!.getSize().rows,
+            rightPaneWidth
+          }).leftPane.height
+        );
+        const amount = command === "page-up" || command === "page-down" ? page : 1;
+        const direction = command === "scroll-up" || command === "page-up" ? 1 : -1;
+        if (direction > 0) heldOutput ??= getStore().getState().output;
+        scrollOffset = Math.max(0, scrollOffset + amount * direction);
+        if (scrollOffset === 0) heldOutput = undefined;
+        render();
         return;
       }
 
@@ -175,7 +206,13 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       rightTitle: statsTitle,
       style: { dim: true }
     });
-    renderOutputPane(nextBuffer, layout.leftPane, state.output);
+    scrollOffset = renderOutputPane(
+      nextBuffer,
+      layout.leftPane,
+      heldOutput ?? state.output,
+      scrollOffset
+    );
+    if (scrollOffset === 0) heldOutput = undefined;
     renderStatsPane(nextBuffer, layout.rightPane, state.stats);
     renderFooter(nextBuffer, layout.footer, footerHints);
 

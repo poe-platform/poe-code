@@ -1332,21 +1332,21 @@ describe("keymap", () => {
     expect(resolve(key({ ch: "r" }))).toBe("retry");
   });
 
-  it("does not resolve former scroll keys to any command", () => {
+  it("resolves scroll and follow keys while leaving unbound keys alone", () => {
     const resolve = createKeymap();
 
-    expect(resolve(key({ name: "up" }))).toBeUndefined();
-    expect(resolve(key({ name: "down" }))).toBeUndefined();
-    expect(resolve(key({ name: "pageup" }))).toBeUndefined();
-    expect(resolve(key({ name: "pagedown" }))).toBeUndefined();
+    expect(resolve(key({ name: "up" }))).toBe("scroll-up");
+    expect(resolve(key({ name: "down" }))).toBe("scroll-down");
+    expect(resolve(key({ name: "pageup" }))).toBe("page-up");
+    expect(resolve(key({ name: "pagedown" }))).toBe("page-down");
     expect(resolve(key({ name: "home" }))).toBeUndefined();
-    expect(resolve(key({ name: "end" }))).toBeUndefined();
+    expect(resolve(key({ name: "end" }))).toBe("follow");
     expect(resolve(key({ ch: "j" }))).toBeUndefined();
     expect(resolve(key({ ch: "k" }))).toBeUndefined();
     expect(resolve(key({ ch: "g" }))).toBeUndefined();
     expect(resolve(key({ ch: "G", shift: true }))).toBeUndefined();
-    expect(resolve(key({ ch: "f" }))).toBeUndefined();
-    expect(resolve(key({ ch: "F", shift: true }))).toBeUndefined();
+    expect(resolve(key({ ch: "f" }))).toBe("follow");
+    expect(resolve(key({ ch: "F", shift: true }))).toBe("follow");
   });
 
   it("resolves ctrl+c to forceQuit so consumers can distinguish immediate kill from graceful quit", () => {
@@ -1454,7 +1454,33 @@ describe("createDashboard", () => {
     });
   });
 
-  it("ignores former scroll keys because navigation is disabled", () => {
+  it("scrolls history, holds it during new output, and follows on F", () => {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(80, 8);
+      const dashboard = createDashboard({ stdin, stdout });
+      for (let index = 0; index < 10; index += 1) {
+        dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+      }
+      dashboard.start();
+      const screen = () => renderTerminalOutput(stdout.output, 80, 8).join("\n");
+      expect(screen()).toContain("entry 9");
+      stdin.emit("data", Buffer.from("\u001b[A"));
+      expect(screen()).toContain("entry 8");
+      expect(screen()).not.toContain("entry 9");
+      for (let index = 10; index < 300; index += 1) {
+        dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+      }
+      expect(screen()).toContain("entry 8");
+      expect(screen()).not.toContain("entry 299");
+      stdin.emit("data", Buffer.from("F"));
+      expect(screen()).toContain("entry 299");
+      expect(screen()).not.toContain("entry 8");
+      dashboard.destroy();
+    });
+  });
+
+  it("handles navigation internally without forwarding it to run commands", () => {
     withOutputFormat("terminal", () => {
       const stdin = new TestDashboardStdin();
       const stdout = new TestDashboardStdout();

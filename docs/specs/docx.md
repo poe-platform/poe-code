@@ -1206,7 +1206,8 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   remove with explicit allowEmpty may return an unchanged zero-target result.
   Unchanged typed edits retain exact package bytes and do not update clocks/counts.
 - **Graphics.** Image add defaults inline, empty alt and native size. Floating add
-  anchors at x=0/y=0 relative to paragraph, wrap square, zOrder=0, no crop/rotation/
+  anchors at x=0/y=0 with horizontal column and vertical paragraph frames,
+  wrap square, zOrder=0, no crop/rotation/
   flips, decorative false. Width/height are positive shared-unit lengths. With no
   explicit fit, zero/one dimensions use native ratio and two dimensions set both
   extents; explicit contain/cover require both box dimensions, stretch requires
@@ -1250,6 +1251,110 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   not invented semantic editing commands. Equations add/replace require one
   bounded OMML math root, reject arbitrary surrounding WordprocessingML. Objects
   extract emits inert admitted bytes only, never activation.
+- **Bounded SVG insertion and alternate graphics.**
+
+The SVG insertion utility profile uses the existing `images add` operation and
+`file`/`fallback` inputs. It MUST admit SVG only with an explicitly supplied
+validated PNG, JPEG, GIF, BMP or TIFF fallback. A raster `file` with `fallback`
+MUST reject rather than ignore it. This profile inserts an inline native picture;
+floating insertion remains unsupported. It MUST NOT fetch, rasterize, decode
+pixel payloads, convert an existing representation or activate additional MCE
+Choices. Existing inert SVG/EMF/WMF/WDP/GIF/BMP/TIFF and alternate associations
+MUST remain byte-identical on unrelated edits. SVG/fallback replacement remains
+outside the existing raster replacement profile; incomplete or linked alternate
+replacement MUST reject before replacement-byte acquisition.
+
+Native size, one-axis ratio and explicit contain/cover/stretch behavior MUST use
+the supplied fallback's admitted pixel dimensions and per-axis DPI, including
+the independent 72-DPI fallback. SVG width, height and viewBox MUST NOT establish
+physical drawing dimensions or require a renderer. Existing explicit length,
+fit, alt/decorative, owner selection and publication rules apply unchanged.
+Both admitted original SVG and fallback byte arrays MUST be retained exactly.
+They require distinct collision-safe media parts, canonical suffixes/content
+types and owner-local image relationships. The raster base blip and one direct
+SVG extension MUST form one coherent physical occurrence; inventory/extraction
+MUST expose both resources without implying renderer preference.
+
+New SVG input MUST be one well-formed SVG-namespace svg root under the normal
+XML/media/work/retention limits. The bounded static vocabulary is svg, g, defs,
+symbol, use, rect, circle, ellipse, line, polyline, polygon, path, title, desc,
+text, tspan, textPath, linearGradient, radialGradient, stop, clipPath, mask,
+pattern and marker. Other elements, foreign-namespace elements, scripts,
+foreignObject, image embedding, animation, event attributes, style elements or
+style/class attributes MUST reject. Processing instructions other than the XML
+declaration, DTDs and entity declarations MUST reject. Standard predefined XML
+escapes and numeric character references remain permitted under existing XML
+admission; no custom/external entity is admitted. This profile is a static XML
+admission policy, not complete SVG rendering or visual-conformance validation.
+
+Attributes MUST belong to an explicit static presentation/geometry vocabulary:
+id, version, x, y, width, height, viewBox, preserveAspectRatio, transform, cx, cy,
+r, rx, ry, x1, y1, x2, y2, points, d, dx, dy, rotate, textLength, lengthAdjust,
+fill, fill-rule, fill-opacity, stroke, stroke-width, stroke-opacity,
+stroke-linecap, stroke-linejoin, stroke-miterlimit, stroke-dasharray,
+stroke-dashoffset, opacity, color, clip-rule, clip-path, mask, marker-start,
+marker-mid, marker-end, markerWidth, markerHeight, refX, refY, orient,
+markerUnits, gradientUnits, gradientTransform, spreadMethod, offset, stop-color,
+stop-opacity, fx, fy, fr, patternUnits, patternContentUnits, patternTransform,
+clipPathUnits, maskUnits, maskContentUnits, font-family, font-size, font-weight,
+font-style, text-anchor, dominant-baseline and visibility. Namespace declarations
+are permitted; xml:lang and xml:space are permitted, xml:base is not. Unknown
+attributes or attribute namespaces MUST reject. href in the empty or XLink
+namespace is permitted only on use, textPath, linearGradient, radialGradient or
+pattern and MUST contain one literal local fragment. Competing empty-namespace
+and XLink href attributes on the same element MUST reject, even when equal.
+Reference grammar operates on parsed attribute values after standard XML
+character/predefined-reference decoding; for example `&#35;g` decodes to an admitted
+local `#g` when that ID exists. Prohibited escape encoding means CSS backslashes
+or percent encoding, not permitted standard XML character references.
+No external, data, file,
+scheme-relative or percent/escape-encoded reference is admitted.
+
+An admitted local ID MUST start with an ASCII letter or underscore and contain
+only ASCII letters, digits, underscore, hyphen, dot or colon. IDs MUST be unique,
+nonempty and bounded by normal input budgets. Every referenced ID MUST resolve.
+Paint/reference fields MUST reject escapes, percent encoding, CSS variables,
+imports and trailing/fallback tokens. A resource reference accepts exactly one
+lowercase url( followed by optional ASCII XML whitespace, an optional matching
+single/double quote, one #ID, matching quote/whitespace and a closing ); no
+remaining token is admitted. fill/stroke/color/stop-color may instead use none,
+currentColor, transparent, ASCII letter-only color tokens, hex colors of exactly
+3, 4, 6 or 8 ASCII hexadecimal digits after #, or numeric rgb/rgba/hsl/hsla
+colors. The lowercase color functions accept exactly three channels, or four
+for rgba/hsla, separated by commas with optional ASCII XML whitespace. Numeric
+tokens use decimal notation with optional sign/fraction/exponent and MUST be
+finite. RGB channels MUST all be unitless in [0,255] or all percentages in
+[0,100]. HSL hue is unitless finite degrees with absolute value at most
+Number.MAX_SAFE_INTEGER; fractions are permitted. Saturation/lightness MUST be
+percentages in [0,100]. Alpha MUST be unitless in [0,1] or percentage in [0,100].
+Other units, separators, escapes, trailing tokens and mixed RGB channel units
+MUST reject; values never clamp. clip-path/mask/marker fields admit none or one local
+resource reference. The complete grammar MUST be parsed, not inferred from a
+matching substring. #ID is parsed as a literal fragment first; an admitted colon
+or dot within that ID is not a URI scheme or external pathname. The dependency
+graph contains every parent-to-child containment edge and every explicit
+source-element-to-target-ID-element reference edge, including href and admitted
+paint/clip/mask/marker references. It MUST be acyclic;
+recursive use, paint, clipping, mask or inherited resources MUST reject.
+
+The native SVG extension namespace is
+http://schemas.microsoft.com/office/drawing/2016/SVG/main. Its embed/link
+attribute namespace is the Transitional officeDocument relationship namespace
+http://schemas.openxmlformats.org/officeDocument/2006/relationships independently
+of the surrounding Strict/Transitional owner dialect, as declared by the pinned
+extension schema's a:AG_Blob import. The owner graph still uses the owner's
+native relationship types. This exception MUST NOT relax core mixed-dialect
+guards or activate an MCE Choice. Existing single direct SVG-extension inventory
+associations MUST NOT be tightened solely from an assumed extension GUID;
+ambiguous, missing, linked or competing associations remain preserve/refusal
+evidence. Newly authored extension metadata MUST use one explicitly documented
+writer profile; schema/format claims and observed writer metadata are distinct.
+This utility writer profile uses a direct native drawing extension with uri
+{96DAC541-7B7A-43D3-8B79-37D633B846F1}, one svgBlip and its admitted internal
+embed relationship. The URI is the explicitly selected observed writer profile,
+not a claimed requirement proved by the pinned extension XSD. Existing admitted
+single-extension URI spellings remain preserved and are not rewritten.
+
 - **Bounded image layout.**
 
 `images set` edits the selected physical picture drawing's stored metadata. Its

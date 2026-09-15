@@ -844,8 +844,8 @@ export interface DocxOperationArgumentMap {
   "model.drawing.Drawing.part.get": Readonly<Record<string, never>>;
   "model.drawing.Drawing.has_picture.get": Readonly<Record<string, never>>;
   "model.drawing.Drawing.image.get": Readonly<Record<string, never>>;
-  "model.image.image.Image.from_blob.call": Readonly<{ "blob": Uint8Array | DocxBinaryInput; "context"?: DocxTransportContext | undefined }>;
-  "model.image.image.Image.from_file.call": Readonly<{ "imageDescriptor": Uint8Array | DocxBinaryInput | DocxVfsPath; "context"?: DocxTransportContext | undefined }>;
+  "model.image.image.Image.from_blob.call": Readonly<{ "blob": Uint8Array | Extract<DocxBinaryInput, { kind: "bytes" }>; "context"?: Pick<DocxTransportContext, "vfs" | "limits"> | undefined }>;
+  "model.image.image.Image.from_file.call": Readonly<{ "imageDescriptor": Uint8Array | DocxBinaryInput | DocxVfsPath; "context"?: Pick<DocxTransportContext, "vfs" | "limits"> | undefined }>;
   "model.image.image.Image.blob.get": Readonly<Record<string, never>>;
   "model.image.image.Image.content_type.get": Readonly<Record<string, never>>;
   "model.image.image.Image.ext.get": Readonly<Record<string, never>>;
@@ -2367,8 +2367,8 @@ export interface DocxBatchArgumentMap {
   "model.drawing.Drawing.part.get": Readonly<Record<string, never>>;
   "model.drawing.Drawing.has_picture.get": Readonly<Record<string, never>>;
   "model.drawing.Drawing.image.get": Readonly<Record<string, never>>;
-  "model.image.image.Image.from_blob.call": Readonly<{ "blob": Uint8Array | DocxBinaryInput; "context"?: DocxTransportContext | undefined }>;
-  "model.image.image.Image.from_file.call": Readonly<{ "imageDescriptor": Uint8Array | DocxBinaryInput | DocxVfsPath; "context"?: DocxTransportContext | undefined }>;
+  "model.image.image.Image.from_blob.call": Readonly<{ "blob": Uint8Array | Extract<DocxBinaryInput, { kind: "bytes" }>; "context"?: Pick<DocxTransportContext, "vfs" | "limits"> | undefined }>;
+  "model.image.image.Image.from_file.call": Readonly<{ "imageDescriptor": Uint8Array | DocxBinaryInput | DocxVfsPath; "context"?: Pick<DocxTransportContext, "vfs" | "limits"> | undefined }>;
   "model.image.image.Image.blob.get": Readonly<Record<string, never>>;
   "model.image.image.Image.content_type.get": Readonly<Record<string, never>>;
   "model.image.image.Image.ext.get": Readonly<Record<string, never>>;

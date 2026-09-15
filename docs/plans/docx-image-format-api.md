@@ -81,6 +81,9 @@ open pending atomic local commits. No push or release, no later task started.
 Local atomic delivery begins with 3b6dd8003 (sole/shared reconciliation and
 preparation mapping) and 6117a1e99 (original bounded characterization fixtures
 and cases). The matching standalone value API follows as a separate improvement.
+Standalone Image, its bounded input admission and portable public export are
+locally delivered by 67cf87f6e. Awaitable SDK/command transport is a separate
+atomic improvement; no commit establishes remote delivery or release.
 
 Initial ownership is read-only investigation, not implementation authorization.
 Root additionally owns docs/specs/office-sdk.md solely to qualify the shared

@@ -6,6 +6,7 @@ import type { DocxJsonSchema } from "./operation-json-schema.js";
 
 export interface DocxFieldSchema {
   readonly type: string;
+  readonly wireType?: string;
   readonly required: boolean;
 }
 export interface DocxOperationSchema {
@@ -181,6 +182,7 @@ function valid(type: string, value: unknown): boolean {
   if (type === "RGBColor" || type === "RGB hex") return text(value) && value.length === 6 && [...value].every(c => "0123456789abcdefABCDEF".includes(c));
   if (Object.hasOwn(docxEnumSymbols, type)) return closed(value, { enum: "identifier", name: "identifier" }) && (value.enum === type || value.enum === docxEnumCanonicalNames[type]) && docxEnumSymbols[type]!.includes(String(value.name));
   if (type === "BinaryInput") return object(value) && (value.kind === "bytes" ? closed(value, { kind: "identifier", base64: "string" }) && base64(value.base64) : value.kind === "vfs" && closed(value, { kind: "identifier", path: "identifier", capability: "identifier" }));
+  if (type === "OwnedBinaryInput") return value instanceof Uint8Array || object(value) && value.kind === "bytes" && valid("BinaryInput", value);
   if (type === "Uint8Array") return value instanceof Uint8Array || valid("BinaryInput", value);
   if (type === "Input") return value instanceof Uint8Array || valid("BinaryInput", value) || valid("VfsPath", value);
   if (type === "Receiver") return receiver(value);
@@ -223,7 +225,8 @@ export function assertDocxFields(
       if (field.required) throw new DocxUsageError(`Missing required argument: ${key}.`);
       continue;
     }
-    if (!(customValidate?.(field.type, value[key]) ?? valid(field.type, value[key]))) throw new DocxUsageError(`Invalid ${key}; expected ${field.type}.`);
+    const type = field.wireType ?? field.type;
+    if (!(customValidate?.(type, value[key]) ?? valid(type, value[key]))) throw new DocxUsageError(`Invalid ${key}; expected ${field.type}.`);
   }
 }
 

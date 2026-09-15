@@ -4,10 +4,27 @@ import type { DocxInvocation } from "./command.js";
 import type { DocxInspectionCommandRequest } from "./inspection-command.js";
 import { PublicationError, type PublicationInput, type PublicationOptions } from "./publication.js";
 import { applyStyleModelBatch } from "./style-model-batch.js";
+import { DocumentIo } from "./io.js";
+import { UnsupportedProfileError } from "./package-xml.js";
 
 export async function executeStyleModelCommand(invocation: DocxInvocation, bytes: Uint8Array, input: PublicationInput | undefined, request: DocxInspectionCommandRequest, context: ArchiveContext): Promise<Uint8Array> {
   const options = invocation.options;
-  const model = await applyStyleModelBatch(bytes, { version: options.version, operations: options.operations }, context);
+  const settings = archiveSettings(context);
+  const operations = (options.operations as readonly { operation: string; arguments: Record<string, unknown> }[]).map(item => {
+    const descriptor = item.arguments.imageDescriptor;
+    if (item.operation !== "model.image.image.Image.from_file.call" || !descriptor || typeof descriptor !== "object" || !("path" in descriptor) || !("capability" in descriptor) || descriptor.capability !== "command") return item;
+    return { ...item, arguments: { ...item.arguments, imageDescriptor: { ...descriptor, path: resolvePath(request.cwd, descriptor.path as string) } } };
+  });
+  const model = await applyStyleModelBatch(bytes, { version: options.version, operations }, { ...context,
+    ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}),
+    binaryResolver: { capability: "command", async *open(path, { signal, maxBytes }) {
+      const readStream = request.filesystem.readStream;
+      if (!readStream) throw new UnsupportedProfileError("Image paths require an explicit streaming read capability.");
+      const source = { open: (inner: AbortSignal) => readStream.call(request.filesystem, path, { signal: inner }) };
+      const io = new DocumentIo({ ...settings, signal, limits: { ...settings.limits, maxArchiveBytes: maxBytes }, ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}) });
+      try { signal.throwIfAborted(); yield await io.readBytes(source); } finally { await io.cleanup(); }
+    } }
+  });
   const output = options.output === undefined ? undefined : options.output === "-" ? "-" : resolvePath(request.cwd, options.output as string);
   if (model.affected && (options.inPlace || output !== undefined && output !== "-") && invocation.inputs[0] !== "-" && !input)
     throw new PublicationError("unsupported-publication", "File publication requires admitted input identity.");

@@ -1,6 +1,20 @@
 import { expectTypeOf, it } from "vitest";
 import type { DocxOperationArguments, DocxBatchItem } from "./index.js";
 import type { DocxBatchArgumentMap } from "./operation-types.js";
+it("keeps image factory typed transports byte-only and capability-context-only", () => {
+  // @ts-expect-error Blob factories cannot acquire VFS paths.
+  const directBlob: DocxOperationArguments<"model.image.image.Image.from_blob.call"> = { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } };
+  // @ts-expect-error Batch blob factories cannot acquire VFS paths.
+  const batchBlob: DocxBatchArgumentMap["model.image.image.Image.from_blob.call"] = { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } };
+  // @ts-expect-error Factory contexts have no document author authority.
+  const directFile: DocxOperationArguments<"model.image.image.Image.from_file.call"> = { imageDescriptor: new Uint8Array(), context: { author: "Harbor" } };
+  // @ts-expect-error Batch contexts have no template acquisition authority.
+  const batchFile: DocxBatchArgumentMap["model.image.image.Image.from_file.call"] = { imageDescriptor: new Uint8Array(), context: { template: { kind: "bytes", base64: "AA==" } } };
+  expectTypeOf(directBlob).toMatchTypeOf<DocxOperationArguments<"model.image.image.Image.from_blob.call">>();
+  expectTypeOf(batchBlob).toMatchTypeOf<DocxBatchArgumentMap["model.image.image.Image.from_blob.call"]>();
+  expectTypeOf(directFile).toMatchTypeOf<DocxOperationArguments<"model.image.image.Image.from_file.call">>();
+  expectTypeOf(batchFile).toMatchTypeOf<DocxBatchArgumentMap["model.image.image.Image.from_file.call"]>();
+});
 
 it("keeps image decorative intent optional and removes all from direct and batch insertion", () => {
   expectTypeOf<DocxOperationArguments<"images.add">["decorative"]>().toEqualTypeOf<boolean | undefined>();

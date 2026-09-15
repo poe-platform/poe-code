@@ -1,4 +1,5 @@
 import { docxOperationSchemas } from "./operation-schema.js";
+import { imageBatchActions } from "./image-batch-operations.js";
 import { Length, Emu, Inches, Cm, Mm, Pt, Twips, isLength, enumMembers, enumString, enumValue, enumFromValue, enumFromXml, enumXml } from "./formatting-values.js";
 import { DocxUsageError } from "./argument-json.js";
 import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle } from "./styles-model.js";
@@ -125,4 +126,4 @@ for (const [group, family, canonical] of [
   styleModelBatchActions.set(`${prefix}.Symbol.iterator.call`, () => [...members]);
 }
 export const styleModelBatchBootstrap = "model.document.Document.styles.get";
-export const styleModelBatchOperations: readonly string[] = Object.freeze([styleModelBatchBootstrap, ...styleModelBatchActions.keys()].filter(id => docxOperationSchemas[id]));
+export const styleModelBatchOperations: readonly string[] = Object.freeze([styleModelBatchBootstrap, ...styleModelBatchActions.keys(), ...imageBatchActions.keys()].filter(id => docxOperationSchemas[id]));

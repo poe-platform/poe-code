@@ -38,7 +38,7 @@ const integer: DocxJsonSchema = { ...number, type: "integer" };
 function fieldsSchema(fields: Readonly<Record<string, DocxFieldSchema>>, definitions: Record<string, DocxJsonSchema>): DocxJsonSchema {
   return {
     type: "object",
-    properties: Object.fromEntries(Object.entries(fields).map(([name, field]) => [name, valueSchema(field.type, definitions)])),
+    properties: Object.fromEntries(Object.entries(fields).map(([name, field]) => [name, valueSchema(field.wireType ?? field.type, definitions)])),
     required: Object.entries(fields).filter(([, field]) => field.required).map(([name]) => name),
     additionalProperties: false
   };
@@ -67,6 +67,7 @@ function receiverSchema(type: string | undefined, definitions: Record<string, Do
   return { oneOf: [{ ...direct, properties: { ...direct.properties, ...(type ? { type: { const: type } } : {}) } }, { ...handle, not: { required: ["index", "key"] } }] };
 }
 function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>): DocxJsonSchema {
+  if (type === "OwnedBinaryInput") return { ...valueSchema("BinaryInput", definitions).oneOf![0], description: "SDK owned Uint8Array; JSON carries canonical base64 bytes." };
   if (type === "nonempty unique list: properties|comments|revisions|links|objects") return { type: "array", minItems: 1, uniqueItems: true, items: { enum: ["properties", "comments", "revisions", "links", "objects"] } };
   const variants = splitDocxType(type);
   if (variants.length > 1) return isDocxLiteralUnion(type) ? { enum: variants } : { anyOf: variants.map(item => valueSchema(item, definitions)) };

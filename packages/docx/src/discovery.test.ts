@@ -6,8 +6,39 @@ import { DocumentBudget } from "./budget.js";
 import { CancellationError, ResourceLimitError } from "./archive.js";
 import { docxCommonOptions, docxOperationSchemas } from "./operation-schema.js";
 import { getDocxOperationSchema } from "./operation-json-schema.js";
+import { validateDocxBatch } from "./command.js";
 
 const discover = (...words: string[]) => getDocxDiscovery(parseDocxArguments(words.map(word => new TextEncoder().encode(word))));
+it("publishes factory wire fields that admit only byte blobs and finite image contexts", () => {
+  const prefix = "model.image.image.Image";
+  const schema = getDocxOperationSchema(`${prefix}.from_blob.call`, "batch");
+  expect(schema.properties?.blob).toMatchObject({ type: "object", properties: { kind: { const: "bytes" } } });
+  for (const name of ["from_blob", "from_file"]) {
+    const context = getDocxOperationSchema(`${prefix}.${name}.call`, "batch").properties?.context;
+    expect(Object.keys(context?.properties ?? {})).toEqual(["vfs", "limits"]);
+    expect(context?.additionalProperties).toBe(false);
+  }
+  expect(() => validateDocxBatch({ version: 1, operations: [{ operation: `${prefix}.from_blob.call`, arguments: { blob: { kind: "vfs", path: "/Map.PNG", capability: "command" } } }] })).toThrow();
+  expect(() => validateDocxBatch({ version: 1, operations: [{ operation: `${prefix}.from_blob.call`, arguments: { blob: { kind: "bytes", base64: "AA==" }, context: { author: "Harbor" } } }] })).toThrow();
+});
+it("enforces canonical base64 pad bits in published image blob schemas", () => {
+  const encoded = getDocxOperationSchema("model.image.image.Image.from_blob.call", "batch").properties?.blob?.properties?.base64;
+  expect(encoded?.pattern).toBeTypeOf("string");
+  const pattern = new RegExp(encoded!.pattern!);
+  for (const value of ["", "AA==", "AQ==", "AAA=", "AAE=", "AAAA"]) expect(pattern.test(value)).toBe(true);
+  for (const value of ["AB==", "AAF=", "AA=", "AAAA=", "A A=", "AA\n=="]) expect(pattern.test(value)).toBe(false);
+});
+it("advertises standalone immutable Image routes independently of document style handles", () => {
+  const ids = Object.keys(docxOperationSchemas).filter(id => id.startsWith("model.image.image.Image."));
+  expect(ids).toHaveLength(14);
+  for (const id of ids) {
+    expect(discover("schema", "--operation", id)!.data).toMatchObject({ operations: [{ id, support: "read", featureIds: ["F32"] }] });
+    expect(JSON.stringify(discover("help", "--operation", id))).toContain("immutable Image");
+  }
+  expect(discover("capabilities")!.data).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F32", level: "edit", subsets: expect.arrayContaining([
+    expect.objectContaining({ name: "inline-png-jpeg-insertion", level: "edit" }), expect.objectContaining({ name: "standalone-image-values", level: "read" })
+  ]) })]) });
+});
 it("includes native repeat inventories in the sole controls list feature profile", () => {
   expect(discover("schema", "--operation", "controls.list")!.data).toMatchObject({ operations: [{ featureIds: ["F28", "F29"] }] });
 });

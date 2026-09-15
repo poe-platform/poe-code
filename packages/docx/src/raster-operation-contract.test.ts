@@ -24,12 +24,13 @@ it("retains explicit physical units and refuses implicit pixel insertion sizing"
   for (const width of ["1in", "2.5cm", "3mm", "12pt", "914400emu"]) expect(() => parse("--width", width)).not.toThrow();
   for (const width of ["96", "96px", "0emu", "-1in"]) expect(() => parse("--width", width)).toThrow();
 });
-it("advertises only the independently qualified inline PNG and JPEG insertion subset", () => {
+it("keeps insertion PNG and JPEG only while five formats have standalone read support", () => {
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "images.add" } })!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F06", "F08", "F11", "F12", "F31", "F32", "F35"] }] });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data).toMatchObject({ operations: expect.arrayContaining([expect.objectContaining({ id: "images.add", support: "edit" })]) });
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data;
-  expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F32", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "inline-png-jpeg-insertion", level: "edit" })] })]) });
-  for (const operation of ["images.replace", "images.set", "model.image.image.Image.from_blob.call"]) {
+  expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F32", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "inline-png-jpeg-insertion", level: "edit", reason: expect.stringContaining("image-part, drawing and collection models remain unsupported") }), expect.objectContaining({ name: "standalone-image-values", level: "read" })] })]) });
+  expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation: "model.image.image.Image.from_blob.call" } })!.data).toMatchObject({ operations: [{ support: "read", featureIds: ["F32"] }] });
+  for (const operation of ["images.replace", "images.set", "model.parts.image.ImagePart.from_image.call", "model.shape.InlineShapes.__len__.get"]) {
     expect(getDocxDiscovery({ operation: "schema", inputs: [], options: { operation } })!.data).toMatchObject({ operations: [{ support: "reject" }] });
   }
 });

@@ -227,15 +227,40 @@ export class OAuthMetadataDiscovery {
     this.cache = cache;
   }
 
+  private async discoverProtectedResource(
+    resource: string,
+    resourceMetadataUrl?: string | URL
+  ): Promise<{ location: string; metadata: OAuthProtectedResourceMetadata }> {
+    const locations = new Set([resolveProtectedResourceMetadataUrl(resource, resourceMetadataUrl)]);
+    if (resourceMetadataUrl === undefined) {
+      locations.add(new URL("/.well-known/oauth-protected-resource", resource).toString());
+    }
+
+    let lastError: unknown;
+    for (const location of locations) {
+      try {
+        const response = await this.fetchImpl(location, {
+          method: "GET",
+          headers: { Accept: "application/json" }
+        });
+        const metadata = validateProtectedResourceMetadata(
+          await readJsonResponse(response, "Protected resource metadata"),
+          resource
+        );
+        return { location, metadata };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError;
+  }
+
   async discover(
     resourceUrl: string | URL,
     { resourceMetadataUrl }: OAuthMetadataLookupOptions = {}
   ): Promise<OAuthDiscoveryResult> {
     const cacheKey = canonicalizeResourceIndicator(resourceUrl);
-    const resourceMetadataLocation = resolveProtectedResourceMetadataUrl(
-      cacheKey,
-      resourceMetadataUrl
-    );
+    resolveProtectedResourceMetadataUrl(cacheKey, resourceMetadataUrl);
     const memoryCachedResult = this.memoryCache.get(cacheKey);
     if (memoryCachedResult !== undefined && resourceMetadataUrl === undefined) {
       return memoryCachedResult;
@@ -251,16 +276,8 @@ export class OAuthMetadataDiscovery {
       return sharedCachedResult;
     }
 
-    const resourceMetadataResponse = await this.fetchImpl(resourceMetadataLocation, {
-      method: "GET",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-    const resourceMetadata = validateProtectedResourceMetadata(
-      await readJsonResponse(resourceMetadataResponse, "Protected resource metadata"),
-      cacheKey
-    );
+    const { location: resourceMetadataLocation, metadata: resourceMetadata } =
+      await this.discoverProtectedResource(cacheKey, resourceMetadataUrl);
 
     const authorizationServerErrors: string[] = [];
 

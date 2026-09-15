@@ -610,8 +610,24 @@ Sixteen memory cases cover aliases, source types, filters, native unchanged stat
 publication/integrity/stdout failures, replacements, hardlinks and missing capability.
 750 focused ZIP/unzip tests and scoped lint pass. These tests use current source
 MemoryFileSystem because the root's bundled SafeFS export has not yet been rebuilt.
-Full shared-contract verification 41257 remains live; clean npm test reports missing
-poe-code/safe-fs/core because packages/safe-js/dist/safe-fs-core.js is absent. After
-that process terminates, use maintained npm run build before rerunning full tests
-and lint; do not push until the required checks pass. No release is claimed for
+Full shared-contract verification 41257 reported missing poe-code/safe-fs/core
+because packages/safe-js/dist/safe-fs-core.js was absent. A native process sample
+confirmed CPU/memory-heavy error serialization; stopped that failed child and
+completed maintained npm run build. Full tests and lint are rerunning as session
+9534; do not push until the required checks pass. No release is claimed for
 local contract 2a3f1823d or the pending move integration. Broader scope stays open.
+
+## Move permission, cancellation and foreign-mutation evidence
+
+Native locked-parent captures establish removal refusal retains status 0 and
+quiet suppresses the warning. Four further memory tests validate quiet/nonquiet
+permission refusal, cancellation immediately after publication and foreign
+hardlink mutation during owned-snapshot refresh. 754 focused ZIP/unzip tests and
+scoped lint pass. Inspected /tmp/zip-move-cli.png from the maintained screenshot
+renderer: command progress, error-deleting warning and native successful status
+are readable. Normal maintained workspace/root build succeeded in the isolated
+checkout. A production poe-code/safe-fs/core invocation archived a binary file and
+stored symlink with rmTy, then removed the source tree. Native UnZip integrity and
+Python exact members/payload/mode checks pass for /tmp/safe-bash-zip-move-result.zip.
+Full unit verification and lint remain live in session 9534. Contract and move
+commits remain local until those checks pass; no new remote delivery is claimed.

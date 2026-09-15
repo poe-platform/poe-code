@@ -291,3 +291,19 @@ hidden files, directory names, aliases, ws interaction, include/exclude priority
 -r/R conflicts, absent patterns and no-match nonpublication. Native captures
 validate these results. Scoped lint passed. Remaining argument, diagnostic,
 streaming and format areas remain open.
+
+## ZIPOPT defaults and Unix tokenization
+
+Native captures and public Info-ZIP util.c envargs establish prepend order,
+ZIP_OPTS fallback for blank ZIPOPT, ASCII whitespace and token-start double
+quotes with quoted backslash removal. Single quotes and unquoted backslashes
+remain literal; adjacent quoted/unquoted text produces separate arguments.
+Source: https://github.com/LuaDist/zip/blob/master/util.c (envargs/count_args).
+Added bounded environment parsing without replacing original argumentValues
+identity checks. Raw environment syntax and argv share argument budgets.
+Include lists consuming the archive cannot trigger default stdout filter mode.
+496 focused ZIP/unzip tests pass, including precedence/storage latches, fallback,
+quote/escape boundaries, Unicode, empty patterns, shell-looking literals, NUL,
+raw syntax budgets, unknown options and missing-archive diagnostics. Scoped lint
+passed. Native/actual virtual archives agree on quoted include selection/payload.
+Remaining grammar, streaming, metadata and format requirements remain open.

@@ -1,3 +1,4 @@
+import { zipEnvironmentArguments } from "./zip/environment.js";
 import { collectBytes, dirname, getCommandArguments, writeBytes, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
@@ -12,6 +13,7 @@ import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, ZipFailure } from "./zip/options.js";
 
 interface ZipOptions {
+  readonly args: readonly string[];
   readonly action: "add" | "delete" | "update" | "freshen";
   readonly archive: string;
   readonly recursive: boolean;
@@ -39,9 +41,10 @@ const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
 
 async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions> {
   const context = scope.context;
-  if (context.args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
+  const args = zipEnvironmentArguments(context.env, context.args, limits);
+  if (args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
   let bytes = 0;
-  for (const argument of context.args) {
+  for (const argument of args) {
     const size = Buffer.byteLength(argument);
     if (size > limits.maxArgumentBytes - bytes) fail("argument byte limit exceeded");
     bytes += size;
@@ -79,8 +82,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   const operands: string[] = [];
   const includes: string[] = [];
   const excludes: string[] = [];
-  for (let index = 0; index < context.args.length; index++) {
-    const original = context.args[index]!;
+  for (let index = 0; index < args.length; index++) {
+    const original = args[index]!;
     checkPath(original, limits);
     const argument = literal ? original : normalizeZipOption(original);
     if (!literal && argument === "--") {
@@ -131,7 +134,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "n" || flag === "Z") {
           let value = argument.slice(offset + 1);
           if (!value) {
-            const next = context.args[index + 1];
+            const next = args[index + 1];
             if (next === undefined || next.startsWith("-") && next !== "-") throw new ZipFailure(16, "Invalid command arguments", `option '${flag}' requires a value`);
             value = next;
             index++;
@@ -162,8 +165,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
             const value = argument.slice(offset + 1);
             append(value.startsWith("=") ? value.slice(1) : value);
           }
-          while (!attached && index + 1 < context.args.length) {
-            const next = context.args[index + 1]!;
+          while (!attached && index + 1 < args.length) {
+            const next = args[index + 1]!;
             if (next === "@") { index++; break; }
             if (next.startsWith("-") && next !== "-") break;
             append(next);
@@ -182,6 +185,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     }
   }
   if (archive === undefined) {
+    if (includes.length || excludes.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
     if (action !== "add") throw new ZipFailure(16, "Invalid command arguments", "expected archive name");
     archive = "-";
     if (!stdinNames) operands.push("-");
@@ -210,7 +214,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     }
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
-  return { action, archive, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -413,7 +417,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   if (!selected.size && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
   if (!selected.size && !deleted.size && (parsed.action === "delete" || parsed.recursivePatterns || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
-      ? `try: zip ${context.args.slice(0, parsed.firstOperand).join(" ")} . -i ${context.args.slice(parsed.firstOperand).join(" ")}`
+      ? `try: zip ${parsed.args.slice(0, parsed.firstOperand).join(" ")} . -i ${parsed.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;
     throw new ZipFailure(12, "Nothing to do!", detail);
   }

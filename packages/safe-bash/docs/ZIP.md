@@ -239,6 +239,14 @@ exclusions take precedence. Hidden files participate. `-R` requires patterns
 and cannot be combined with `-r`. Quoted filesystem globs without `-R` are
 literal operands, matching native Unix Zip.
 
+`ZIPOPT` supplies default arguments before command-line arguments. If it is
+absent or contains only ASCII whitespace, `ZIP_OPTS` is used instead. The Unix
+parser splits ASCII whitespace, supports double quotes only at the start of an
+argument, and removes backslash escapes inside those quotes. Single quotes and
+unquoted backslashes are literal. Command-line options follow these defaults
+and retain normal precedence. Raw defaults and command arguments share the
+argument byte budget; defaults are never evaluated as shell code.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

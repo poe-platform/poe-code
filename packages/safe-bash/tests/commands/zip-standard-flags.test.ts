@@ -1,3 +1,4 @@
+import { zipEnvironmentArguments } from "../../src/commands/archive/zip/environment.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setImmediate } from "node:timers/promises";
@@ -1234,4 +1235,80 @@ test("zip recursive patterns with no matches leave archive unpublished", async (
   const result = await execute("zip", fs, ["-qR", "recursive.zip", "*.absent"]);
   assert.equal(result.exitCode, 12);
   await assert.rejects(fs.stat("/work/recursive.zip"), { code: "ENOENT" });
+});
+
+for (const [env, options, expectedMethod] of [
+  [{ ZIPOPT: "-q -0" }, [], 0],
+  [{ ZIPOPT: "-q -9" }, ["-0"], 0],
+  [{ ZIPOPT: "-q -0" }, ["-Zdeflate", "-9"], 8],
+  [{ ZIPOPT: " \t\n", ZIP_OPTS: "-q -0" }, [], 0],
+  [{ ZIPOPT: "-q -9", ZIP_OPTS: "-0" }, [], 8],
+] as const) {
+  test(`zip environment defaults ${JSON.stringify(env)} ${options.join(" ")}`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, [...options, "defaults.zip", "folder/data"], {}, { env: { ...env } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.length, 0);
+    const archive = await readZipArchive(await fs.readFile("/work/defaults.zip"), settings({}), new AbortController().signal);
+    assert.equal(archive.entries[0]!.method, expectedMethod);
+  });
+}
+for (const [value, expected] of [
+  ['-q -i "space name" @', ["space name"]],
+  ['-q -i "space\\ name" @', ["space name"]],
+  ["-q -i 'space name' @", []],
+  ['-q -i space\\ name @', []],
+  ['-q -i "space name"@', ["space name"]],
+  ['-q -i "" @', []],
+] as const) {
+  test(`zip environment tokenization ${value}`, async () => {
+    const fs = await fixture();
+    await fs.writeFile("/work/space name", Buffer.from("x"));
+    const result = await execute("zip", fs, ["defaults.zip", "space name", "binary"], {}, { env: { ZIPOPT: value } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/defaults.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name), [...expected]);
+  });
+}
+test("zip environment option errors and budgets happen before publication", async () => {
+  for (const [env, options, expected] of [
+    [{ ZIPOPT: "--unknown" }, {}, 16],
+    [{ ZIPOPT: "-q".repeat(100) }, { limits: { maxArgumentBytes: 64 } }, 2],
+    [{ ZIPOPT: "-q\0-r" }, {}, 2],
+  ] as const) {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["defaults.zip", "binary"], options, { env: { ...env } });
+    assert.equal(result.exitCode, expected);
+    await assert.rejects(fs.stat("/work/defaults.zip"), { code: "ENOENT" });
+  }
+});
+
+
+for (const [value, expected] of [
+  ['"space name"', ["space name"]],
+  ['"a\\b"', ["ab"]],
+  ['a\\b', ["a\\b"]],
+  ['"unclosed', ["unclosed"]],
+  ['"a"b', ["a", "b"]],
+  ['""', [""]],
+  ["a\t b\n c\r d\v e\f f", ["a", "b", "c", "d", "e", "f"]],
+  ["a\u00a0b", ["a\u00a0b"]],
+  ['"日本語 名"', ["日本語 名"]],
+  ['$(command)', ["$(command)"]],
+] as const) {
+  test(`ZIPOPT parser boundary ${JSON.stringify(value)}`, () => {
+    assert.deepEqual(zipEnvironmentArguments({ ZIPOPT: value }, ["argv"], settings({})), [...expected, "argv"]);
+  });
+}
+test("ZIPOPT raw whitespace and quotes count against combined argument budgets", () => {
+  assert.throws(() => zipEnvironmentArguments({ ZIPOPT: " ".repeat(50) + '"-q"' }, ["archive.zip"], settings({ limits: { maxArgumentBytes: 64 } })), /argument byte limit/);
+  assert.throws(() => zipEnvironmentArguments({ ZIPOPT: "-q", ZIP_OPTS: "-0" }, ["x".repeat(63)], settings({ limits: { maxArgumentBytes: 64 } })), /argument byte limit/);
+});
+
+test("zip ZIPOPT include list cannot consume archive arguments and fall back to filter mode", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["defaults.zip", "binary"], {}, { env: { ZIPOPT: '-q -i "binary"' } });
+  assert.equal(result.exitCode, 16);
+  assert.match(result.stdout.toString(), /nothing to select from/);
+  await assert.rejects(fs.stat("/work/defaults.zip"), { code: "ENOENT" });
 });

@@ -71,6 +71,9 @@ rewritten or promoted into whole-public-API coverage.
 - `npm run lint --workspace=docx`: ESLint, source TypeScript and test TypeScript
   pass; one warning in untouched operation-types.test.ts remains visible.
 - Focused hostile-wire suite: 49 cases pass independently of downloads.
+- After adding the final host-read/open probes, both owned suites pass together:
+  57 cases / two files. Maintained DOCX lint/source/test type checks pass again;
+  product source is unchanged since the full maintained suite/build above.
 - `git diff --check`: passes.
 
 The malformed-field human command output was rendered with the maintained
@@ -82,5 +85,60 @@ CLI. An earlier inline runner syntax error is preserved in field-error.png and
 is QA setup failure, not product behavior or passing evidence. These disposable
 screenshots are not staged; no screenshot test or QA script was added.
 
-Field correction: implemented and verified. Broader hostile-input regression
-coverage is verified locally and awaits its separate owned test/evidence commit.
+## Hostile ZIP/XML/document regression coverage
+
+`packages/docx/src/adversarial-input.test.ts` constructs original bytes with its
+own ZIP32 record builder and bitwise CRC implementation, independently of the
+product writer/checksum. Stored package baselines verify exact member bytes and
+pass byte validation for absent, signed and unsigned data descriptors. The
+fixture-only Node deflater compresses original 2 KiB text for actual expansion
+tests; it is not a product dependency or a native reference project build.
+
+The 49 cases cover local/central signatures, versions, methods, CRCs, sizes,
+name lengths and offsets; descriptor CRC/size mismatches; matching-header lies
+about actual expansion/CRC; encoded dots/slashes/backslashes/control bytes;
+duplicate and case-colliding parts; duplicate relationship IDs, dangling or
+unsafe targets, query-bearing targets, invalid modes and spoofed namespaces;
+normalized duplicate bookmark/revision IDs, mismatched review endpoints,
+malformed field delimiters, huge cell spans and unmatched vertical continuations.
+Located semantic diagnostics distinguish invalid graphs from unknown schemas.
+
+Double-encoded dot sequences remain literal canonical part names. The positive
+fixture has a declared XML content type, validates and retains its exact member
+name; there is no second decoding or host extraction. Prefix substitutions
+recognize actual native instruction markup while foreign instruction-shaped
+markup remains inert. XML cases reject DTDs/external/parameter entities, unknown
+entities, reserved-prefix rebinding and duplicate expanded attributes.
+
+Host read/open and HTTP/HTTPS/fetch traps remain uncalled for inert external
+relationships and executable-looking cached-field instructions through SDK and
+CLI validation. The command reads only its explicitly supplied memfs input once;
+input and unrelated bytes are unchanged. Separate XML rejection probes intercept
+host reads and network requests. Static inspection of the archive, ZIP/runtime,
+package, URI, XML and validator code finds no ambient host/network imports or
+target dereference. This qualifies these bounded paths, not arbitrary injected
+host JavaScript or a universal runtime sandbox.
+
+Small resource cases exceed actual compressed-input bytes, expanded entry size,
+XML element/depth/attribute/work allowances and logical table cells. Compressed
+expansion is bounded before allocation and decoding also rejects actual-length
+lies. XML work beyond input decoding is charged; failed table admission leaves
+every ledger count within its finite ceiling. Existing archive/XML/budget and
+publication tests additionally qualify aggregate, retained, diagnostic, member,
+namespace and text limits. No timeout is substituted for these bounds, no
+default ceiling is raised, and no RSS-isolation claim is made.
+
+CLI cases retain version-1 JSON, zero affected objects, null failed data and
+exits 1/2/4 for invalid instructions, unknown profiles and XML-node exhaustion.
+Valid inert input has identical SDK/CLI validation data. Unsupported profiles
+are errors, never successful edits. The earlier wire-suite syntax/setup errors
+and incorrect initial validateDocument argument order were corrected before
+counting behavior evidence; they caused no product change. All adversarial cases
+use original content independent of downloads. No corpus was acquired, consumed
+or cleaned up, and no external wording, project identity or asset was copied.
+
+Field correction is delivered in local commit `dea8d0a53`. Hostile-input coverage
+is implemented and verified for this task only; its separate owned test/evidence
+commit completes local delivery. Later tasks remain pending; the concurrent
+master plan is not staged or rewritten. No full-schema, whole-public-API,
+renderer, interoperability, corpus, remote delivery or release claim is made.

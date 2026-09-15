@@ -3527,7 +3527,7 @@ describe("createPipelineSimulation", () => {
       totalCachedTokens: 0,
       tasksCompleted: 0,
       tasksFailed: 1,
-      stepsCompleted: 2
+      stepsCompleted: 1
     });
     expect(result.lastStepName).toBe("test");
     expect(runs).toHaveLength(2);
@@ -3576,7 +3576,7 @@ describe("createPipelineSimulation", () => {
       totalCachedTokens: 2,
       tasksCompleted: 0,
       tasksFailed: 1,
-      stepsCompleted: 1
+      stepsCompleted: 0
     });
     expect(taskCompletions).toHaveLength(1);
     expect(taskCompletions[0]?.success).toBe(false);
@@ -4236,6 +4236,7 @@ describe("createPipelineSimulation", () => {
     expect(result.runsCompleted).toBe(0);
     expect(prompts).toEqual(["Setup"]);
     expect(result.lastTaskId).toBe("setup");
+    expect(result.metrics.stepsCompleted).toBe(0);
   });
 
   it("disables steps.yaml setup when plan sets setup: null", async () => {
@@ -4285,6 +4286,7 @@ describe("createPipelineSimulation", () => {
     expect(result.runsCompleted).toBe(1);
     expect(prompts).toEqual(["Do task 1", "Teardown"]);
     expect(result.lastTaskId).toBe("teardown");
+    expect(result.metrics.stepsCompleted).toBe(1);
   });
 
   it("does not archive a completed plan when teardown fails", async () => {

@@ -212,3 +212,9 @@ Maintained agent-spawn tests passed all 548 tests with loopback permission (the 
 Real isolated setup and teardown failure runs both printed Pipeline failed at undefined; review failure correctly identified work (review). Two failing engine simulation assertions confirmed missing execution identity. Phase failure/cancellation results now include lastTaskId matching the existing phase progress taskId (setup/teardown), so SDK callers and existing CLI failure formatting receive the execution name without another result field.
 
 All 235 maintained pipeline tests, touched-file ESLint and selected pipeline build closure passed. Actual setup/teardown reruns exited 1 and restored the primary terminal; inspected final screenshots correctly name setup/teardown. Setup left both task steps open with one child job; teardown left both done and finalization pending with four jobs. These runs separately reproduced failed executions being counted as completed steps; that metric issue is pending a separate fix.
+
+## Count only successful steps
+
+Actual failure summaries counted setup failure as one completed step, review failure as three, and teardown failure as four. Four failing engine assertions covered setup, teardown, intermediate task failure and failed task usage. Both phase and task execution now increment stepsCompleted only after success; reported usage and failed-task counters remain available.
+
+All 235 maintained pipeline tests, 97 CLI/shared tests, touched-file ESLint and selected pipeline build closure passed. Actual isolated failure reruns restored terminals and correctly reported 0/2/3 completed steps for setup/review/teardown failure, with exit 1 and unchanged expected persisted state. Final screenshot inspected. No release or remote delivery performed.

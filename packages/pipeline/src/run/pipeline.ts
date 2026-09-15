@@ -292,7 +292,7 @@ async function runResolvedPipeline(
       metrics.totalOutputTokens += result.usage.outputTokens;
       metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
     }
-    metrics.stepsCompleted += 1;
+    if (success) metrics.stepsCompleted += 1;
     options.onTaskComplete?.({
       ...phaseProgress,
       durationMs,
@@ -580,7 +580,7 @@ async function runResolvedPipeline(
         metrics.totalOutputTokens += result.usage.outputTokens;
         metrics.totalCachedTokens += result.usage.cachedTokens ?? 0;
       }
-      metrics.stepsCompleted += 1;
+      if (success) metrics.stepsCompleted += 1;
       const taskCompleted = success && completesTaskOnSuccess(selection.task, selection.stepName);
       if (success) {
         if (taskCompleted) {

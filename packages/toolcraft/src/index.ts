@@ -177,7 +177,7 @@ export interface CommandConfig<
   aliases?: string[];
   positional?: string[];
   params: TParamsSchema;
-  result?: ObjectSchema<any>;
+  result?: AnySchema;
   mcpResult?: (result: TResult) => Record<string, unknown>;
   secrets?: TSecrets;
   scope?: Scope[];
@@ -235,7 +235,7 @@ export interface Command<
   aliases: string[];
   positional: string[];
   params: TParamsSchema;
-  result?: ObjectSchema<any>;
+  result?: AnySchema;
   mcpResult?: (result: TResult) => Record<string, unknown>;
   stream?: StreamDefinition<any>;
   secrets: SecretDeclarations;
@@ -344,7 +344,7 @@ interface InternalCommandConfig {
   scope?: Scope[];
   hidden: boolean;
   examples: CommandExample[];
-  result?: ObjectSchema<any>;
+  result?: AnySchema;
   mcpResult?: (result: unknown) => Record<string, unknown>;
   humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
   secrets: SecretDeclarations;

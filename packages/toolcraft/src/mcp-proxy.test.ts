@@ -768,6 +768,24 @@ describe("resolveMcpProxies", () => {
     });
   });
 
+  it.each([
+    { schema: { type: "string" }, value: "ready" },
+    { schema: { type: "number" }, value: 1.5 },
+    { schema: { type: "boolean" }, value: true },
+    { schema: { type: "array", items: { type: "string" } }, value: ["ready"] }
+  ])("proxies non-object output schema $schema.type", async ({ schema, value }) => {
+    const root = defineGroup({ name: "root", children: [createProxyGroup({})] });
+    setClientPlans({ pages: [{ tools: [{ ...tool("value"), outputSchema: schema }] }] }, {
+      callToolResult: { content: [], structuredContent: value }
+    });
+    await resolveMcpProxies(root);
+    const group = root.children[0];
+    if (group?.kind !== "group") throw new Error("Expected proxy group");
+    const command = group.children[0];
+    if (command?.kind !== "command") throw new Error("Expected proxy command");
+    expect(await command.handler(createContext({ title: "value" }) as never)).toStrictEqual(value);
+  });
+
   it("rejects typed upstream tool results that omit structuredContent", async () => {
     const group = createProxyGroup({});
     const root = defineGroup({

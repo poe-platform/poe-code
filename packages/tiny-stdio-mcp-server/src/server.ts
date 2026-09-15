@@ -445,7 +445,7 @@ export function createServer(options: ServerOptions): Server {
         }
         if (modern && isInputRequiredResult(handlerResult)) return { result: handlerResult };
         const outputSchema = modern || tool.outputSchema?.type === "object" ? tool.outputSchema : undefined;
-        const result = normalizeToolResult(handlerResult, outputSchema, modern);
+        const result = normalizeToolResult(handlerResult, tool.outputSchema, modern);
         const outputValidation = outputSchema === undefined ? undefined : tool.outputValidator?.validate(result.structuredContent);
         if (result.isError !== true && outputValidation !== undefined && !outputValidation.ok) {
           throw new ToolError(
@@ -1328,6 +1328,16 @@ function normalizeToolResult(
   outputSchema: OutputSchema | undefined,
   modern: boolean
 ): CallToolResult {
+  if (!modern && outputSchema !== undefined && outputSchema.type !== "object") {
+    const result = normalizeToolResult(handlerResult, outputSchema, true);
+    const { structuredContent, ...legacyResult } = result;
+    return {
+      ...legacyResult,
+      content: legacyResult.content.length > 0 || structuredContent === undefined
+        ? legacyResult.content
+        : [{ type: "text", text: JSON.stringify(structuredContent) }]
+    };
+  }
   if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult, modern)) {
     if (outputSchema !== undefined) throw new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, "Invalid tool result");
     throw new Error("Invalid tool result");

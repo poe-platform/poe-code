@@ -132,10 +132,6 @@ function createProxyCommand(
     ? undefined
     : convertJsonSchema(tool.outputSchema as Parameters<typeof convertJsonSchema>[0]);
 
-  if (result !== undefined && result.kind !== "object") {
-    throw new Error(`upstream tool "${tool.name}" must define an object output schema`);
-  }
-
   return markProxyNode({
     kind: "command",
     name: commandName,

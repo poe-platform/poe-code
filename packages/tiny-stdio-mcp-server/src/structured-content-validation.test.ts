@@ -43,3 +43,14 @@ it.each([undefined, BigInt(1)])("reports invalid declared structured outputs as 
   await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
   expect(await server.handleMessage("tools/call", { name: "json" })).toMatchObject({ error: { code: -32603 } });
 });
+
+it("preserves legacy content and metadata when converting a declared array envelope", async () => {
+  const server = createServer({ name: "results", version: "1" }).registerTool(
+    { name: "json", inputSchema: defineSchema({}), outputSchema: { type: "array", items: { type: "string" } } },
+    () => ({ content: [{ type: "text" as const, text: "Display result" }], structuredContent: ["value"], _meta: { source: "test" } })
+  );
+  await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+  expect(await server.handleMessage("tools/call", { name: "json" })).toEqual({
+    result: { content: [{ type: "text", text: "Display result" }], _meta: { source: "test" } }
+  });
+});

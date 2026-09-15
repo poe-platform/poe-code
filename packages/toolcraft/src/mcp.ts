@@ -7,7 +7,8 @@ import {
   type ToolHandler,
   type SDKTransport,
   type Server as TinyServer,
-  type TypedSchema
+  type TypedSchema,
+  type TypedOutputSchema
 } from "tiny-stdio-mcp-server";
 import { cloneDefaultValue, compileJsonSchema, formatIssues, isPlainRecord, toJsonSchema, unicodeLength, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
 import type {
@@ -93,7 +94,7 @@ interface ToolDefinition<TServices extends object> {
   name: string;
   title?: string;
   outputSchema?: JsonSchema;
-  resultSchema?: ObjectSchema<any>;
+  resultSchema?: AnySchema;
 }
 
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
@@ -851,6 +852,7 @@ function serializeResultValue(
         });
         return value;
       }
+      validateArrayConstraints(unwrappedSchema, value, label, errors);
       return value.map((item, index) =>
         serializeResultValue(unwrappedSchema.item, item, casing, `${label}[${index}]`, errors)
       );
@@ -979,12 +981,12 @@ function serializeResultObject(
 }
 
 function validateCommandResult(
-  schema: ObjectSchema<any>,
+  schema: AnySchema,
   value: unknown,
   casing: Casing
-): Record<string, unknown> {
+): unknown {
   const errors: ValidationError[] = [];
-  const result = serializeResultObject(schema, value, casing, "", errors);
+  const result = serializeResultValue(schema, value, casing, "", errors);
   throwResultValidationErrors(errors);
   return result;
 }
@@ -1388,11 +1390,11 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         ...(tool.outputSchema === undefined
           ? {}
           : {
-              outputSchema: tool.outputSchema as TypedSchema<Record<string, unknown>>
+              outputSchema: tool.outputSchema as TypedOutputSchema<unknown>
             }),
         ...(tool.annotations === undefined ? {} : { annotations: tool.annotations })
       },
-      handler as ToolHandler<Record<string, unknown>, Record<string, unknown>>
+      handler as ToolHandler<Record<string, unknown>, unknown>
     );
   }
 

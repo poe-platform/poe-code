@@ -72,6 +72,14 @@ inventory remains historical; later tasks and whole-model coverage remain pendin
 
 ## Sources and baseline
 
+The [selective sanitization record](../plans/docx-explicit-sanitization.md)
+enumerates the bounded utility actions, staged publication, retained categories
+and exact JS/security mappings. It resolves the native creator/utility author
+spelling without adding an alias. Document/CoreProperties, Comment/Comments,
+Hyperlink, inherited package/XML interfaces, collections, enums/helpers and
+public underscore-prefixed obligations keep their historical dispositions.
+Utility execution does not promote whole-model coverage; later tasks remain pending.
+
 The [bounded settings/protection record](../plans/docx-settings-protection.md)
 adds noncreating package settings inventory and original protection/locked-owner
 regressions. It records exact utility JS/security mappings and the shared global

@@ -1,3 +1,4 @@
+export { sanitizeDocument, type SanitizationData } from "./sanitize.js";
 export {
   readArchive,
   InputTypeError,

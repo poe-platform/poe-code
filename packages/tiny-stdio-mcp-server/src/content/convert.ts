@@ -1,13 +1,18 @@
+import type { ContentAnnotations } from "../types.js";
 import { Image, type ImageContent } from "./image.js";
 import { Audio, type AudioContent } from "./audio.js";
 import { File, type EmbeddedResource } from "./file.js";
+import type { ResourceLink } from "../types.js";
+import { isJsonValue } from "toolcraft-schema";
 
 export interface TextContent {
   type: "text";
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
   text: string;
 }
 
-export type ContentBlock = TextContent | ImageContent | AudioContent | EmbeddedResource;
+export type ContentBlock = TextContent | ImageContent | AudioContent | EmbeddedResource | ResourceLink;
 
 type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
@@ -44,6 +49,12 @@ function convertSingleValue(value: Exclude<ToolReturn, Array<unknown> | undefine
     return value.toContentBlock();
   }
 
+  if (!isJsonValue(value)) {
+    const content = Object.create(null, Object.getOwnPropertyDescriptors(value)) as object;
+    if (isJsonValue(content) && isContentBlock(content)) return content;
+    throw new TypeError("Tool return must be a JSON value or supported content helper");
+  }
+
   if (isContentBlock(value)) {
     return value;
   }
@@ -52,15 +63,32 @@ function convertSingleValue(value: Exclude<ToolReturn, Array<unknown> | undefine
 }
 
 export function toContentBlocks(result: ToolReturn): ContentBlock[] {
-  if (result === undefined) {
-    return [];
+  const ancestors = new Set<object>();
+  const frames: Array<{ value: ToolReturn; index: number }> = [{ value: result, index: 0 }];
+  const blocks: ContentBlock[] = [];
+  while (frames.length > 0) {
+    const frame = frames[frames.length - 1]!;
+    const value = frame.value;
+    if (value === undefined) { frames.pop(); continue; }
+    if (!Array.isArray(value)) {
+      frames.pop();
+      blocks.push(convertSingleValue(value));
+      continue;
+    }
+    if (frame.index === 0) {
+      if (ancestors.has(value)) throw new TypeError("Cyclic tool result array");
+      ancestors.add(value);
+    }
+    if (frame.index >= value.length) {
+      ancestors.delete(value);
+      frames.pop();
+      continue;
+    }
+    const entry = Object.getOwnPropertyDescriptor(value, String(frame.index++));
+    if (entry === undefined || !("value" in entry)) throw new TypeError("Tool result arrays must contain own data entries");
+    frames.push({ value: entry.value, index: 0 });
   }
-
-  if (Array.isArray(result)) {
-    return result.flatMap((item) => toContentBlocks(item));
-  }
-
-  return [convertSingleValue(result)];
+  return blocks;
 }
 
 function isContentBlock(value: object): value is ContentBlock {
@@ -77,6 +105,11 @@ function isContentBlock(value: object): value is ContentBlock {
       && typeof value.data === "string"
       && hasOwnProperty(value, "mimeType")
       && typeof value.mimeType === "string";
+  }
+
+  if (value.type === "resource_link") {
+    return hasOwnProperty(value, "name") && typeof value.name === "string"
+      && hasOwnProperty(value, "uri") && typeof value.uri === "string";
   }
 
   if (value.type !== "resource" || !hasOwnProperty(value, "resource")) {

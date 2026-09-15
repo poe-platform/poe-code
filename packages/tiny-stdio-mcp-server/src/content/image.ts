@@ -1,8 +1,11 @@
+import type { ContentAnnotations } from "../types.js";
 import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
 import { readRemoteBytes, type FromUrlOptions } from "./remote.js";
 
 export interface ImageContent {
   type: "image";
+  annotations?: ContentAnnotations;
+  _meta?: Record<string, unknown>;
   data: string;
   mimeType: string;
 }

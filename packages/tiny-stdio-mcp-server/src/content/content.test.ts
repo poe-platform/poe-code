@@ -4,6 +4,69 @@ import { toContentBlocks, type ContentBlock, type TextContent } from "./convert.
 import { Image } from "./image.js";
 import { File } from "./file.js";
 
+it("retains resource link blocks through ordinary tool-return conversion", () => {
+  const link = { type: "resource_link" as const, name: "document", uri: "file:///document", title: "Document" };
+  expect(toContentBlocks(link)).toEqual([link]);
+});
+
+it("retains class content fields without retaining inherited serialization hooks", () => {
+  const toJSON = vi.fn(() => ({ type: "text", text: "altered" }));
+  class Content {
+    readonly type = "text" as const;
+    readonly text = "ready";
+  }
+  // The hook lives on the prototype, while the supported content fields are own data.
+  Object.defineProperty(Content.prototype, "toJSON", { value: toJSON });
+  const content = new Content();
+  const blocks = toContentBlocks(content);
+  expect(blocks).toEqual([{ type: "text", text: "ready" }]);
+  expect(JSON.stringify(blocks)).toBe('[{"type":"text","text":"ready"}]');
+  expect(toJSON).not.toHaveBeenCalled();
+});
+
+it("rejects serialization hooks before converting JSON object returns", () => {
+  const toJSON = vi.fn(() => "changed");
+  const value = Object.defineProperty({ value: 1 }, "toJSON", { value: toJSON });
+  expect(() => toContentBlocks(value)).toThrow();
+  expect(toJSON).not.toHaveBeenCalled();
+});
+
+it("rejects content type accessors without invoking them", () => {
+  const getter = vi.fn(() => "text");
+  const value = Object.defineProperty({ text: "unsafe" }, "type", { enumerable: true, get: getter });
+  expect(() => toContentBlocks(value)).toThrow();
+  expect(getter).not.toHaveBeenCalled();
+});
+
+it("rejects result array accessors without invoking them", () => {
+  const getter = vi.fn(() => "unsafe");
+  const value: string[] = [];
+  Object.defineProperty(value, "0", { enumerable: true, get: getter });
+  expect(() => toContentBlocks(value)).toThrow();
+  expect(getter).not.toHaveBeenCalled();
+});
+
+it("rejects sparse tool result arrays instead of silently dropping entries", () => {
+  expect(() => toContentBlocks(new Array<string>(2))).toThrow();
+});
+
+it("reports cyclic tool result arrays without overflowing the call stack", () => {
+  const value: unknown[] = [];
+  value.push(value);
+  expect(() => toContentBlocks(value as never)).toThrow("Cyclic tool result array");
+});
+
+it("flattens deep acyclic result arrays without consuming the JavaScript call stack", () => {
+  let value: unknown = "deep";
+  for (let index = 0; index < 20_000; index++) value = [value];
+  expect(toContentBlocks(value as never)).toEqual([{ type: "text", text: "deep" }]);
+});
+
+it("flattens wide nested arrays without exceeding the function argument limit", () => {
+  const values = new Array<string>(130_000).fill("value");
+  expect(toContentBlocks([values] as never)).toHaveLength(values.length);
+});
+
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
   callback: () => T

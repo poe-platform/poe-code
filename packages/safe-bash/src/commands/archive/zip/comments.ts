@@ -5,7 +5,7 @@ import { fail, type ArchiveLimits } from "../internal.js";
 /** One bounded cursor for all comments; an input chunk may contain many lines. */
 export class ZipCommentInput {
   readonly iterator: AsyncIterator<Uint8Array>;
-  private chunk = new Uint8Array();
+  private chunk: Uint8Array = new Uint8Array();
   private offset = 0;
   private bytes = 0;
   private pulls = 0;

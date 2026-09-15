@@ -66,3 +66,21 @@ passed 176 files, 3,434 tests with four skips. Scoped lint and the selected buil
 closure passed. Inspected the maintained built root-help screenshot. Only the
 owned root-help hunk is staged from discovery.ts; its unrelated packing and
 capability edits remain uncommitted.
+
+## Extraction failure envelope
+
+Q10 rejected an incapable adapter before publication but returned a planned
+manifest and locations without partial-output consent. The original focused
+`image-extraction-failure-envelope.test.ts` failed with that non-null data before
+code changed. Prepublication failures now return null data and empty locations;
+explicit partial-output consent and actual published receipts retain manifests.
+No input, sentinel or destination is changed by the rejected command.
+
+Verification: focused extraction checks passed 20 tests; scoped lint and the
+selected maintained build closure passed. A fresh Node process executed the built
+engine with original rich input bytes through explicit stdin: exit 3, null data,
+zero affected and empty locations. Its maintained terminal-renderer screenshot
+was inspected. A cache-busted index import in the existing REPL still retained
+its baseline dependency modules and was discarded as post-fix verification.
+Maintained DOCX tests passed 177 files, 3,435 tests with four skips.
+Final execution accounting is in the [receipt](../docx/office-cli-execution-20260915.md).

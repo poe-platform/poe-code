@@ -42,7 +42,8 @@ export async function executeImagesCommand(invocation: DocxInvocation, bytes: Ui
   };
   const commandError = (error: ImageExtractionPublicationError): ImageCommandPublicationError => {
     const { warnings, ...data } = error.data, diagnostic = commandDiagnostic("Document operation failed: " + error.code, error.code, budget.limits.diagnosticBytes);
-    const envelope = { version: 1, operation: invocation.operation, ok: false, data, affected: 0, locations: data.entries.flatMap(entry => entry.locations), warnings, errors: [{ code: error.code, message: diagnostic.message }] };
+    const reportPublication = options.allowPartialOutput === true || error.published.length > 0;
+    const envelope = { version: 1, operation: invocation.operation, ok: false, data: reportPublication ? data : null, affected: 0, locations: reportPublication ? data.entries.flatMap(entry => entry.locations) : [], warnings, errors: [{ code: error.code, message: diagnostic.message }] };
     return new ImageCommandPublicationError(error, new TextEncoder().encode(options.json ? JSON.stringify(envelope) + "\n" : ""), new TextEncoder().encode(diagnostic.human));
   };
   let inspected;

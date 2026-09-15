@@ -5,7 +5,9 @@ import { createOutputOperation } from "./output.js";
 
 const filesystemOutputBudgets = new WeakMap<NonNullable<CommandContext["registerCleanup"]>, (sink: ByteSink) => ByteSink>();
 
-export type FileOutputContext = Pick<CommandContext, "fs" | "signal" | "registerCleanup">;
+export type FileOutputContext = Pick<CommandContext, "fs" | "signal" | "registerCleanup"> & {
+  readonly outputBudget?: "shell" | "independent";
+};
 
 export function bindFileOutputBudget(context: Pick<CommandContext, "registerCleanup">, budget: (sink: ByteSink) => ByteSink): void {
   if (!context.registerCleanup) throw new TypeError("Shell output budgets require invocation cleanup ownership");
@@ -72,7 +74,8 @@ export async function openFileOutput(context: FileOutputContext, path: string, f
       await writing;
     },
   };
-  const budget = context.registerCleanup && filesystemOutputBudgets.get(context.registerCleanup);
+  const budget = context.outputBudget !== "independent" && context.registerCleanup
+    ? filesystemOutputBudgets.get(context.registerCleanup) : undefined;
   const operation = createOutputOperation(context, budget?.(destination) ?? destination);
   operation.registerCleanup(async () => {
     closing = true;

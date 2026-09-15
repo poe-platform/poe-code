@@ -1535,29 +1535,35 @@ describe("createDashboard", () => {
   });
 
   it("scrolls history, holds it during new output, and follows on F", () => {
-    withOutputFormat("terminal", () => {
-      const stdin = new TestDashboardStdin();
-      const stdout = new TestDashboardStdout(80, 8);
-      const dashboard = createDashboard({ stdin, stdout });
-      for (let index = 0; index < 10; index += 1) {
-        dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
-      }
-      dashboard.start();
-      const screen = () => renderTerminalOutput(stdout.output, 80, 8).join("\n");
-      expect(screen()).toContain("entry 9");
-      stdin.emit("data", Buffer.from("\u001b[A"));
-      expect(screen()).toContain("entry 8");
-      expect(screen()).not.toContain("entry 9");
-      for (let index = 10; index < 300; index += 1) {
-        dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
-      }
-      expect(screen()).toContain("entry 8");
-      expect(screen()).not.toContain("entry 299");
-      stdin.emit("data", Buffer.from("F"));
-      expect(screen()).toContain("entry 299");
-      expect(screen()).not.toContain("entry 8");
-      dashboard.destroy();
-    });
+    vi.useFakeTimers();
+    try {
+      withOutputFormat("terminal", () => {
+        const stdin = new TestDashboardStdin();
+        const stdout = new TestDashboardStdout(80, 8);
+        const dashboard = createDashboard({ stdin, stdout });
+        for (let index = 0; index < 10; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+        }
+        dashboard.start();
+        const screen = () => renderTerminalOutput(stdout.output, 80, 8).join("\n");
+        expect(screen()).toContain("entry 9");
+        stdin.emit("data", Buffer.from("\u001b[A"));
+        vi.advanceTimersByTime(16);
+        expect(screen()).toContain("entry 8");
+        expect(screen()).not.toContain("entry 9");
+        for (let index = 10; index < 300; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+        }
+        expect(screen()).toContain("entry 8");
+        expect(screen()).not.toContain("entry 299");
+        stdin.emit("data", Buffer.from("F"));
+        expect(screen()).toContain("entry 299");
+        expect(screen()).not.toContain("entry 8");
+        dashboard.destroy();
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("handles navigation internally without forwarding it to run commands", () => {
@@ -1580,6 +1586,39 @@ describe("createDashboard", () => {
 
       dashboard.destroy();
     });
+  });
+
+  it("coalesces navigation bursts and forwards quit before repainting", () => {
+    vi.useFakeTimers();
+    try {
+      withOutputFormat("terminal", () => {
+        const stdin = new TestDashboardStdin();
+        const stdout = new TestDashboardStdout(80, 8);
+        const dashboard = createDashboard({ stdin, stdout });
+        for (let index = 0; index < 100; index += 1) {
+          dashboard.appendOutput({ kind: "info", text: `entry ${index}`, ts: index });
+        }
+        dashboard.start();
+        const write = vi.spyOn(stdout, "write");
+        const commands: string[] = [];
+        dashboard.onCommand((command) => commands.push(command));
+        stdin.emit("data", Buffer.from("\u001b[A".repeat(10) + "q"));
+        expect(commands).toEqual(["quit"]);
+        expect(write).not.toHaveBeenCalled();
+        vi.advanceTimersByTime(16);
+        expect(write).toHaveBeenCalledTimes(1);
+        const screen = renderTerminalOutput(stdout.output, 80, 8).join("\n");
+        expect(screen).toContain("entry 89");
+        expect(screen).not.toContain("entry 99");
+        stdin.emit("data", Buffer.from("\u001b[A"));
+        dashboard.destroy();
+        const restored = stdout.output;
+        vi.runAllTimers();
+        expect(stdout.output).toBe(restored);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("coalesces output bursts and cancels pending repaint on destroy", () => {

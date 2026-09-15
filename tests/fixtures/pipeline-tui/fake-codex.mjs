@@ -21,16 +21,21 @@ let timer;
 if (scenario === "activity-timeout") {
   process.stderr.write("first attempt warning\u001b]HIDDEN_UNFINISHED_OSC");
   timer = setInterval(() => {}, 1000);
-} else if (scenario === "finite-burst" || scenario === "finite-burst-immediate") {
+} else if (scenario === "finite-burst" || scenario === "finite-burst-immediate" || scenario === "deep-cjk") {
   timer = setTimeout(() => {
-    for (let index = 0; index < 60_000; index++) {
-      emit({ type: "item.completed", item: { id: `message-${index}`, type: "agent_message", text: `Burst response ${index}\n` } });
+    const messageCount = scenario === "deep-cjk" ? 512 : 60_000;
+    for (let index = 0; index < messageCount; index++) {
+      if (scenario === "deep-cjk") {
+        emit({ type: "item.started", item: { id: `boundary-${index}`, type: "command_execution", command: `fake CJK block ${index}` } });
+      }
+      const text = scenario === "deep-cjk" ? "界".repeat(16_384) + ` row${index}\n` : `Burst response ${index}\n`;
+      emit({ type: "item.completed", item: { id: `message-${index}`, type: "agent_message", text } });
     }
     emit({ type: "item.completed", item: { id: "latest", type: "agent_message", text: "LATEST BURST RESULT\n" } });
     timer = setTimeout(() => {
       emit({ type: "turn.completed", usage: { input_tokens: 120, output_tokens: 45, cached_input_tokens: 10 } });
-    }, scenario === "finite-burst-immediate" ? 0 : 90_000);
-  }, 500);
+    }, scenario === "finite-burst-immediate" ? 0 : scenario === "deep-cjk" ? 300_000 : 90_000);
+  }, scenario === "deep-cjk" ? 3000 : 500);
 } else timer = setInterval(() => {
   if (scenario === "tool-burst") {
     for (let index = 0; index < 20; index++) {

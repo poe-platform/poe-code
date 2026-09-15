@@ -140,7 +140,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
         if (direction > 0) heldOutput ??= getStore().getState().output;
         scrollOffset = Math.max(0, scrollOffset + amount * direction);
         if (scrollOffset === 0) heldOutput = undefined;
-        render();
+        renderTimer ??= setTimeout(render, 16);
         return;
       }
 

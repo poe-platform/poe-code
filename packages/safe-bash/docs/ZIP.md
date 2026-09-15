@@ -158,6 +158,15 @@ sources are dereferenced. Link reads require the filesystem's `readlink` operati
 and are checked for source replacement before publication. Storing an escaping
 target does not authorize its extraction; extraction path checks remain enabled.
 
+`-l` / `--to-crlf` expands LF bytes to CRLF in newly selected regular-file and
+stdin payloads. Existing CRLF becomes CRCRLF; stored symlink targets and retained
+members remain unchanged. The Unix first-buffer binary check uses 8 KiB for
+stored sources and 32 KiB for deflated sources. Blacklisted control bytes disable
+conversion; control-only input is also left unchanged. Conversion expansion is
+charged against entry and aggregate payload limits before allocating output.
+Native binary warning/progress formatting and reverse conversion (`-ll`) remain
+unimplemented.
+
 `-T` rereads the prepared archive and verifies every member's decompression,
 length and CRC before publication, including retained old members. It does not
 extract files or invoke a host executable. Standalone and unchanged update/freshen

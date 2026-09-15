@@ -1,0 +1,92 @@
+[
+  {
+    "flag": "-l",
+    "name": "lf",
+    "input": "610a620a",
+    "output": "610d0a620d0a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "crlf",
+    "input": "610d0a620d0a",
+    "output": "610d0d0a620d0d0a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "cr",
+    "input": "610d620d",
+    "output": "610d620d",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "ctrlz",
+    "input": "610d0a1a",
+    "output": "610d0d0a1a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "onlylf",
+    "input": "0a",
+    "output": "0a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "onlycrlf",
+    "input": "0d0a",
+    "output": "0d0a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "onlycr",
+    "input": "0d",
+    "output": "0d",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "controls",
+    "input": "6109080b0c0d0a1b1a",
+    "output": "6109080b0c0d0d0a1b1a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "binary",
+    "input": "61000a",
+    "output": "61000a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "flag": "-l",
+    "name": "unicode",
+    "input": "636166c3a90a",
+    "output": "636166c3a90d0a",
+    "status": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

@@ -156,6 +156,10 @@ these gates; task69 has not begun.
 Verified bounded header improvement locally committed as254ae436d.
 The following atomic improvement delivers original PNG/JPEG insertion with
 its matching utility SDK, engine, closed schema/help and literal Shell tests.
+That verified insertion improvement is locally committed as506e47f90.
+Reconciliation commit1f502d176 and these two product commits precede the task68
+evidence/status closure. Only implement/test are selected; no remote delivery
+or release is authorized. The complete format/shared specs remain Proposed.
 
 ## Independent original raster QA procedure
 

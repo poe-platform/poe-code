@@ -1,0 +1,238 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-text-style-document",
+  "status": "in-progress",
+  "source_revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+  "contracts": [
+    "../specs/docx.md",
+    "../specs/office-cli.md",
+    "../specs/office-sdk.md"
+  ],
+  "scope": "Exact highlight XML correction; no whole-model conformance claim.",
+  "cases": [
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 377,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_knows_its_highlight_color[w:r-None]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r",
+        "expected_value": null
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 377,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_knows_its_highlight_color[w:r/w:rPr-None]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r/w:rPr",
+        "expected_value": null
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 377,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_knows_its_highlight_color[w:r/w:rPr/w:highlight{w:val=default}-AUTO (0)]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r/w:rPr/w:highlight{w:val=default}",
+        "expected_value": {
+          "enum": "WD_COLOR_INDEX.AUTO",
+          "value": 0
+        }
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 377,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_knows_its_highlight_color[w:r/w:rPr/w:highlight{w:val=blue}-BLUE (2)]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r/w:rPr/w:highlight{w:val=blue}",
+        "expected_value": {
+          "enum": "WD_COLOR_INDEX.BLUE",
+          "value": 2
+        }
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 391,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_can_change_its_highlight_color[w:r-AUTO (0)-w:r/w:rPr/w:highlight{w:val=default}]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r",
+        "value": {
+          "enum": "WD_COLOR_INDEX.AUTO",
+          "value": 0
+        },
+        "expected_r_cxml": "w:r/w:rPr/w:highlight{w:val=default}"
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "red-before-code-exact-xml-correction"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 391,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_can_change_its_highlight_color[w:r/w:rPr-BRIGHT_GREEN (4)-w:r/w:rPr/w:highlight{w:val=green}]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r/w:rPr",
+        "value": {
+          "enum": "WD_COLOR_INDEX.BRIGHT_GREEN",
+          "value": 4
+        },
+        "expected_r_cxml": "w:r/w:rPr/w:highlight{w:val=green}"
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 391,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_can_change_its_highlight_color[w:r/w:rPr/w:highlight{w:val=green}-YELLOW (7)-w:r/w:rPr/w:highlight{w:val=yellow}]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r/w:rPr/w:highlight{w:val=green}",
+        "value": {
+          "enum": "WD_COLOR_INDEX.YELLOW",
+          "value": 7
+        },
+        "expected_r_cxml": "w:r/w:rPr/w:highlight{w:val=yellow}"
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 391,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_can_change_its_highlight_color[w:r/w:rPr/w:highlight{w:val=yellow}-None-w:r/w:rPr]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r/w:rPr/w:highlight{w:val=yellow}",
+        "value": null,
+        "expected_r_cxml": "w:r/w:rPr"
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 391,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_can_change_its_highlight_color[w:r/w:rPr-None-w:r/w:rPr]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r/w:rPr",
+        "value": null,
+        "expected_r_cxml": "w:r/w:rPr"
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_font.py",
+        "line": 391,
+        "node_id": "tests/text/test_font.py::DescribeFont::it_can_change_its_highlight_color[w:r-None-w:r/w:rPr]"
+      },
+      "expected_edge_values": {
+        "r_cxml": "w:r",
+        "value": null,
+        "expected_r_cxml": "w:r/w:rPr"
+      },
+      "existing_case_map_status": "mapped-not-implemented",
+      "additional_test": "packages/docx/src/highlight-xml-contract.test.ts",
+      "disposition": "supplemental-member-and-null-xml-assertions; existing raw-state adaptation retained in style-formatting-case-map.json"
+    }
+  ],
+  "red": {
+    "command": "npx vitest run packages/docx/src/highlight-xml-contract.test.ts",
+    "result": "3 failed, 16 passed; AUTO emitted none rather than default on the live Font and both dialect operations."
+  },
+  "focused_green": {
+    "command": "npx vitest run packages/docx/src/highlight-xml-contract.test.ts packages/docx/src/formatting-model-boundaries.test.ts",
+    "result": "55 passed in 2 files; 19 new original tests."
+  },
+  "maintained_checks": {
+    "test": {
+      "initial": "3,244 passed, 1 conflicting expected AUTO none; corrected original expectation. A prematurely restarted run was canceled because it had loaded the old expectation.",
+      "final": {
+        "command": "npm test --workspace=docx",
+        "result": "3,245 passed in 162 files; no failures or skips; 143.71 seconds."
+      }
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "result": "Passed ESLint and both TypeScript checks; one warning in unchanged operation-types.test.ts."
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "result": "Passed all 5 selected workspace build tasks."
+    },
+    "status": "passed-for-highlight-correction"
+  },
+  "language_security": {
+    "model": "Font.highlight_color: typed WD_COLOR_INDEX | null; synchronous admitted property.",
+    "operation": "runs.set highlight; always-async admission/publication through the same serializer.",
+    "xml": "AUTO serializes default; explicit null removes only highlight, retaining owning rPr and unrelated false/Unicode content.",
+    "authority": "Original memfs owners and explicit sinks; no network, host files, dependency runtime or external binary fixtures."
+  },
+  "remaining": "All other document/text/style/story/comment/settings residual cases and unimplemented public owners remain visible in the existing inventories and case maps. This task remains open; later tasks are not started.",
+  "api_mapping": {
+    "source_member": "docx.text.font.Font.highlight_color",
+    "target": "get highlight_color(): DocxEnumValue<\"WD_COLOR_INDEX\"> | null; set highlight_color(value: DocxEnumValue<\"WD_COLOR_INDEX\"> | null)",
+    "inherited_use": "CharacterStyle, ParagraphStyle and TableStyle reuse this same Font view.",
+    "getter": "Absent rPr/highlight -> null; default -> AUTO; each supported lexical value -> typed symbol; invalid lexical value -> TypeError (existing validation; full shared typed-error mapping remains residual).",
+    "setter": "null -> remove highlight only; representable symbol -> exact schema lexical value; INHERITED, invalid symbols and wrong types reject before mutation.",
+    "cli": "runs set --highlight AUTO; original model spelling retained, operation field highlight unchanged.",
+    "documentation_drift": "No new API spelling. Correct the serializer and old expectation to the already documented AUTO XML value default; None/null remains inheritance, not AUTO.",
+    "inventory_id": "docx.text.run.Font.highlight_color"
+  },
+  "command_qa": {
+    "result": "Built public engine runs.set --highlight AUTO successfully published exact default XML; dry-run exited 0.",
+    "transcript": "/tmp/docx-highlight-qa/result.txt",
+    "screenshot": {
+      "path": "/tmp/docx-highlight-qa/result.png",
+      "command": "npm run screenshot-poe-code -- --no-header --output /tmp/docx-highlight-qa/result.png bash --root /tmp/docx-highlight-qa -c 'cat result.txt'",
+      "result": "Passed; inspected readable, unclipped dry-run result. This is terminal presentation only, not document-renderer fidelity.",
+      "preparation": "Maintained screenshot prerequisite build passed 76/76 uncached tasks; root bundle completed."
+    }
+  }
+}

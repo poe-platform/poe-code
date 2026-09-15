@@ -79,7 +79,7 @@ export class Font {
   set underline(value: boolean | DocxEnumValue<"WD_UNDERLINE"> | null) { if (!validateDocxValue("boolean | WD_UNDERLINE | null", value) || value !== null && typeof value === "object" && !Object.hasOwn(underline, value.name)) throw new TypeError("Invalid underline value."); update(this.owner, "r", { underline: value }); }
   get highlight_color(): DocxEnumValue<"WD_COLOR_INDEX"> | null {
     const value = attr(this.property("highlight")); if (value === undefined) return null;
-    const name = Object.keys(highlights).find(key => highlights[key as keyof typeof highlights] === (value === "default" ? "none" : value)) as keyof typeof highlights | undefined;
+    const name = Object.keys(highlights).find(key => highlights[key as keyof typeof highlights] === value) as keyof typeof highlights | undefined;
     if (!name) throw new TypeError("Invalid highlight color."); return { enum: "WD_COLOR_INDEX", name };
   }
   set highlight_color(value: DocxEnumValue<"WD_COLOR_INDEX"> | null) { if (!validateDocxValue("WD_COLOR_INDEX | null", value) || value !== null && !Object.hasOwn(highlights, value.name)) throw new TypeError("Invalid highlight color."); update(this.owner, "r", { highlight: value }); }

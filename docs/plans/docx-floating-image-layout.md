@@ -116,3 +116,10 @@ exclusive UserInstallation and explicit TMPDIR/TMP/TEMP cache paths; whole-host
 write confinement has not been established and MUST NOT be claimed. This permits
 no product runtime/network or native build dependency. Preserve all failed
 confinement/network-denial attempts beside the successful baseline.
+
+Baseline preparation record docs/docx/floating-image-layout-qa.json is frozen
+SHA256e05e3ce75bac4a6529c993393ae34f25ceeb970db3d5a13227d6550a8881bbbe,
+parsed/authenticated before its owned local commit. Preserve this immutable Git
+cohort before appending any edited-output QA, so original preview failures,+renderer failures, two original PDF exports and five page inspections remain
+recoverable. It establishes pagination availability only; task71 statuses stay
+open and edited product/layout/model QA is pending.

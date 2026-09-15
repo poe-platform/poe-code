@@ -169,12 +169,17 @@ async function inventory(input: Uint8Array, operation: "images.list" | "images.g
     const lockAspect=frameLock!==null&&pictureLock!==null&&frameLock===pictureLock?frameLock:null;
     if (lockAspect===null) warn("unrecognized-image-metadata","Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.");
     const alternates = node.children.filter(node => node.namespace === a && node.localName === "extLst").flatMap(list => list.children.filter(node => node.namespace === a && node.localName === "ext").flatMap(extension => extension.children.filter(node => node.namespace === svg && node.localName === "svgBlip")));
-    const alternateParts = [...new Set(alternates.map(node => resolve(attribute(node, "embed", r))).filter((part): part is string => part !== null))];
+    const alternateParts = [...new Set(alternates.map(node => resolve(attribute(node, "embed", documentDialects.transitional.r))).filter((part): part is string => part !== null))];
+    const alternateLinked = alternates.some(node => attribute(node, "link", documentDialects.transitional.r) !== undefined);
+    for (const alternate of alternates) {
+      const link = attribute(alternate, "link", documentDialects.transitional.r);
+      if (link !== undefined) resolve(link);
+    }
     let complete = primary !== null;
-    if (alternates.length > 1 || alternates.length !== alternateParts.length) { complete = false; warn("ambiguous-image-alternate", "Image alternate associations are unresolved or ambiguous; no preferred encoding is invented."); }
+    if (alternateLinked || alternates.length > 1 || alternates.length !== alternateParts.length) { complete = false; warn("ambiguous-image-alternate", "Image alternate associations are unresolved or ambiguous; no preferred encoding is invented."); }
     const admitted = primary ? [primary] : [];
     let fallbackPart: string | null = null;
-    if (alternates.length === 1 && alternateParts.length === 1) {
+    if (!alternateLinked && alternates.length === 1 && alternateParts.length === 1) {
       const alternate = await resource(alternateParts[0]!);
       if (alternate.mime === "image/svg+xml" && alternate.part !== primary?.part) {
         admitted.push(alternate);
@@ -187,7 +192,7 @@ async function inventory(input: Uint8Array, operation: "images.list" | "images.g
       wrapText, wrapPolygon, distances: frame?.localName === "anchor" ? {top:distance("T"),bottom:distance("B"),left:distance("L"),right:distance("R")} : null, allowOverlap: frame?.localName === "anchor" ? boolean(attribute(frame,"allowOverlap")) : null, behindText: frame?.localName === "anchor" ? boolean(attribute(frame,"behindDoc")) : null, lockAspect,
       wrap: wrapping.length === 1 ? wraps[wrapping[0]!.localName] ?? null : null, zOrder: frame?.localName === "anchor" ? integer(attribute(frame, "relativeHeight"), 0, 4294967295) : null,
       horizontalPosition: frame?.localName === "anchor" ? position("positionH") : null, verticalPosition: frame?.localName === "anchor" ? position("positionV") : null,
-      alt: native ? attribute(docPr, "descr") ?? null : null, decorative: native ? boolean(attribute(one(decorativeNamespace, "decorative"), "val")) : null, owners: [location], fallbackPart, alternateParts, linked: linked || references.some(reference => reference.external) };
+      alt: native ? attribute(docPr, "descr") ?? null : null, decorative: native ? boolean(attribute(one(decorativeNamespace, "decorative"), "val")) : null, owners: [location], fallbackPart, alternateParts, linked: linked || alternateLinked || references.some(reference => reference.external) };
     if (!native || !frame || details.widthEmu === null || details.heightEmu === null || details.rotation === null || details.crop === null || details.decorative === null) warn("unrecognized-image-metadata", "Missing, invalid or unsupported image metadata remains null; no layout or decoding is inferred.");
     if (!primary) warn("unresolved-image", "Image media is linked, missing or unresolved; no bytes are fabricated or acquired.");
     occurrences.push({ record: { kind: "images", location: location as Location<"image">, ...(primary ? { name: primary.part } : {}), properties: [], references, support: native && primary !== null && primary.mime !== "application/octet-stream" ? "read" : "preserve", details }, resources: admitted, complete });

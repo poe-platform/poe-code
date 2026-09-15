@@ -123,7 +123,7 @@ export const imageLayoutOperationContracts: Readonly<Record<string, { descriptio
 };
 export const rasterInsertionOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
   "images.add": {
-    description: "Insert admitted PNG or JPEG bytes inline into one paragraph or a new trailing container paragraph.",
+    description: "Insert admitted PNG/JPEG or static safe SVG with an explicit validated PNG/JPEG/GIF/BMP/TIFF fallback inline into one paragraph or a new trailing container paragraph; no rasterization or rendering is performed.",
     featureIds: ["F06", "F08", "F11", "F12", "F31", "F32", "F35"],
     result: { oneOf: [object({ version: { const: 1 }, operation: { const: "images.add" }, ok: { const: true },
       data: object({ ...mutationData.properties, changes: { ...array(object({ kind: { const: "add" }, before: location, after: location })), minItems: 0, maxItems: 1 } }),

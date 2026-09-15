@@ -18,6 +18,7 @@ import { assertOutsideRevisionRanges } from "./revision-markup.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
+import { admitSvgImage } from "./svg-image.js";
 
 export interface ImageBinaryResolver {
   readonly capability: string;
@@ -117,20 +118,31 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
   }
   const settings = archiveSettings(context), invocation = validateDocxInvocation({ operation: request.operation, inputs: [request.input?.path ?? "document"], options: request.options }, settings.budget), options = invocation.options as DocxOperationArguments<"images.add">;
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value]))), scoped = { ...settings, budget };
-  if (options.placement === "floating" || options.fallback !== undefined) throw new UnsupportedEditError("This insertion profile admits inline PNG and JPEG only.");
+  if (options.placement === "floating") throw new UnsupportedEditError("This insertion profile admits inline pictures only.");
   const document = await openDocumentLocations(input, scoped), selected = resolveDocxSelection(document, invocation), archive = document.snapshot();
   assertDocumentEditable(archive, scoped);
   if (selected.some(item => item.value.range !== null || !["paragraph", "story", "cell"].includes(item.kind))) throw new DocxUsageError("Image insertion requires a whole paragraph or supported block container.");
-  const bytes = await acquireImage(options.file, { ...scoped, ...(context.binaryResolver ? { binaryResolver: context.binaryResolver } : {}) }), header = characterizeRasterHeader(bytes, scoped);
-  if (header.mime !== "image/png" && header.mime !== "image/jpeg") throw new UnsupportedEditError("This insertion profile admits PNG and JPEG only.");
-  if (options.file.kind === "vfs") {
-    const name = options.file.path.slice(options.file.path.lastIndexOf("/") + 1), suffix = asciiKey(name.slice(name.lastIndexOf(".") + 1));
-    const expected = ({ png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff" } as Record<string, string>)[suffix];
-    if (expected && expected !== header.mime) throw new InvalidValueError("Image filename type conflicts with its admitted signature.");
+  const source = await acquireImage(options.file, { ...scoped, ...(context.binaryResolver ? { binaryResolver: context.binaryResolver } : {}) });
+  let vector: Uint8Array | undefined;
+  if (options.fallback !== undefined) { admitSvgImage(source, scoped); vector = source; }
+  const bytes = options.fallback === undefined ? source : await acquireImage(options.fallback, { ...scoped, ...(context.binaryResolver ? { binaryResolver: context.binaryResolver } : {}) });
+  const header = characterizeRasterHeader(bytes, scoped);
+  if (!vector && header.mime !== "image/png" && header.mime !== "image/jpeg") throw new UnsupportedEditError("This raster insertion profile admits PNG and JPEG only.");
+  for (const [descriptor, mime] of [[options.file, vector ? "image/svg+xml" : header.mime], ...(options.fallback ? [[options.fallback, header.mime] as const] : [])] as const) {
+    if (descriptor.kind !== "vfs") continue;
+    const name = descriptor.path.slice(descriptor.path.lastIndexOf("/") + 1), suffix = asciiKey(name.slice(name.lastIndexOf(".") + 1));
+    const expected = ({ png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff", svg: "image/svg+xml" } as Record<string, string>)[suffix];
+    if (expected && expected !== mime) throw new InvalidValueError("Image filename type conflicts with its admitted signature.");
   }
   const size = imageSize(header, options), main = document.list("story", { scope: "body" })[0]!.value.part, dialect = dialectForNamespace(parseDocumentXml(archive.members.find(m => "/" + m.name === main)!.bytes, {}, budget).root.namespace)!, ns = documentDialects[dialect];
   const graph = new DocumentPackage(archive, settings.limits, budget), takenNames = new Set(archive.members.map(m => asciiKey("/" + m.name)));
-  let mediaOrdinal = 1, media: string; do { media = `${main.slice(0, main.lastIndexOf("/"))}/media/image-${mediaOrdinal++}.${header.mime === "image/png" ? "png" : "jpg"}`; } while (takenNames.has(asciiKey(media)));
+  const extension = ({ "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/bmp": "bmp", "image/tiff": "tiff" } as Record<string, string>)[header.mime]!;
+  let mediaOrdinal = 1, media: string; do { media = `${main.slice(0, main.lastIndexOf("/"))}/media/image-${mediaOrdinal++}.${extension}`; } while (takenNames.has(asciiKey(media)));
+  takenNames.add(asciiKey(media));
+  let vectorPart: string | undefined;
+  if (vector) {
+    do { vectorPart = `${main.slice(0, main.lastIndexOf("/"))}/media/image-${mediaOrdinal++}.svg`; } while (takenNames.has(asciiKey(vectorPart)));
+  }
   const drawingIds = new Set<string>();
   for (const member of archive.members) {
     const part = graph.parts.find(p => p.partname === "/" + member.name);
@@ -151,13 +163,17 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     budget.check("xmlPartBytes", ownerMember.bytes.length + alternativeSize.bytes);
     const owner = before.value.part, slash = owner.lastIndexOf("/"), relname = owner.slice(1, slash + 1) + "_rels/" + owner.slice(slash + 1) + ".rels";
     let idOrdinal = 1; const taken = new Set(graph.relationships(owner).map(edge => edge.rId)); while (taken.has(`rId${idOrdinal}`)) idOrdinal++; const relationshipId = `rId${idOrdinal}`;
-    const relationship = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${relationshipId}" Type="${ns.r}/image" Target="${xmlValue(relativePartTarget(owner, media))}"/>`;
+    taken.add(relationshipId);
+    while (taken.has(`rId${idOrdinal}`)) idOrdinal++;
+    const vectorRelationshipId = vectorPart ? `rId${idOrdinal}` : undefined;
+    const relationship = `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${relationshipId}" Type="${ns.r}/image" Target="${xmlValue(relativePartTarget(owner, media))}"/>` + (vectorPart ? `<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" Id="${vectorRelationshipId}" Type="${ns.r}/image" Target="${xmlValue(relativePartTarget(owner, vectorPart))}"/>` : "");
     if (archive.members.some(m => m.name === relname)) { const rels = editor.xml(relname); rels.insertChildren(rels.root, relationship); }
     else additions.set(owner, { name: relname, xml: `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationship}</Relationships>` });
     let drawingId = 1; while (drawingIds.has(String(drawingId))) drawingId++; if (drawingId > 4294967295) throw new ResourceLimitError("No drawing identifier is available."); drawingIds.add(String(drawingId));
     const decorative = options.decorative ? '<di:extLst><di:ext uri="{C183D7F6-B498-43B3-948B-1728B52AA6E4}"><ad:decorative xmlns:ad="http://schemas.microsoft.com/office/drawing/2017/decorative" val="1"/></di:ext></di:extLst>' : "";
+    const blip = vectorPart ? `<di:blip ri:embed="${relationshipId}"><di:extLst><di:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}"><asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" xmlns:vr="${documentDialects.transitional.r}" vr:embed="${vectorRelationshipId}"/></di:ext></di:extLst></di:blip>` : `<di:blip ri:embed="${relationshipId}"/>`;
     const prefix = `<wi:r xmlns:wi="${ns.w}" xmlns:wp="${ns.wp}" xmlns:di="${ns.a}" xmlns:pic="${ns.pic}" xmlns:ri="${ns.r}"><wi:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${size.width}" cy="${size.height}"/><wp:docPr id="${drawingId}" name="Image ${drawingId}" descr="`;
-    const suffix = `">${decorative}</wp:docPr><wp:cNvGraphicFramePr><di:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><di:graphic><di:graphicData uri="${ns.pic}"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Image ${drawingId}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><di:blip ri:embed="${relationshipId}"/>${size.crop.split(documentDialects.transitional.a).join(ns.a)}<di:stretch><di:fillRect/></di:stretch></pic:blipFill><pic:spPr><di:xfrm><di:off x="0" y="0"/><di:ext cx="${size.width}" cy="${size.height}"/></di:xfrm><di:prstGeom prst="rect"><di:avLst/></di:prstGeom></pic:spPr></pic:pic></di:graphicData></di:graphic></wp:inline></wi:drawing></wi:r>`;
+    const suffix = `">${decorative}</wp:docPr><wp:cNvGraphicFramePr><di:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><di:graphic><di:graphicData uri="${ns.pic}"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Image ${drawingId}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill>${blip}${size.crop.split(documentDialects.transitional.a).join(ns.a)}<di:stretch><di:fillRect/></di:stretch></pic:blipFill><pic:spPr><di:xfrm><di:off x="0" y="0"/><di:ext cx="${size.width}" cy="${size.height}"/></di:xfrm><di:prstGeom prst="rect"><di:avLst/></di:prstGeom></pic:spPr></pic:pic></di:graphicData></di:graphic></wp:inline></wi:drawing></wi:r>`;
     const containerPrefix = before.kind === "paragraph" ? "" : `<wi:p xmlns:wi="${ns.w}">`, containerSuffix = before.kind === "paragraph" ? "" : "</wi:p>";
     const fragments = [containerPrefix, prefix, suffix, containerSuffix]; let markupBytes = alternativeSize.bytes, markupCharacters = alternativeSize.characters;
     for (const fragment of fragments) { budget.charge("work", fragment.length); const measured = xmlTextSize(fragment, utf8); markupBytes += measured.bytes; markupCharacters += measured.characters; }
@@ -170,10 +186,10 @@ export async function insertDocumentImage(input: Uint8Array, request: ImageInser
     xml.insertChildren(node, before.kind === "paragraph" ? run : containerPrefix + run + containerSuffix, section);
     updates.push({ before, path: [...paragraphPath, runIndex, 0, 0, 3, 0, 0, 1, 0] });
   }
-  if (updates.length) { const types = editor.xml("[Content_Types].xml"); types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(media)}" ContentType="${header.mime}"/>`); }
+  if (updates.length) { const types = editor.xml("[Content_Types].xml"); types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(media)}" ContentType="${header.mime}"/>` + (vectorPart ? `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(vectorPart)}" ContentType="image/svg+xml"/>` : "")); }
   const dirty = new Set(editor.dirtyParts), copied = archive.comment.length + archive.members.reduce((n, m) => n + (dirty.has(m.name) ? 0 : m.bytes.length) + 128, 0) + [...additions.values()].reduce((n, a) => n + a.xml.length * 3 + 128, 0);
   budget.charge("retainedBytes", copied); budget.charge("work", copied);
-  const candidate: DocumentArchive = { comment: new Uint8Array(archive.comment), members: [...archive.members.map(m => ({ ...m, bytes: dirty.has(m.name) ? editor.xml(m.name).serialize() : new Uint8Array(m.bytes) })), ...[...additions.values()].map(a => ({ name: a.name, bytes: new TextEncoder().encode(a.xml), directory: false, modified: new Date(archive.members[0]!.modified) })), ...(updates.length ? [{ name: media.slice(1), bytes, directory: false, modified: new Date(archive.members[0]!.modified) }] : [])] };
+  const candidate: DocumentArchive = { comment: new Uint8Array(archive.comment), members: [...archive.members.map(m => ({ ...m, bytes: dirty.has(m.name) ? editor.xml(m.name).serialize() : new Uint8Array(m.bytes) })), ...[...additions.values()].map(a => ({ name: a.name, bytes: new TextEncoder().encode(a.xml), directory: false, modified: new Date(archive.members[0]!.modified) })), ...(updates.length ? [{ name: media.slice(1), bytes, directory: false, modified: new Date(archive.members[0]!.modified) }, ...(vectorPart && vector ? [{ name: vectorPart.slice(1), bytes: vector, directory: false, modified: new Date(archive.members[0]!.modified) }] : [])] : [])] };
   const index = new LocationIndex(candidate, settings.limits, main.slice(1), dialect, budget);
   budget.charge("retainedBytes", updates.length * 4096); budget.charge("work", updates.length * 4096);
   const changes = updates.map(({ before, path }) => { const entry = index.byAddress.get(addressKey({ ...before.value, path }))?.find(e => e.kind === "image"); if (!entry) throw new UnsupportedEditError("Inserted image location could not be resolved."); const value = { ...before.value, path, generation: 1, range: null }; const after: Location<"image"> = { kind: "image", value, token: encodeLocation(value), positions: entry.positions }; return { kind: "add" as const, before, after }; });

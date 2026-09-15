@@ -10,6 +10,99 @@ import { ResourceLimitError } from "./archive.js";
 import * as structuredContent from "./create-content.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import { w } from "../tests/fixtures/text.js";
+import { staticSvg, svgBinary } from "../tests/fixtures/svg-image.js";
+import { rasterPng, rasterJpeg, rasterGif, rasterBmp, rasterTiff } from "../tests/fixtures/raster.js";
+import { inspectDocumentImages } from "./images.js";
+import { svgPairFixture } from "../tests/fixtures/svg-image.js";
+
+it.each([false, true])("inserts one exact native SVG and supplied fallback occurrence (%s)", async strict => {
+  const fallback = rasterPng();
+  const result = await insert(paragraph("Technical input"), { paragraph: 1, file: svgBinary(staticSvg), fallback: svgBinary(fallback) }, strict);
+  expect(result.archive.members.find(member => member.name.endsWith(".svg"))?.bytes).toEqual(staticSvg);
+  expect(result.archive.members.find(member => member.name.endsWith(".png"))?.bytes).toEqual(fallback);
+  expect(result.xml).toContain('{96DAC541-7B7A-43D3-8B79-37D633B846F1}');
+  expect(result.xml).toContain('cx="12700" cy="12700"');
+  const inventory = await inspectDocumentImages(result.bytes, { operation: "images.list" }, textContext);
+  expect(inventory.items).toHaveLength(1);
+  expect(inventory.items?.[0]?.details.alternateParts).toHaveLength(1);
+  expect(inventory.items?.[0]?.details.fallbackPart).toBe(inventory.items?.[0]?.details.part);
+});
+it.each([rasterPng(), rasterJpeg(), rasterGif(), rasterBmp(), rasterTiff()])("uses admitted supplied raster format bytes as SVG fallback", async fallback => {
+  const result = await insert(paragraph("Technical input"), { paragraph: 1, file: svgBinary(), fallback: svgBinary(fallback) });
+  expect(result.archive.members.some(member => member.bytes.length === fallback.length && member.bytes.every((byte, index) => byte === fallback[index]))).toBe(true);
+});
+it("sizes native SVG from fallback per-axis physical density and one-size ratio", async () => {
+  const result = await insert(paragraph("Technical input"), {
+    paragraph: 1, file: svgBinary(), fallback: svgBinary(rasterJpeg(4, 6, [1, 144, 72])), width: { value: 1, unit: "in" }
+  });
+  expect(result.xml).toContain('cx="914400" cy="2743200"');
+});
+it.each(["contain", "cover", "stretch"] as const)("uses supplied fallback dimensions for SVG %s fitting", async fit => {
+  const result = await insert(paragraph("Technical input"), {
+    paragraph: 1, file: svgBinary(), fallback: svgBinary(rasterJpeg(4, 6, [1, 0, 72])),
+    width: { value: 1, unit: "in" }, height: { value: 1, unit: "in" }, fit
+  });
+  expect(result.xml).toContain(fit === "contain" ? 'cx="609600" cy="914400"' : 'cx="914400" cy="914400"');
+  if (fit === "cover") expect(result.xml).toContain('t="16667" b="16667"');
+});
+it("owns both reused SVG/fallback producers and completes them before publication", async () => {
+  const input = await textFixture(paragraph("Technical input")), fallback = rasterPng();
+  const volume = Volume.fromJSON({ "/out": "" });
+  let finalized = 0;
+  await insertDocumentImage(input, { operation: "images.add", options: {
+    paragraph: 1, file: { kind: "vfs", path: "/technical.svg", capability: "pair" },
+    fallback: { kind: "vfs", path: "/technical.png", capability: "pair" }, output: "-"
+  } }, { ...textContext, encoding: { order: "input", compression: "store" },
+    binaryResolver: { capability: "pair", async *open(path, { signal, maxBytes }) {
+      expect(signal.aborted).toBe(false); expect(maxBytes).toBeGreaterThan(0);
+      const source = path.endsWith(".svg") ? staticSvg : fallback;
+      const split = Math.ceil(source.length / 2), buffer = new Uint8Array(split);
+      try { buffer.set(source.subarray(0, split)); yield buffer; buffer.fill(0); buffer.set(source.subarray(split)); yield buffer.subarray(0, source.length - split); }
+      finally { buffer.fill(0); finalized++; }
+    } }, admitPublication() { expect(finalized).toBe(2); expect(volume.readFileSync("/out").length).toBe(0); return undefined; },
+    stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }
+  });
+  const archive = await readDocumentArchive(new Uint8Array(volume.readFileSync("/out") as Uint8Array), textContext);
+  expect(archive.members.find(member => member.name.endsWith(".svg"))?.bytes).toEqual(staticSvg);
+  expect(archive.members.find(member => member.name.endsWith(".png"))?.bytes).toEqual(fallback);
+});
+it("refuses unsafe SVG before opening fallback and refuses missing/invalid fallback without output", async () => {
+  const input = await textFixture(paragraph("Technical input")); let fallbackReads = 0, writes = 0;
+  const context = { ...textContext, encoding: { order: "input" as const, compression: "store" as const }, stdout: { async write() { writes++; } },
+    binaryResolver: { capability: "pair", async *open() { fallbackReads++; yield rasterPng(); } }
+  };
+  await expect(insertDocumentImage(input, { operation: "images.add", options: {
+    paragraph: 1, file: svgBinary(new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><script/></svg>')),
+    fallback: { kind: "vfs", path: "/fallback.png", capability: "pair" }, output: "-"
+  } }, context)).rejects.toThrow();
+  expect(fallbackReads).toBe(0);
+  for (const options of [
+    { file: svgBinary() }, { file: binary(), fallback: binary() },
+    { file: svgBinary(), fallback: svgBinary(Uint8Array.of(1, 2, 3)) },
+    { file: svgBinary(), fallback: binary(), placement: "floating" as const },
+    { file: svgBinary(), fallback: binary(), limit: [{ name: "embeddedMediaBytes" as const, value: staticSvg.length + 1 }] }
+  ]) await expect(insertDocumentImage(input, { operation: "images.add", options: { paragraph: 1, output: "-", ...options } }, context)).rejects.toThrow();
+  expect(writes).toBe(0);
+});
+it("observes cancellation during fallback acquisition and closes the admitted producer", async () => {
+  const controller = new AbortController(); let finalized = 0, writes = 0;
+  await expect(insertDocumentImage(await textFixture(paragraph("Technical input")), { operation: "images.add", options: {
+    paragraph: 1, file: svgBinary(), fallback: { kind: "vfs", path: "/fallback.png", capability: "pair" }, output: "-"
+  } }, { ...textContext, signal: controller.signal, encoding: { order: "input", compression: "store" },
+    binaryResolver: { capability: "pair", async *open() { try { controller.abort(); yield rasterPng(); } finally { finalized++; } } },
+    stdout: { async write() { writes++; } }
+  })).rejects.toThrow();
+  expect(finalized).toBe(1); expect(writes).toBe(0);
+});
+it("preserves an existing native pair and noncanonical retained writer URI during unrelated insertion", async () => {
+  const input = await svgPairFixture(true), before = await readDocumentArchive(input, textContext), volume = Volume.fromJSON({ "/out": "" });
+  await insertDocumentImage(input, { operation: "images.add", options: { paragraph: 1, file: binary(), output: "-" } }, {
+    ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }
+  });
+  const after = await readDocumentArchive(new Uint8Array(volume.readFileSync("/out") as Uint8Array), textContext);
+  for (const member of before.members.filter(member => member.name.startsWith("word/media/"))) expect(after.members.find(candidate => candidate.name === member.name)?.bytes).toEqual(member.bytes);
+  expect(new TextDecoder().decode(after.members.find(member => member.name === "word/document.xml")!.bytes)).toContain('uri="urn:retained-writer"');
+});
 
 function png(density?: number) {
   const chunk = (name: string, payload: number[]) => { const bytes = new Uint8Array(12 + payload.length), view = new DataView(bytes.buffer); view.setUint32(0, payload.length); bytes.set(new TextEncoder().encode(name), 4); bytes.set(payload, 8); view.setUint32(8 + payload.length, crc32(bytes.subarray(4, 8 + payload.length))); return bytes; };

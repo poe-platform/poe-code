@@ -6,6 +6,36 @@ import { readArchive, type ArchiveContext } from "./archive.js";
 import { writeArchive } from "./archive-write.js";
 import { inspectDocumentImages, extractDocumentImages } from "./images.js";
 import { DocumentBudget } from "./budget.js";
+import { svgPairFixture } from "../tests/fixtures/svg-image.js";
+import { svgBinary } from "../tests/fixtures/svg-image.js";
+import { rasterPng } from "../tests/fixtures/raster.js";
+import { insertDocumentImage } from "./image-insertion.js";
+
+it.each(["emf", "wdp"])("preserves original inert %s bytes during unrelated image insertion", async format => {
+  const native = new Uint8Array(format === "emf" ? 44 : 4);
+  if (format === "emf") { native[0] = 1; native.set([32, 69, 77, 70], 40); }
+  else native.set([73, 73, 188, 1]);
+  const input = await fixture(carrier(`<wp:inline>${blip}</wp:inline>`), native);
+  const volume = Volume.fromJSON({ "/out": "" });
+  await insertDocumentImage(input, { operation: "images.add", options: { paragraph: 1, file: svgBinary(rasterPng()), output: "-" } }, {
+    ...context(), encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { volume.appendFileSync("/out", bytes); } }
+  });
+  const output = new Uint8Array(volume.readFileSync("/out") as Uint8Array);
+  expect((await readArchive(output, context())).members.find(member => member.name === "word/media/pixel.bmp")?.bytes).toEqual(native);
+  expect((await inspectDocumentImages(output, { operation: "images.get", image: 1 }, context())).item?.details.mime).toBe(format === "emf" ? "image/emf" : "image/vnd.ms-photo");
+});
+
+it("resolves native extension relationship attributes independently of a Strict owner dialect", async () => {
+  const result = await inspectDocumentImages(await svgPairFixture(true), { operation: "images.list" }, context());
+  expect(result.items?.[0]?.details.alternateParts).toEqual(["/word/media/vector.svg"]);
+  expect(result.items?.[0]?.details.fallbackPart).toBe(result.items?.[0]?.details.part);
+});
+it("keeps a competing SVG extension link inert and refuses an unambiguous fallback association", async () => {
+  const result = await inspectDocumentImages(await svgPairFixture(false, true), { operation: "images.list" }, context());
+  expect(result.items?.[0]?.details.fallbackPart).toBeNull();
+  expect(result.items?.[0]?.details.linked).toBe(true);
+  expect(result.items?.[0]?.references.some(reference => reference.external)).toBe(true);
+});
 import type { PublicationInput } from "./publication.js";
 
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 32768, maxTotalBytes: 65536, maxMembers: 64, maxPathBytes: 256, maxDepth: 32, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 32000000, chunkSize: 512 };

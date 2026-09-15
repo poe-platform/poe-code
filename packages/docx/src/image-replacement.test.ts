@@ -11,6 +11,17 @@ import {
 import { readDocumentArchive } from "./admission.js";
 import { openDocumentLocations } from "./locations.js";
 import { DocumentPackage } from "./package.js";
+import { svgPairFixture, svgBinary } from "../tests/fixtures/svg-image.js";
+it.each([false, true])("refuses a linked native SVG pair before opening replacement input (%s)", async fallback => {
+  let reads = 0, writes = 0;
+  await expect(replaceDocumentImage(await svgPairFixture(true, true), { operation: "images.replace", options: {
+    image: 1, file: { kind: "vfs", path: "/replacement.png", capability: "pair" },
+    ...(fallback ? { fallback: svgBinary(replacementPng()) } : {}), output: "-"
+  } }, { ...replacementContext, binaryResolver: { capability: "pair", async *open() { reads++; yield replacementPng(); } },
+    stdout: { async write() { writes++; } }
+  })).rejects.toThrow();
+  expect(reads).toBe(0); expect(writes).toBe(0);
+});
 it.each([false, true])(
   "rebinds only the chosen occurrence unless shared intent is explicit (%s)",
   async (shared) => {

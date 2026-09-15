@@ -3,6 +3,7 @@ import { expect, it } from "vitest";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
 import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
+import { MemoryFileSystem } from "../packages/safe-fs/src/fs/memory/index.js";
 
 it("ships the optional document API and command with matching portable runtime and type routes", async () => {
   const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
@@ -86,6 +87,44 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
       expect(inventory.items[0].details.heightEmu).toBe(3048000);
     }
   }
+  const svg = new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg" width="999" height="1"><title>Format probe</title></svg>');
+  const fallback = rasterPng(4, 6);
+  const svgChunks: Uint8Array[] = [];
+  const svgContext = {
+    ...textContext,
+    encoding: { order: "input", compression: "store" },
+    stdout: { async write(bytes: Uint8Array) { svgChunks.push(new Uint8Array(bytes)); } }
+  };
+  const svgResult = await runtime.insertDocumentImage(await textFixture('<w:p/>'), {
+    operation: "images.add", options: {
+      paragraph: 1,
+      file: { kind: "bytes", base64: Buffer.from(svg).toString("base64") },
+      fallback: { kind: "bytes", base64: Buffer.from(fallback).toString("base64") },
+      output: "-"
+    }
+  }, svgContext);
+  expect(svgResult.changed).toBe(true);
+  expect(svgResult.changes).toHaveLength(1);
+  const svgOutput = new Uint8Array(Buffer.concat(svgChunks));
+  const svgArchive = await runtime.readDocumentArchive(svgOutput, textContext);
+  expect(svgArchive.members.filter((member: { name: string }) => member.name.endsWith(".svg"))).toHaveLength(1);
+  expect(svgArchive.members.find((member: { name: string }) => member.name.endsWith(".svg")).bytes).toEqual(svg);
+  expect(svgArchive.members.find((member: { name: string }) => member.name.endsWith(".png")).bytes).toEqual(fallback);
+  const svgInventory = await runtime.inspectDocumentImages(svgOutput, { operation: "images.list" }, textContext);
+  expect(svgInventory.items).toHaveLength(1);
+  expect(svgInventory.items[0].details.widthEmu).toBe(50800);
+  expect(svgInventory.items[0].details.heightEmu).toBe(76200);
+  expect(svgInventory.items[0].details.alternateParts).toHaveLength(1);
+  expect(svgInventory.items[0].details.fallbackPart).toBe(svgInventory.items[0].details.part);
+  const svgFilesystem = new MemoryFileSystem();
+  await svgFilesystem.mkdir("/out");
+  const extractedSvg = await runtime.extractDocumentImages(svgOutput, {
+    outputDir: "/out", allowPartialOutput: true
+  }, { ...svgContext, filesystem: svgFilesystem });
+  expect(extractedSvg.complete).toBe(true);
+  expect(extractedSvg.entries).toHaveLength(2);
+  expect(await svgFilesystem.readFile(extractedSvg.entries[0].path)).toEqual(fallback);
+  expect(await svgFilesystem.readFile(extractedSvg.entries[1].path)).toEqual(svg);
   expect.soft(runtime.characterizeRasterHeader).toBeTypeOf("function");
   expect.soft(runtime.Image?.from_blob).toBeTypeOf("function");
   expect.soft(runtime.Image?.from_file).toBeTypeOf("function");

@@ -5,6 +5,7 @@ import { insertDocumentImage } from "./image-insertion.js";
 import { inspectDocumentImages } from "./images.js";
 import { paragraph, textContext, textFixture } from "../tests/fixtures/text.js";
 import { rasterPng, rasterGif, rasterJpeg, rasterBmp, rasterTiff } from "../tests/fixtures/raster.js";
+import { svgPairFixture } from "../tests/fixtures/svg-image.js";
 
 async function embeddedFixture() {
   const volume = Volume.fromJSON({ "/out": "" });
@@ -26,4 +27,10 @@ it("refuses unbounded image readFile capability before reading replacement bytes
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["images", "replace", "/input.docx", "--image", "1", "--file", "/Map.PNG", "--dry-run", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/", signal: textContext.signal,
     filesystem: { async readFile(path) { if (path === "/input.docx") return input; imageReads++; return rasterPng(); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } });
   expect(result.exitCode).not.toBe(0); expect(imageReads).toBe(0);
+});
+it.each([false, true])("refuses coherent SVG alternates before replacement acquisition, supplied fallback=%s", async supplied => {
+  const input = await svgPairFixture(), reads: string[] = []; let output = "";
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["images", "replace", "input.docx", "--image", "1", "--file", "replacement.svg", ...(supplied ? ["--fallback", "pixel.png"] : []), "--dry-run", "--json"].map(value => new TextEncoder().encode(value)), cwd: "/work", signal: textContext.signal,
+    filesystem: { async readFile(path) { reads.push(path); return input; }, readStream(path) { reads.push(path); return { async *[Symbol.asyncIterator]() { yield input; } }; } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+  expect(result.exitCode).toBe(1); expect(JSON.parse(output).errors[0].code).toBe("unsupported-edit"); expect(reads).toEqual(["/work/input.docx"]);
 });

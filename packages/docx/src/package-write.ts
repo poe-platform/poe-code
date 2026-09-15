@@ -70,7 +70,11 @@ export class DocumentArchiveEditor {
       }))
     };
     if (staged.members.some(member => member.name.toLowerCase() === "[content_types].xml")) {
-      const report = validateDocumentArchive(staged, {}, this.#budget);
+      const report = validateDocumentArchive(staged, {
+        maxNodes: this.#limits.maxNodes ?? this.#budget.limits.xmlNodes,
+        maxBytes: this.#budget.limits.expandedPackage,
+        maxParts: this.#budget.limits.zipEntries
+      }, this.#budget);
       if (!report.valid) throw new SemanticValidationError(report.diagnostics);
     }
     return staged;

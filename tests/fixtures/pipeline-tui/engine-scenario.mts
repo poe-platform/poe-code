@@ -82,8 +82,8 @@ const result = await runPipeline({
   onTaskComplete(progress) {
     if (progress.taskCompleted) tasksCompleted += 1;
     dashboard.appendOutput({
-      kind: progress.success ? "success" : "error",
-      text: `${progress.taskId} ${progress.success ? "completed" : "failed"}`,
+      kind: progress.cancelled ? "status" : progress.success ? "success" : "error",
+      text: `${progress.taskId} ${progress.cancelled ? "cancelled" : progress.success ? "completed" : "failed"}`,
       ts: Date.now()
     });
     dashboard.updateStats({ iterations: tasksCompleted });

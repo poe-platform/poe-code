@@ -50,11 +50,11 @@ import { resolvePipelineLoopAgent } from "./pipeline-loop-agent.js";
 import {
   runPipelineInit as sdkRunPipelineInit,
   runPipeline as sdkRunPipeline,
-  type AgentRunUsage,
   type PipelineInitSource,
   type PipelineRunOptions,
   type PipelineRunResult,
   type PlanSummary,
+  type TaskCompletion,
   type TaskProgress
 } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
@@ -138,13 +138,6 @@ type PipelineInstallCommandOptions = {
   agent?: string;
   local?: boolean;
   global?: boolean;
-};
-
-type TaskCompletion = TaskProgress & {
-  durationMs: number;
-  success: boolean;
-  usage?: AgentRunUsage;
-  taskCompleted?: boolean;
 };
 
 type PipelineDashboardRunOptions = {
@@ -369,7 +362,7 @@ function formatTaskStartMessage(progress: TaskProgress): string {
 
 function formatTaskCompleteMessage(progress: TaskCompletion): string {
   const duration = formatDashboardDuration(progress.durationMs);
-  const status = progress.success ? "done" : "failed";
+  const status = progress.cancelled ? "cancelled" : progress.success ? "done" : "failed";
   const usage = progress.usage
     ? ` (tokens: ${progress.usage.inputTokens} in / ${progress.usage.outputTokens} out)`
     : "";
@@ -383,7 +376,7 @@ function formatTaskCompleteMessage(progress: TaskCompletion): string {
   }
 
   if (progress.stepName && !progress.success) {
-    return `Task ${progress.taskId} (${progress.stepName}) failed in ${duration}${usage}`;
+    return `Task ${progress.taskId} (${progress.stepName}) ${status} in ${duration}${usage}`;
   }
 
   return `Task ${progress.taskId} ${status} in ${duration}${usage}`;
@@ -652,7 +645,7 @@ async function runPipelineWithDashboard(
           tokensIn += progress.usage.inputTokens;
           tokensOut += progress.usage.outputTokens;
         }
-        appendOutput(progress.success ? "success" : "error", formatTaskCompleteMessage(progress));
+        appendOutput(progress.cancelled ? "status" : progress.success ? "success" : "error", formatTaskCompleteMessage(progress));
         syncStats();
       }
     };

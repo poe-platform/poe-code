@@ -278,6 +278,13 @@ async function runResolvedPipeline(
       });
     } catch (error) {
       if (isAbortError(error)) {
+        options.onTaskComplete?.({
+          ...phaseProgress,
+          durationMs: Date.now() - startTime,
+          success: false,
+          taskCompleted: false,
+          cancelled: true
+        });
         return { success: false, cancelled: true };
       }
       throw error;
@@ -294,6 +301,7 @@ async function runResolvedPipeline(
         durationMs,
         success: false,
         taskCompleted: false,
+        cancelled: true,
         ...(result.usage ? { usage: result.usage } : {})
       });
       return { success: false, cancelled: true };
@@ -546,7 +554,8 @@ async function runResolvedPipeline(
             ...taskProgress,
             durationMs: Date.now() - taskStartTime,
             success: false,
-            taskCompleted: false
+            taskCompleted: false,
+            cancelled: true
           });
           return {
             stopReason: "cancelled",
@@ -572,6 +581,7 @@ async function runResolvedPipeline(
           durationMs: Date.now() - taskStartTime,
           success: false,
           taskCompleted: false,
+          cancelled: true,
           ...(result.usage ? { usage: result.usage } : {})
         });
         return {

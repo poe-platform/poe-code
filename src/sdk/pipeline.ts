@@ -31,6 +31,7 @@ export type {
   StepHooks,
   StepMode,
   TaskProgress,
+  TaskCompletion,
   PlanSummary
 } from "@poe-code/pipeline";
 export { resolvePlanDirectory } from "@poe-code/pipeline";

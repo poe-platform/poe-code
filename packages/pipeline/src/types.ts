@@ -151,6 +151,7 @@ export interface TaskProgress {
 export interface TaskCompletion extends TaskProgress {
   durationMs: number;
   success: boolean;
+  cancelled?: boolean;
   usage?: AgentRunUsage;
   taskCompleted?: boolean;
 }

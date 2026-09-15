@@ -1413,6 +1413,47 @@ describe("pipeline run command", () => {
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
   });
 
+  it.each([false, true].flatMap(tui => [undefined, "implement", "setup", "teardown"].map(stage => ({ tui, stage }))))("reports cancellation separately from failure with tui=$tui and stage=$stage", async ({ tui, stage }) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(0));
+    const dashboardMock = createDashboardMock();
+    if (tui) vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
+    const logs: string[] = [];
+    const phase = stage === "setup" || stage === "teardown" ? stage : undefined;
+    const expected = phase ? `${phase} cancelled in 2s` : `Task work${stage ? ` (${stage})` : ""} cancelled in 2s`;
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      options.onTaskComplete?.({
+        taskId: "work", taskTitle: phase ?? "Work", taskIndex: 1, totalTasks: 1,
+        ...(phase ? { phase } : stage ? { stepName: stage } : {}),
+        durationMs: 2_000, success: false, taskCompleted: false, cancelled: true,
+        usage: { inputTokens: 120, outputTokens: 45 }
+      });
+      return {
+        stopReason: "cancelled", planPath: "custom-plan.yaml", runsCompleted: 0,
+        totalDurationMs: 2_000,
+        metrics: { totalInputTokens: 120, totalOutputTokens: 45, totalCachedTokens: 0, tasksCompleted: 0, tasksFailed: 0, stepsCompleted: 0 }
+      };
+    });
+    const fs = createMemFs();
+    await fs.writeFile("/repo/custom-plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({ fs, prompts: vi.fn(), env: { cwd, homeDir }, logger: message => logs.push(message) });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    await withMockedTerminal(() => program.parseAsync([
+      "node", "cli", "--yes", "pipeline", "run", ...(tui ? ["--tui"] : []),
+      "--agent", "codex", "--plan", "custom-plan.yaml"
+    ]));
+    if (tui) {
+      expect(dashboardMock.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ kind: "status", text: `${expectedTimestamp} ${expected} (tokens: 120 in / 45 out)` }));
+      expect(dashboardMock.appendOutput).not.toHaveBeenCalledWith(expect.objectContaining({ kind: "error" }));
+      expect(dashboardMock.updateStats).toHaveBeenCalledWith(expect.objectContaining({ iterations: 0, tokensIn: 120, tokensOut: 45 }));
+    } else {
+      expect(logs.some(message => message.includes(expected))).toBe(true);
+      expect(logs.some(message => message.includes("failed in"))).toBe(false);
+    }
+    expect(process.exitCode).toBe(130);
+  });
+
   it("uses the pipeline.tui config value when set", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));

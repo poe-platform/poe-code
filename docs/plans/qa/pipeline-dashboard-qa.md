@@ -205,3 +205,9 @@ Run the maintained engine fixture with `cancelled-with-usage`, wait for streamin
 Executed 2026-09-15: both paths matched all expectations; sampled q-to-exit plus capture 269/657ms. Known-usage restored screenshot `/tmp/pipeline-engine-cancelled-with-usage-restored.png` inspected.
 
 Real source CLI Unicode matrix also passed 140x40, 100x24, 80x24, 50x16, 30x10 and 80x6. Every captured row had the requested display-cell width and complete top/bottom borders. All six q exits returned 130 with open tasks and captured children gone; sampled q-to-exit 118/92/101/105/60/72ms. Short/narrow screenshots inspected; the raster font still substitutes boxes for unavailable CJK/emoji glyphs, while terminal Unicode cells and geometry remain intact.
+
+## Cancellation labels
+
+Interrupted completion callbacks now carry `cancelled: true` separately from success/failure. Verify task, named step, setup and teardown messages say cancelled in both dashboard and plain CLI flows. Genuine nonzero execution remains failed. On real noisy-tool CLI q, primary summary must report cancellation, task open, zero credited work, child gone and exit 130. Terminal history must contain the task-ID plus cancelled fragment and no task-ID plus failed fragment; redraw normalization may split the initial Task word. Capture and inspect primary restoration.
+
+Executed 2026-09-15: real source CLI q matched all checks in a 159ms sample and cancelled completion appeared in terminal history. Initial full-word history match failed because normalization reconstructed Tsk; repeating with the stable task-ID fragment passed. Primary restored screenshot inspected. Real-engine returned/absent-usage cancellation also passed after marker addition, sampled q-to-exit plus capture 532/273ms.

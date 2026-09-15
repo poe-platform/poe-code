@@ -138,3 +138,48 @@ test("zip move refuses unsupported removal capability before publication", async
   assert.equal((await fs.lstat("/work/binary")).type, "file");
   await assert.rejects(fs.lstat("/work/out.zip"), { code: "ENOENT" });
 });
+
+for (const quiet of [false, true]) {
+  test(`zip move permission refusal retains success status and respects quiet (${quiet})`, async () => {
+    const fs = await fixture();
+    await fs.chmod("/work/folder", 0o555);
+    const result = await execute("zip", fs, [quiet ? "-qm" : "-m", "out.zip", "folder/data"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await fs.lstat("/work/folder/data")).type, "file");
+    assert.equal(result.stdout.toString().includes("error deleting folder/data"), !quiet);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "out.zip", "folder/data"])).stdout, compressed);
+  });
+}
+
+test("zip move never adopts foreign hardlink mutation during snapshot refresh", async () => {
+  const fs = await fixture();
+  await fs.link!("/work/binary", "/work/alias");
+  const mutated = new Proxy(fs, { get(target, property) {
+    const value = Reflect.get(target, property);
+    if (property === "removeEntryConditional") return async (...args: Parameters<typeof fs.removeEntryConditional>) => {
+      await value.apply(target,args);
+      if (args[0] === "/work/binary") await fs.writeFile("/work/alias", Buffer.from("changed"));
+    };
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const result = await execute("zip", mutated, ["-m", "out.zip", "binary", "alias"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.match(result.stdout.toString(), /error deleting alias/);
+  assert.equal(Buffer.from(await fs.readFile("/work/alias")).toString(), "changed");
+});
+
+test("zip move cancellation after publication preserves source pathname", async () => {
+  const fs = await fixture();
+  const controller = new AbortController();
+  const cancelled = new Proxy(fs, { get(target, property) {
+    const value = Reflect.get(target, property);
+    if (property === "publishStagedFile") return async (...args: Parameters<typeof fs.publishStagedFile>) => {
+      await value.apply(target,args);
+      controller.abort(false);
+    };
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  await assert.rejects(execute("zip", cancelled, ["-qm", "out.zip", "binary"], {}, { signal: controller.signal }), error => error === false);
+  assert.equal((await fs.lstat("/work/binary")).type, "file");
+  assert.equal((await fs.lstat("/work/out.zip")).type, "file");
+});

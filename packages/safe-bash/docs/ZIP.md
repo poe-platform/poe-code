@@ -38,13 +38,15 @@ Unix suffix matching is case-sensitive. Defaults are `.Z`, `.zip`, `.zoo`, `.arc
 Attached and equals values such as `-n.txt` and `-n=.txt` are accepted. `-9`
 overrides the suffix list and attempts maximum compression.
 
-`-Z store` / `-Z deflate` and `--compression-method=METHOD` explicitly select the
+`-Z store` / `-Z deflate` / `-Z bzip2` and `--compression-method=METHOD` explicitly select the
 method. Method names are case-insensitive and accept unique prefixes. Store mode
 remains selected through later level flags; `-Z deflate` switches it back. The
 native invalid level-zero/DEFLATE combination returns status 5 when compressing a
-nonempty regular file. Unknown methods return 16. Bzip2 is currently not enabled
-and returns the native disabled-method status 19; reading and writing method-12
-archives remains format implementation work.
+nonempty regular file. Unknown methods return 16. BZIP2 uses the existing bounded
+codec, with no new runtime dependency. Method-12 records require extraction
+version 4.6, including when ZIP64 is enabled. Small files retain the STORE fallback
+when compression expands them. Decoding validates stream integrity, size and ZIP
+CRC32, and rejects trailing bytes or concatenated BZIP2 streams inside a member.
 
 `-@` reads one source filename per stdin line before processing command-line
 operands. Empty lines are ignored; trailing carriage returns are removed, while
@@ -146,6 +148,9 @@ rename existing archive paths.
 directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
 quiet output. Distinct sources with the same basename return status 16 without
 publishing changes to the archive.
+
+`-p` / `--paths` is accepted as a compatibility no-op, matching Unix Zip 3.0.
+It does not undo `-j`, regardless of option order. Negation and values are invalid.
 
 `-D` omits newly selected directory entries while still traversing directories
 with `-r`. Existing directory members remain in an updated archive. Selecting
@@ -351,7 +356,7 @@ pattern to match. The option is not negatable.
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored
-or raw-DEFLATE payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
+raw-DEFLATE or BZIP2 payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
 modes, archive/member comments, classic and ZIP64 data descriptors, and bounded
 single-disk ZIP64 input and output records. ZIP64 sizes and offsets must be safely representable
 and within configured limits. The classic 65,535-member maximum is admitted;

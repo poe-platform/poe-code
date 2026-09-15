@@ -610,8 +610,77 @@ Sixteen memory cases cover aliases, source types, filters, native unchanged stat
 publication/integrity/stdout failures, replacements, hardlinks and missing capability.
 750 focused ZIP/unzip tests and scoped lint pass. These tests use current source
 MemoryFileSystem because the root's bundled SafeFS export has not yet been rebuilt.
-Full shared-contract verification 41257 remains live; clean npm test reports missing
-poe-code/safe-fs/core because packages/safe-js/dist/safe-fs-core.js is absent. After
-that process terminates, use maintained npm run build before rerunning full tests
-and lint; do not push until the required checks pass. No release is claimed for
+Full shared-contract verification 41257 reported missing poe-code/safe-fs/core
+because packages/safe-js/dist/safe-fs-core.js was absent. A native process sample
+confirmed CPU/memory-heavy error serialization; stopped that failed child and
+completed maintained npm run build. Full tests and lint are rerunning as session
+9534; do not push until the required checks pass. No release is claimed for
 local contract 2a3f1823d or the pending move integration. Broader scope stays open.
+
+## Move permission, cancellation and foreign-mutation evidence
+
+Native locked-parent captures establish removal refusal retains status 0 and
+quiet suppresses the warning. Four further memory tests validate quiet/nonquiet
+permission refusal, cancellation immediately after publication and foreign
+hardlink mutation during owned-snapshot refresh. 754 focused ZIP/unzip tests and
+scoped lint pass. Inspected /tmp/zip-move-cli.png from the maintained screenshot
+renderer: command progress, error-deleting warning and native successful status
+are readable. Normal maintained workspace/root build succeeded in the isolated
+checkout. A production poe-code/safe-fs/core invocation archived a binary file and
+stored symlink with rmTy, then removed the source tree. Native UnZip integrity and
+Python exact members/payload/mode checks pass for /tmp/safe-bash-zip-move-result.zip.
+Full unit verification and lint remain live in session 9534. Contract and move
+commits remain local until those checks pass; no new remote delivery is claimed.
+
+## Paths compatibility option
+
+Native Unix Zip 3.0 and public zip.c case p validate that -p/--paths is
+an intentional compatibility no-op, including before or after -j. Nine memory
+filesystem tests cover short/long/repeated options, grouped jp/pj, ZIPOPT plus
+explicit junk paths, negation and invalid values. Six valid cases failed before
+the parser change; all 763 focused ZIP/unzip tests and scoped ESLint now pass.
+The full workspace check in delivery session 9534 remains live; this option
+and the move follow-up have not yet been delivered to remote main.
+
+## BZIP2 stream boundary prerequisite
+
+Current source already contains a bounded generated libbzip2 codec; no new
+runtime dependency is needed to reuse it. Its default concatenated-member
+decoding consumes bytes ZIP needs to inspect as trailing compressed data. Six
+failing fake-codec cases reproduce this for same-chunk and next-chunk input
+across bzip2/xz/zstd. Added optional singleMember decoding to restore unread
+bytes without pulling the next frame or stripping XZ padding. Three independent
+Python BZIP2 fixture cases verify real decoding with 1/7/65536-byte chunks and
+exact trailing-byte preservation. All 31 bounded-codec tests pass. This is a
+prerequisite; ZIP method 12 parsing, headers, encoding and decoding remain open.
+
+## BZIP2 method integration in progress
+
+Eleven failing ZIP tests reproduced method rejection, independent Python input
+rejection and missing method-12 wire support. Reused existing boundedCodec with
+singleMember; no dependency or lockfile edit. Added method selection, bounded
+encoding/decoding, STORE fallback and extraction version 46 even for ZIP64.
+Twenty-three method tests now cover level/method abbreviations, descriptors/T,
+ZIP64, Python binary fixture, copy preservation, trailing/concatenated streams,
+truncation, checksum damage, invalid versions and DEFLATE-only header flags.
+The corrected header tests reproduced three flag-admission failures before the
+fix. All 785 focused ZIP/unzip cases and scoped ESLint pass. Python verifies
+method 12/version 46/exact binary data in /tmp/safe-bash-zip-bzip2-result.zip;
+Apple UnZip skips it because it supports extraction only through version 45,
+so native validation is not claimed. Workspace typecheck:all is running in
+session 31252 after the nonbuilding route correctly refused missing inputs.
+Full workspace session 9534 is still active but reported an agent-harness
+callable-parity rejected-result 5000ms timeout. No new remote delivery yet.
+
+The build-first typecheck terminated with stale safe-fs declarations missing
+removeEntryConditional in the root checkout. This does not validate production
+types. Started the maintained virtual-bash workspace build closure and then
+nonbuilding typecheck to rebuild the actual safe-fs dependency first.
+
+Workspace closure build and subsequent production tsc passed, resolving the
+safe-fs contract declarations. Consumer typecheck still requires a browser
+artifact produced by the root bundle suffix, so consumer validation remains
+unproven until the normal build runs in the delivery checkout. Full session
+9534 terminated: 2265 passed files, one callable-parity timeout, two skipped
+files; the exact callable-parity file rerun passed all 21 cases in 2.65s. A
+full maintained rerun is required, rather than treating that rerun as the gate.

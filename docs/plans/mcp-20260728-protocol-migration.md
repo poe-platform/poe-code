@@ -121,3 +121,101 @@ Modern HTTP output limits/slow-consumer behavior and keepalive timers require ad
 - Current combined client/core validation: 1439 tests across 44 files passed. Repository lint:types and all NodeNext/Bundler private/public type contracts passed. Selected client build closure six builds passed. MCP source ESLint passed with unused destructuring names corrected to the repository convention.
 - Distribution audit reproduced upstream licensing notice loss in the inlined client bundle while the core emitted module retained it. Marked full notice as a legal comment; rebuilt and verified the client output retains the licensing-transition text.
 - Commit core stdio migration independently; client and HTTP migration remain in the working tree. No remote delivery or release requested/proven. Full repository tests remain unresolved and the nine-hour minimum remains unmet.
+
+### Client subscriptions in progress
+
+- Confirmed three missing modern flows: automatic list-change listener subscriptions, explicit notification stream/graceful completion, and resource subscribe/unsubscribe translation. Implemented SubscriptionManager with acknowledgement-first state, exact subscription-ID correlation, accepted-filter checks, bounded entries and URI filters, explicit cancellation, and tagged graceful completion validation.
+- Added listenNotifications(filter, options) returning McpSubscription with accepted notifications, ID, closed and cancel; modern list-change callbacks automatically open a subscription during connect. Historical legacy notifications keep their capability gating. Resource notifications require both URI membership and a live matching acknowledged subscription.
+- Separate acknowledgement timeout; JsonRpcRequestOptions.timeoutMs:null disables the response timer for long-lived subscriptions while timeoutMs:0 retains its existing immediate-expiry semantics.
+- Reproduced and fixed two resource races: stale handles after graceful completion and duplicate concurrent requests for the same URI. Pending resource registrations now coalesce; completion removes only the matching registration.
+- Reproduced ignored caller abort and pre-aborted subscriptions still being sent. SubscriptionOptions.signal now cancels pending/active streams; resource unsubscribe aborts even before acknowledgement. Eight focused subscription tests pass, including re-open after pre-ack cancellation.
+- Remaining important transport defect: modern HTTP cancellation still goes through notifications/cancelled POST rather than disconnecting its originating POST. Must implement per-request HTTP controller/body ownership before client migration can be considered ready.
+
+### Subscription validation checkpoint
+
+- Ninth focused regression found explicit listenNotifications resource filters were incorrectly gated by the legacy subscribe URI set. Modern delivery now relies on the matching acknowledged filter; legacy delivery retains the URI set.
+- Client-wide check: 434 tests / 22 files passed. A legacy registration contract initially failed because the modern acknowledgement handler was installed for legacy clients; SubscriptionManager now initializes only after modern negotiation succeeds.
+- Selected six-build client closure and MCP client ESLint were started after the final source changes; preserve/poll live handles rather than restarting them. Modern HTTP request-specific cancellation remains the next primary implementation task.
+
+- Final client subscription build completed successfully (six-build closure). Final client-wide ESLint completed successfully. An earlier lint run found a prefer-const issue in the acknowledgement timer; corrected without changing timeout behavior, with a focused manager lint handle retained for terminal verification.
+
+### Modern HTTP cancellation and negotiation errors
+
+- Confirmed three originating-POST cancellation failures before headers and during JSON/SSE body reads. Modern request controllers now remain owned through body completion; notifications/cancelled are handled locally by aborting only the matching POST, never posted to a modern HTTP server.
+- Reader abort listeners cancel retained JSON/error/SSE bodies and check cancellation before forwarding. Transport disposal aborts owned modern request controllers even after fetch headers resolve; late noncooperative fetch responses are canceled rather than forwarded.
+- Five focused HTTP cancellation cases pass, including streaming HTTP error bodies and late response bodies. Legacy request lifecycle, response reading, modern cancellation and subscriptions: 44 tests passed at intermediate checkpoint.
+- Confirmed six modern negotiation failures for recognized -32020/-32021/-32022 HTTP errors with absent/null JSON-RPC IDs. Normalize these error-only envelopes using originating HTTP request context while preserving error/data; never treat recognized modern errors as legacy fallback. Thirteen negotiation tests pass.
+- Current complete client suite: 447 tests / 24 files passed; selected six-build client closure and focused client ESLint passed. Separate integer error-code regression fix staged/committing atomically; modern migration remains separate.
+- Follow-up required: strict modern HTTP originating response/notification correlation, request/callback ownership bounds, modern callback signal context, retired RPC APIs, discovery/header cache invalidation, unconsumed OAuth bodies, and consumer/harness coverage.
+
+### HTTP correlation and SSE framing checkpoint
+
+- Confirmed three provenance failures: a successful originating POST could complete a sibling ID; modern SSE server requests invoked client callbacks; and subscription notifications tagged for another stream were delivered. HttpResponseMessages now enforces originating response ID, modern request rejection, subscription-ID/ack ordering, and originating progress-token checks before forwarding.
+- Rechecked the provenance regressions with response timers removed from their success criteria: disabling context validation gives three concrete failures; restoring it passes. This avoids treating timeout errors as proof of correct correlation.
+- Reader releases on final modern SSE response, including streams a server leaves open. Empty JSON/SSE bodies and truncated SSE streams now reject promptly rather than leave pending requests until timeout; three concrete failing cases and six green combined provenance/incomplete-body tests.
+- Six SSE framing defects reproduced against the official WHATWG event-stream specification: LF/CR/CRLF boundaries, incomplete EOF dispatch and reconnect cursor advancement. Atomic parser fix committed locally as 70d0720b1. Full client checkpoint before incomplete-body changes: 456 tests / 26 files passed, six-build closure and focused lint passed.
+- Consumer audit located an unresolved Toolcraft mismatch: createProxyCommand explicitly rejects non-object output schemas and public result types use ObjectSchema. Modern specification allows any JSON output root. Reproduce through maintained memfs proxy tests before widening DSL/MCP conversion.
+- Markdown-reader scripts/smoke-test.ts is a scripted QA flow and must become a Markdown agent-executed plan under docs/plans, per repository instructions. Inspect its maintained test/script references before conversion.
+
+### Toolcraft output-root checkpoint
+
+- Local commits 70a462713 and 7271be8fd fix declared-output error classification and support modern scalar/array command and proxy schemas with legacy text conversion. Focused tests: 206 Toolcraft cases and nine core structured-content cases pass. Toolcraft lint and selected workspace build pass.
+- Maintained Toolcraft package suite: 7557 passed, 51 failed. Failures include localhost EPERM, modern result metadata absent from historical expectations, and opaque default functions rejected by descriptor structuredClone. Focused sandbox-compatible rerun confirms these consumer failures; resolve them rather than treating them as pre-existing.
+- Automatic approval review rejected the elevated maintained Toolcraft suite because localhost binding escalation is disallowed by the current policy. Do not bypass. HTTP integration checks remain pending approval; continue unaffected tests.
+- No push or release requested. Nine-hour goal remains active and minimum duration is unmet.
+
+### Consumer, schema and cancellation checkpoint
+
+- Reproduced opaque defaults causing descriptor cloning errors; omit non-JSON wire defaults while preserving canonical handler defaults. 376 default/isolation checks pass. Local commit attempted and rejected by automatic approval review because current policy disallows elevated Git access; changes remain reviewable in the worktree.
+- Modern runtime/approval/proxy expectations now include complete result type and exact server identity. Proxy checks distinguish upstream and wrapper identity. Scalar synchronous mappers now compile, with the asynchronous negative contract retained; 126 focused mapper/runtime/approval checks pass.
+- Ordinary handler signal propagation and cancellation during service resolution: two genuine regressions reproduced and fixed. Cancellation while approval is pending and before opening approval: two regressions reproduced and fixed. Combined latest cancellation/runtime/gate suite passes 30 tests.
+- Standard nullable schema descriptors replace the OpenAPI nullable extension with type arrays including null. Seven standard-interpretation regressions reproduced. All 2573 schema tests pass, including upstream conformance cases; selected consumer build and schema lint/types pass. Independent strict Ajv 2020 validation verifies generated nullable string descriptors. Exact consumer schema expectations updated and all 93 Toolcraft core tests pass.
+- Markdown-reader package: 53 tests pass, coverage gate passes. Modern and legacy live stdio reads and clean stdin EOF exits verified against rebuilt nullable descriptors. Root CLI QA remains incomplete due sandbox tsx IPC and missing agent-code-review dist artifact.
+- Scripted Markdown-reader and terminal-pilot-mcp QA converted to agent-executed plans in docs/plans. Terminal-pilot package smoke scripts removed from parsed package config; package QA execution pending.
+- Maintained Toolcraft package rerun: 7577 pass, 37 failures (35 localhost EPERM plus two nullable expectations now fixed in the focused consumer rerun). Do not count restricted HTTP cases as passes. No release or remote delivery.
+- Modern stdio message-layer request prohibition: registered roots handler invocation reproduced when receiving unsolicited server request; added protocol-level rejection before callback dispatch. Latest focused validation pending terminal result.
+
+### Exchange and HTTP response bounds checkpoint
+
+- Modern stdio request prohibition passes the registered-callback regression; full latest client suite passes 470 tests / 27 files.
+- Client maxConcurrentRequests defaults to 128 and bounds full MRTR exchanges. Caller abort and disposal cancel callback waits promptly, propagate a callback signal, reject pending round requests and release capacity. Disposal leaves caller signals unchanged. Exported McpRequestContext preserves existing one-argument callbacks while exposing context to roots, sampling and elicitation.
+- HTTP maxResponseBytes defaults to 16 MiB and bounds JSON bodies and full SSE frames separately from queue buffering. Oversized acknowledgements and modern/legacy tool results are rejected before writes. Zero queue limits retain immediate-drain behavior. CLI and Toolcraft configuration forwarding implemented and tested.
+- Full HTTP suite passes 439 tests / 21 files after explicitly selecting legacy for historical session/DELETE/GET tests; other default-modern integration tests remain modern.
+- Null-only type/const/enum precision regressions reproduced and fixed via null enum literals. Static null-enum compile contract passes; 27 converter checks and 17 CLI/SDK/MCP output-root parity checks pass. Full schema suite still passes 2573 checks. Selected Toolcraft closure build and package lint pass.
+- HTTP help rendered and visually inspected using the maintained screenshot renderer invoked with Node's tsx loader to avoid IPC. The required npm screenshot-poe-code invocation remains sandbox-restricted; evidence and artifact paths are in the capacity plan.
+- Next audits: legacy incoming callback signals/duplicate IDs/admission; oversized legacy notification history and replay; JSON Schema object/array constant and enum fallback precision; OAuth metadata/body/caching/store robustness; harness consumers; complete terminal-pilot Markdown QA; unresolved broad root test/build gates and authorized README rows. Nine-hour minimum remains unmet and active; no push.
+
+## Callback admission and notification history checkpoint
+
+Incoming callback admission, duplicate IDs, cancellation ownership and disposal regressions pass. Full client suite: 473 tests / 28 files. HTTP oversized notification retention regression and full server suite: 440 tests / 22 files. Combined scope lint passed; selected client build closure passed.
+
+### JSON, OAuth and package artifact checkpoint
+
+- JSON const/enum constraints preserved for object/array literals with structural equality; nullable wire schemas agree with runtime validation. Schema suite: 2,576 passed. Converter/CLI/SDK/MCP/dynamic preset and default isolation matrix: 364 passed. Combined proxy/schema/cancellation suite: 73 passed. Toolcraft selected build and scope lint/types pass at their checkpoints; latest changes have a final lint running.
+- Outgoing request values are validated before snapshots/writes; invalid callback results become internal JSON-RPC errors. Full client suite before OAuth changes: 486 tests / 29 files passed.
+- Oversized notification history and stream admission regression passes at maxStreamsPerSession=1 after repairing the in-memory response destruction lifecycle. Removed a conditional skip around a required statically imported client. Full HTTP suite: 440 passed / 22 files with no skips.
+- Reproduced and fixed HTTP lookalike loopback DNS acceptance and IPv6 loopback rejection in discovery and provider. Live metadata/issuer credentials/fragments rejected consistently. OAuth metadata errors cancel their bodies; successful metadata reads are bounded to one MiB and streamed byte-limit cancellation/release passes.
+- Terminal-pilot artifact pack/build/discovery/list/safe-call/EOF checks pass against local dependencies. Fresh installation unavailable due npm registry DNS failure; usable CLI help currently absent. Upstream title/annotation preservation regression prepared but unverified.
+- Full maintained npm test rerun is active; observed current safe-python codec/Unicode failures remain under investigation. No remote delivery or release; nine-hour goal active and unmet.
+
+
+## Continued verification checkpoint
+
+- Mandatory modern discovery/cache result metadata is validated before client state or results are exposed; invalid server hints are rejected instead of silently defaulted. Corrected a stale request-capacity response fixture.
+- Rebuilt the tiny-mcp-client dependency closure; clean-process source import and both spawned typed-output workflows pass. Spawned workflow fixtures now use inline Node source instead of writing temporary files.
+- Harness loader replay now explicitly covers modern 2026-07-28 discovery and legacy 2025-11-25 fallback; both pass and repeated replay does not reconnect or repeat completed tool calls.
+- Shared strict JSON safety and bounded HTTP body readers live in their owning schema/OAuth packages. Token and registration object responses now enforce a one-MiB byte limit and strict UTF-8; three red regressions and eight maintained token checks pass.
+- Full Toolcraft rerun and repository-wide gate remain active. Repository-wide codec/harness timeouts remain unresolved; no overall success claim. Nine-hour minimum remains unmet and goal stays active.
+
+
+## Authoritative broad gate result and subsequent fixes
+
+The repository-wide npm test process finished with exit 1: 60 failed files, 2,191 passed files, 384 failed tests, 117,268 passed tests, 35 skipped tests, and one unhandled loopback EPERM. Runtime was 2,763 seconds. Many files/code were changed while this run was active, so this result is not final-state verification. It cannot be reported as an overall pass.
+
+Subsequent current-source verification: full stdio suite 1,019 pass; schema suite 2,585 pass; native converter and SDK/CLI/modern-MCP parity 44 pass; authorization-server suite 22 pass; terminal-pilot four tool-surface checks pass; managed SafeJS suite 23 pass; harness replay-equivalence seven focused tests pass. Exhaustive coverage-demo replay timed out in isolation and is now preserved as Markdown QA with a small deterministic unit scenario. Full-fixture QA remains pending. Spawn argument holes/accessors were reproduced and rejected without invoking accessors.
+
+The broad test handle is terminal, so rebuilding the selected Toolcraft workspace closure now is safe. Consumer export/type/lint and final artifact checks remain pending. No overall production-readiness or nine-hour-completion claim is made.
+
+Selected Toolcraft build closure finished successfully (19 builds derived from current declarations). Rebuilt consumer type check passes. The complete maintained Toolcraft suite now passes all 7,643 tests in 115 files. Current-source OAuth suite passes all 124 tests after token/registration deadline, redirect, byte-limit, UTF-8, and ownership hardening. SafeJS managed HTTP coverage explicitly includes modern discovery and scalar structured results; all 25 managed cases pass. Full scope lint remains active, and final runtime/QA/artifact verification remains pending.
+
+Adhoc native CLI screenshot captured and inspected a missing field label; four red maintained presentation cases led to qualified native JSON value error formatting. All 103 presentation/JSON/native parity cases pass. Memory MCP search limits now declare non-negative integer validation before handle execution; nine MCP helper cases pass and the maintained memory suite is running. Bounded HTTP helper tests have moved to mcp-oauth and all eleven pass. Rebuild is active for post-fix CLI screenshots; scope lint is active.

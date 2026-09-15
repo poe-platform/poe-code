@@ -86,3 +86,20 @@ it("flushes pending text when execution throws and leaves no scheduled writes", 
   await vi.advanceTimersByTimeAsync(1000);
   expect(onToolOutput).toHaveBeenCalledTimes(2);
 });
+
+it("omits usage separators from dashboard entries while preserving message paragraph breaks", async () => {
+  const onToolOutput = vi.fn();
+  await withOutputFormat("terminal", () =>
+    streamAcpEventsToDashboard({
+      events: (async function* () {
+        yield { event: "agent_message", text: "first\n\nsecond" };
+        yield { event: "usage", inputTokens: 120, outputTokens: 45, cachedTokens: 10 };
+      })(),
+      onToolOutput,
+      onErrorOutput() {}
+    })
+  );
+  expect(onToolOutput.mock.calls[0]![0]).toContain("first\n\nsecond");
+  expect(onToolOutput.mock.calls[1]![0].startsWith("\n")).toBe(false);
+  expect(onToolOutput.mock.calls[1]![0]).toContain("tokens: 120");
+});

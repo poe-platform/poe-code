@@ -22,6 +22,9 @@ export async function streamAcpEventsToDashboard(options: {
       (line) => lines.push(line),
       async () => renderAcpEvent(event)
     );
+    // Terminal separators belong between events, not inside timestamped dashboard entries.
+    while (lines[0] === "") lines.shift();
+    while (lines.at(-1) === "") lines.pop();
     if (lines.length === 0) return;
     const output = lines.join("\n") + "\n";
     if (event.event === "error") options.onErrorOutput(output);

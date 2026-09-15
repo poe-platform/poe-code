@@ -20,3 +20,41 @@ export function limitOutputPreview(text: string): string {
     retainOutputTail(text, MAX_OUTPUT_PREVIEW_CHARS - OUTPUT_TRUNCATION_NOTICE.length)
   );
 }
+
+/** Keep live deltas bounded without rebuilding the complete preview for every delta. */
+export function createOutputPreviewBuffer(): { push(text: string): void; text(): string } {
+  const chunks: string[] = [];
+  let chars = 0;
+  let omitted = false;
+  const tailBudget = MAX_OUTPUT_PREVIEW_CHARS - OUTPUT_TRUNCATION_NOTICE.length + 1;
+  return {
+    push(text) {
+      if (text.length === 0) return;
+      if (text.length > MAX_OUTPUT_PREVIEW_CHARS) {
+        chunks.length = 0;
+        chars = 0;
+        omitted = true;
+        text = retainOutputTail(text, tailBudget);
+      }
+      chunks.push(text);
+      chars += text.length;
+      if (chars > MAX_OUTPUT_PREVIEW_CHARS) omitted = true;
+      if (!omitted) return;
+      while (chars > tailBudget) {
+        const first = chunks[0]!;
+        const excess = chars - tailBudget;
+        if (first.length <= excess) {
+          chars -= first.length;
+          chunks.shift();
+        } else {
+          chunks[0] = first.slice(excess);
+          chars -= excess;
+        }
+      }
+    },
+    text() {
+      const text = chunks.join("");
+      return limitOutputPreview((omitted ? OUTPUT_TRUNCATION_NOTICE : "") + text);
+    }
+  };
+}

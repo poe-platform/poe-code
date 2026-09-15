@@ -103,3 +103,24 @@ it("omits usage separators from dashboard entries while preserving message parag
   expect(onToolOutput.mock.calls[1]![0].startsWith("\n")).toBe(false);
   expect(onToolOutput.mock.calls[1]![0]).toContain("tokens: 120");
 });
+
+it("aggregates a large message burst within the interactive latency budget", async () => {
+  const onToolOutput = vi.fn();
+  const started = performance.now();
+  await streamAcpEventsToDashboard({
+    events: (async function* () {
+      for (let index = 0; index < 60_000; index++)
+        yield { event: "agent_message", text: `Burst response ${index}\n` };
+      yield { event: "agent_message", text: "LATEST BURST RESULT\n" };
+    })(),
+    onToolOutput,
+    onErrorOutput() { throw new Error("Unexpected error output"); }
+  });
+  expect(performance.now() - started).toBeLessThan(1_000);
+  expect(onToolOutput).toHaveBeenCalledTimes(2);
+  const final = onToolOutput.mock.calls[1]![0];
+  // Rendered output includes the ACP label and styling around the bounded text preview.
+  expect(final.length).toBeLessThanOrEqual(16_384 + 128);
+  expect(final).toContain("Output truncated");
+  expect(final).toContain("LATEST BURST RESULT");
+});

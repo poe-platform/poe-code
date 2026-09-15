@@ -1,6 +1,6 @@
 export { createDashboard } from "./dashboard.js";
 export { createDashboardLineBuffer } from "./line-buffer.js";
-export { limitOutputPreview } from "./output-preview.js";
+export { limitOutputPreview, createOutputPreviewBuffer } from "./output-preview.js";
 export { shouldUseInteractiveDashboard } from "./should-use-dashboard.js";
 export type { Dashboard, DashboardOptions } from "./dashboard.js";
 export { renderDashboardSnapshot } from "./snapshot.js";

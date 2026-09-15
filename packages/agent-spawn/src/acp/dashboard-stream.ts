@@ -10,7 +10,7 @@ export async function streamAcpEventsToDashboard(options: {
   onErrorOutput(chunk: string): void;
 }): Promise<boolean> {
   let sawEvents = false;
-  let block: { event: "agent_message" | "reasoning"; text: string; id: string } | undefined;
+  let block: { event: "agent_message" | "reasoning"; preview: ReturnType<typeof dashboard.createOutputPreviewBuffer>; id: string } | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let dirty = false;
   let rendering = Promise.resolve();
@@ -38,7 +38,7 @@ export async function streamAcpEventsToDashboard(options: {
     if (renderFailure !== undefined) throw renderFailure;
     if (dirty && block) {
       dirty = false;
-      await publish({ event: block.event, text: block.text }, block.id);
+      await publish({ event: block.event, text: block.preview.text() }, block.id);
     }
     block = undefined;
   }
@@ -57,19 +57,20 @@ export async function streamAcpEventsToDashboard(options: {
         await finishBlock();
         block = {
           event: event.event,
-          text: dashboard.limitOutputPreview(event.text),
+          preview: dashboard.createOutputPreviewBuffer(),
           id: randomUUID()
         };
-        await publish({ event: block.event, text: block.text }, block.id);
+        block.preview.push(event.text);
+        await publish({ event: block.event, text: block.preview.text() }, block.id);
         continue;
       }
-      block.text = dashboard.limitOutputPreview(block.text + event.text);
+      block.preview.push(event.text);
       dirty = true;
       if (timer !== undefined) continue;
       timer = setTimeout(() => {
         timer = undefined;
         if (!dirty || !block) return;
-        const preview = { event: block.event, text: block.text };
+        const preview = { event: block.event, text: block.preview.text() };
         const id = block.id;
         dirty = false;
         rendering = rendering

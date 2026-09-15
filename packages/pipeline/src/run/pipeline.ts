@@ -353,6 +353,7 @@ async function runResolvedPipeline(
         stopReason: cancelled ? "cancelled" : "failed",
         planPath,
         runsCompleted: 0,
+        lastTaskId: "setup",
         totalDurationMs: Date.now() - pipelineStartTime,
         metrics
       };
@@ -418,6 +419,7 @@ async function runResolvedPipeline(
                 stopReason: cancelled ? "cancelled" : "failed",
                 planPath,
                 runsCompleted,
+                lastTaskId: "teardown",
                 totalDurationMs: Date.now() - pipelineStartTime,
                 metrics
               };

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-opc-xml-images",
+  "kind": "relationship-deletion",
+  "baseline": "a1db5f058",
+  "tests": [
+    {
+      "path": "packages/docx/src/relationship-deletion-command.test.ts",
+      "sha256": "c2461677122e373bb9a931b172cc3f9c00d585781c3af9a317d8f8faabc681a7",
+      "assertions": [
+        {
+          "title": "keeps SDK and CLI relationship deletion safe with referenced=false",
+          "status": "passed"
+        },
+        {
+          "title": "keeps SDK and CLI relationship deletion safe with referenced=true",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "path": "packages/docx/src/relationship-deletion-references.test.ts",
+      "sha256": "30b19002d8540e07a48db106f5178a93e7f3d24f3a2870ce3000aa4b2ea9eded",
+      "assertions": [
+        {
+          "title": "protects nested references for 'transitional ID'",
+          "status": "passed"
+        },
+        {
+          "title": "protects nested references for 'strict ID'",
+          "status": "passed"
+        },
+        {
+          "title": "protects nested references for 'embedded target'",
+          "status": "passed"
+        },
+        {
+          "title": "protects nested references for 'linked target'",
+          "status": "passed"
+        },
+        {
+          "title": "protects nested references for 'legacy target'",
+          "status": "passed"
+        },
+        {
+          "title": "keeps collection clear transactional when a reference remains",
+          "status": "passed"
+        },
+        {
+          "title": "keeps collection pop transactional when a reference remains",
+          "status": "passed"
+        },
+        {
+          "title": "keeps collection popitem transactional when a reference remains",
+          "status": "passed"
+        },
+        {
+          "title": "does not confuse text comments or foreign attributes with relationship references",
+          "status": "passed"
+        },
+        {
+          "title": "scopes the same identifier to its XML owner",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "red_evidence": {
+    "command": "npx vitest run packages/docx/src/relationship-deletion-references.test.ts --reporter=json",
+    "passed": 2,
+    "failed": 8,
+    "raw_report_sha256": "b51a7f672020d1dabcb67172ea4c20f32ef0acfcc89b6c5bdb9fda25ae02f073",
+    "failures": [
+      {
+        "title": "protects nested references for 'transitional ID'",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      },
+      {
+        "title": "protects nested references for 'strict ID'",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      },
+      {
+        "title": "protects nested references for 'embedded target'",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      },
+      {
+        "title": "protects nested references for 'linked target'",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      },
+      {
+        "title": "protects nested references for 'legacy target'",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      },
+      {
+        "title": "keeps collection clear transactional when a reference remains",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      },
+      {
+        "title": "keeps collection pop transactional when a reference remains",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      },
+      {
+        "title": "keeps collection popitem transactional when a reference remains",
+        "message": "AssertionError: expected function to throw an error, but it didn't"
+      }
+    ]
+  },
+  "checks": {
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "passed": 3987,
+      "skipped": 4,
+      "files": 201,
+      "duration_seconds": 167.66,
+      "log_sha256": "b3df74f83100a581cb88bc27d501415898821b23594b7de969026427188334d4",
+      "skips": "Existing cross-format PPTX pending paths; not counted as passes."
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 1,
+      "warning": "Existing operation-types.test.ts unused type-only variable.",
+      "log_sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit_code": 0,
+      "log_sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+    }
+  },
+  "screenshot": {
+    "command": "npm run screenshot-poe-code -- --no-header --output /tmp/docx-adaptation-qa/error.png bash --root /tmp/docx-adaptation-qa -c 'cat error.txt'",
+    "transcript_sha256": "b24fd8b232baada4e311baa2f566853263afcab292fd5569294a9d55934346da",
+    "png_sha256": "4b1daef64181925a9a63a32cad0b29628bfe73b3a1e2818331cf6cf71395668b",
+    "inspection": "Inspected PNG; full operation/argument or error/status/affected text readable with wrapping, no clipped content.",
+    "disposition": "Disposable actual built public-engine transcript; PNG not a canonical fixture."
+  }
+}

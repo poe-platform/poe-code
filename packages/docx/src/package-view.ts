@@ -247,6 +247,26 @@ export class PackageView {
     const previous = this[packageEdges](owner);
     const pending = new Map(rows.map(row => [row.rId, row]));
     if (pending.size !== rows.length) throw new InvalidValueError("Duplicate relationship IDs.");
+    const removed = new Set(previous.filter(row => !pending.has(row.rId)).map(row => row.rId));
+    if (owner && removed.size) {
+      const metadata = this[packageMetadata](owner);
+      if (xmlType(metadata.content_type)) {
+        const stack = [parseDocumentXml(metadata.bytes, {}, settings.budget).root];
+        while (stack.length) {
+          const node = stack.pop()!;
+          settings.budget.charge("work", 1 + node.attributes.length + node.children.length);
+          for (const attribute of node.attributes) {
+            const reference = attribute.namespace === documentDialects.transitional.r ||
+              attribute.namespace === documentDialects.strict.r ||
+              attribute.namespace === "urn:schemas-microsoft-com:office:office" && attribute.localName === "relid";
+            if (reference && removed.has(attribute.value))
+              throw new UnsupportedEditError("An XML reference still requires the relationship.");
+          }
+          settings.budget.charge("retainedBytes", node.children.length * 8);
+          for (const child of node.children) stack.push(child);
+        }
+      }
+    }
     for (const row of previous) {
       const replacement = pending.get(row.rId);
       const xml = new DocumentXmlEditor(bytes, {}, undefined, settings.budget);

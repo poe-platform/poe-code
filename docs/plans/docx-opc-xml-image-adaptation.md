@@ -172,6 +172,19 @@ The built `_TableStyle.priority.set` help screenshot was inspected and shows the
 checked nullable integer argument. Exact receipt:
 `docs/docx/opc-xml-image-numeric-schema-receipt.json`. Later tasks remain pending.
 
+### Relationship deletion correction
+
+Eight genuine failures showed nested references could outlive deletion through
+drop/clear/pop/popitem. The centralized owner-local XML guard now rejects removal
+before publication, observes Strict/Transitional/legacy reference attributes and
+uses cumulative parsing/traversal budgets. Two controls retain unreferenced
+removal and owner isolation. Ten regressions and two paired public SDK/CLI cases
+pass; the maintained completion checks above pass. The inspected built-engine
+failure screenshot shows unsupported-edit, zero affected and no publication.
+Exact receipt: `docs/docx/opc-xml-image-relationship-deletion-receipt.json`.
+The native one-reference drop threshold is superseded by graph integrity;
+the dedicated zero/one/two adaptation rows will record that mapping explicitly.
+
 `549d639ae` adds checked URI values with typed batch CLI/schema/discovery parity.
 The next atomic test commit delivers the 22 original XML sequence variants and
 their passing row reconciliations. Both use the final maintained checks above.

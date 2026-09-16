@@ -59,6 +59,17 @@ Whole office SDK conformance, rendered source parity, a full safe-bash runtime g
 
 ## Completion evidence
 
+### Verification-only review
+
+Read actual implementation/assertions, exact inventory identities, retained
+red/green reports and gate hashes before rerunning the maintained scoped checks.
+All 870 selected rows remain accounted for; no new product defect was reproduced.
+The review corrects only the spec's stale live-table status, metadata placement
+and historical API-map hash labeling. Fresh checks and evidence limits are in
+[the review](../docx/table-bdd-verification-20260915-review/review.md).
+Renderer procedure above remains not run. Stage only these documentation changes
+and adjacent owned receipts for a local Conventional Commit; no push/release.
+
 The maintained DOCX unit route passed 215 files: 4,904 passes and four unrelated skips. All selected original workflow tests passed without skips. The additional focused paragraph namespace regression passed after that maintained run; final package lint also covers it. Workspace build/lint, guarded root ESLint, safe-bash runner522, registration109, public shell9 and maintained safe-bash typecheck passed. Warning-only lint findings remain visible. The actual Shell transcript screenshot was inspected and retained; this qualifies terminal JSON/diagnostics only.
 
 The verified clean disposable research checkout was removed after original test reduction and independent review (653 files, including disposable binary fixtures and Git metadata). Provenance, original assets/tests and legally required notices remain. No ignored QA files were committed. Local commits do not establish remote delivery or release: no push/release was requested or performed. Later tasks remain pending.

@@ -4,6 +4,8 @@ Status: Proposed
 
 Implemented Through: Not applicable
 
+Purpose: Define the intended document-format coverage and observable behavior of the original `docx` utility and its TypeScript SDK.
+
 The bounded [archive extraction record](../docx/archive-extraction.md) implements
 `extract` with all/media-only selection, optional pretty XML and conditional new-tree
 VFS publication. The bounded [packing record](../plans/docx-safe-packing.md)
@@ -17,8 +19,6 @@ The later [live table/section/review record](../docx/live-model-integration.md)
 qualifies shared document owner bindings for that scoped graph. Earlier utility
 milestone pending statements are historical; whole-public-API coverage and
 neighboring model tasks remain pending under the shared office contracts.
-
-Purpose: Define the intended document-format coverage and observable behavior of the original `docx` utility and its TypeScript SDK.
 
 This remains the full proposed contract. Scoped package-engine evidence is in
 [the validation profile](../docx/validation-profile.md), and the bounded command
@@ -85,7 +85,11 @@ rectangular table insertion and typed table/row/cell formatting. The bounded
 inspection, selected cell values/formatting and explicit rectangular row/column
 insertion/deletion. The bounded [merged-cell milestone](../plans/docx-merged-cells.md)
 adds explicit content-preserving merge/split and row deletion through spans.
-Live table owners remain pending.
+The later [table and expanded-workflow milestone](../plans/docx-table-bdd-adaptation.md)
+qualifies live table owners and all 870 selected table-unit/expanded-BDD rows
+through original SDK tests and supplementary safe-bash workflows. Its explicit
+language/security dispositions do not establish whole-public-API coverage;
+document renderer QA remains not run.
 
 The bounded [hyperlink milestone](../plans/docx-hyperlinks.md) adds `links list`,
 `links add`, `links set` and `links remove` through the shared CLI/SDK engine.

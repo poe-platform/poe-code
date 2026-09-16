@@ -1,0 +1,10 @@
+
+> docx@0.0.1 lint
+> eslint src tests && tsc --noEmit && tsc -p tsconfig.test.json
+
+
+/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/operation-types.test.ts
+  20:14  warning  'operation' is assigned a value but only used as a type. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)
+

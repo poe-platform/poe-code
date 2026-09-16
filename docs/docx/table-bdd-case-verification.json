@@ -32,7 +32,18 @@
     },
     "public-api-map": {
       "path": "public-api-map.json",
-      "sha256": "9421c951070857a7d8a17544016d0fff3be2d8a7a5e106cd1299258cb5499372"
+      "sha256": "9421c951070857a7d8a17544016d0fff3be2d8a7a5e106cd1299258cb5499372",
+      "git_revision": "bfc1adc9822439d1035558380320959d964157bf",
+      "snapshot_role": "Historical mapping input; this hash authenticates that committed version, not the current acceptance-reviewed map."
+    }
+  },
+  "verification_review": {
+    "evidence": "table-bdd-verification-20260915-review/review.md",
+    "public_api_map": {
+      "path": "public-api-map.json",
+      "git_revision": "e79ce0251da8d6817eed60a59520916adb0879fb",
+      "sha256": "58b2ffe20d1ca756911fac869d0ba5b379a8086438b67b4f9aac4da964b26c65",
+      "disposition": "Later whole-API acceptance review retains all 1337 row identities/order and every selected API pointer. Whole-API blockers remain authoritative; selected workflow evidence does not waive them."
     }
   },
   "counts": {

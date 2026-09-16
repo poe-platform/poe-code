@@ -223,14 +223,15 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
 
     const startedAt = performanceMonitor.begin();
     const { cols, rows } = driver.getSize();
+    const state = getStore().getState();
     const layout = computeDashboardLayout({
       totalWidth: cols,
       totalHeight: rows,
-      rightPaneWidth
+      rightPaneWidth,
+      footerHeight: state.stats.session ? 2 : 1
     });
 
     const nextBuffer = new ScreenBuffer(cols, rows);
-    const state = getStore().getState();
 
     renderBorder(nextBuffer, layout, {
       leftTitle: title,
@@ -267,7 +268,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
     if (scrollOffset === 0) heldOutput = undefined;
     renderStatsPane(nextBuffer, layout.rightPane, state.stats);
     if (layout.summary) renderCompactStatsPane(nextBuffer, layout.summary, state.stats);
-    renderFooter(nextBuffer, layout.footer, footerHints);
+    renderFooter(nextBuffer, layout.footer, footerHints, state.stats.session);
 
     if (showPerformance && layout.leftPane.height > 0) {
       nextBuffer.putInRect(layout.leftPane, layout.leftPane.height - 1, formatRenderPerformance(performanceMonitor.snapshot(), layout.leftPane.width), { dim: true });

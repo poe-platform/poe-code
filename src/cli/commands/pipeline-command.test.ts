@@ -1272,7 +1272,7 @@ describe("pipeline run command", () => {
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
-      expect(dashboardMock.updateStats).toHaveBeenCalledWith(expect.objectContaining({ currentAction: "Preparing pipeline" }));
+      expect(dashboardMock.updateStats).toHaveBeenCalledWith(expect.objectContaining({ currentAction: "Preparing pipeline", session: { cwd: "/repo", agent: "codex", model: "gpt-5.2" } }));
       expect(dashboardMock.appendOutput).toHaveBeenCalledWith(expect.objectContaining({ text: `${expectedTimestamp} Config · Agent: codex · Model: gpt-5.2 · Plan: custom-plan.yaml` }));
       options.onLockWait?.("/repo/custom-plan.yaml");
       expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({ currentAction: "Waiting for another run" }));
@@ -1923,11 +1923,15 @@ describe("pipeline run command", () => {
         agent,
         prompt: "Inspect the repo",
         mode: "yolo",
-        cwd,
-        model: "gpt-5.2",
+        cwd: "/repo/worktree",
+        model: "stage-model",
         hooks: { from: "claude", strategy: "transform", scope: "merged" },
         signal: options.signal
       });
+
+      expect(dashboardMock.updateStats).toHaveBeenLastCalledWith(expect.objectContaining({
+        session: { cwd: "/repo/worktree", agent, model: "stage-model" }
+      }));
 
       options.onTaskComplete?.({
         taskId: "auth-hardening",
@@ -1994,8 +1998,8 @@ describe("pipeline run command", () => {
       expect.objectContaining({
         captureSession: false,
         prompt: "Inspect the repo",
-        cwd,
-        model: "gpt-5.2",
+        cwd: "/repo/worktree",
+        model: "stage-model",
         mode: "yolo",
         hooks: { from: "claude", strategy: "transform", scope: "merged" },
         signal: expect.any(AbortSignal),

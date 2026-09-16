@@ -410,9 +410,11 @@ function formatPipelineStageLabel(progress: TaskProgress): string {
 function createPipelineDashboardRunAgent(options: {
   appendOutput: (kind: "tool" | "error", message: string, id?: string) => void;
   activeStage: () => string;
+  onRun: (input: Parameters<NonNullable<PipelineRunOptions["runAgent"]>>[0]) => void;
   middlewares?: AcpMiddleware[];
 }): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) => {
+    options.onRun(input);
     const spawnConfig = getSpawnConfig(input.agent);
     const protocolStdout = spawnConfig?.kind === "cli" && Boolean(spawnConfig.adapter);
     let lastError: unknown;
@@ -544,6 +546,11 @@ async function runPipelineWithDashboard(
   let currentStage = "pipeline";
   let status: "running" | "done" | "error" = "running";
 
+  let session = {
+    cwd: options.runOptions.cwd,
+    agent: parseAgentSpecifier(options.agent).agent,
+    model: options.model ?? parseAgentSpecifier(options.agent).model
+  };
   const syncStats = (): void => {
     const stats = {
       status,
@@ -554,7 +561,8 @@ async function runPipelineWithDashboard(
       tokensIn,
       tokensOut,
       elapsedMs: Math.max(0, Date.now() - startedAt),
-      currentAction
+      currentAction,
+      session
     };
     dashboard.updateStats(stats);
   };
@@ -614,6 +622,11 @@ async function runPipelineWithDashboard(
       runAgent: createPipelineDashboardRunAgent({
         appendOutput,
         activeStage: () => currentStage,
+        onRun(input) {
+          const specifier = parseAgentSpecifier(input.agent);
+          session = { cwd: input.cwd, agent: specifier.agent, model: input.model ?? specifier.model };
+          syncStats();
+        },
         ...(options.integrations?.spawnMiddleware
           ? { middlewares: [options.integrations.spawnMiddleware] }
           : {})

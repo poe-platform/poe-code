@@ -6,7 +6,7 @@ import { validateDocxValue } from "./operation-schema.js";
 import { paragraphTextRun } from "./paragraph-content.js";
 import { runElementOpen } from "./run-properties.js";
 import type { XmlElement } from "./package-xml.js";
-import type { Length } from "./formatting-values.js";
+import { WD_STYLE_TYPE, type Length } from "./formatting-values.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 
@@ -45,6 +45,9 @@ export class Comments implements Iterable<Comment> {
     text(value);
     text(author);
     if (initials !== null) text(initials);
+    const style = this.store.styles.has("Comment Text")
+      ? this.store.styles.at("Comment Text")
+      : this.store.styles.add_style("Comment Text", WD_STYLE_TYPE.PARAGRAPH);
     const used = new Set(this.nodes.map(id));
     let next = 0;
     while (used.has(next)) next++;
@@ -53,7 +56,7 @@ export class Comments implements Iterable<Comment> {
       const root = this.store.node(this.ref);
       xml.insertChildren(
         root,
-        `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}><cm:p>${paragraphTextRun(root.namespace, value)}</cm:p></cm:comment>`
+        `<cm:comment xmlns:cm="${root.namespace}" cm:id="${next}" cm:author="${xmlValue(author)}" cm:date="${timestamp}"${initials === null ? "" : ` cm:initials="${xmlValue(initials)}"`}><cm:p><cm:pPr><cm:pStyle cm:val="${xmlValue(style.style_id!)}"/></cm:pPr>${paragraphTextRun(root.namespace, value)}</cm:p></cm:comment>`
       );
     });
     return this.get(next)!;
@@ -130,7 +133,7 @@ export class Comment {
   }
   add_paragraph(value = "", style?: Parameters<ModelStore["addParagraph"]>[2]) {
     text(value);
-    return this.store.addParagraph(this.ref, value, style);
+    return this.store.addParagraph(this.ref, value, style ?? "Comment Text");
   }
   add_table(rows: number, cols: number, width: Length) {
     return this.store.addTable(this.ref, rows, cols, width);

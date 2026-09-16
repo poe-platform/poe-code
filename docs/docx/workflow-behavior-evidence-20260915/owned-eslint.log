@@ -1,0 +1,6 @@
+
+/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/workflow-behavior-variants.test.ts
+  3064:8  warning  'style' is assigned a value but never used. Allowed unused vars must match /^ignored/u  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (0 errors, 1 warning)
+

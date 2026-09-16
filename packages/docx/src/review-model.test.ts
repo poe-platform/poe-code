@@ -10,7 +10,8 @@ import {
   markCommentRange
 } from "./review-model.js";
 import type { ModelStore, ModelRef } from "./model-store.js";
-import { w } from "../tests/fixtures/text.js";
+import { w, textContext, textFixture } from "../tests/fixtures/text.js";
+import { Document } from "./document-model.js";
 
 function admitted(markup: string) {
   const volume = Volume.fromJSON({ "/part": markup });
@@ -189,17 +190,20 @@ it("returns detached cached-break fragments and keeps an entire hyperlink preced
   b.preceding_paragraph_fragment!.text = "changed";
   expect(m.source()).toBe(before);
 });
-it("creates comment bodies with explicit context time and validates null before edits", () => {
-  const m = admitted(`<w:comments xmlns:w="${w}"/>`),
-    comments = new Comments(m.store, m.root);
+it("creates comment bodies with explicit context time and validates null before edits", async () => {
+  const document = await Document(await textFixture("<w:p/>"), {
+    ...textContext,
+    timestamp: new Date("2025-02-03T04:05:06Z")
+  });
+  const comments = document.comments;
   const c = comments.add_comment("new\tline\nend", "Lena", null);
   expect(c.comment_id).toBe(0);
   expect(c.timestamp?.toISOString()).toBe("2025-02-03T04:05:06.000Z");
   expect(c.author).toBe("Lena");
   expect(c.initials).toBeNull();
-  const source = m.source();
+  const source = new TextDecoder().decode(c.part.blob);
   expect(() => comments.add_comment(null as unknown as string)).toThrow();
-  expect(m.source()).toBe(source);
+  expect(new TextDecoder().decode(c.part.blob)).toBe(source);
 });
 it("splits a cached break in a run and returns null for paragraph boundaries", () => {
   const m = admitted(

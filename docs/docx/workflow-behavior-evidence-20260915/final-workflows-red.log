@@ -1,0 +1,763 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts (512 tests | 8 failed | 492 skipped) 1209ms
+   ↓ workflow-352 observes cell grid_span read
+   ↓ workflow-353 observes cell grid_span read
+   ↓ workflow-354 observes cell grid_span read
+   ↓ workflow-355 observes cell vertical_alignment read
+   ↓ workflow-356 observes cell vertical_alignment read
+   ↓ workflow-357 observes cell vertical_alignment read
+   ↓ workflow-358 observes cell vertical_alignment transition
+   ↓ workflow-359 observes cell vertical_alignment transition
+   ↓ workflow-360 observes cell vertical_alignment transition
+   ↓ workflow-361 observes cell vertical_alignment transition
+   ↓ workflow-362 observes cell width read
+   ↓ workflow-363 observes cell width read
+   ↓ workflow-364 observes cell width transition
+   ↓ workflow-365 observes cell width transition
+   ↓ workflow-367 observes column width read
+   ↓ workflow-368 observes column width read
+   ↓ workflow-369 observes column width transition
+   ↓ workflow-370 observes column width transition
+   ↓ workflow-371 observes column width transition
+   ↓ workflow-372 observes column width transition
+   ↓ workflow-373 observes column width transition
+   ↓ workflow-392 observes table alignment read
+   ↓ workflow-393 observes table alignment read
+   ↓ workflow-394 observes table alignment read
+   ↓ workflow-395 observes table alignment read
+   ↓ workflow-396 observes table alignment transition
+   ↓ workflow-397 observes table alignment transition
+   ↓ workflow-398 observes table alignment transition
+   ↓ workflow-399 observes table alignment transition
+   ↓ workflow-400 observes table autofit read
+   ↓ workflow-401 observes table autofit read
+   ↓ workflow-402 observes table autofit read
+   ↓ workflow-403 observes table autofit transition
+   ↓ workflow-404 observes table autofit transition
+   ↓ workflow-405 observes table autofit transition
+   ↓ workflow-406 observes table autofit transition
+   ↓ workflow-407 observes table autofit transition
+   ↓ workflow-408 observes table autofit transition
+   ↓ workflow-409 observes table table_direction read
+   ↓ workflow-410 observes table table_direction read
+   ↓ workflow-411 observes table table_direction read
+   ↓ workflow-412 observes table table_direction transition
+   ↓ workflow-413 observes table table_direction transition
+   ↓ workflow-414 observes table table_direction transition
+   ↓ workflow-415 observes row grid_cols_after read
+   ↓ workflow-416 observes row grid_cols_after read
+   ↓ workflow-417 observes row grid_cols_after read
+   ↓ workflow-418 observes row grid_cols_before read
+   ↓ workflow-419 observes row grid_cols_before read
+   ↓ workflow-420 observes row grid_cols_before read
+   ↓ workflow-421 observes row height_rule read
+   ↓ workflow-422 observes row height_rule read
+   ↓ workflow-423 observes row height_rule read
+   ↓ workflow-424 observes row height_rule transition
+   ↓ workflow-425 observes row height_rule transition
+   ↓ workflow-426 observes row height_rule transition
+   ↓ workflow-427 observes row height_rule transition
+   ↓ workflow-428 observes row height read
+   ↓ workflow-429 observes row height read
+   ↓ workflow-430 observes row height read
+   ↓ workflow-431 observes row height transition
+   ↓ workflow-432 observes row height transition
+   ↓ workflow-433 observes row height transition
+   ↓ workflow-434 observes row height transition
+   ↓ workflow-163 observes font underline variant
+   ↓ workflow-164 observes font underline variant
+   ↓ workflow-165 observes font underline variant
+   ↓ workflow-166 observes font underline variant
+   ↓ workflow-167 observes font underline variant
+   ↓ workflow-168 observes font underline variant
+   ↓ workflow-169 observes font underline variant
+   ↓ workflow-170 observes font underline variant
+   ↓ workflow-171 observes font underline variant
+   ↓ workflow-172 observes font underline variant
+   ↓ workflow-173 observes font underline variant
+   ↓ workflow-174 observes font underline variant
+   ↓ workflow-175 observes font underline variant
+   ↓ workflow-176 observes font underline variant
+   ↓ workflow-470 observes font highlight_color variant
+   ↓ workflow-471 observes font highlight_color variant
+   ↓ workflow-472 observes font highlight_color variant
+   ↓ workflow-473 observes font highlight_color variant
+   ↓ workflow-474 observes font highlight_color variant
+   ↓ workflow-475 observes font highlight_color variant
+   ↓ workflow-476 observes font name variant
+   ↓ workflow-477 observes font name variant
+   ↓ workflow-478 observes font name variant
+   ↓ workflow-479 observes font name variant
+   ↓ workflow-480 observes font name variant
+   ↓ workflow-481 observes font size variant
+   ↓ workflow-482 observes font size variant
+   ↓ workflow-483 observes font size variant
+   ↓ workflow-484 observes font size variant
+   ↓ workflow-485 observes font size variant
+   ↓ workflow-487 observes font underline variant
+   ↓ workflow-488 observes font underline variant
+   ↓ workflow-489 observes font underline variant
+   ↓ workflow-490 observes font underline variant
+   ↓ workflow-491 observes font underline variant
+   ↓ workflow-492 observes font underline variant
+   ↓ workflow-493 observes font underline variant
+   ↓ workflow-494 observes font underline variant
+   ↓ workflow-495 observes font underline variant
+   ↓ workflow-496 observes font underline variant
+   ↓ workflow-497 observes font underline variant
+   ↓ workflow-498 observes font underline variant
+   ↓ workflow-499 observes font underline variant
+   ↓ workflow-500 observes font underline variant
+   ↓ workflow-501 observes font vertical alignment variant
+   ↓ workflow-502 observes font vertical alignment variant
+   ↓ workflow-503 observes font vertical alignment variant
+   ↓ workflow-504 observes font vertical alignment variant
+   ↓ workflow-505 observes font vertical alignment variant
+   ↓ workflow-506 observes font vertical alignment variant
+   ↓ workflow-507 observes font vertical alignment variant
+   ↓ workflow-508 observes font vertical alignment variant
+   ↓ workflow-509 observes font vertical alignment variant
+   ↓ workflow-510 observes font vertical alignment variant
+   ↓ workflow-511 observes font vertical alignment variant
+   ↓ workflow-512 observes font vertical alignment variant
+   ↓ workflow-513 observes font vertical alignment variant
+   ↓ workflow-514 observes font vertical alignment variant
+   ↓ workflow-515 observes font vertical alignment variant
+   ↓ workflow-516 observes font vertical alignment variant
+   ↓ workflow-517 observes font vertical alignment variant
+   ↓ workflow-518 observes font vertical alignment variant
+   ↓ workflow-519 observes font vertical alignment variant
+   ↓ workflow-520 observes font vertical alignment variant
+   ↓ workflow-521 observes font vertical alignment variant
+   ↓ workflow-522 observes font all_caps variant
+   ↓ workflow-523 observes font bold variant
+   ↓ workflow-524 observes font complex_script variant
+   ↓ workflow-525 observes font cs_bold variant
+   ↓ workflow-526 observes font cs_italic variant
+   ↓ workflow-527 observes font double_strike variant
+   ↓ workflow-528 observes font emboss variant
+   ↓ workflow-529 observes font hidden variant
+   ↓ workflow-530 observes font italic variant
+   ↓ workflow-531 observes font imprint variant
+   ↓ workflow-532 observes font math variant
+   ↓ workflow-533 observes font no_proof variant
+   ↓ workflow-534 observes font outline variant
+   ↓ workflow-535 observes font rtl variant
+   ↓ workflow-536 observes font shadow variant
+   ↓ workflow-537 observes font small_caps variant
+   ↓ workflow-538 observes font snap_to_grid variant
+   ↓ workflow-539 observes font spec_vanish variant
+   ↓ workflow-540 observes font strike variant
+   ↓ workflow-541 observes font web_hidden variant
+   ↓ workflow-542 observes font all_caps variant
+   ↓ workflow-543 observes font bold variant
+   ↓ workflow-544 observes font complex_script variant
+   ↓ workflow-545 observes font cs_bold variant
+   ↓ workflow-546 observes font cs_italic variant
+   ↓ workflow-547 observes font double_strike variant
+   ↓ workflow-548 observes font emboss variant
+   ↓ workflow-549 observes font hidden variant
+   ↓ workflow-550 observes font italic variant
+   ↓ workflow-551 observes font imprint variant
+   ↓ workflow-552 observes font math variant
+   ↓ workflow-553 observes font no_proof variant
+   ↓ workflow-554 observes font outline variant
+   ↓ workflow-555 observes font rtl variant
+   ↓ workflow-556 observes font shadow variant
+   ↓ workflow-557 observes font small_caps variant
+   ↓ workflow-558 observes font snap_to_grid variant
+   ↓ workflow-559 observes font spec_vanish variant
+   ↓ workflow-560 observes font strike variant
+   ↓ workflow-561 observes font web_hidden variant
+   ↓ workflow-562 observes font all_caps variant
+   ↓ workflow-563 observes font bold variant
+   ↓ workflow-564 observes font complex_script variant
+   ↓ workflow-565 observes font cs_bold variant
+   ↓ workflow-566 observes font cs_italic variant
+   ↓ workflow-567 observes font double_strike variant
+   ↓ workflow-568 observes font emboss variant
+   ↓ workflow-569 observes font hidden variant
+   ↓ workflow-570 observes font italic variant
+   ↓ workflow-571 observes font imprint variant
+   ↓ workflow-572 observes font math variant
+   ↓ workflow-573 observes font no_proof variant
+   ↓ workflow-574 observes font outline variant
+   ↓ workflow-575 observes font rtl variant
+   ↓ workflow-576 observes font shadow variant
+   ↓ workflow-577 observes font small_caps variant
+   ↓ workflow-578 observes font snap_to_grid variant
+   ↓ workflow-579 observes font spec_vanish variant
+   ↓ workflow-580 observes font strike variant
+   ↓ workflow-581 observes font web_hidden variant
+   ↓ workflow-583 observes paragraph alignment variant
+   ↓ workflow-584 observes paragraph alignment variant
+   ↓ workflow-585 observes paragraph alignment variant
+   ↓ workflow-586 observes paragraph alignment variant
+   ↓ workflow-587 observes paragraph alignment variant
+   ↓ workflow-588 observes paragraph alignment variant
+   ↓ workflow-589 observes paragraph space_before variant
+   ↓ workflow-590 observes paragraph space_before variant
+   ↓ workflow-591 observes paragraph space_after variant
+   ↓ workflow-592 observes paragraph space_after variant
+   ↓ workflow-593 observes paragraph space_before variant
+   ↓ workflow-594 observes paragraph space_before variant
+   ↓ workflow-595 observes paragraph space_before variant
+   ↓ workflow-596 observes paragraph space_after variant
+   ↓ workflow-597 observes paragraph space_after variant
+   ↓ workflow-598 observes paragraph space_after variant
+   ↓ workflow-611 observes paragraph first_line_indent variant
+   ↓ workflow-612 observes paragraph first_line_indent variant
+   ↓ workflow-613 observes paragraph first_line_indent variant
+   ↓ workflow-614 observes paragraph left_indent variant
+   ↓ workflow-615 observes paragraph left_indent variant
+   ↓ workflow-616 observes paragraph right_indent variant
+   ↓ workflow-617 observes paragraph right_indent variant
+   ↓ workflow-618 observes paragraph first_line_indent variant
+   ↓ workflow-619 observes paragraph first_line_indent variant
+   ↓ workflow-620 observes paragraph first_line_indent variant
+   ↓ workflow-621 observes paragraph left_indent variant
+   ↓ workflow-622 observes paragraph left_indent variant
+   ↓ workflow-623 observes paragraph left_indent variant
+   ↓ workflow-624 observes paragraph right_indent variant
+   ↓ workflow-625 observes paragraph right_indent variant
+   ↓ workflow-626 observes paragraph right_indent variant
+   ↓ workflow-627 observes paragraph keep_together variant
+   ↓ workflow-628 observes paragraph keep_together variant
+   ↓ workflow-629 observes paragraph keep_together variant
+   ↓ workflow-630 observes paragraph keep_with_next variant
+   ↓ workflow-631 observes paragraph keep_with_next variant
+   ↓ workflow-632 observes paragraph keep_with_next variant
+   ↓ workflow-633 observes paragraph page_break_before variant
+   ↓ workflow-634 observes paragraph page_break_before variant
+   ↓ workflow-635 observes paragraph page_break_before variant
+   ↓ workflow-636 observes paragraph widow_control variant
+   ↓ workflow-637 observes paragraph widow_control variant
+   ↓ workflow-638 observes paragraph widow_control variant
+   ↓ workflow-639 observes paragraph keep_together variant
+   ↓ workflow-640 observes paragraph keep_together variant
+   ↓ workflow-641 observes paragraph keep_together variant
+   ↓ workflow-642 observes paragraph keep_with_next variant
+   ↓ workflow-643 observes paragraph keep_with_next variant
+   ↓ workflow-644 observes paragraph keep_with_next variant
+   ↓ workflow-645 observes paragraph page_break_before variant
+   ↓ workflow-646 observes paragraph page_break_before variant
+   ↓ workflow-647 observes paragraph page_break_before variant
+   ↓ workflow-648 observes paragraph widow_control variant
+   ↓ workflow-649 observes paragraph widow_control variant
+   ↓ workflow-650 observes paragraph widow_control variant
+   ↓ workflow-339 observes logical grid content variant
+   ↓ workflow-340 observes logical grid content variant
+   ↓ workflow-341 observes logical grid content variant
+   ↓ workflow-342 observes logical grid content variant
+   ↓ workflow-343 observes logical grid content variant
+   ↓ workflow-344 observes logical grid content variant
+   ↓ workflow-345 observes logical grid content variant
+   ↓ workflow-346 observes logical grid content variant
+   ↓ workflow-347 observes logical grid content variant
+   ↓ workflow-348 observes logical grid content variant
+   ↓ workflow-349 observes logical grid content variant
+   ↓ workflow-350 observes logical grid content variant
+   ↓ workflow-378 observes logical grid content variant
+   ↓ workflow-379 observes logical grid content variant
+   ↓ workflow-380 observes logical grid content variant
+   ↓ workflow-381 observes logical grid content variant
+   ↓ workflow-382 observes logical grid content variant
+   ↓ workflow-383 observes logical grid content variant
+   ↓ workflow-384 observes logical grid content variant
+   ↓ workflow-385 observes logical grid content variant
+   ↓ workflow-386 observes logical grid content variant
+   ↓ workflow-387 observes logical grid content variant
+   ↓ workflow-388 observes logical grid content variant
+   ↓ workflow-389 observes logical grid content variant
+   ↓ workflow-390 observes logical grid content variant
+   ↓ workflow-391 observes logical grid content variant
+   ↓ workflow-446 observes font color type variant
+   ↓ workflow-447 observes font color type variant
+   ↓ workflow-448 observes font color type variant
+   ↓ workflow-449 observes font color type variant
+   ↓ workflow-450 observes font color rgb variant
+   ↓ workflow-451 observes font color rgb variant
+   ↓ workflow-452 observes font color rgb variant
+   ↓ workflow-453 observes font color rgb variant
+   ↓ workflow-454 observes font color rgb variant
+   ↓ workflow-455 observes font color rgb variant
+   ↓ workflow-456 observes font color rgb variant
+   ↓ workflow-457 observes font color rgb variant
+   ↓ workflow-458 observes font color rgb variant
+   ↓ workflow-459 observes font color rgb variant
+   ↓ workflow-460 observes font color theme_color variant
+   ↓ workflow-461 observes font color theme_color variant
+   ↓ workflow-462 observes font color theme_color variant
+   ↓ workflow-463 observes font color theme_color variant
+   ↓ workflow-464 observes font color theme_color variant
+   ↓ workflow-465 observes font color theme_color variant
+   ↓ workflow-466 observes font color theme_color variant
+   ↓ workflow-467 observes font color theme_color variant
+   ↓ workflow-468 observes font color theme_color variant
+   ↓ workflow-469 observes font color theme_color variant
+   ↓ workflow-599 observes line spacing variant
+   ↓ workflow-600 observes line spacing variant
+   ↓ workflow-601 observes line spacing variant
+   ↓ workflow-602 observes line spacing variant
+   ↓ workflow-603 observes line spacing variant
+   ↓ workflow-604 observes line spacing variant
+   ↓ workflow-605 observes line spacing variant
+   ↓ workflow-606 observes line spacing variant
+   ↓ workflow-607 observes line spacing variant
+   ↓ workflow-608 observes line spacing variant
+   ↓ workflow-609 observes line spacing variant
+   ↓ workflow-610 observes line spacing variant
+   ↓ workflow-177 observes section different_first_page_header_footer variant
+   ↓ workflow-178 observes section different_first_page_header_footer variant
+   ↓ workflow-179 observes section different_first_page_header_footer variant
+   ↓ workflow-180 observes section different_first_page_header_footer variant
+   ↓ workflow-181 observes section different_first_page_header_footer variant
+   ↓ workflow-182 observes section different_first_page_header_footer variant
+   ↓ workflow-183 observes section even_page_footer variant
+   ↓ workflow-184 observes section even_page_header variant
+   ↓ workflow-185 observes section first_page_footer variant
+   ↓ workflow-186 observes section first_page_header variant
+   ↓ workflow-187 observes section footer variant
+   ↓ workflow-188 observes section header variant
+   ↓ workflow-190 observes section start_type variant
+   ↓ workflow-191 observes section start_type variant
+   ↓ workflow-192 observes section start_type variant
+   ↓ workflow-193 observes section start_type variant
+   ↓ workflow-194 observes section start_type variant
+   ↓ workflow-195 observes section start_type variant
+   ↓ workflow-196 observes section start_type variant
+   ↓ workflow-197 observes section start_type variant
+   ↓ workflow-198 observes section page_width/page_height variant
+   ↓ workflow-199 observes section page_width/page_height variant
+   ↓ workflow-200 observes section orientation variant
+   ↓ workflow-201 observes section orientation variant
+   ↓ workflow-202 observes section orientation variant
+   ↓ workflow-203 observes section orientation variant
+   ↓ workflow-204 observes section orientation variant
+   ↓ workflow-205 observes section margins variant
+   ↓ workflow-206 observes section left_margin variant
+   ↓ workflow-207 observes section right_margin variant
+   ↓ workflow-208 observes section top_margin variant
+   ↓ workflow-209 observes section bottom_margin variant
+   ↓ workflow-210 observes section header_distance variant
+   ↓ workflow-211 observes section footer_distance variant
+   ↓ workflow-212 observes section gutter variant
+   ↓ workflow-068 observes header binding variant
+   ↓ workflow-069 observes header binding variant
+   ↓ workflow-070 observes header binding variant
+   ↓ workflow-071 observes header binding variant
+   ↓ workflow-072 observes header binding variant
+   ↓ workflow-073 observes header binding variant
+   ↓ workflow-074 observes header binding variant
+   ↓ workflow-075 observes header binding variant
+   ↓ workflow-077 observes footer binding variant
+   ↓ workflow-078 observes footer binding variant
+   ↓ workflow-079 observes footer binding variant
+   ↓ workflow-080 observes footer binding variant
+   ↓ workflow-081 observes footer binding variant
+   ↓ workflow-082 observes footer binding variant
+   ↓ workflow-083 observes footer binding variant
+   ↓ workflow-084 observes footer binding variant
+   ↓ workflow-010 observes comment workflow variant
+   ↓ workflow-011 observes comment workflow variant
+   ↓ workflow-012 observes comment workflow variant
+   ↓ workflow-013 observes comment workflow variant
+   ↓ workflow-015 observes comment workflow variant
+   ↓ workflow-016 observes comment workflow variant
+   ↓ workflow-017 observes comment workflow variant
+   ↓ workflow-018 observes comment workflow variant
+   ↓ workflow-019 observes comment workflow variant
+   ↓ workflow-020 observes comment workflow variant
+   ↓ workflow-021 observes comment workflow variant
+   ↓ workflow-029 observes comment workflow variant
+   ↓ workflow-049 observes comment workflow variant
+   ↓ workflow-050 observes comment workflow variant
+   ↓ workflow-051 observes comment workflow variant
+   ↓ workflow-052 observes comment workflow variant
+   ↓ workflow-053 observes comment workflow variant
+   ↓ workflow-054 observes comment workflow variant
+   ↓ workflow-111 observes content traversal variant
+   ↓ workflow-112 observes content traversal variant
+   ↓ workflow-113 observes content traversal variant
+   ↓ workflow-114 observes content traversal variant
+   ↓ workflow-115 observes content traversal variant
+   ↓ workflow-116 observes content traversal variant
+   ↓ workflow-117 observes content traversal variant
+   ↓ workflow-118 observes content traversal variant
+   ↓ workflow-119 observes content traversal variant
+   ↓ workflow-120 observes content traversal variant
+   ↓ workflow-121 observes content traversal variant
+   ↓ workflow-125 observes content traversal variant
+   ↓ workflow-126 observes content traversal variant
+   ↓ workflow-127 observes content traversal variant
+   ↓ workflow-128 observes content traversal variant
+   ↓ workflow-138 observes content traversal variant
+   ↓ workflow-139 observes content traversal variant
+   ↓ workflow-140 observes content traversal variant
+   ↓ workflow-141 observes content traversal variant
+   ↓ workflow-143 observes content traversal variant
+   ↓ workflow-144 observes content traversal variant
+   ↓ workflow-145 observes content traversal variant
+   ↓ workflow-146 observes content traversal variant
+   ↓ workflow-147 observes content traversal variant
+   ↓ workflow-014 observes explicit image insertion variant
+   ↓ workflow-041 observes explicit image insertion variant
+   ↓ workflow-042 observes explicit image insertion variant
+   ↓ workflow-043 observes explicit image insertion variant
+   ↓ workflow-044 observes explicit image insertion variant
+   ↓ workflow-076 observes explicit image insertion variant
+   ↓ workflow-085 observes explicit image insertion variant
+   ↓ workflow-150 observes explicit image insertion variant
+   ↓ workflow-151 observes explicit image insertion variant
+   ↓ workflow-152 observes explicit image insertion variant
+   ↓ workflow-153 observes explicit image insertion variant
+   ↓ workflow-099 observes image dimensions and density variant
+   ↓ workflow-100 observes image dimensions and density variant
+   ↓ workflow-101 observes image dimensions and density variant
+   ↓ workflow-102 observes image dimensions and density variant
+   ↓ workflow-103 observes image dimensions and density variant
+   ↓ workflow-104 observes image dimensions and density variant
+   ↓ workflow-105 observes image dimensions and density variant
+   ↓ workflow-106 observes image dimensions and density variant
+   ↓ workflow-107 observes image dimensions and density variant
+   ↓ workflow-108 observes image dimensions and density variant
+   ↓ workflow-109 observes image dimensions and density variant
+   ↓ workflow-086 observes hyperlink variant
+   ↓ workflow-087 observes hyperlink variant
+   ↓ workflow-088 observes hyperlink variant
+   ↓ workflow-089 observes hyperlink variant
+   ↓ workflow-090 observes hyperlink variant
+   ↓ workflow-091 observes hyperlink variant
+   ↓ workflow-092 observes hyperlink variant
+   ↓ workflow-093 observes hyperlink variant
+   ↓ workflow-094 observes hyperlink variant
+   ↓ workflow-095 observes hyperlink variant
+   ↓ workflow-096 observes hyperlink variant
+   ↓ workflow-097 observes hyperlink variant
+   ↓ workflow-098 observes hyperlink variant
+   ↓ workflow-001 observes original SDK lifecycle variant
+   ↓ workflow-002 observes original SDK lifecycle variant
+   ↓ workflow-003 observes original SDK lifecycle variant
+   ↓ workflow-004 observes original SDK lifecycle variant
+   ↓ workflow-005 observes original SDK lifecycle variant
+   ↓ workflow-028 observes original SDK lifecycle variant
+   ↓ workflow-037 observes original SDK lifecycle variant
+   ↓ workflow-038 observes original SDK lifecycle variant
+   ↓ workflow-039 observes original SDK lifecycle variant
+   ↓ workflow-040 observes original SDK lifecycle variant
+   ↓ workflow-047 observes original SDK lifecycle variant
+   ↓ workflow-048 observes original SDK lifecycle variant
+   ↓ workflow-122 observes original SDK lifecycle variant
+   ↓ workflow-123 observes original SDK lifecycle variant
+   ↓ workflow-124 observes original SDK lifecycle variant
+   ↓ workflow-129 observes original SDK lifecycle variant
+   ↓ workflow-130 observes original SDK lifecycle variant
+   ↓ workflow-131 observes original SDK lifecycle variant
+   ↓ workflow-142 observes original SDK lifecycle variant
+   ↓ workflow-148 observes original SDK lifecycle variant
+   ↓ workflow-149 observes original SDK lifecycle variant
+   ↓ workflow-162 observes original SDK lifecycle variant
+   ↓ workflow-337 observes original SDK lifecycle variant
+   ↓ workflow-338 observes original SDK lifecycle variant
+   ↓ workflow-351 observes original SDK lifecycle variant
+   ↓ workflow-366 observes original SDK lifecycle variant
+   ↓ workflow-374 observes original SDK lifecycle variant
+   ↓ workflow-375 observes original SDK lifecycle variant
+   ↓ workflow-376 observes original SDK lifecycle variant
+   ↓ workflow-377 observes original SDK lifecycle variant
+   ↓ workflow-443 observes original SDK lifecycle variant
+   ↓ workflow-444 observes original SDK lifecycle variant
+   ↓ workflow-445 observes original SDK lifecycle variant
+   ↓ workflow-486 observes original SDK lifecycle variant
+   ↓ workflow-582 observes original SDK lifecycle variant
+   ↓ workflow-132 observes owner style variant
+   ↓ workflow-133 observes owner style variant
+   ↓ workflow-134 observes owner style variant
+   ↓ workflow-135 observes owner style variant
+   ↓ workflow-136 observes owner style variant
+   ↓ workflow-137 observes owner style variant
+   ↓ workflow-154 observes owner style variant
+   ↓ workflow-155 observes owner style variant
+   ↓ workflow-156 observes owner style variant
+   ↓ workflow-157 observes owner style variant
+   ↓ workflow-158 observes owner style variant
+   ↓ workflow-159 observes owner style variant
+   ↓ workflow-160 observes owner style variant
+   ↓ workflow-161 observes owner style variant
+   ↓ workflow-435 observes owner style variant
+   ↓ workflow-436 observes owner style variant
+   ↓ workflow-437 observes owner style variant
+   ↓ workflow-438 observes owner style variant
+   ↓ workflow-439 observes owner style variant
+   ↓ workflow-440 observes owner style variant
+   ↓ workflow-441 observes owner style variant
+   ↓ workflow-442 observes owner style variant
+   ✓ workflow-006 observes final SDK workflow variant 80ms
+   ✓ workflow-007 observes final SDK workflow variant 77ms
+   ✓ workflow-008 observes final SDK workflow variant 67ms
+   × workflow-009 observes final SDK workflow variant 69ms
+   × workflow-022 observes final SDK workflow variant 71ms
+   ✓ workflow-023 observes final SDK workflow variant 62ms
+   ✓ workflow-024 observes final SDK workflow variant 38ms
+   ✓ workflow-025 observes final SDK workflow variant 57ms
+   ✓ workflow-026 observes final SDK workflow variant 59ms
+   ✓ workflow-027 observes final SDK workflow variant 62ms
+   × workflow-110 observes final SDK workflow variant 50ms
+   ✓ workflow-189 observes final SDK workflow variant 45ms
+   ✓ workflow-213 observes final SDK workflow variant 101ms
+   × workflow-214 observes final SDK workflow variant 39ms
+   × workflow-215 observes final SDK workflow variant 40ms
+   × workflow-216 observes final SDK workflow variant 40ms
+   × workflow-217 observes final SDK workflow variant 39ms
+   × workflow-218 observes final SDK workflow variant 44ms
+   ✓ workflow-219 observes final SDK workflow variant 74ms
+   ✓ workflow-220 observes final SDK workflow variant 91ms
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-009 observes final SDK workflow variant
+AssertionError: expected [ 'Paragraph', 'Paragraph', …(3) ] to deeply equal [ 'Paragraph', 'Paragraph', …(2) ]
+
+- Expected
++ Received
+
+  [
+    "Paragraph",
+    "Paragraph",
+    "Table",
+    "Paragraph",
++   "Paragraph",
+  ]
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3407:221
+
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-022 observes final SDK workflow variant
+Error: This image part has no admitted bounded raster characterization.
+ ❯ PackageView.[image] packages/docx/src/package-view.ts:145:23
+    143|   [packageImage](part: ImagePartView): Image {
+    144|     const image = this.#images.get(this[packageMetadata](part).partnam…
+    145|     if (!image) throw new UnsupportedEditError("This image part has no…
+       |                       ^
+    146|     return image;
+    147|   }
+ ❯ ImagePartView.get image [as image] packages/docx/src/package-view.ts:443:56
+ ❯ Drawing.get image [as image] packages/docx/src/inline-shape-model.ts:37:17
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3412:282
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-edit' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-110 observes final SDK workflow variant
+TypeError: Cannot read properties of undefined (reading 'numbering_definitions')
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3442:38
+
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-214 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "PICTURE",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3457:44
+
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-215 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "LINKED_PICTURE",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3462:44
+
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-216 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "LINKED_PICTURE",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3467:44
+
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-217 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "SMART_ART",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3472:44
+
+
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-218 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "CHART",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3477:44
+
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-009 observes final SDK workflow variant
+AssertionError: expected [ 'Paragraph', 'Paragraph', …(3) ] to deeply equal [ 'Paragraph', 'Paragraph', …(2) ]
+
+- Expected
++ Received
+
+  [
+    "Paragraph",
+    "Paragraph",
+    "Table",
+    "Paragraph",
++   "Paragraph",
+  ]
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3407:221
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-022 observes final SDK workflow variant
+Error: This image part has no admitted bounded raster characterization.
+ ❯ PackageView.[image] packages/docx/src/package-view.ts:145:23
+    143|   [packageImage](part: ImagePartView): Image {
+    144|     const image = this.#images.get(this[packageMetadata](part).partnam…
+    145|     if (!image) throw new UnsupportedEditError("This image part has no…
+       |                       ^
+    146|     return image;
+    147|   }
+ ❯ ImagePartView.get image [as image] packages/docx/src/package-view.ts:443:56
+ ❯ Drawing.get image [as image] packages/docx/src/inline-shape-model.ts:37:17
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3412:282
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-110 observes final SDK workflow variant
+TypeError: Cannot read properties of undefined (reading 'numbering_definitions')
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3442:38
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-214 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "PICTURE",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3457:44
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-215 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "LINKED_PICTURE",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3462:44
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-216 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "LINKED_PICTURE",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3467:44
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-217 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "SMART_ART",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3472:44
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-218 observes final SDK workflow variant
+AssertionError: expected { Object (enum, name) } to deeply equal { Object (enum, name) }
+
+- Expected
++ Received
+
+  {
+    "enum": "WD_INLINE_SHAPE_TYPE",
+-   "name": "CHART",
++   "name": "NOT_IMPLEMENTED",
+  }
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:3477:44
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 12 passed | 492 skipped (512)
+   Start at  22:54:54
+   Duration  2.33s (transform 865ms, setup 30ms, import 1.02s, tests 1.21s, environment 0ms)
+

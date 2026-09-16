@@ -1,0 +1,18 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/run-format.test.ts (22 tests) 2023ms
+ ✓ packages/docx/src/text.test.ts (18 tests) 1347ms
+   ✓ orders all story scopes and deduplicates shared parts  444ms
+ ✓ packages/docx/src/paragraph-edit.test.ts (47 tests) 4405ms
+ ✓ packages/docx/src/run-break-contract.test.ts (18 tests) 1260ms
+ ✓ packages/docx/src/document-model.test.ts (7 tests) 772ms
+ ✓ packages/docx/src/review-model.test.ts (17 tests) 315ms
+ ✓ packages/docx/src/formatting-model.test.ts (33 tests) 43ms
+ ✓ packages/docx/src/run-properties.test.ts (3 tests) 13ms
+
+ Test Files  8 passed (8)
+      Tests  165 passed (165)
+   Start at  23:06:55
+   Duration  6.95s (transform 1.81s, setup 102ms, import 3.07s, tests 10.18s, environment 0ms)
+

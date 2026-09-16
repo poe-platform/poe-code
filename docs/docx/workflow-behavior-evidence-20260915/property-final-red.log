@@ -1,0 +1,55 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts (0 test)
+FAIL packages/docx/src/workflow-behavior-variants.test.ts
+Error: Transform failed with 1 error:
+/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/workflow-behavior-variants.test.ts:3396:95: ERROR: Expected ")" but found "default"
+  Plugin: vite:esbuild
+  File: /Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/workflow-behavior-variants.test.ts:3396:95
+  
+  Expected ")" but found "default"
+  3394|  
+  3395|  it("workflow-007 observes final SDK workflow variant", async () => {
+  3396|   const document = await Document(await textFixture("<w:p/><w:sectPr><w:headerReference w:type="default" r:id="header"/></w:sectPr>",{header:{kind:"header",xml:"<w:header xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tbl><w:tblGrid><w:gridCol w:w=\"1440\"/><w:gridCol w:w=\"1440\"/><w:gridCol w:w=\"1440\"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>1</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>2</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>3</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>4</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>5</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>6</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>7</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>8</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>9</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p/></w:header>"}}),textContext);
+     |                                                                                                 ^
+  3397|   expect([...document.sections.at(0).header.iter_inner_content()].map(item=>item.constructor.name)).toEqual(["Table","Paragraph"]);
+  3398|  });
+  
+ ❯ failureErrorWithLog node_modules/esbuild/lib/main.js:1748:15
+ ❯ node_modules/esbuild/lib/main.js:1017:50
+ ❯ responseCallbacks.<computed> node_modules/esbuild/lib/main.js:884:9
+ ❯ handleIncomingPacket node_modules/esbuild/lib/main.js:939:12
+ ❯ Socket.readFromStdout node_modules/esbuild/lib/main.js:862:7
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts [ packages/docx/src/workflow-behavior-variants.test.ts ]
+Error: Transform failed with 1 error:
+/Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/workflow-behavior-variants.test.ts:3396:95: ERROR: Expected ")" but found "default"
+  Plugin: vite:esbuild
+  File: /Users/kjopek/Workspace/poe-setup-scripts/packages/docx/src/workflow-behavior-variants.test.ts:3396:95
+  
+  Expected ")" but found "default"
+  3394|  
+  3395|  it("workflow-007 observes final SDK workflow variant", async () => {
+  3396|   const document = await Document(await textFixture("<w:p/><w:sectPr><w:headerReference w:type="default" r:id="header"/></w:sectPr>",{header:{kind:"header",xml:"<w:header xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:tbl><w:tblGrid><w:gridCol w:w=\"1440\"/><w:gridCol w:w=\"1440\"/><w:gridCol w:w=\"1440\"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>1</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>2</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>3</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>4</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>5</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>6</w:t></w:r></w:p></w:tc></w:tr><w:tr><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>7</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>8</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:type=\"dxa\" w:w=\"1440\"/></w:tcPr><w:p><w:r><w:t>9</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:p/></w:header>"}}),textContext);
+     |                                                                                                 ^
+  3397|   expect([...document.sections.at(0).header.iter_inner_content()].map(item=>item.constructor.name)).toEqual(["Table","Paragraph"]);
+  3398|  });
+  
+ ❯ failureErrorWithLog node_modules/esbuild/lib/main.js:1748:15
+ ❯ node_modules/esbuild/lib/main.js:1017:50
+ ❯ responseCallbacks.<computed> node_modules/esbuild/lib/main.js:884:9
+ ❯ handleIncomingPacket node_modules/esbuild/lib/main.js:939:12
+ ❯ Socket.readFromStdout node_modules/esbuild/lib/main.js:862:7
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  22:56:28
+   Duration  81ms (transform 21ms, setup 26ms, import 0ms, tests 0ms, environment 0ms)
+

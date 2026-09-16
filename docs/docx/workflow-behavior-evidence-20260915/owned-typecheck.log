@@ -1,0 +1,31 @@
+packages/docx/src/review-model.ts(59,232): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+packages/docx/src/workflow-behavior-variants.test.ts(131,22): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(147,22): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(477,23): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(485,23): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(683,21): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1424,29): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1445,28): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1508,34): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1529,28): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1550,29): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1962,20): error TS2339: Property 'toString' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1970,20): error TS2339: Property 'toString' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(3232,46): error TS2322: Type 'BaseStyle' is not assignable to type 'string | ParagraphStyle | null'.
+  Type 'BaseStyle' is missing the following properties from type 'ParagraphStyle': paragraph_format, next_paragraph_style, formattingOwner, font, base_style
+packages/docx/src/workflow-behavior-variants.test.ts(3283,1): error TS2322: Type 'BaseStyle' is not assignable to type 'string | CharacterStyle | null'.
+  Type 'BaseStyle' is missing the following properties from type 'CharacterStyle': formattingOwner, font, base_style
+packages/docx/src/workflow-behavior-variants.test.ts(3303,1): error TS2322: Type 'BaseStyle' is not assignable to type 'string | CharacterStyle | null'.
+  Type 'BaseStyle' is missing the following properties from type 'CharacterStyle': formattingOwner, font, base_style
+packages/docx/src/workflow-behavior-variants.test.ts(3357,1): error TS2322: Type 'BaseStyle' is not assignable to type 'string | TableStyle | null'.
+  Type 'BaseStyle' is missing the following properties from type 'ParagraphStyle': paragraph_format, next_paragraph_style, formattingOwner, font, base_style
+packages/docx/src/workflow-behavior-variants.test.ts(3377,1): error TS2322: Type 'BaseStyle' is not assignable to type 'string | TableStyle | null'.
+  Type 'BaseStyle' is missing the following properties from type 'ParagraphStyle': paragraph_format, next_paragraph_style, formattingOwner, font, base_style
+packages/docx/src/workflow-behavior-variants.test.ts(3442,23): error TS2339: Property 'numbering_part' does not exist on type 'XmlPartView'.
+packages/docx/src/workflow-behavior-variants.test.ts(3570,144): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+packages/docx/src/workflow-behavior-variants.test.ts(3570,190): error TS2531: Object is possibly 'null'.
+packages/docx/src/workflow-behavior-variants.test.ts(3575,146): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+packages/docx/src/workflow-behavior-variants.test.ts(3575,192): error TS2531: Object is possibly 'null'.

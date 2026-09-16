@@ -88,3 +88,12 @@ three current source-consumer groups, 26 copied consumer groups and exact
 negative diagnostics), all 522 runner tests, all 49 live WebDAV controls, and
 guarded repository ESLint with zero errors and two warnings. The earlier core
 archive suite passed all 218 controls before the additional remote mirror test.
+
+## Current conformance provenance
+
+Release `775352d05` failed Bash shards 1 and 2 because the shared filesystem
+conformance authority still expected the old workspace name. Retain its
+checkout/release distinction and lock/metadata checks while using the current
+name in both authority and synthetic controls. All 213 conformance/provenance
+tests passed after reproducing the failure. The maintained package typecheck
+and all 522 runner tests also passed.

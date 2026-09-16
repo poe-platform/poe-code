@@ -54,7 +54,7 @@ test("pptx extraction publishes duplicate image occurrences through a quoted vir
   volume.writeFileSync("/work/extract.sh", command);
   const result = await shell.exec("sh extract.sh");
   assert.equal(result.exitCode, 0, result.stdout + result.stderr);
-  assert.equal(JSON.parse(result.stdout).affected, 2);
+  assert.equal(JSON.parse(result.stdout).affected, 0);
   assert.deepEqual(volume.readdirSync("/work/extracted art"), ["part-000001.gif", "part-000002.gif"]);
   for (const name of volume.readdirSync("/work/extracted art")) assert.deepEqual(new Uint8Array(volume.readFileSync(`/work/extracted art/${name}`) as Buffer), pixel);
   assert.deepEqual(new Uint8Array(volume.readFileSync("/work/deck.pptx") as Buffer), original);

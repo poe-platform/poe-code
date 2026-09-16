@@ -43,3 +43,24 @@ and WebDAV subpath imports. The affected matrix, independent controls and consum
 resolution suites passed all 117 tests after a fresh dependency installation.
 Remote `20f6645ed` delivered the mock-helper correction; retain only the
 remaining active controls-helper import update.
+
+## Current core archive qualification
+
+The active archive admission, bindings and runtime/type fixtures still selected
+`virtual-bash`; update those current executable controls to the published name.
+Retain historical captured evidence and fixture seals unchanged. Include the
+new exact `!dist/opt-in` exclusion and admit only the declared optional postbuild
+command. An untrusted postbuild control verifies refusal before product-source
+body reads. This route continues its explicit guarded core compilation and
+lifecycle-free packing; its report now declares that optional output is outside
+the core archive. Separate optional graph/lifecycle/copied-package suites passed
+71 tests earlier; this archive does not qualify the optional graph.
+
+All 218 archive controls passed. All 44 native-peer controls passed after
+updating the scope directory and adjusting hostile relative-import routes to
+continue targeting the same peer assets. Guarded repository ESLint passed with
+zero errors and two warnings. Rebase these atomic corrections, push and monitor
+the latest descendant release through successful registry publication.
+Remote `20f6645ed` independently delivered the archive migration. Retain its
+optional-hook admission and mirror correction; deliver only the added refusal
+control and explicit core-archive scope in the report.

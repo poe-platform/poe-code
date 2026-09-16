@@ -291,7 +291,7 @@ export async function verifyCommittedExports({ repository = actualRepository, re
     }
     run("committed output guard", process.execPath, [join(snapshotRoot, "scripts/guard-package-dist.mjs")], snapshot);
     run("committed boundary owner authentication", process.execPath, ["--input-type=module", "-e", "const {loadBoundaries}=await import(process.argv[1]); loadBoundaries(process.cwd());", pathToFileURL(join(snapshot, "scripts/integration-inputs.mjs")).href], snapshot);
-    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint + committed codec asset copier; held filename census authenticated from Git tree metadata, never materialized" };
+    report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint + committed codec asset copier; held filename census authenticated from Git tree metadata, never materialized", scope: "Core archive only; the declared optional postbuild hook is not executed and dist/opt-in is excluded" };
     run("isolated committed compiler build", process.execPath, ["scripts/build.mjs"], snapshot);
     if (bundleOp) {
       assert.ok(candidate.opManifest, "private op bundle requires committed source prerequisite");

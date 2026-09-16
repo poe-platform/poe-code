@@ -1345,12 +1345,13 @@ function requestedBodies(args, options) {
 }
 
 for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects bad ${defect} before requesting product source bodies`, async () => {
-  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short", "missing-exclusion", "widened-exclusion", "traversal-exclusion"]) await withRepository(fixture => {
+  for (const mutation of defect === "guard" ? ["same-length", "short"] : ["short", "missing-exclusion", "widened-exclusion", "traversal-exclusion", "postbuild"]) await withRepository(fixture => {
     if (defect === "guard") {
       const bytes = mutation === "short" ? Buffer.from("throw new Error('untrusted guard');\n") : readRegularInput(resolve(authority, "../.."), "scripts/guard-package-dist.mjs", 300000);
       if (mutation === "same-length") bytes[Math.floor(bytes.length / 2)] ^= 1;
       fixture.put("scripts/guard-package-dist.mjs", bytes);
-    } else if (mutation === "short") fixture.manifest.files = ["src"];
+    } else if (mutation === "postbuild") fixture.manifest.scripts.postbuild = "node untrusted-postbuild.mjs";
+    else if (mutation === "short") fixture.manifest.files = ["src"];
     else if (mutation === "missing-exclusion") fixture.manifest.files.pop();
     else fixture.manifest.files.push(mutation === "widened-exclusion" ? "!dist/commands/yq" : "!dist/../src");
   }, fixture => {
@@ -1361,7 +1362,7 @@ for (const defect of ["guard", "manifest"]) test(`committed bootstrap rejects ba
       return spawnSync(command, args, options);
     };
     assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output, execute), error => {
-      assert.match(error.message, defect === "guard" ? /committed guard differs/ : /dist/);
+      assert.match(error.message, defect === "guard" ? /committed guard differs/ : mutation === "postbuild" ? /unapproved package lifecycle: postbuild/ : /dist/);
       if (defect === "guard") {
         assert.ok(error instanceof assert.AssertionError);
         assert.equal(error.code, "ERR_ASSERTION");

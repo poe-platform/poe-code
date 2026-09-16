@@ -69,12 +69,12 @@ type DocxRevisionDecisionSelection =
 export interface DocxOperationArgumentMap {
   "headers.remove": Omit<DocxOperationArgumentMap["headers.set"], "text" | "linkToPrevious" | "shared">;
   "footers.remove": Omit<DocxOperationArgumentMap["footers.set"], "text" | "linkToPrevious" | "shared">;
-  "styles.latent.list": Pick<DocxOperationArgumentMap["styles.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
-  "styles.latent.get": Readonly<{ readonly name: string }> & Pick<DocxOperationArgumentMap["styles.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
+  "styles.latent.list": DocxOperationArgumentMap["styles.defaults.get"];
+  "styles.latent.get": Readonly<{ name: string }> & DocxOperationArgumentMap["styles.defaults.get"];
   "styles.latent.add": Readonly<{ readonly name: string; readonly hidden?: boolean | null; readonly locked?: boolean | null; readonly quickStyle?: boolean | null; readonly unhideWhenUsed?: boolean | null; readonly priority?: number | null }> & Pick<DocxOperationArgumentMap["styles.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
   "styles.latent.set": Readonly<{ readonly name: string; readonly hidden?: boolean | null; readonly locked?: boolean | null; readonly quickStyle?: boolean | null; readonly unhideWhenUsed?: boolean | null; readonly priority?: number | null }> & Pick<DocxOperationArgumentMap["styles.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
   "styles.latent.remove": Readonly<{ readonly name: string }> & Pick<DocxOperationArgumentMap["styles.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
-  "styles.latent.defaults.get": Pick<DocxOperationArgumentMap["styles.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
+  "styles.latent.defaults.get": DocxOperationArgumentMap["styles.defaults.get"];
   "styles.latent.defaults.set": Readonly<{ readonly defaultToHidden?: boolean; readonly defaultToLocked?: boolean; readonly defaultToQuickStyle?: boolean; readonly defaultToUnhideWhenUsed?: boolean; readonly defaultPriority?: number | null; readonly loadCount?: number | null }> & Pick<DocxOperationArgumentMap["styles.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
   "create": Readonly<{ "json"?: boolean | undefined; "limit"?: readonly ({readonly name: DocumentLimitName; readonly value: number})[] | undefined; "output"?: string | undefined; "force"?: boolean | undefined; "dryRun"?: boolean | undefined; "timestamp"?: string | undefined; "author"?: string | undefined; "kind"?: "docx" | "dotx" | undefined; "template"?: DocxBinaryInput | undefined; "dialect"?: "strict" | "transitional" | undefined; "content"?: DocxContent | undefined }>;
   "inspect": Readonly<{ "json"?: boolean | undefined; "limit"?: readonly ({readonly name: DocumentLimitName; readonly value: number})[] | undefined; "select"?: string | undefined; "scope"?: "body" | "headers" | "footers" | "footnotes" | "endnotes" | "comments" | "text-boxes" | "all-stories" | undefined; "paragraph"?: number | undefined; "run"?: number | undefined; "table"?: number | undefined; "cell"?: string | undefined; "image"?: number | undefined; "section"?: number | undefined; "comment"?: number | undefined; "note"?: number | undefined; "link"?: number | undefined; "control"?: number | undefined; "revision"?: number | undefined; "shape"?: number | undefined; "field"?: number | undefined; "bookmark"?: number | undefined }>;
@@ -1627,13 +1627,13 @@ export interface DocxOperationArgumentMap {
 }
 export type DocxOperationArguments<Id extends DocxOperationId> = DocxOperationArgumentMap[Id];
 export interface DocxBatchArgumentMap {
-  "styles.latent.list": DocxOperationArgumentMap["styles.latent.list"];
-  "styles.latent.get": DocxOperationArgumentMap["styles.latent.get"];
-  "styles.latent.add": DocxOperationArgumentMap["styles.latent.add"];
-  "styles.latent.set": DocxOperationArgumentMap["styles.latent.set"];
-  "styles.latent.remove": DocxOperationArgumentMap["styles.latent.remove"];
-  "styles.latent.defaults.get": DocxOperationArgumentMap["styles.latent.defaults.get"];
-  "styles.latent.defaults.set": DocxOperationArgumentMap["styles.latent.defaults.set"];
+  "styles.latent.list": Readonly<Record<string, never>>;
+  "styles.latent.get": Readonly<{ name: string }>;
+  "styles.latent.add": Omit<DocxOperationArgumentMap["styles.latent.add"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
+  "styles.latent.set": Omit<DocxOperationArgumentMap["styles.latent.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
+  "styles.latent.remove": Readonly<{ name: string }>;
+  "styles.latent.defaults.get": Readonly<Record<string, never>>;
+  "styles.latent.defaults.set": Omit<DocxOperationArgumentMap["styles.latent.defaults.set"], "json" | "limit" | "output" | "inPlace" | "force" | "dryRun">;
   "text.get": Readonly<{ "view"?: "final" | "original" | "all" | undefined; "select"?: string | undefined; "scope"?: "body" | "headers" | "footers" | "footnotes" | "endnotes" | "comments" | "text-boxes" | "all-stories" | undefined; "paragraph"?: number | undefined; "run"?: number | undefined; "table"?: number | undefined; "cell"?: string | undefined; "image"?: number | undefined; "section"?: number | undefined; "comment"?: number | undefined; "note"?: number | undefined; "link"?: number | undefined; "control"?: number | undefined; "revision"?: number | undefined; "shape"?: number | undefined; "field"?: number | undefined; "bookmark"?: number | undefined }>;
   "text.replace": Readonly<{ "bold"?: boolean | undefined; "italic"?: boolean | undefined; "find": string; "with": string; "first"?: boolean | undefined; "occurrence"?: number | undefined; "view"?: "final" | "original" | "all" | undefined; "allowEmpty"?: boolean | undefined; "select"?: string | undefined; "scope"?: "body" | "headers" | "footers" | "footnotes" | "endnotes" | "comments" | "text-boxes" | "all-stories" | undefined; "paragraph"?: number | undefined; "run"?: number | undefined; "table"?: number | undefined; "cell"?: string | undefined; "image"?: number | undefined; "section"?: number | undefined; "comment"?: number | undefined; "note"?: number | undefined; "link"?: number | undefined; "control"?: number | undefined; "revision"?: number | undefined; "shape"?: number | undefined; "field"?: number | undefined; "bookmark"?: number | undefined; "all"?: boolean | undefined }> & (Readonly<{ trackChanges: true; author: string; timestamp: string }> | Readonly<{ trackChanges?: false | undefined; author?: never; timestamp?: never }>);
   "xml.get": Readonly<{ "part": string; "pretty"?: boolean | undefined; "raw"?: boolean | undefined }>;

@@ -1,0 +1,29 @@
+{
+  "scope": "Documentation metadata only; no converter tests executed.",
+  "sourceCommit": "c9a9a5eed7185783b69043e019c067370dc09615",
+  "checks": {
+    "exactSourceCommit": true,
+    "sourceHashes": true,
+    "artifactHashes": true,
+    "uniqueReservedIds": true,
+    "requiredFields": true,
+    "validStatuses": true,
+    "noFalsePasses": true,
+    "noImportedFixtures": true,
+    "licenseReferencesResolve": true,
+    "reasonAndContractForExclusions": true,
+    "summaryStatusesMatch": true,
+    "topLevelCommandFilesAssigned": true,
+    "allCommonMarkExamplesAssigned": true,
+    "allGfmExamplesAssigned": true,
+    "rtfFixturesAssigned": true,
+    "epubFixturesAssigned": true
+  },
+  "rowCount": 4211,
+  "passingTests": 0,
+  "formatting": "Maintained Prettier check recorded after formatting.",
+  "limitations": [
+    "These structural/hash checks do not establish exact independent discovery completeness or runtime behavior.",
+    "RTF1.9.1/EPUB2 primary-byte retrieval remains incomplete."
+  ]
+}

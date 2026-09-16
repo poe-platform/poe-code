@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "policy": "Primary documents pinned by published version and successful retrieval hash where available. Research bytes remain outside worktree; no specification fixtures or implementation imported.",
+  "specifications": [
+    {
+      "id": "pdf-1.7",
+      "url": "https://opensource.adobe.com/dc-acrobat-sdk-docs/pdfstandards/pdfreference1.7old.pdf",
+      "bytes": 32453129,
+      "sha256": "4aa598e7e2cc88867565fae793db38c140a10ca2b5551dccdb45e2124282ce29",
+      "retrieved": true
+    },
+    {
+      "id": "epub-3.3",
+      "url": "https://www.w3.org/TR/2023/REC-epub-33-20230525/",
+      "bytes": 1505709,
+      "sha256": "3d304b2c32c7c257b309f079cb8b8e8889517031a4f1be90d4f7b8edf9672339",
+      "retrieved": true
+    },
+    {
+      "id": "rst-0.21.2",
+      "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/restructuredtext.html",
+      "bytes": 191185,
+      "sha256": "6484dafed50c14a5bb82084565361973448e0ea8ba56be428596c794e77f2dc5",
+      "retrieved": true
+    },
+    {
+      "id": "rtf-1.9.1",
+      "url": "https://download.microsoft.com/download/2/f/5/2f599e18-07ee-4ec5-a1e7-f4eaaee2e5bd/Word2007RTFSpec9.doc",
+      "retrieved": false,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "rtf-1.9.1",
+      "url": "https://learn.microsoft.com/en-us/previous-versions/office/developer/office-2007/cc194191(v=office.12)",
+      "retrieved": false,
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "id": "epub-2.0.1-opf",
+      "url": "https://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm",
+      "retrieved": false,
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "epub-2.0.1-ocf",
+      "url": "https://idpf.org/epub/20/spec/OCF_2.0.1_draft.doc",
+      "retrieved": false,
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "rst-directives-0.21.2",
+      "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/directives.html",
+      "bytes": 155959,
+      "sha256": "6ce5536a31fef650a990c89fddc8404d853089cff9c066ff4490b538fc9052e0",
+      "retrieved": true
+    },
+    {
+      "id": "rst-roles-0.21.2",
+      "url": "https://docutils.sourceforge.io/0.21.2/docs/ref/rst/roles.html",
+      "bytes": 38178,
+      "sha256": "642e06450c7d635d19105f332b255aa9a3a6f2c16eb1d7e1d6e85a4603ba1137",
+      "retrieved": true
+    }
+  ],
+  "requiredVersions": {
+    "pdf": "Adobe PDF Reference sixth edition, PDF 1.7, November 2006; ISO 32000-1:2008 for clarification",
+    "epub": "EPUB 3.3 W3C Recommendation 25 May 2023; EPUB 2.0.1 OPF/OCF/OPS reader admission",
+    "rtf": "Microsoft Word 2007 Rich Text Format Specification 1.9.1, 2008",
+    "rst": "Docutils 0.21.2 reStructuredText markup, directives and roles reference"
+  },
+  "retrievalLimitations": [
+    "Microsoft RTF 1.9.1 download and candidate documentation URLs returned 404. Version selected; primary bytes/hash not verified.",
+    "Legacy IDPF EPUB2 OPF/OCF URLs returned 403. EPUB2 primary bytes/hash not verified."
+  ],
+  "licensePolicy": "Microsoft/Adobe/W3C/Docutils document rights are not parser/fixture import permissions. No primary document payload imported; future fixture imports must record actual fixture license separately."
+}

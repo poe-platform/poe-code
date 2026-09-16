@@ -4,9 +4,9 @@ import {admitCharacterMaps, admitMetricTables} from "./font-admission.js";
 import {imageBox} from "./image-box.js";
 import type { LayoutDocument, Paragraph, PdfContext, PdfLimits, TextRun } from "./model.js";
 export type * from "./model.js";
-export class PdfError extends Error {
-  constructor(readonly code: "E_LIMIT" | "E_CAPABILITY" | "E_CANCELLED", message: string) { super(message); this.name = "PdfError"; }
-}
+import {PdfError} from "./errors.js";
+import {serializePdf} from "./serialization.js";
+export {PdfError} from "./errors.js";
 export function pdfCapabilities() {
   return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false} as const;
 }
@@ -22,7 +22,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   const check = () => { if (context.signal?.aborted) throw new PdfError("E_CANCELLED", "PDF cancelled"); };
   const charge = (key: keyof PdfLimits, amount: number) => {
     check();
-    if (!Number.isSafeInteger(limits[key]) || limits[key] < 0 || usage[key] + amount > limits[key]) throw new PdfError("E_LIMIT", `PDF ${key} limit exceeded`);
+    if (!Number.isSafeInteger(amount) || amount < 0 || !Number.isSafeInteger(limits[key]) || limits[key] < 0 || amount > limits[key] - usage[key]) throw new PdfError("E_LIMIT", `PDF ${key} limit exceeded`);
     context.charge?.(key, amount); usage[key] += amount;
   };
   const cooperate = async () => { check(); if (context.yield) await context.yield(); else await new Promise<void>(resolve => setTimeout(resolve, 0)); check(); };
@@ -244,7 +244,8 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   }
   check();
   // Uncompressed object syntax makes the restricted profile independently inspectable.
-  const bytes = await pdf.save({useObjectStreams: false}); check(); charge("outputBytes", bytes.length);
+  await pdf.flush(); check();
+  const bytes = await serializePdf(pdf.context, {outputBytes: limits.outputBytes, objects: limits.objects, reserveOutput: amount => charge("outputBytes", amount), work: () => charge("layoutWork", 1), cooperate}); check();
   // pdf-lib writes its fixed 1.7 header; no catalog APIs expose active content here.
   if (pdf.catalog.has(PDFName.of("OpenAction"))) unsupported("Active content forbidden");
   return bytes;

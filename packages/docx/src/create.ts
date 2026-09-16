@@ -1,3 +1,4 @@
+import { originalModelDefaults } from "./default-model-styles.js";
 import { archiveSettings, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { writeDocumentArchive } from "./document-write.js";
@@ -52,7 +53,7 @@ export async function createDocumentArchive(options: DocumentCreateOptions, cont
     ["_rels/.rels", `<Relationships xmlns="${relationshipNamespace}"><Relationship Id="rId1" Type="${r}/officeDocument" Target="word/document.xml"/></Relationships>`],
     ["word/_rels/document.xml.rels", `<Relationships xmlns="${relationshipNamespace}"><Relationship Id="rId1" Type="${r}/styles" Target="styles.xml"/></Relationships>`],
     ["word/document.xml", `<w:document xmlns:w="${w}"><w:body><w:p/><w:sectPr>${geometry.xml}</w:sectPr></w:body></w:document>`],
-    ["word/styles.xml", `<w:styles xmlns:w="${w}"><w:docDefaults/><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style></w:styles>`]
+    ["word/styles.xml", `<w:styles xmlns:w="${w}">${originalModelDefaults(w)}</w:styles>`]
   ];
   const rendered = renderContent(content, w, budget, parseDocumentXml(new TextEncoder().encode(parts[4]![1]!)).root, geometry.width);
   parts[3]![1] = `<w:document xmlns:w="${w}"><w:body>${rendered.body || "<w:p/>"}<w:sectPr>${geometry.xml}</w:sectPr></w:body></w:document>`;

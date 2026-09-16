@@ -1,0 +1,50 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/default-model-styles.test.ts (1 test | 1 failed) 73ms
+   × provides original default styles for paragraph character and table model owners 72ms
+FAIL packages/docx/src/default-model-styles.test.ts > provides original default styles for paragraph character and table model owners
+AssertionError: expected undefined to be 'Default Paragraph Font' // Object.is equality
+
+- Expected:
+"Default Paragraph Font"
+
++ Received:
+undefined
+
+ ❯ packages/docx/src/default-model-styles.test.ts:7:66
+      5|   const document = await Document();
+      6|   expect(document.styles.default(WD_STYLE_TYPE.PARAGRAPH)?.name).toBe(…
+      7|   expect(document.styles.default(WD_STYLE_TYPE.CHARACTER)?.name).toBe(…
+       |                                                                  ^
+      8|   expect(document.styles.default(WD_STYLE_TYPE.TABLE)?.name).toBe("Nor…
+      9|   expect(document.add_paragraph().add_run().style?.name).toBe("Default…
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/default-model-styles.test.ts > provides original default styles for paragraph character and table model owners
+AssertionError: expected undefined to be 'Default Paragraph Font' // Object.is equality
+
+- Expected:
+"Default Paragraph Font"
+
++ Received:
+undefined
+
+ ❯ packages/docx/src/default-model-styles.test.ts:7:66
+      5|   const document = await Document();
+      6|   expect(document.styles.default(WD_STYLE_TYPE.PARAGRAPH)?.name).toBe(…
+      7|   expect(document.styles.default(WD_STYLE_TYPE.CHARACTER)?.name).toBe(…
+       |                                                                  ^
+      8|   expect(document.styles.default(WD_STYLE_TYPE.TABLE)?.name).toBe("Nor…
+      9|   expect(document.add_paragraph().add_run().style?.name).toBe("Default…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  22:55:20
+   Duration  1.05s (transform 778ms, setup 27ms, import 900ms, tests 73ms, environment 0ms)
+

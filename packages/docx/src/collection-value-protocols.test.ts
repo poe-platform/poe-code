@@ -146,7 +146,14 @@ it("uses typed stable bounds and key errors while nullable lookups remain null",
   expect(() => color.at(3)).toThrow(api.BoundsError);
   const model = await api.openDocumentStyleModel(undefined, textContext);
   expect(() => model.styles.at("Absent style")).toThrow(api.MissingKeyError);
-  expect(model.styles.get_by_id(null, api.WD_STYLE_TYPE.CHARACTER)).toBeNull();
+  const characterDefault = model.styles.get_by_id(null, api.WD_STYLE_TYPE.CHARACTER);
+  expect(characterDefault?.name).toBe("Default Paragraph Font");
+  expect(characterDefault?.type).toBe(api.WD_STYLE_TYPE.CHARACTER);
+  const withoutCharacterDefault = await api.openDocumentStyleModel(
+    await textFixture(paragraph("Survey"), { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}"><w:style w:type="paragraph" w:default="1" w:styleId="Body"><w:name w:val="Body"/></w:style></w:styles>` } }),
+    textContext
+  );
+  expect(withoutCharacterDefault.styles.get_by_id(null, api.WD_STYLE_TYPE.CHARACTER)).toBeNull();
   const bounds = new api.BoundsError("Index is out of range.");
   expect(bounds).toBeInstanceOf(RangeError);
   expect(bounds.code).toBe("missing-selection");

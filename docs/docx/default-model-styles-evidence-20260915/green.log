@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/default-model-styles.test.ts (1 test) 79ms
+ ✓ packages/docx/src/create.test.ts (15 tests) 2479ms
+   ✓ creates deterministic independently reopened docx packages in both dialects  406ms
+   ✓ creates deterministic independently reopened dotx packages in both dialects  387ms
+   ✓ keeps an original conflicting title and outline style and reuses generated heading identities  359ms
+
+ Test Files  2 passed (2)
+      Tests  16 passed (16)
+   Start at  22:55:40
+   Duration  3.54s (transform 1.64s, setup 58ms, import 1.94s, tests 2.56s, environment 0ms)
+

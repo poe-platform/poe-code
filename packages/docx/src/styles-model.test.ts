@@ -15,8 +15,8 @@ it("provides live named style collections, inherited formatting interfaces and a
   base.font.italic = true;
   expect(model.styles.has("Marsh base")).toBe(true);
   expect((model.styles.at("Marsh base") as CharacterStyle).font.italic).toBe(true);
-  expect([...model.styles].map(s => s.name)).toEqual(["Normal", "Marsh base", "Marsh detail"]);
-  expect(model.styles.length).toBe(3);
+  expect([...model.styles].map(s => s.name)).toEqual(["Normal", "Default Paragraph Font", "Normal Table", "Marsh base", "Marsh detail"]);
+  expect(model.styles.length).toBe(5);
   const volume = Volume.fromJSON({ "/out": "" });
   await model.save({ async write(bytes) { volume.appendFileSync("/out", bytes); } });
   const read = await inspectDocumentStyles(new Uint8Array(volume.readFileSync("/out") as Buffer), { name: "Marsh detail" }, textContext);

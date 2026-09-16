@@ -1,3 +1,4 @@
+import { originalModelDefaults } from "./default-model-styles.js";
 import type { DocumentArchive } from "./archive.js";
 import { InputTypeError, archiveSettings, type ArchiveLimits } from "./archive.js";
 import type { AdmittedModelContext } from "./model-context.js";
@@ -121,7 +122,7 @@ export class ModelStore {
           dialect,
           package: new DocumentPackage(this.snapshot(), this.context.limits, this.context.budget)
         },
-        `<st:docDefaults xmlns:st="${documentDialects[dialect].w}"/><st:style xmlns:st="${documentDialects[dialect].w}" st:type="paragraph" st:default="1" st:styleId="Normal"><st:name st:val="Normal"/></st:style>`,
+        originalModelDefaults(documentDialects[dialect].w),
         this.context.budget
       );
       this.archive = added.archive;

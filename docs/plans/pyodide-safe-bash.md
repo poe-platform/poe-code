@@ -7,6 +7,16 @@ tasks:
   - id: prove-python-runtime-and-filesystem
     title: Prove ordinary Python execution over the canonical shell filesystem
     prompt: >
+      Read the current status and remaining acceptance gates in
+      docs/plans/pyodide-safe-bash.md first. The optional Node Python command,
+      canonical filesystem bridge, package provisioning, lifecycle controls and
+      public integration suites already exist. Preserve working implementation;
+      validate remaining gaps before changing code. Historical missing-adapter
+      reports do not describe current main. The requirements below remain the
+      acceptance target; implemented baseline statuses do not certify full
+      compatibility or Cloudflare support.
+
+
       The required feature is python/python3 inside safe-bash, powered by
       Pyodide,
 
@@ -86,6 +96,16 @@ tasks:
   - id: prove-document-libraries
     title: Qualify Word, Excel and PDF libraries in real Pyodide
     prompt: >
+      Read the current status and remaining acceptance gates in
+      docs/plans/pyodide-safe-bash.md first. The optional Node Python command,
+      canonical filesystem bridge, package provisioning, lifecycle controls and
+      public integration suites already exist. Preserve working implementation;
+      validate remaining gaps before changing code. Historical missing-adapter
+      reports do not describe current main. The requirements below remain the
+      acceptance target; implemented baseline statuses do not certify full
+      compatibility or Cloudflare support.
+
+
       The priority is ordinary Python scripts invoked as python FILE inside
       safe-bash
 
@@ -165,6 +185,16 @@ tasks:
     title: Connect Python filesystem operations to safe-fs without changing its
       contract
     prompt: >
+      Read the current status and remaining acceptance gates in
+      docs/plans/pyodide-safe-bash.md first. The optional Node Python command,
+      canonical filesystem bridge, package provisioning, lifecycle controls and
+      public integration suites already exist. Preserve working implementation;
+      validate remaining gaps before changing code. Historical missing-adapter
+      reports do not describe current main. The requirements below remain the
+      acceptance target; implemented baseline statuses do not certify full
+      compatibility or Cloudflare support.
+
+
       Implement the verified synchronous-Python to async-safe-fs design for the
 
       python/python3 shell commands. Read applicable AGENTS.md, canonical
@@ -225,11 +255,21 @@ tasks:
 
       using parsed configuration edits. Run focused checks; do not edit README.
     status:
-      implement: open
+      implement: done
       test: open
   - id: implement-python-command
     title: Run Python files, modules and stdin through safe-bash
     prompt: >
+      Read the current status and remaining acceptance gates in
+      docs/plans/pyodide-safe-bash.md first. The optional Node Python command,
+      canonical filesystem bridge, package provisioning, lifecycle controls and
+      public integration suites already exist. Preserve working implementation;
+      validate remaining gaps before changing code. Historical missing-adapter
+      reports do not describe current main. The requirements below remain the
+      acceptance target; implemented baseline statuses do not certify full
+      compatibility or Cloudflare support.
+
+
       Implement python and python3 commands using the existing safe-bash
       command/plugin
 
@@ -304,11 +344,21 @@ tasks:
       edit README. Full compliance must be measured, not claimed from a small
       subset.
     status:
-      implement: open
+      implement: done
       test: open
   - id: implement-python-packages
     title: Provide reliable installation and reuse of Python libraries
     prompt: >
+      Read the current status and remaining acceptance gates in
+      docs/plans/pyodide-safe-bash.md first. The optional Node Python command,
+      canonical filesystem bridge, package provisioning, lifecycle controls and
+      public integration suites already exist. Preserve working implementation;
+      validate remaining gaps before changing code. Historical missing-adapter
+      reports do not describe current main. The requirements below remain the
+      acceptance target; implemented baseline statuses do not certify full
+      compatibility or Cloudflare support.
+
+
       Implement package provisioning for safe-bash python/python3 backed by
       Pyodide.
 
@@ -371,11 +421,21 @@ tasks:
 
       Keep implementation in packages, root wiring thin, no README edits.
     status:
-      implement: open
+      implement: done
       test: open
   - id: enforce-python-lifecycle
     title: Preserve shell streaming, cancellation and interpreter lifecycle
     prompt: >
+      Read the current status and remaining acceptance gates in
+      docs/plans/pyodide-safe-bash.md first. The optional Node Python command,
+      canonical filesystem bridge, package provisioning, lifecycle controls and
+      public integration suites already exist. Preserve working implementation;
+      validate remaining gaps before changing code. Historical missing-adapter
+      reports do not describe current main. The requirements below remain the
+      acceptance target; implemented baseline statuses do not certify full
+      compatibility or Cloudflare support.
+
+
       Harden the safe-bash python/python3 integration powered by Pyodide. Read
 
       applicable AGENTS.md, the shell command/I/O/cancellation contracts and the
@@ -435,11 +495,21 @@ tasks:
       Run focused checks with real-runtime interruption cases separate from unit
       tests.
     status:
-      implement: open
+      implement: done
       test: open
   - id: verify-python-bash-and-artifacts
     title: Verify Bash-like Python behavior and real document workflows end to end
     prompt: >
+      Read the current status and remaining acceptance gates in
+      docs/plans/pyodide-safe-bash.md first. The optional Node Python command,
+      canonical filesystem bridge, package provisioning, lifecycle controls and
+      public integration suites already exist. Preserve working implementation;
+      validate remaining gaps before changing code. Historical missing-adapter
+      reports do not describe current main. The requirements below remain the
+      acceptance target; implemented baseline statuses do not certify full
+      compatibility or Cloudflare support.
+
+
       Verify the Pyodide-backed python/python3 commands using built public
       safe-bash
 
@@ -509,7 +579,7 @@ tasks:
       Document actual evidence and leave unsupported required workflows
       incomplete.
     status:
-      implement: open
+      implement: done
       test: open
   - id: document-python-usage
     title: Document Python commands, document recipes and measured compatibility
@@ -563,8 +633,8 @@ tasks:
       No commit, push or release is authorized merely by this documentation
       task.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 finalization: pending
 name: pyodide-safe-bash
 state: active
@@ -572,45 +642,89 @@ state: active
 
 # Python inside safe-bash, powered by Pyodide
 
-## Reopened priority — 2026-09-15
+## Current implementation status — 2026-09-16
 
-Pyodide integration is the next implementation priority. This plan is restored
-from the archive because current main has no Python command adapter, injectable
-Pyodide executor or Cloudflare Worker implementation. The prior archive commit
-`44ff155a8` labelled the plan completed; that label does not establish delivery.
-Task completion statuses are reopened, and the earlier qualification text below
-is historical evidence, not acceptance of the current checkout.
+Inspected source revision: `24cc3a1856422dbc64c9badfde77450df6f25c4c`.
+The optional Node.js Pyodide integration is implemented; the earlier statement
+that current main has no Python adapter is stale. Implementation landed in
+`1f6144c95` (`feat(python): add opt-in Pyodide runtime support`).
+This update inspects source, maintained tests, current contracts and recorded QA;
+it does not claim a fresh real-runtime execution or production acceptance.
 
-Use [the Cloudflare implementation plan](pyodide-cloudflare-safe-bash.md) for
-the current execution order and embedding architecture. Retain this plan as the
-Python command, canonical filesystem and document-workflow requirements. The
-[current integration report](../integrations/cloudflare-safe-bash-python.md)
-records the missing implementation and outstanding production acceptance.
+Python is explicitly enabled with the `pythonCommands({ createWorker })` plugin,
+SDK `runBash({ python: ... })`, or the CLI Python runtime options. Ordinary
+`agentCommands()` does not enable Python. The documented Node deployment uses
+an explicitly supplied Pyodide **314.0.6**, CPython **3.14.2**, wasm32 ABI
+**2026_0**, on Node **22 or newer**, with `trustedPython: true`.
+The isolated pinned runtime is not installed in this checkout, so fresh runtime
+qualification requires provisioning it through the maintained integration route.
 
-## Current qualification and readiness
+### Task status and evidence
 
-The [Python usage guide](../../packages/safe-bash/docs/pyodide.md) separates
-current public-export behavior from historical experiments. The
-[usage finalization QA record](python-usage-finalization-qa.md) records the
-documentation examples, build, runtime checks and inspected screenshots.
-The 2026-09-13 finalization run passed the normal build, copied SDK/command/
-installer/document examples and the maintained public integration route:
-68 passing test entries, one retained quota TODO, no unexpected failures or
-skips. Six rendered recipe pages and CLI help/output screenshots were inspected.
-Only the documentation task is closed by this evidence; the quota failure and
-broader compatibility gaps remain open.
-The remaining text below preserves the original planning rationale; its
-statements about unexecuted experiments and open implementation steps describe
-that initial planning stage, not the current implementation.
+An implementation status of `done` records the existing baseline or maintained
+verification suite. A test status of `open` keeps that task's full acceptance
+requirements unfinished; it does not mean no tests exist. Preserve the original
+requirements and working baseline when continuing these tasks.
 
-Readiness remains **draft** and finalization remains **pending**. Successful
-document workflows on memory and delayed canonical storage do not establish
-the required quota-backed workflow or full filesystem/CPython compatibility.
-Native processes/threads, interactive terminals, complete host/network
-confinement, hard resource limits and unqualified document conversion/rendering
-paths remain visible gaps. Earlier task status entries record their scoped
-implementation work; they are not evidence of full-compliance acceptance.
-No commit, push or release is authorized by this documentation task.
+| Task | Implemented or recorded evidence | Remaining acceptance |
+| --- | --- | --- |
+| Runtime/filesystem proof | Dedicated interpreter worker and shared-memory RPC; ordinary synchronous Python uses canonical async storage. | Full backend/deployment preservation proof remains open. |
+| Document-library proof | Recorded DOCX/XLSX/PDF workflows on memory and delayed canonical storage; separate browser fixtures. | Quota-backed priority workflows and complete document/library coverage remain open. |
+| Filesystem bridge | [PythonFileSystem](../../packages/safe-fs/src/python/filesystem.ts), flag/stat translation and [worker mount integration](../../packages/safe-bash/src/commands/python/worker.ts); maintained filesystem tests. | Backend descriptor/metadata fidelity, unsupported flags and required wrapper workflows. |
+| Python commands | [Command plugin](../../packages/safe-bash/src/commands/python/index.ts), [launcher](../../packages/safe-bash/src/commands/python/execution.ts), [SDK](../../src/sdk/bash.ts), [CLI](../../src/cli/commands/bash.ts); launcher and public parity suites. | Interactive TTY and complete CPython/platform parity. |
+| Packages | [Provisioning](../../packages/safe-bash/src/commands/python/provisioning.ts), explicit requirements/local wheels/document profile, bounded cache and offline reconstruction; installer/provisioning tests. | Full native/package/workflow qualification and platform-specific limitations. |
+| Lifecycle | Fresh workers, immediate bounded concurrency admission, bounded streaming and worker termination; admission/worker/public lifecycle suites. | Complete host/network confinement, hard resource bounds and all-provider cleanup qualification. |
+| Bash/artifact verification | Maintained public command-parity, document and lifecycle integration suites exist. | Fresh integrated acceptance, required quota workflow and the broader original matrix. |
+| Usage documentation | [Usage guide](../../packages/safe-bash/docs/pyodide.md), [package guide](../../packages/safe-bash/docs/python-packages.md), options, recipes and compatibility matrices. Historical finalization QA supports closing this task. | Update documentation as remaining capabilities are implemented; full feature acceptance stays open. |
+
+The September 13 usage finalization QA recorded a successful normal build,
+68 passing public integration test entries, one retained quota TODO, no unexpected
+failures or skips, executed examples, independently reopened document artifacts,
+six rendered recipe pages and inspected CLI screenshots. That record is retained
+in Git at `314ba0299^:docs/plans/python-usage-finalization-qa.md`; the cleanup
+commit deleted the working-tree document. These are historical scoped results,
+not a fresh run against the inspected revision. Current maintained suites are
+[public-command-parity](../../packages/safe-bash/tests/integration/pyodide-runtime/public-command-parity.test.mjs),
+[public-documents](../../packages/safe-bash/tests/integration/pyodide-runtime/public-documents.test.mjs)
+and [public-lifecycle](../../packages/safe-bash/tests/integration/pyodide-runtime/public-lifecycle.test.mjs).
+
+### Remaining acceptance gates
+
+- The public lifecycle suite retains `required Python quota mount supports reads,
+  bounded writes and recovery` as a TODO because canonical quota storage refuses
+  descriptor open with ENOTSUP. This is an unfinished required workflow.
+- Complete canonical backend/metadata/descriptor fidelity is not established.
+  General no-follow opens, retained directory descriptors and descriptor-relative
+  stat remain unsupported; mount/readonly successes do not qualify every backend.
+- Native process/thread behavior, interactive terminals and unrestricted guest
+  networking do not match ordinary desktop CPython. Formula storage is not
+  recalculation, and document round trips do not establish office conversion or
+  arbitrary rendering/fidelity.
+- Node worker termination and bridge/cache bounds do not establish a hostile-code
+  sandbox or hard CPU, Wasm heap, RSS or decompressed-package quotas. Admission
+  requires trusted Python and trusted imported package code.
+- Cloudflare/workerd is not implemented or qualified by the Node shared-memory
+  bridge. The host must remain off the interpreter's blocking event loop. A
+  supported same-isolate suspension/FS architecture and achievable cancellation,
+  isolation, memory, persistence and deployment contracts remain separate work.
+  The existing [archived Cloudflare plan](archive/pyodide-cloudflare-safe-bash.md)
+  records that scope; it is not current deployment acceptance.
+
+### Continue from the implemented baseline
+
+Provision the explicitly pinned isolated runtime, then execute maintained public
+integration and relevant canonical filesystem checks against current built public
+exports. Reproduce the retained quota failure and other required gaps before
+fixes; use TDD and preserve stronger filesystem guarantees. Keep fresh passes,
+TODOs, skips and unavailable cases separate. Use the current
+[compatibility matrix](../../packages/safe-bash/docs/pyodide.md#current-compatibility-and-canonical-filesystem-matrix)
+and [Python contract](../../packages/safe-bash/src/contracts/python.md) rather than
+historical missing-adapter reports to choose remaining work.
+
+Readiness remains **draft**, state **active**, and finalization **pending**.
+Baseline implementation and documentation are available; full acceptance remains
+unfinished. This status update does not authorize implementation, deployment,
+commit, push or release on its own.
 
 ## Original planning rationale
 
@@ -675,7 +789,7 @@ network limitations. Unsupported required behavior must remain a visible gap;
 it cannot be removed from acceptance just because the runtime lacks it.
 
 Implementation must preserve the caller's canonical filesystem and ordinary
-Python library APIs. The filesystem and document-library feasibility tasks run
-first so architecture is based on evidence. All eight task prompts are
-self-contained; configured implement/test steps remain open. No implementation,
-commit, push or release is performed while revising this plan.
+Python library APIs. The original requirements above remain the acceptance
+target. Continue from the implemented Node baseline and retain unresolved
+feasibility, compatibility and deployment gates. The current status section and
+frontmatter distinguish completed baseline work from unfinished acceptance.

@@ -65,12 +65,17 @@ it("keeps the concrete-definition collection live across bounded XML edits", asy
   part.element.children.find((n) => n.localName === "num")!.remove();
   expect(definitions.length).toBe(1);
 });
-it("rejects unavailable numbering creation without mutating the owner package", async () => {
+it("creates missing numbering through the style owner's live package", async () => {
   const model = await openDocumentStyleModel(await textFixture("<w:p/>"), textContext);
   const main: DocumentPartView = model.package.main_document_part;
   const before = model.package.parts.map((p) => [p.partname.toString(), p.blob]);
-  expect(() => main.numbering_part).toThrow();
-  expect(model.package.parts.map((p) => [p.partname.toString(), p.blob])).toEqual(before);
+  const part = main.numbering_part;
+  expect(part.package).toBe(model.package);
+  expect(part.numbering_definitions.length).toBe(0);
+  for (const [name, bytes] of before) {
+    if (name === "/[Content_Types].xml" || name === "/word/_rels/document.xml.rels") continue;
+    expect(model.package.parts.find(p => p.partname.toString() === name)!.blob).toEqual(bytes);
+  }
 });
 it("rejects ambiguous internal numbering ownership without choosing a target", async () => {
   const model = await existing(1);
@@ -83,8 +88,9 @@ it("rejects ambiguous internal numbering ownership without choosing a target", a
   expect(() => main.numbering_part).toThrow();
 });
 
-it("exposes explicit unsupported creation and rejects an incompatible typed load", async () => {
+it("rejects ownerless creation and an incompatible typed load", async () => {
   const model = await openDocumentStyleModel(await textFixture("<w:p/>"), textContext);
+  // @ts-expect-error Creation requires an explicit admitted package.
   expect(() => NumberingPart.new()).toThrow();
   await expect(
     NumberingPart.load(

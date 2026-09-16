@@ -33,6 +33,7 @@ const packageBindXml = Symbol("bindXml");
 const packageRename = Symbol("rename");
 const packageValidate = Symbol("validate");
 const packageAdmitPart = Symbol("admit-part");
+const packageNumbering = Symbol("numbering");
 const packageCore = Symbol("core-properties");
 const coreRead = Symbol("core-read");
 const coreWrite = Symbol("core-write");
@@ -109,8 +110,8 @@ export class PackageView {
     partNames.set(part, name);
     this.#parts.set(asciiKey(name), part);
   }
-  [packagePart](name: string): PartView {
-    const metadata = this.current().graph.getPart(name), key = asciiKey(metadata.partname);
+  [packagePart](name: string, metadata: Pick<PackagePart, "partname" | "content_type"> = this.current().graph.getPart(name)): PartView {
+    const key = asciiKey(metadata.partname);
     let part = this.#parts.get(key);
     if (!part) {
       part = metadata.content_type.startsWith("image/") ? new ImagePartView(this, metadata.partname)
@@ -122,7 +123,8 @@ export class PackageView {
     return part;
   }
   [packageMetadata](part: PartView): PackagePart {
-    if (part.package !== this || !partNames.has(part)) throw new InputTypeError("Expected a part owned by this package.");
+    if (part.package !== this) throw new InputTypeError("Expected a part owned by this package.");
+    if (!partNames.has(part)) throw new StaleHandleError("The part owner is detached.");
     const metadata = this.current().graph.getPart(partNames.get(part)!);
     const budget = archiveSettings(this.#binding.context).budget;
     budget.charge("retainedBytes", metadata.bytes.length); budget.charge("work", metadata.bytes.length);
@@ -219,7 +221,7 @@ export class PackageView {
   [packageCore](part: XmlPartView): CoreProperties {
     return new CoreProperties(part, archiveSettings(this.#binding.context).budget);
   }
-  [packageAdmitPart](name: string | PackURI, content_type: string, input: Uint8Array): PartView {
+  [packageAdmitPart](name: string | PackURI, content_type: string, input: Uint8Array, relationship?: { owner: PartView; reltype: string }): PartView {
     this.#binding.writable();
     if (!(input instanceof Uint8Array) || typeof content_type !== "string" || !content_type) throw new InputTypeError("Expected owned part bytes and a content type.");
     name = normalizePartName(name instanceof PackURI ? name.toString() : name);
@@ -230,11 +232,56 @@ export class PackageView {
     const bytes = new Uint8Array(input), types = archive.members.find(member => asciiKey(member.name) === "[content_types].xml")!;
     if (xmlType(content_type)) new DocumentXmlEditor(bytes, {}, undefined, settings.budget);
     const xml = new DocumentXmlEditor(types.bytes, {}, undefined, settings.budget);
-    xml.insertChildren(xml.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="${xmlValue(content_type)}"/>`);
-    const members = archive.members.map(member => member === types ? { ...member, bytes: xml.serialize() } : member);
+    let overrides = `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="${xmlValue(name)}" ContentType="${xmlValue(content_type)}"/>`;
+    const members = [...archive.members];
+    if (relationship) {
+      const owner = this[packageMetadata](relationship.owner).partname;
+      const relName = relationshipName(owner);
+      const existing = members.find(member => member.name === relName);
+      if (!existing) {
+        settings.budget.charge("insertedNodes", 1);
+        overrides += `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/${xmlValue(relName)}" ContentType="${relContentType}"/>`;
+      }
+      const relXml = new DocumentXmlEditor(existing?.bytes ?? new TextEncoder().encode(`<Relationships xmlns="${relNamespace}"/>`), {}, undefined, settings.budget);
+      relXml.insertChildren(relXml.root, `<Relationship xmlns="${relNamespace}" Id="${graph.allocateRelationshipId(owner)}" Type="${xmlValue(relationship.reltype)}" Target="${xmlValue(relativePartTarget(owner, name))}"/>`);
+      const member = { name: relName, bytes: relXml.serialize(), directory: false, modified: new Date("1980-01-01T00:00:00Z") };
+      if (existing) members[members.indexOf(existing)] = { ...existing, bytes: member.bytes };
+      else members.push(member);
+    }
+    xml.insertChildren(xml.root, overrides);
+    members[members.indexOf(types)] = { ...types, bytes: xml.serialize() };
     members.push({ name: name.slice(1), bytes, directory: false, modified: new Date("1980-01-01T00:00:00Z") });
-    this.commit({ ...archive, members });
-    return this[packagePart](name);
+    const restore = this[packageOwnerCheckpoint]();
+    try {
+      // Bind before staging so no budgeted graph lookup can fail after the owner changes.
+      const part = this[packagePart](name, { partname: name, content_type });
+      this.commit({ ...archive, members });
+      return part;
+    } catch (error) {
+      restore();
+      throw error;
+    }
+  }
+  [packageNumbering](owner: DocumentPartView): NumberingPart {
+    const metadata = this[packageMetadata](owner), { graph } = this.current();
+    const { budget } = archiveSettings(this.#binding.context);
+    const root = parseDocumentXml(metadata.bytes, {}, budget).root;
+    const dialect = Object.values(documentDialects).find(dialect => dialect.w === root.namespace);
+    if (!dialect || root.localName !== "document") throw new InvalidValueError("Expected a document numbering owner.");
+    const reltype = `${dialect.r}/numbering`;
+    const edges = graph.relationships(metadata.partname).filter(edge => edge.reltype === reltype);
+    if (edges.length > 1 || edges[0]?.is_external) throw new InvalidValueError("Expected one internal numbering relationship.");
+    if (edges[0]) {
+      const part = this[packagePart](edges[0].target_part.partname);
+      if (!(part instanceof NumberingPart) || part.element.localName !== "numbering" || part.element.namespace !== dialect.w)
+        throw new InvalidValueError("Numbering ownership has an incompatible target.");
+      return part;
+    }
+    this.#binding.writable();
+    const name = graph.allocatePartName(metadata.partname.slice(0, metadata.partname.lastIndexOf("/") + 1) + "numbering", ".xml");
+    budget.charge("insertedNodes", 1);
+    return this[packageAdmitPart](name, "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml",
+      new TextEncoder().encode(`<w:numbering xmlns:w="${dialect.w}"/>`), { owner, reltype }) as NumberingPart;
   }
   get main_document_part(): DocumentPartView {
     const edges = [...this.rels.values()].filter(edge => edge.reltype.endsWith("/officeDocument") && !edge.is_external);
@@ -440,16 +487,7 @@ export class DocumentPartView extends XmlPartView {
     return await super.load(partname, content_type, blob, owner) as DocumentPartView;
   }
   get numbering_part(): NumberingPart {
-    const root = this.element.tag;
-    const dialect = root.namespaceURI === documentDialects.strict.w ? documentDialects.strict : documentDialects.transitional;
-    let target: PartView;
-    try { target = this.part_related_by(`${dialect.r}/numbering`); }
-    catch (error) {
-      if (!(error instanceof MissingKeyError)) throw error;
-      throw new UnsupportedEditError("Creating a missing numbering part is not supported by this model profile.");
-    }
-    if (!(target instanceof NumberingPart)) throw new InvalidValueError("Numbering ownership has an incompatible target.");
-    return target;
+    return this.package[packageNumbering](this);
   }
 }
 
@@ -459,8 +497,10 @@ export class NumberingPart extends XmlPartView {
     if (content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml") throw new InputTypeError("Expected the numbering content type.");
     return await super.load(partname, content_type, blob, owner) as NumberingPart;
   }
-  static new(): NumberingPart {
-    throw new UnsupportedEditError("Creating a numbering part is not supported by this model profile.");
+  static new(owner: PackageView): NumberingPart {
+    if (!(owner instanceof PackageView)) throw new InputTypeError("Expected an admitted owner package.");
+    owner[packageValidate]();
+    return owner[packageNumbering](owner.main_document_part);
   }
   get numbering_definitions(): _NumberingDefinitions {
     if (this.element.localName !== "numbering") throw new InvalidValueError("Expected an owned numbering root.");

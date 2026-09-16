@@ -161,6 +161,39 @@ test("built explicit plugin collisions preserve registry and deliberate replacem
   } finally { await shell.dispose(); }
 });
 
+test("built owned numbering creation agrees across the public SDK and explicit shell plugin", async () => {
+  const { shell, volume } = fixture();
+  const operations: readonly sdk.DocxBatchItem[] = [
+    { operation: "model.document.Document.part.get", receiver: { resultHandle: "document" }, arguments: {}, resultHandle: "main" },
+    { operation: "model.parts.document.DocumentPart.package.get", receiver: { resultHandle: "main" }, arguments: {}, resultHandle: "package" },
+    { operation: "model.parts.numbering.NumberingPart.new.call", arguments: { ownerPackage: { resultHandle: "package" } }, resultHandle: "numbering" },
+    { operation: "model.parts.numbering.NumberingPart.numbering_definitions.get", receiver: { resultHandle: "numbering" }, arguments: {}, resultHandle: "definitions" },
+    { operation: "model.NumberingDefinitionsView.length.get", receiver: { resultHandle: "definitions" }, arguments: {} }
+  ];
+  volume.writeFileSync("/work/numbering.json", JSON.stringify({ version: 1, operations }));
+  try {
+    const created = await shell.exec("docx create --content-file content.json -o - > source.docx");
+    assert.equal(created.exitCode, 0, created.stderr);
+    const input = new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array);
+    const model = await sdk.Document(input, context());
+    const part: sdk.NumberingPart = rootSdk.NumberingPart.new(model.part.package);
+    assert.equal(part.package, model.part.package);
+    assert.equal(model.part.numbering_part, part);
+    assert.equal(part.numbering_definitions.length, 0);
+    const batch = await sdk.applyStyleModelBatch(input, { version: 1, operations }, context());
+    const dry = await shell.exec("docx batch source.docx --ops-file numbering.json --dry-run --json");
+    assert.equal(dry.exitCode, 0, dry.stderr);
+    assert.deepEqual(JSON.parse(dry.stdout).data.results, batch.results);
+    const edited = await shell.exec("docx batch source.docx --ops-file numbering.json -o - > numbered.docx");
+    assert.equal(edited.exitCode, 0, edited.stderr);
+    const output = new Uint8Array(volume.readFileSync("/work/numbered.docx") as Uint8Array);
+    const loaded = await sdk.Document(output, context());
+    assert.equal(loaded.part.numbering_part.numbering_definitions.length, 0);
+    assert.deepEqual(loaded.part.numbering_part.blob, part.blob);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/source.docx") as Uint8Array), input);
+  } finally { await shell.dispose(); }
+});
+
 test("built shell publishes pipeline statuses and applies pipefail to document failures", async () => {
   const { shell, volume } = fixture();
   volume.writeFileSync("/work/bad.docx", "Invalid archive");

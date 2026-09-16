@@ -94,4 +94,5 @@ packageViewBatchActions.set("model.parts.image.ImagePart.from_image.call", (_rec
 action("model.parts.document.DocumentPart.numbering_part.get", DocumentPartView, receiver => receiver.numbering_part);
 action("model.parts.numbering.NumberingPart.numbering_definitions.get", NumberingPart, receiver => receiver.numbering_definitions);
 action("model.parts.numbering._NumberingDefinitions.__len__.get", _NumberingDefinitions, receiver => receiver.length);
-packageViewBatchActions.set("model.parts.numbering.NumberingPart.new.call", () => NumberingPart.new());
+action("model.NumberingDefinitionsView.length.get", _NumberingDefinitions, receiver => receiver.length);
+packageViewBatchActions.set("model.parts.numbering.NumberingPart.new.call", (_receiver, args) => NumberingPart.new(args.ownerPackage as PackageView));

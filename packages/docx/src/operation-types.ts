@@ -1026,7 +1026,7 @@ export interface DocxOperationArgumentMap {
   "model.parts.numbering.NumberingPart.target_ref.call": Readonly<{ "rId": string }>;
   "model.parts.numbering.NumberingPart.element.get": Readonly<Record<string, never>>;
   "model.parts.numbering.NumberingPart.part.get": Readonly<Record<string, never>>;
-  "model.parts.numbering.NumberingPart.new.call": Readonly<Record<string, never>>;
+  "model.parts.numbering.NumberingPart.new.call": { readonly ownerPackage: DocxModelHandle<"PackageView"> };
   "model.parts.numbering.NumberingPart.numbering_definitions.get": Readonly<Record<string, never>>;
   "model.parts.styles.StylesPart.after_unmarshal.call": Readonly<Record<string, never>>;
   "model.parts.styles.StylesPart.before_marshal.call": Readonly<Record<string, never>>;
@@ -2549,7 +2549,7 @@ export interface DocxBatchArgumentMap {
   "model.parts.numbering.NumberingPart.target_ref.call": Readonly<{ "rId": string }>;
   "model.parts.numbering.NumberingPart.element.get": Readonly<Record<string, never>>;
   "model.parts.numbering.NumberingPart.part.get": Readonly<Record<string, never>>;
-  "model.parts.numbering.NumberingPart.new.call": Readonly<Record<string, never>>;
+  "model.parts.numbering.NumberingPart.new.call": { readonly ownerPackage: DocxModelHandle<"PackageView"> };
   "model.parts.numbering.NumberingPart.numbering_definitions.get": Readonly<Record<string, never>>;
   "model.parts.styles.StylesPart.after_unmarshal.call": Readonly<Record<string, never>>;
   "model.parts.styles.StylesPart.before_marshal.call": Readonly<Record<string, never>>;

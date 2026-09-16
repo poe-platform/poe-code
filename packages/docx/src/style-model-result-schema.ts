@@ -25,7 +25,7 @@ function value(type: string): DocxJsonSchema {
   if ((type.startsWith("IterableIterator<") || type.startsWith("ReadonlyArray<")) && type.endsWith(">")) return { type: "array", items: value(type.slice(type.indexOf("<") + 1, -1)) };
   const styleTypes = ["BaseStyle", "CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"];
   const partTypes = ["PartView", "XmlPartView", "StylesPart", "DocumentPart", "CorePropertiesPart", "ImagePart"];
-  return object({ id: string, type: styleTypes.includes(type) ? { enum: styleTypes } : partTypes.includes(type) ? { enum: partTypes } : { const: type }, owner: { const: "document" }, revision: { const: 0 } });
+  return object({ id: string, type: styleTypes.includes(type) ? { enum: styleTypes } : partTypes.includes(type) ? { enum: [...partTypes, "NumberingPart"] } : { const: type }, owner: { const: "document" }, revision: { const: 0 } });
 }
 export function styleModelOperationResultSchema(id: string): DocxJsonSchema {
   return object({ operation: { const: id }, value: value(docxOperationSchemas[id]!.valueType) });

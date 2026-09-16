@@ -1,6 +1,7 @@
 import { PandocError } from "./errors.js";
 import type { Attr, Block, Inline, Alignment } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
+import { inspectRtfPicture } from "./rtf-pictures.js";
 
 const formatting = {Emph: "i", Strong: "b", Underline: "ul", Strikeout: "strike", Superscript: "super", Subscript: "sub", SmallCaps: "scaps"};
 const alignments = {AlignDefault: "ql", AlignLeft: "ql", AlignRight: "qr", AlignCenter: "qc"};
@@ -11,6 +12,8 @@ class RtfWriter {
   private length = 0;
   private readonly fonts: string[] = [];
   private readonly colors: string[] = [];
+  private readonly resources = new Map<string, Uint8Array>();
+  private readonly imageTargets = new Set<string>();
   constructor(private readonly context: AdapterContext) {}
   fail(message: string, code: "E_CAPABILITY" | "E_RESOURCE" | "E_OPTION" = "E_CAPABILITY"): never {
     throw new PandocError(code, this.context.operation ?? "write", message, "rtf");
@@ -57,6 +60,7 @@ class RtfWriter {
   async collect(value: unknown): Promise<void> {
     await this.context.cooperate();
     if(!value || typeof value !== "object") return;
+    if("t" in value && value.t === "Image") this.imageTargets.add((value as Extract<Inline, {t: "Image" | "Link"}>).c[2][0]);
     if(Array.isArray(value) && value.length === 2 && value[0] === "color") {
       const color = value[1];
       if(typeof color !== "string" || color.length !== 7 || color[0] !== "#" || [...color.slice(1)].some(c => !"0123456789abcdefABCDEF".includes(c))) this.fail("Invalid RTF RGB color");
@@ -84,6 +88,23 @@ class RtfWriter {
           if(node.c[2][1]) this.fail("RTF link titles unsupported");
           this.add('{\\field{\\*\\fldinst HYPERLINK "'); this.text(url); this.add('"}{\\fldrslt ');
           this.attrs(node.c[0]); if(node.c[0][2].length) this.add(" "); await this.inlines(node.c[1]); this.add("}}"); break;
+        }
+        case "Image": {
+          if(node.c[0][0] || node.c[0][1].length || node.c[0][2].length || node.c[2][1]) this.fail("RTF picture attributes/titles unsupported");
+          const id = node.c[2][0];
+          let bytes = this.resources.get(id);
+          if(!bytes && this.context.resources) {
+            bytes = await this.context.resources.resolve(id, undefined, this.context.signal);
+            if(!(bytes instanceof Uint8Array)) this.fail("Invalid resource bytes", "E_RESOURCE");
+            this.context.charge("resources", 1); this.context.charge("resourceBytes", bytes.length);
+          }
+          if(!bytes) this.fail(`Missing explicit picture resource: ${id}`, "E_RESOURCE");
+          const picture = await inspectRtfPicture(bytes, this.context);
+          const header = `{\\pict\\${picture.encoding}blip\\picw${picture.width}\\pich${picture.height}\\picwgoal${picture.width * 15}\\pichgoal${picture.height * 15} `;
+          this.context.bound("outputBytes", this.length + bytes.length * 2 + header.length + 1);
+          this.add(header);
+          for(const byte of bytes) this.add(byte.toString(16).padStart(2, "0"));
+          this.add("}"); break;
         }
         default: this.fail(`Unsupported RTF inline: ${node.t}`);
       }
@@ -174,7 +195,6 @@ class RtfWriter {
     }
   }
   async write(document: Document): Promise<SerializedDocument> {
-    if(document.resources.length) this.fail("RTF resources require supported image targets; embedded fonts/objects unsupported", "E_RESOURCE");
     const declared = document.metadata["rtf-fonts"];
     if(declared) {
       if(declared.t !== "MetaList") this.fail("rtf-fonts requires a list of reference names", "E_OPTION");
@@ -184,6 +204,11 @@ class RtfWriter {
       }
     }
     this.fonts.sort(); await this.collect(document.blocks); this.colors.sort();
+    for(const resource of document.resources) {
+      if(!this.imageTargets.has(resource.id)) this.fail("Unreferenced RTF resource; embedded fonts/objects unsupported", "E_RESOURCE");
+      if(this.resources.has(resource.id)) this.fail("Duplicate RTF resource id", "E_RESOURCE");
+      this.resources.set(resource.id, resource.bytes);
+    }
     this.add("{\\rtf1\\ansi\\ansicpg1252\\uc1{\\fonttbl{\\f0\\fnil ;}");
     for(const [i, font] of this.fonts.entries()) this.add(`{\\f${i + 1}\\fnil ${font};}`);
     this.add("}\n{\\colortbl;");

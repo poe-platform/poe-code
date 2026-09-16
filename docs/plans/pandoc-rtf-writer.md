@@ -19,3 +19,11 @@ Core status: ten original cases first failed on absent capability; core writer,
 registry/inspection expectations, package tests (831 cases), package lint and
 selected workspace build passed. Image encoding and external application QA
 remain pending; core verification is not complete task acceptance.
+
+Picture status: original in-memory PNG/JPEG data first exposed absent encoding,
+then exact output-limit acceptance exposed an overly conservative estimate.
+All 836 package cases, lint and selected build now pass. Independent textutil
+inspection exposed missing visible legacy list markers; add original modern
+list-table tests before fixing that. TextEdit/Quick Look launch events are
+pending and screenshots currently show only desktop, so application visual QA
+is not accepted yet.

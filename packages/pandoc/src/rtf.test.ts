@@ -11,9 +11,9 @@ const para = (...c: unknown[]) => ({t: "Para", c});
 const attr = ["", [], []];
 
 describe("original byte-oriented RTF document reader", () => {
-  it("registers only the reader and restores nested run state", async () => {
+  it("registers the reader and writer and restores nested run state", async () => {
     expect(createFormatRegistry().list("read")).toContain("rtf");
-    expect(createFormatRegistry().list("write")).not.toContain("rtf");
+    expect(createFormatRegistry().list("write")).toContain("rtf");
     expect((await read(String.raw`{\rtf1\ansi A{\b B{\i C}D}E\par F}`)).blocks).toEqual([
       para(str("A"), {t: "Strong", c: [str("B")]}, {t: "Strong", c: [{t: "Emph", c: [str("C")]}]}, {t: "Strong", c: [str("D")]}, str("E")), para(str("F"))
     ]);

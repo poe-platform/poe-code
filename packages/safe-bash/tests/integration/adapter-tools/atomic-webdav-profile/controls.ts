@@ -162,7 +162,7 @@ for (const configured of [false, true]) {
       const result = await command(wrapped, `rmdir ${path}`);
       if (wrapper === "overlay") {
         assert.equal(fs.capabilities.atomicRename, false);
-        assert.equal(wrapped.capabilities.readOnly, true, "atomic rmdir does not supply the atomic rename required by overlay upper");
+        assert.equal(wrapped.capabilities.readOnly, undefined, "WebDAV supplies no readOnly assertion; unsupported overlay mutations remain ENOTSUP");
       }
       const succeeds = configured && wrapper === "mount";
       assert.equal(result.exitCode, succeeds ? 0 : 1, result.stderr);

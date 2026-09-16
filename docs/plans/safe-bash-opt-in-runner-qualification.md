@@ -64,3 +64,21 @@ the latest descendant release through successful registry publication.
 Remote `20f6645ed` independently delivered the archive migration. Retain its
 optional-hook admission and mirror correction; deliver only the added refusal
 control and explicit core-archive scope in the report.
+
+## Strict consumer staging and live controls
+
+After a maintained six-workspace build closure, the package typecheck reproduced
+unresolved legacy imports in maintained consumer copies. Rebind only module
+specifiers with the existing TypeScript-based rewriter in temporary positive
+and negative copies, including the declared local-package leaf profile. Original
+fixture bytes remain authenticated before rebinding; retain exact negative
+diagnostic comparison. The staged group reports disclose this transformation.
+Live WebDAV and env-split source consumers use the actual public package name.
+
+Running the two live WebDAV controls reproduced three stale assertions that
+missing atomic rename implied a readOnly assertion. Current overlay forwards
+the upper's actual readOnly assertion, which this WebDAV profile omits; its
+unsupported mutation still returns ENOTSUP. Correct those exact assertions,
+preserving errno/output/no-request/no-descendant-mutation checks. Both live
+control suites passed all 49 tests. Finish the maintained package typecheck,
+runner and guarded lint before delivery.

@@ -41,6 +41,7 @@ export type DiagnosticCode =
   | "E_CANCELLED"
   | "E_IO"
   | "E_INTERNAL"
+  | "W_TABLE_LOSS"
   | "W_METADATA_CONFLICT";
 export interface Diagnostic {
   readonly code: DiagnosticCode;
@@ -90,10 +91,14 @@ export interface ReadOptions {
 }
 export interface WriteOptions {
   readonly to: string;
+  /** Strict by default; explicitly permit diagnosed table text projections. */
+  readonly lossy?: boolean;
 }
 export interface ConversionOptions extends ReadOptions, WriteOptions {}
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
+  readonly operation?: Operation;
+  readonly lossy?: boolean;
   readonly signal: AbortSignal | undefined;
   readonly limits: Limits;
   readonly resources: ResourceCapability | undefined;

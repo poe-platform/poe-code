@@ -17,11 +17,14 @@ import type {
 } from "./types.js";
 
 class Session extends ExecutionContext {
+  lossy = false;
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
-      this.operation === "read" ? ["from"] : this.operation === "write" ? ["to"] : ["from", "to"];
+      this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "lossy"] : ["from", "to", "lossy"];
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
+    if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
+    this.lossy = "lossy" in options && options.lossy === true;
   }
   readonly registry = createFormatRegistry(undefined, this.context, this.operation);
   async input(input: InputSource, format: string): Promise<Input> {

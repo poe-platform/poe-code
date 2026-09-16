@@ -1,8 +1,10 @@
 import { readCommonMark } from "../commonmark.js";
 import type { FormatDescriptor } from "../formats.js";
+import { writeGfm } from "../table-writers.js";
 export default {
   name: "gfm",
   reader: { format: "gfm", read: readCommonMark },
+  writer: { format: "gfm", write: writeGfm },
   read: true,
   write: true,
   media: "text",

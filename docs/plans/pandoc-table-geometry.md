@@ -16,5 +16,5 @@ literal original expected output; exercise strict/lossy diagnostics, bounded
 generated tables, idempotence and source text order. No unit filesystem mutation,
 external executables, downloaded fixtures or LLMs. No visual CLI styling changes.
 
-Status: geometry red/green complete; 515 package tests, lint/typecheck and selected
-workspace build passed. Writer projections pending.
+Status: geometry committed as 001bbb3c2. Writer red/green complete; 531 package tests,
+lint/typecheck and selected build passed. Byte-only adapter pending.

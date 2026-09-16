@@ -62,3 +62,15 @@ it("preserves captions, colspecs, all sections and cell order with bounded gener
   const doc: Document = { ...t, blocks: [{ ...original, c: [attr, [[], [{ t: "Para", c: [{ t: "Str", c: "caption" }] }]], [["AlignLeft", { t: "ColWidth", c: 0.4 }], ["AlignRight", { t: "ColWidthDefault" }]], original.c[3], original.c[4], [attr, [row(cell("foot", 1, 2))]]] }] };
   expect(normalizeDocument(doc)).toEqual(doc);
 });
+it("bounds huge sparse coordinates and generated rowspan/colspan normalization", () => {
+  const huge = table(1, [row(cell("sparse", Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER))]);
+  expect(() => normalizeDocument(huge)).toThrow("AST budget exceeded");
+  for(let seed = 1; seed <= 30; seed++) {
+    const width = seed % 5 + 2;
+    const split = seed % (width - 1) + 1;
+    const doc = table(width, [row(cell(`anchor${seed}`, 2, split), cell(`top${seed}`, 1, width - split)), row(cell(`bottom${seed}`, 1, width - split))]);
+    const normalized = normalizeDocument(doc);
+    expect(normalized).toEqual(doc);
+    expect(normalizeDocument(normalized)).toEqual(normalized);
+  }
+});

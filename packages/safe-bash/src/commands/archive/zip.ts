@@ -1,5 +1,5 @@
 import { inspectZipMoveSource, removeZipSources, type ZipMoveSource } from "./zip/move.js";
-import { zipToCrlf } from "./zip/line-endings.js";
+import { zipToCrlf, zipFromCrlf } from "./zip/line-endings.js";
 import { parseZipDate, zipDateMatches, zipLatestTime } from "./zip/dates.js";
 import { zipEnvironmentArguments } from "./zip/environment.js";
 import { readZipComment, ZipCommentInput } from "./zip/comments.js";
@@ -46,6 +46,7 @@ interface ZipOptions {
   readonly entryComments: boolean;
   readonly latestTime: boolean;
   readonly toCrlf: boolean;
+  readonly fromCrlf: boolean;
   readonly move: boolean;
   readonly fromDate: number | undefined;
   readonly beforeDate: number | undefined;
@@ -115,6 +116,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let entryComments = false;
   let latestTime = false;
   let toCrlf = false;
+  let fromCrlf = false;
   let move = false;
   let fromDate: number | undefined;
   let beforeDate: number | undefined;
@@ -234,8 +236,9 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "c") entryComments = true;
         else if (flag === "o") latestTime = true;
         else if (flag === "l") {
-          if (argument[offset + 1] === "l") throw new ZipFailure(16, "Invalid command arguments", "unsupported option: -ll");
-          toCrlf = true;
+          fromCrlf = argument[offset + 1] === "l";
+          toCrlf = !fromCrlf;
+          if (fromCrlf) offset++;
         }
         else if (flag === "m") move = true;
         else if (flag === "p") {
@@ -370,7 +373,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
   if (filesync && action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -472,6 +475,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const old = new Map(archive.entries.map(entry => [entry.name, entry]));
   if (!archive.entries.length && !parsed.quiet && (parsed.action === "update" || parsed.action === "freshen")) await budget.output(`\tzip warning: ${zipPublicText(parsed.archive)} not found or empty\n`);
   const selected = new Map<string, { entry: ZipEntry; source: string; sourceSize: number }>();
+  const conversionWarnings = new Map<string, string>();
   const listed = new Map<string, { name: string; size: number; source: string }>();
   const moves = new Map<string, ZipMoveSource>();
   const deleted = new Set<string>();
@@ -485,15 +489,20 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   let compressedBytes = 0;
   const encodeSelected = async (source: string, name: string, bytes: Uint8Array, attributes: Pick<ZipEntry, "modified" | "mode" | "directory" | "symlink">) => {
     const sourceSize = bytes.length;
+    const originalBytes = bytes;
     const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
     if (!store && parsed.level === 0 && bytes.length && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
-    if (parsed.toCrlf && !attributes.directory && !attributes.symlink) {
+    if ((parsed.toCrlf || parsed.fromCrlf) && !attributes.directory && !attributes.symlink) {
+      if (parsed.fromCrlf && parsed.method === "bzip2" && !store) fail("from-crlf BZIP2 native read profile unsupported");
       const originalSize = bytes.length;
-      bytes = await zipToCrlf(bytes, store, Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes + originalSize), context.signal);
+      bytes = parsed.fromCrlf ? await zipFromCrlf(bytes, store, context.signal, parsed.level) : await zipToCrlf(bytes, store, Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes + originalSize), context.signal);
       budget.totalBytes += bytes.length - originalSize;
     }
     const level = store ? 0 : parsed.level;
     let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" || parsed.descriptors && bytes.length > 0), parsed.method === "bzip2" ? "bzip2" : "deflate");
+    if (parsed.fromCrlf && sourceSize > 0 && !store && entry.internalAttributes === 0 && !attributes.directory && !attributes.symlink && !parsed.quiet) {
+      conversionWarnings.set(name, `\tzip warning: ${bytes === originalBytes ? "has binary so -ll ignored" : "-ll used on binary file - corrupted?"}\n`);
+    }
     if (parsed.descriptors) entry.descriptors = true;
     if (parsed.zip64 === true || parsed.zip64 === undefined && source === "-") entry.zip64 = true;
     const prior = old.get(name);
@@ -740,7 +749,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const dotCount = !parsed.globalDots && parsed.dotSize ? Math.floor(entry.size / parsed.dotSize) : 0;
     if (dotCount > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
     const dots = ".".repeat(dotCount);
-    queue(`${prefix}${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${escapeText(zipPublicText(entry.name), "display")}${usize}${verbose} ${dots ? `${dots} ` : ""}(${entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
+    const warning = conversionWarnings.get(entry.name);
+    queue(`${prefix}${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${escapeText(zipPublicText(entry.name), "display")}${usize}${verbose}${warning ? `\n${warning}` : ""} ${dots ? `${dots} ` : ""}(${entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
   };
   for (const entry of archive.entries) {
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");

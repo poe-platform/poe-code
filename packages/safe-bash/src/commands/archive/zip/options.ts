@@ -11,7 +11,7 @@ export const zipLongOptions: Readonly<Record<string, string>> = {
   "display-bytes": "db", "display-counts": "dc", "display-dots": "dd", "display-globaldots": "dg", "dot-size": "ds", "display-usize": "du", "display-volume": "dv",
   "recurse-paths": "r", quiet: "q", "junk-paths": "j", paths: "p", help: "h", "more-help": "h2", "no-dir-entries": "D",
   symlinks: "y", test: "T", "names-stdin": "@", update: "u", freshen: "f", filesync: "FS", "archive-comment": "z", "entry-comments": "c", "latest-time": "o", move: "m", "to-crlf": "l",
-  delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0", "compression-method": "Z",
+  "from-crlf": "ll", delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0", "compression-method": "Z",
   "compress-1": "1", "compress-2": "2", "compress-3": "3", "compress-4": "4",
   "compress-5": "5", "compress-6": "6", "compress-7": "7", "compress-8": "8",
   "compress-9": "9", "force-zip64": "fz", "strip-extra": "X", "force-descriptors": "fd", "no-wild": "nw", "wild-stop-dirs": "ws", "recurse-patterns": "R", "from-date": "t", "before-date": "tt", "copy-entries": "U", "output-file": "O", "must-match": "MM",
@@ -23,7 +23,7 @@ const reservedOptions = [
   "adjust-sfx", "temp-path",
   "difference-archive", "encrypt", "fix", "fixfix", "fifo",
   "grow", "junk-sfx",
-  "DOS-names", "from-crlf", "logfile-path", "log-append", "log-info",
+  "DOS-names", "logfile-path", "log-append", "log-info",
   "password", "regex", "split-size", "split-pause",
   "split-verbose", "split-bell", "unzip-command", "show-unicode", "show-just-unicode",
 ];

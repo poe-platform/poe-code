@@ -36,11 +36,11 @@ tasks:
 
       Add -ll/--from-crlf in zip/line-endings.ts, zip/options.ts and zip.ts. Match verified Info-ZIP conversion semantics for CRLF, bare CR/LF, trailing Ctrl-Z, binary detection, warnings and -l interactions; do not assume global text replacement reproduces native behavior. Preserve original CRC/size versus transformed CRC/size according to the archive format, binary byte ownership and suffix/compression selection. Parameterize chunk boundaries including CR at end of chunk and LF at start of next, empty input, repeated CR, mixed line endings, final partial chunks and boundaries around native read/compressor windows. Compare STORE and DEFLATE modes and prove extraction emits the expected converted bytes.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-streaming
     title: "Stream source bytes through compression to output"
     prompt: |

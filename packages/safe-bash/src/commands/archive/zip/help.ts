@@ -23,6 +23,7 @@ Usage: zip [options] archive [file ...]
   -z / -c     read archive / entry comments from stdin
   -o          set archive time to the latest member time
   -l          convert text LF line endings to CRLF
+  -ll         convert text CRLF line endings to LF (--from-crlf)
   -X          strip optional metadata
   -fz / -fz-  force / disable ZIP64 output
   -fd         force data descriptors

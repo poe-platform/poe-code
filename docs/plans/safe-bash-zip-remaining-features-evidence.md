@@ -1,5 +1,156 @@
 # ZIP remaining-features evidence and qualification plan
 
+## From-CRLF implementation qualification — 2026-09-16
+
+Baseline: clean current `main`, `15ef5e17045a59b924a7a90a7001b0cbb6232241`.
+Read root and package AGENTS.md; changes are confined to the three assigned
+ZIP modules, the memory-fixture line-ending tests and this document. No README,
+SafeJS, dependency, host fallback or root CLI/SDK change. Both invocation paths
+use the same virtual ZIP command parser and implementation.
+
+Reproduction before product edits: six new focused tests for `-ll`,
+`--from-crlf` and `--from-c`, each with STORE and DEFLATE, all failed because
+ZIP returned 16 instead of 0. The current parser explicitly rejected `-ll`
+and reserved `--from-crlf`. After implementation the same tests pass and
+extraction returns `610a620d630a` for input `610d0a620d630a1a`. Archive size is
+the transformed six bytes and CRC is `0x0f28185c`, independently checked with
+native ZIP metadata and Python zlib. Original source size remains available
+for existing source statistics; compression and suffix selection precede
+conversion. Symlink targets and unselected members remain untouched.
+
+Oracle: Darwin arm64, Node v22.22.2, Apple-modified Info-ZIP 3.0 at
+`/usr/bin/zip`, SHA-256
+`493a7f270b2cb3ea4f5cf153f735939bdce8b1bad48dce56d6ba89b495064271`.
+Native subprocesses ran only as ad hoc test oracles, in the exclusively owned
+ignored `out/zip-from-crlf` directory, with explicit PATH `/usr/bin:/bin`,
+LC_ALL C and TZ UTC. Twenty short input/method observations were captured,
+including empty, CR, repeated CR, LF, Ctrl-Z, final CR, repeated Ctrl-Z,
+binary and mixed endings. Capture SHA-256:
+`c4fbe3cbe18519f243d814f38baf9ec8db20b2f5a02bc935166f22b14a33440b`.
+Additional probes checked STORE 16,383-byte and DEFLATE 65,535-byte sentinel
+positions and `-l -ll`, `-ll -l`, `-lll`: last option wins.
+
+Inspected bounded text sources from LuaDist/zip revision
+`f6cfe48f6bc5bf2d505a0e0eb265ce4cb238db89`: zipup.c SHA-256
+`70e76470de23ee35266b2064483747b526f066e13bcf7e1568c9005b7b9f050d`,
+deflate.c SHA-256
+`fd3947369a7a43e2c4b56f7f9770b2baeb130c3532bc09cfbb122f877e3b8001`.
+`file_read` reserves a sentinel LF, drops CR immediately preceding LF including
+the sentinel, and suppresses one Ctrl-Z at each read's end. First-read binary
+detection controls conversion. Pure control-only input is left unchanged.
+STORE emits no binary warning; nonquiet DEFLATE emits the ignored-binary warning.
+Transport chunks do not determine native read boundaries.
+
+Retained controls cover positive extraction and CRC/size; empty and binary
+negative controls; STORE sentinel positions -1/0/+1; first binary detection
+positions; reused producer buffers with chunk sizes 1, 2, 7, 16,382, 16,383,
+16,384, 32,768 and 65,535; CR/LF split across chunks and final partial chunks;
+pre-aborted empty/binary/text and cancellation between conversion turns;
+last-option-wins; STORE suffix selection; symlink and existing-member regressions.
+Tests create only memory VFS files. Existing `-l` tests remain enabled.
+
+**Partial support, not feature completion:** STORE native read behavior is
+implemented; DEFLATE text is limited to its verified initial 65,535-byte read.
+Later native DEFLATE reads depend on match selection and sliding-window state,
+which the existing codec interface does not expose. Larger text DEFLATE inputs
+fail before archive publication instead of approximating native behavior.
+Binary detected in the first read retains original owned bytes without this
+text limit. BZIP2 from-CRLF conversion is explicitly refused unless suffix
+selection chooses STORE. Later DEFLATE windows, BZIP2, other native builds,
+platforms and nonregular device read schedules remain unqualified. No exhaustive
+Info-ZIP parity or completion claim is made.
+
+Final product/test SHA-256 values (paths relative to packages/safe-bash):
+
+| File | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip.ts | 62af687322e78c7e6e3159dbd6a5f30980dae226e88535c5c94fef46527c42b5 |
+| src/commands/archive/zip/options.ts | fdd689150d4e5b9fc4f84ae2a3a7eac924a2cf11dd6a1bb002d82d5c3a41ac33 |
+| src/commands/archive/zip/line-endings.ts | b62e4d0c3063e24ff4973d024a40f3cb432fc5e9d5308a3c2020d31aae02f0c8 |
+| tests/commands/zip-line-endings.test.ts | 8a2034d9f8b030de3bc3846f24b10ce0e52bc8072259dc86f0922319080a8677 |
+
+Delivery remains working-tree changes only. No commit, push, verified remote
+main delivery or release was requested or performed.
+
+Verification for this revision:
+
+- Final stable `TZ=UTC LC_ALL=C node --import tsx --test
+  --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts
+  packages/safe-bash/tests/commands/unzip.test.ts
+  packages/safe-bash/tests/plugins/zip*.test.ts`: 1,021 passed, zero
+  failures/cancellations/skips/TODOs, 25,799.315333 ms.
+- `npm run build:workspaces -- --workspace=virtual-bash`: successful six
+  uncached builds in the maintained declared closure.
+- Normal-import built SDK `Shell` plus `agentCommands`, memory VFS: short
+  STORE and DEFLATE creation/extraction using both new option spellings passed.
+- Final stable `npm run typecheck --workspace=virtual-bash`: exit 0, source
+  and tests, all 26 maintained consumer groups and required negative validators.
+  Compile-only; not additional runtime qualification.
+- Manual visual QA: `npm run screenshot-poe-code -- --no-header -o
+  out/zip-from-crlf/conversion-stdout.png bash --root
+  out/zip-from-crlf/visible --cwd / -c SOURCE`. SOURCE used virtual printf
+  to create mixed CRLF/CR/LF/final Ctrl-Z text, stdout ZIP with `-ll0` and
+  `--from-crlf` redirected to archives, and unzip piped to xxd; then repeated
+  with `00ff0d0a` binary input and nonquiet `-ll`. Inspected the full image:
+  readable STORE/DEFLATE displays, both exact `610a620d630a` extractions,
+  ignored-binary warning and unchanged `00ff0d0a`. PNG SHA-256
+  `c3bc6d4a18339a5ecf62f9c38ae482698b3e825a09a63da3a11eba64e3e86010`.
+  Its preparation used 75 cached builds and a fresh root bundle; it is visual
+  QA, not the uncached selected build gate.
+- The initial screenshot tried direct real-VFS archive publication and showed
+  the existing atomic-owned-staging restriction, with no positive extraction.
+  That image was inspected and is not counted as positive conversion QA
+  (SHA-256 `923a1039e89da00320435344ce547c179cd2ed9998c0d61646b18f07cac1976a`).
+  Its preparation completed 75 uncached existing builds. A verification run
+  improperly overlapped that rebuild: five test files failed to load SafeJS's
+  temporarily absent dist/safe-fs-core.js (659 passes, five file failures).
+  The concurrent typecheck returned 2 after 26 positive groups, without
+  completing negative validators. Neither failed run is a passing gate;
+  the stable test rerun above passed after rebuild completion. No SafeJS
+  source was edited and no failure was suppressed.
+
+Absolute `/out` is the previously recorded read-only volume; only the existing
+ignored workspace fallback was used for exclusively task-owned scratch. These
+results are focused checks, not a full repository unit run.
+
+Package-required independent review compared 634 native extractions across
+every byte value in `A<byte>CRLF Ctrl-Z`, STORE boundary/multi-read tails and
+admitted first DEFLATE reads: all matched. Reviewer confirmed that declared
+later-DEFLATE/BZIP2 exclusions prevent a feature-completion claim. It reproduced
+a diagnostic-order discrepancy: binary warning preceded the adding line.
+A focused assertion failed before correction; warnings are now queued between
+member name and compression summary, matching native output. The test passes
+for binary STORE and DEFLATE. Reviewer made no product edits or builds and
+purged only its own scratch. The earlier screenshot/test/typecheck results
+precede this final diagnostic-order correction; subsequent checks are recorded
+separately below.
+
+The first guarded lint completed with one test-only `no-regex-spaces` error
+in the warning-order assertion and two existing docx warnings. Replaced that
+regex assertion with byte-exact string equality, retaining the diagnostic
+control; the focused test passed after build completion. An intervening test
+attempt overlapped screenshot preparation and failed module loading, and is
+not counted as acceptance. Final workspace build after the warning fix again
+completed six uncached declared builds. Final visible QA repeated the same
+stdout workflow after that build: the full inspected screenshot shows the
+warning after `adding: binary`, readable compression summary, both exact text
+extractions and unchanged binary bytes. PNG SHA-256
+`8d47862c07fab7eb145acc0cf4327aba91d32d69d271d6614ce89d4a8908501d`.
+Final screenshot preparation completed 75 uncached builds and the root bundle;
+Final acceptance test/typecheck runs began only after that build completed.
+Final exact ZIP-wide command above: 1,021 passed, zero failures/cancellations/
+skips/TODOs, 16,126.500458 ms, including the exact warning-order assertion.
+Final post-correction `npm run typecheck --workspace=virtual-bash`: exit 0,
+source/tests, all 26 maintained consumer groups and required negative validators.
+Final stable `npm run lint:eslint`: exit 0, complete guarded traversal of
+15,493 configured/linted subjects, zero errors and two existing docx warnings.
+No lint policies, exclusions or warning limits changed. Final normal-import
+built SDK STORE/DEFLATE controls passed again after the correction.
+Final `git diff --check`: exit 0. Purged only task-owned oracle artifacts,
+sources, screenshots, fixtures and logs after recording and inspection.
+The feature remains incomplete due to the explicit later-DEFLATE exclusion;
+successful local gates do not change that scope or imply delivery/release.
+
 ## Revision and scope
 
 Inspected current `main` at `c75f0499a1fe7a5b4f5455779eed99cb4ee6cbab` on
@@ -1439,3 +1590,225 @@ product code was changed during commit validation. Absolute `/out` remained
 read-only; task-owned logs used ignored `out/zip-commit-check` and were purged
 after inspection. These are focused ZIP checks, not a full repository unit run.
 The requested delivery is a local commit; no push or release is claimed.
+
+## Later from-CRLF reads — 2026-09-16, current-main working tree
+
+This execution started on main at `15ef5e17045a59b924a7a90a7001b0cbb6232241`
+with six existing modified paths: this evidence document, its associated plan,
+zip.ts, zip/options.ts, zip/line-endings.ts and zip-line-endings.test.ts.
+Those edits were preserved. The earlier clean-baseline qualification above is
+historical; it does not describe this execution's dirty starting tree.
+Read root and package AGENTS.md. No staging, commit, push or release is included.
+
+Revalidated the actual remaining gap: the starting partial implementation's
+90 focused tests passed, but text DEFLATE beyond its first 65,535-byte read
+was explicitly refused. Updated the refusal expectations to verified positive
+conversion/extraction controls before product edits. The seven-test reproduction
+had four passes and three failures: the 65,536-byte text input and binary bytes
+at/after the first detection window returned 2 with the native-window-limit
+diagnostic. A separate fast help test also failed before adding the -ll line.
+The existing -ll parser and --from-crlf/--from-c normalization remain intact.
+
+The package-local read model uses owned collected bytes and the existing codec
+for encoding. It models the Unix internal DEFLATE compressor's 32 KiB sliding
+window, 262-byte minimum lookahead, hash chains, fast/lazy match advancement and
+level-specific search profiles solely to determine native file_read capacity.
+Absolute dictionary positions avoid window copying. Transport chunk boundaries
+never substitute for compressor reads. Yield checkpoints cover detection,
+refills and match work; no invocation-owned host resource or fallback was added.
+Existing original-entry/total-byte admission remains before shrinking; converted
+bytes determine ZIP CRC and uncompressed size in local/central/descriptor/ZIP64
+records, while original source size remains the progress/statistics input.
+Suffix/compression selection remains before conversion; links and directories
+remain excluded. Binary input returns the original owned payload.
+
+Native semantics are deliberately retained: the reserved LF sentinel can drop
+a bare CR at a read boundary; one trailing Ctrl-Z is suppressed per read, and
+an emptied read consumes one more byte or retains CR at EOF. A zero-length
+Ctrl-Z read means EOF. First-read binary classification controls conversion;
+later binary can produce the native corruption warning. STORE stays quiet on
+binary; quiet mode suppresses conversion warnings. -l/-ll still use the last
+parsed option, including the grouped -lll control.
+
+Oracle binding: Darwin arm64, Node v22.22.2, Apple-modified Info-ZIP 3.0,
+/usr/bin/zip SHA-256
+`493a7f270b2cb3ea4f5cf153f735939bdce8b1bad48dce56d6ba89b495064271`.
+Processes were isolated ad hoc oracles only, in task-owned ignored
+out/zip-ll-followup with PATH=/usr/bin:/bin, LC_ALL=C and TZ=UTC. Native archive
+payload/CRC/size/method observations used independent Python zipfile extraction.
+The same bounded, regular-text-admitted LuaDist revision and source hashes
+recorded above were rechecked, not included in product code or canonical tests.
+
+All **780/780** native observations matched conversion bytes by SHA-256:
+360 boundary observations at 16,383/65,535/98,303/131,071 +/-1, three markers
+(CR-X-CRLF-Ctrl-Z, Ctrl-Z-X-CRLF, binary-CRLF), levels 0 through 9;
+420 pattern observations across random printable, mixed, dense CRLF/repeated CR,
+lazy-match text, sentinel and repeated Ctrl-Z inputs, seven lengths from
+65,534 through 140,000, and levels 0 through 9. Native capture hashes:
+`7bcf24eda0190201989414bfe86a2a53119218bc0834f4be4d13d97293704666`
+(boundaries),
+`5291af5a703499c1de725826c08c2aa455ff0975b4f51104fd1bd385fcbfb0ea`
+(patterns). These captures are observations, not timing/performance claims.
+Dense text at 140,000 bytes exposes a neighboring control: levels 4/5/8/9
+produce 100,001 bytes, levels 1/2/3/6/7 produce 100,002. This prevents treating
+all levels as the level-6 read schedule.
+
+The retained independent fixture contains **360 native observations**:
+180 boundary records (STORE and levels 1/3/6/9) and 180 pattern records
+(three lengths, six patterns, all ten levels). Tests synthesize inputs in memory;
+no subprocess oracle or filesystem writes enter canonical unit tests. All records
+check converted size and native SHA-256. STORE and level-6 records additionally
+create/extract archives and compare native method/CRC/size; the dense 140,000-byte
+control verifies actual command creation/extraction for every profile. Further
+tests cover reused stdin buffers at 511/512, 16,383, 32,768 and 65,535 +/-1,
+final partial chunks, CR/LF across transport boundaries, descriptors and ZIP64,
+original byte-budget rejection/exact admission, early/late binary warnings,
+quiet output, binary producer reuse, pre-aborted empty/binary/text inputs,
+cancellation in later DEFLATE work at levels 1/6/9, and actual Shell cancellation
+with source closure, unchanged existing archive/namespace and subsequent exec.
+Existing short/empty/pure-control/mixed-ending, suffix, symlink, archive-neighbor
+and -l regression tests remain enabled.
+
+Candidate SHA-256 (paths relative to packages/safe-bash):
+
+| Input | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip.ts | 4fc90790cef7572f56cf9bbd4827b74ef7ed7921a1174624cb97bbb22cb52871 |
+| src/commands/archive/zip/options.ts | fdd689150d4e5b9fc4f84ae2a3a7eac924a2cf11dd6a1bb002d82d5c3a41ac33 |
+| src/commands/archive/zip/line-endings.ts | 179060f7e18eec0134a4cd42c142a766d1a80bb415f0baba3600e1f6af194d8f |
+| src/commands/archive/zip/help.ts | 2444f68722d878ed7339823a5d56accd9e65880734ebd9528d6e2c46f81d766d |
+| tests/commands/zip-line-endings.test.ts | e773ab96579b21d8df06ca223ddc41d730d6a3f1f6bf8552132136e62794f138 |
+| tests/commands/fixtures/zip-from-crlf-infozip.json | f7df2e645479bcd852e3e55be831f0237405d053aba7e477223649287fbc275b |
+
+Exclusions remain explicit: BZIP2 conversion still refuses its unqualified native
+read profile unless suffix selection chooses STORE; alternate Info-ZIP builds
+(including zlib-backed compressors), non-Unix platforms and native device/short
+read schedules are not qualified. Existing package buffering, configured limits,
+archive-format and atomic-real-adapter restrictions remain. The prior first-window
+DEFLATE restriction is removed for the qualified internal-compressor profile;
+this does not certify all Info-ZIP features or a full repository release gate.
+No new dependency, README, SafeJS source, root API, CLI/SDK split or host-process
+fallback was introduced. Absolute /out again refused creation as read-only;
+the existing ignored workspace fallback contains only this execution's scratch.
+
+Final verification of the candidate hashes above:
+
+- `TZ=UTC LC_ALL=C node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip*.test.ts`: **1,421/1,421 passed**, zero failures/cancellations/skips/TODOs, 31,240.356875 ms. This includes 490 line-ending tests. An earlier ZIP-wide run passed 1,331 before adding the remaining profile controls; it is not the final denominator.
+- `npm run build:workspaces -- --workspace=virtual-bash`: exit **0**, six uncached builds from maintained declarations.
+- `npm run typecheck --workspace=virtual-bash`: exit **0**, source/tests, all 26 maintained current consumer groups and required negative validators. Compile-only, not runtime acceptance.
+- `npm run lint:eslint`: exit **0**, complete traversal of **15,493/15,493** configured/linted subjects, zero errors, two existing docx warnings, zero gaps. No lint policy or exclusion changes.
+- Normal-import `runBash` from `poe-code` and memory filesystem from `poe-code/safe-bash`: both flag spellings with STORE and DEFLATE extracted `610a620d630a`; later-window SDK extraction returned 65,539 bytes. All five SDK controls passed through the existing public SDK.
+- Additional isolated native late-binary probe: 65,535 A bytes plus `00ff0d0a1a` yielded 65,538 bytes, suffix `414100ff0a`, exact `-ll used on binary file - corrupted?` warning at status 0; `-qll6` yielded identical bytes and empty stdout. Retained command tests independently check that warning, quiet suppression and producer-reuse ownership.
+- Final source/fixture SHA-256 verification and `git diff --check`: **0**. No source changed after these build/typecheck/visual checks; the last document update records outcomes only.
+
+Manual visible CLI QA executed and the full PNG inspected:
+
+1. Ran `npm run screenshot-poe-code -- --no-header -o out/zip-ll-followup/cli.png bash --root out/zip-ll-followup/visible --cwd / -c SOURCE`. SOURCE displayed the new help line; created mixed CRLF/bare CR/LF/final Ctrl-Z text with virtual printf; wrote stdout archives using -ll0 and --from-crlf; extracted both through unzip/xxd. Both visible outputs were exactly `610a620d630a`.
+2. SOURCE then created 65,536 padded text bytes plus CR-X-CRLF-Ctrl-Z, compressed/extracted beyond the former DEFLATE limit, and displayed size **65,539** plus suffix `20202020410d580a`. Binary creation visibly warned that -ll was ignored and extraction preserved `00ff0d0a`. A final -l then -ll archive extracted the same six converted text bytes. All output was readable, with the expected progress/warning layout.
+3. Screenshot preparation completed 75 successful uncached existing workspace builds plus the host bundle, exit 0. This is visible-host preparation; the selected six-build route above remains the focused maintained build gate. PNG SHA-256: `237615ea39bdc5a83419f667091e9b4dfd20787becf1d9a564b787147d3c8c4a`.
+
+Typecheck overlapped screenshot preparation, and the final tests overlapped lint;
+both completed successfully. Cohost load and differing test denominators make
+durations unsuitable for performance comparisons. These are focused ZIP checks,
+not a full repository unit run or release gate. Task-owned temporary source
+downloads, observations, fixture root, PNG and logs were purged after inspection
+and proof recording. The independent canonical JSON fixture remains maintained
+test data. Original unrelated edits remain preserved; no local commit, verified
+remote-main delivery or successful release is claimed.
+
+### September 16, 2026 current-tree revalidation
+
+Revalidated on `main` at HEAD
+`15ef5e17045a59b924a7a90a7001b0cbb6232241`, including the pre-existing
+uncommitted candidate. The five source/test/fixture hashes rechecked in this
+execution match the candidate table above exactly. The requested conversion
+gap is already addressed in this working tree; no remaining defect was
+validated, so no new failing test, source change or speculative simplification
+was introduced. Existing edits were preserved.
+
+- Fresh line-ending run: **490/490 passed**, zero failures, cancellations,
+  skips or TODOs, 3,750.387583 ms, using the line-ending test file with
+  `TZ=UTC LC_ALL=C node --import tsx --test --test-concurrency=1`.
+- Fresh neighboring run of `zip*.test.ts`, `unzip.test.ts` and plugin
+  `zip*.test.ts` with the same runner/environment: exit **0**. Output was
+  discarded; no new per-test count or duration is asserted for that run.
+- Fresh isolated regular-file native comparison: **360/360** retained fixture
+  records matched extracted bytes by SHA-256, uncompressed size, CRC and
+  compression method. Inputs were independently synthesized from the fixture
+  specifications and extracted with Python zipfile. `/usr/bin/zip` SHA-256
+  remains `493a7f270b2cb3ea4f5cf153f735939bdce8b1bad48dce56d6ba89b495064271`.
+  Oracle environment was `PATH=/usr/bin:/bin LC_ALL=C TZ=UTC`.
+- An attempted native STORE pipe probe returned status **16** with
+  `zip -0 not supported for I/O on pipes or devices`; its partial archive is
+  not accepted evidence. Regular-file checks above qualify the conversion
+  profile, not native pipe/device parity. Product unit stdin ownership controls
+  remain enabled and passed.
+- `/out` creation again failed with a read-only-filesystem error. The isolated
+  oracle used a unique `out/zip-ll-revalidation-*` directory and removed it in
+  `finally`; no generated native files or temporary logs remain.
+- `git diff --check`: exit **0** before this documentation-only addition.
+
+The previously recorded build, typecheck, lint, public SDK and screenshot proof
+remains bound to the unchanged candidate hashes; those checks were not rerun in
+this execution. BZIP2, alternate compressors/platforms, native short-read/device
+schedules and full-repository/release exclusions above remain in force. No
+README, SafeJS, runtime dependency, host fallback, local commit, push or release
+was introduced or claimed by this revalidation.
+
+### September 16, 2026 additional user edge-case review
+
+Reviewed the same dirty candidate on main at
+`15ef5e17045a59b924a7a90a7001b0cbb6232241`. Rechecked zip.ts,
+zip/options.ts, zip/line-endings.ts and zip-line-endings.test.ts SHA-256;
+all match the candidate table above. No new defect was reproduced, so product
+code and existing tests were preserved without speculative fixes.
+
+- Fresh line-ending suite: **490/490 passed**, no failures, cancellations,
+  skips or TODOs; 5,244.475208 ms.
+- Fresh neighboring ZIP/unzip/plugin suite: **1,421/1,421 passed**, no failures,
+  cancellations, skips or TODOs; 33,286.743667 ms. Both used the previously
+  documented UTC/C-locale Node runner with test concurrency 1.
+- Additional isolated regular-file Info-ZIP oracle: **1,410/1,410** extracted
+  size/SHA-256 comparisons matched `zipFromCrlf`. Inputs comprised all 341
+  sequences of length 0 through 4 over CR/LF/Ctrl-Z/A, 256 inputs consisting
+  of A + each possible byte + CRLF + Ctrl-Z, and 36 longer inputs. The first
+  597 inputs ran STORE and DEFLATE level 6; longer inputs ran levels
+  0/1/3/4/6/9. Longer input lengths before the five-byte CR-CR-LF-Ctrl-Z-Ctrl-Z
+  suffix were 16,382/16,383/16,384/65,534/65,535/65,536/98,000/140,000/250,000.
+  Generation used Python Random seed 91626, alternating repeated
+  `abcdefgh\r\nabc\rX\x1a` and random bytes from A/B/CR/LF/Ctrl-Z or printable
+  ASCII plus CR/LF/Ctrl-Z. Native output was independently extracted with
+  Python zipfile, then compared with the TypeScript converter.
+- Native binding remains `/usr/bin/zip` SHA-256
+  `493a7f270b2cb3ea4f5cf153f735939bdce8b1bad48dce56d6ba89b495064271`,
+  with PATH=/usr/bin:/bin, LC_ALL=C and TZ=UTC. These additional observations
+  compare conversion bytes, not compressed stream identity or warning text;
+  maintained command tests supply extraction/CRC/format/warning, transport
+  ownership, budgets, cancellation and neighboring regression controls.
+- Absolute `/out` was read-only again. This review's unique ignored
+  `out/zip-user-edge-*` native scratch was removed after comparison.
+
+No source change required new build/typecheck/lint or visual CLI validation;
+previous proof remains bound to unchanged candidate hashes. The existing
+BZIP2, alternate build/platform, native pipe/device/short-read and full-gate
+exclusions remain. This finite review does not claim every possible edge case.
+No README, SafeJS, runtime dependency, host fallback, commit, push or release
+was changed or claimed.
+
+
+## From-CRLF commit validation — 2026-09-16
+
+Fresh checks for the user-requested local commit of all eight changed files:
+
+- `TZ=UTC LC_ALL=C TSX_DISABLE_CACHE=1 node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip*.test.ts`: **1,421 passed**, zero failures/cancellations/skips/TODOs; 36,970.2805 ms.
+- `npm run build:workspaces -- --workspace=virtual-bash`: exit **0**, six uncached declared workspace closure builds.
+- Stable `npm run typecheck --workspace=virtual-bash -- --report ../../out/zip-commit-type-report`: exit **0**, source/tests, all 26 maintained consumer groups and required exact negative checks. An earlier run during screenshot build preparation returned 2 despite successful logged compilations; it is not counted as a passing gate. No source change was needed for the stable rerun.
+- `npm run lint:eslint`: exit **0**, 15,493 configured/linted subjects, zero errors, two warnings, complete traversal.
+- `npm run screenshot-poe-code -- --no-header -o out/zip-commit-help.png bash -c 'zip -h'`: exit **0**. Inspected the PNG: readable aligned help includes `-ll` and `--from-crlf`. Screenshot preparation used cached workspace builds and a fresh host bundle; it is visual QA, not the uncached build gate above.
+- `git diff --check`: exit **0** before committing.
+
+Product source and tests were preserved during validation. These are focused
+ZIP checks, not a full repository unit run. Task-owned ignored logs, report
+and screenshot were purged after review. The plan's from-CRLF commit status
+is included in the local atomic commit; no push, remote-main delivery or
+release is requested or claimed.

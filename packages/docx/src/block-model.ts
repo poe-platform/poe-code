@@ -211,7 +211,7 @@ export class Paragraph {
       get identity() {
         return store.identity(ref);
       },
-      getXml: () => store.xml(ref.part).sourceXml(store.node(ref)),
+      getXml: () => new TextDecoder().decode(store.element(ref).serialize()),
       setXml: (text) => store.change(ref.part, (xml) => xml.replaceElement(store.node(ref), text))
     };
   }

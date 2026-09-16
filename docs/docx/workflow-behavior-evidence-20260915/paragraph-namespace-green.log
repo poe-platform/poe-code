@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/paragraph-format-namespace-owner.test.ts (1 test) 53ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  23:12:28
+   Duration  1.09s (transform 823ms, setup 30ms, import 960ms, tests 53ms, environment 0ms)
+

@@ -1,0 +1,2298 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts (245 tests | 56 failed) 9230ms
+   ✓ workflow-352 observes cell grid_span read 46ms
+   ✓ workflow-353 observes cell grid_span read 39ms
+   ✓ workflow-354 observes cell grid_span read 39ms
+   ✓ workflow-355 observes cell vertical_alignment read 37ms
+   ✓ workflow-356 observes cell vertical_alignment read 38ms
+   ✓ workflow-357 observes cell vertical_alignment read 39ms
+   ✓ workflow-358 observes cell vertical_alignment transition 39ms
+   ✓ workflow-359 observes cell vertical_alignment transition 41ms
+   ✓ workflow-360 observes cell vertical_alignment transition 40ms
+   ✓ workflow-361 observes cell vertical_alignment transition 37ms
+   ✓ workflow-362 observes cell width read 37ms
+   ✓ workflow-363 observes cell width read 38ms
+   ✓ workflow-364 observes cell width transition 39ms
+   ✓ workflow-365 observes cell width transition 39ms
+   ✓ workflow-367 observes column width read 37ms
+   ✓ workflow-368 observes column width read 36ms
+   ✓ workflow-369 observes column width transition 38ms
+   ✓ workflow-370 observes column width transition 38ms
+   ✓ workflow-371 observes column width transition 38ms
+   ✓ workflow-372 observes column width transition 37ms
+   ✓ workflow-373 observes column width transition 38ms
+   ✓ workflow-392 observes table alignment read 36ms
+   ✓ workflow-393 observes table alignment read 37ms
+   ✓ workflow-394 observes table alignment read 38ms
+   ✓ workflow-395 observes table alignment read 37ms
+   ✓ workflow-396 observes table alignment transition 38ms
+   ✓ workflow-397 observes table alignment transition 38ms
+   ✓ workflow-398 observes table alignment transition 38ms
+   ✓ workflow-399 observes table alignment transition 39ms
+   ✓ workflow-400 observes table autofit read 38ms
+   ✓ workflow-401 observes table autofit read 38ms
+   ✓ workflow-402 observes table autofit read 35ms
+   ✓ workflow-403 observes table autofit transition 38ms
+   ✓ workflow-404 observes table autofit transition 37ms
+   ✓ workflow-405 observes table autofit transition 37ms
+   ✓ workflow-406 observes table autofit transition 35ms
+   ✓ workflow-407 observes table autofit transition 39ms
+   ✓ workflow-408 observes table autofit transition 37ms
+   ✓ workflow-409 observes table table_direction read 38ms
+   ✓ workflow-410 observes table table_direction read 36ms
+   ✓ workflow-411 observes table table_direction read 37ms
+   ✓ workflow-412 observes table table_direction transition 38ms
+   ✓ workflow-413 observes table table_direction transition 38ms
+   ✓ workflow-414 observes table table_direction transition 38ms
+   ✓ workflow-415 observes row grid_cols_after read 37ms
+   ✓ workflow-416 observes row grid_cols_after read 37ms
+   ✓ workflow-417 observes row grid_cols_after read 38ms
+   ✓ workflow-418 observes row grid_cols_before read 35ms
+   ✓ workflow-419 observes row grid_cols_before read 36ms
+   ✓ workflow-420 observes row grid_cols_before read 38ms
+   ✓ workflow-421 observes row height_rule read 38ms
+   ✓ workflow-422 observes row height_rule read 39ms
+   ✓ workflow-423 observes row height_rule read 38ms
+   ✓ workflow-424 observes row height_rule transition 38ms
+   ✓ workflow-425 observes row height_rule transition 37ms
+   ✓ workflow-426 observes row height_rule transition 35ms
+   ✓ workflow-427 observes row height_rule transition 36ms
+   ✓ workflow-428 observes row height read 37ms
+   ✓ workflow-429 observes row height read 37ms
+   ✓ workflow-430 observes row height read 39ms
+   ✓ workflow-431 observes row height transition 36ms
+   ✓ workflow-432 observes row height transition 39ms
+   ✓ workflow-433 observes row height transition 39ms
+   ✓ workflow-434 observes row height transition 38ms
+   ✓ workflow-163 observes font underline variant 36ms
+   ✓ workflow-164 observes font underline variant 37ms
+   ✓ workflow-165 observes font underline variant 38ms
+   ✓ workflow-166 observes font underline variant 37ms
+   ✓ workflow-167 observes font underline variant 40ms
+   ✓ workflow-168 observes font underline variant 41ms
+   ✓ workflow-169 observes font underline variant 41ms
+   ✓ workflow-170 observes font underline variant 38ms
+   ✓ workflow-171 observes font underline variant 40ms
+   ✓ workflow-172 observes font underline variant 39ms
+   ✓ workflow-173 observes font underline variant 38ms
+   ✓ workflow-174 observes font underline variant 36ms
+   ✓ workflow-175 observes font underline variant 38ms
+   ✓ workflow-176 observes font underline variant 38ms
+   ✓ workflow-470 observes font highlight_color variant 37ms
+   ✓ workflow-471 observes font highlight_color variant 37ms
+   ✓ workflow-472 observes font highlight_color variant 37ms
+   ✓ workflow-473 observes font highlight_color variant 39ms
+   ✓ workflow-474 observes font highlight_color variant 40ms
+   ✓ workflow-475 observes font highlight_color variant 39ms
+   ✓ workflow-476 observes font name variant 37ms
+   ✓ workflow-477 observes font name variant 39ms
+   ✓ workflow-478 observes font name variant 37ms
+   ✓ workflow-479 observes font name variant 35ms
+   ✓ workflow-480 observes font name variant 38ms
+   ✓ workflow-481 observes font size variant 37ms
+   ✓ workflow-482 observes font size variant 37ms
+   ✓ workflow-483 observes font size variant 38ms
+   ✓ workflow-484 observes font size variant 35ms
+   ✓ workflow-485 observes font size variant 40ms
+   ✓ workflow-487 observes font underline variant 39ms
+   ✓ workflow-488 observes font underline variant 38ms
+   ✓ workflow-489 observes font underline variant 37ms
+   ✓ workflow-490 observes font underline variant 39ms
+   ✓ workflow-491 observes font underline variant 39ms
+   ✓ workflow-492 observes font underline variant 38ms
+   ✓ workflow-493 observes font underline variant 38ms
+   ✓ workflow-494 observes font underline variant 37ms
+   ✓ workflow-495 observes font underline variant 38ms
+   ✓ workflow-496 observes font underline variant 38ms
+   ✓ workflow-497 observes font underline variant 39ms
+   ✓ workflow-498 observes font underline variant 39ms
+   ✓ workflow-499 observes font underline variant 38ms
+   ✓ workflow-500 observes font underline variant 40ms
+   ✓ workflow-501 observes font vertical alignment variant 38ms
+   ✓ workflow-502 observes font vertical alignment variant 37ms
+   ✓ workflow-503 observes font vertical alignment variant 38ms
+   ✓ workflow-504 observes font vertical alignment variant 36ms
+   ✓ workflow-505 observes font vertical alignment variant 38ms
+   ✓ workflow-506 observes font vertical alignment variant 37ms
+   ✓ workflow-507 observes font vertical alignment variant 38ms
+   ✓ workflow-508 observes font vertical alignment variant 39ms
+   ✓ workflow-509 observes font vertical alignment variant 38ms
+   ✓ workflow-510 observes font vertical alignment variant 36ms
+   ✓ workflow-511 observes font vertical alignment variant 38ms
+   ✓ workflow-512 observes font vertical alignment variant 39ms
+   ✓ workflow-513 observes font vertical alignment variant 37ms
+   ✓ workflow-514 observes font vertical alignment variant 36ms
+   ✓ workflow-515 observes font vertical alignment variant 37ms
+   ✓ workflow-516 observes font vertical alignment variant 36ms
+   ✓ workflow-517 observes font vertical alignment variant 37ms
+   ✓ workflow-518 observes font vertical alignment variant 36ms
+   ✓ workflow-519 observes font vertical alignment variant 35ms
+   ✓ workflow-520 observes font vertical alignment variant 37ms
+   ✓ workflow-521 observes font vertical alignment variant 39ms
+   ✓ workflow-522 observes font all_caps variant 38ms
+   ✓ workflow-523 observes font bold variant 39ms
+   ✓ workflow-524 observes font complex_script variant 35ms
+   ✓ workflow-525 observes font cs_bold variant 37ms
+   ✓ workflow-526 observes font cs_italic variant 39ms
+   ✓ workflow-527 observes font double_strike variant 38ms
+   ✓ workflow-528 observes font emboss variant 36ms
+   ✓ workflow-529 observes font hidden variant 39ms
+   ✓ workflow-530 observes font italic variant 39ms
+   ✓ workflow-531 observes font imprint variant 39ms
+   ✓ workflow-532 observes font math variant 38ms
+   ✓ workflow-533 observes font no_proof variant 37ms
+   ✓ workflow-534 observes font outline variant 37ms
+   ✓ workflow-535 observes font rtl variant 39ms
+   ✓ workflow-536 observes font shadow variant 39ms
+   ✓ workflow-537 observes font small_caps variant 38ms
+   ✓ workflow-538 observes font snap_to_grid variant 36ms
+   ✓ workflow-539 observes font spec_vanish variant 39ms
+   ✓ workflow-540 observes font strike variant 37ms
+   ✓ workflow-541 observes font web_hidden variant 37ms
+   ✓ workflow-542 observes font all_caps variant 39ms
+   ✓ workflow-543 observes font bold variant 39ms
+   ✓ workflow-544 observes font complex_script variant 39ms
+   ✓ workflow-545 observes font cs_bold variant 37ms
+   ✓ workflow-546 observes font cs_italic variant 36ms
+   ✓ workflow-547 observes font double_strike variant 37ms
+   ✓ workflow-548 observes font emboss variant 38ms
+   ✓ workflow-549 observes font hidden variant 37ms
+   ✓ workflow-550 observes font italic variant 38ms
+   ✓ workflow-551 observes font imprint variant 36ms
+   ✓ workflow-552 observes font math variant 37ms
+   ✓ workflow-553 observes font no_proof variant 37ms
+   ✓ workflow-554 observes font outline variant 38ms
+   ✓ workflow-555 observes font rtl variant 35ms
+   ✓ workflow-556 observes font shadow variant 39ms
+   ✓ workflow-557 observes font small_caps variant 38ms
+   ✓ workflow-558 observes font snap_to_grid variant 38ms
+   ✓ workflow-559 observes font spec_vanish variant 39ms
+   ✓ workflow-560 observes font strike variant 37ms
+   ✓ workflow-561 observes font web_hidden variant 39ms
+   ✓ workflow-562 observes font all_caps variant 38ms
+   ✓ workflow-563 observes font bold variant 37ms
+   ✓ workflow-564 observes font complex_script variant 37ms
+   ✓ workflow-565 observes font cs_bold variant 37ms
+   ✓ workflow-566 observes font cs_italic variant 38ms
+   ✓ workflow-567 observes font double_strike variant 38ms
+   ✓ workflow-568 observes font emboss variant 38ms
+   ✓ workflow-569 observes font hidden variant 37ms
+   ✓ workflow-570 observes font italic variant 36ms
+   ✓ workflow-571 observes font imprint variant 38ms
+   ✓ workflow-572 observes font math variant 38ms
+   ✓ workflow-573 observes font no_proof variant 38ms
+   ✓ workflow-574 observes font outline variant 39ms
+   ✓ workflow-575 observes font rtl variant 39ms
+   ✓ workflow-576 observes font shadow variant 39ms
+   ✓ workflow-577 observes font small_caps variant 39ms
+   ✓ workflow-578 observes font snap_to_grid variant 38ms
+   ✓ workflow-579 observes font spec_vanish variant 38ms
+   ✓ workflow-580 observes font strike variant 38ms
+   ✓ workflow-581 observes font web_hidden variant 38ms
+   × workflow-583 observes paragraph alignment variant 41ms
+   × workflow-584 observes paragraph alignment variant 38ms
+   × workflow-585 observes paragraph alignment variant 37ms
+   × workflow-586 observes paragraph alignment variant 38ms
+   × workflow-587 observes paragraph alignment variant 37ms
+   × workflow-588 observes paragraph alignment variant 39ms
+   × workflow-589 observes paragraph space_before variant 38ms
+   × workflow-590 observes paragraph space_before variant 37ms
+   × workflow-591 observes paragraph space_after variant 37ms
+   × workflow-592 observes paragraph space_after variant 37ms
+   × workflow-593 observes paragraph space_before variant 37ms
+   × workflow-594 observes paragraph space_before variant 38ms
+   × workflow-595 observes paragraph space_before variant 35ms
+   × workflow-596 observes paragraph space_after variant 37ms
+   × workflow-597 observes paragraph space_after variant 37ms
+   × workflow-598 observes paragraph space_after variant 37ms
+   × workflow-611 observes paragraph first_line_indent variant 39ms
+   × workflow-612 observes paragraph first_line_indent variant 38ms
+   × workflow-613 observes paragraph first_line_indent variant 38ms
+   × workflow-614 observes paragraph left_indent variant 39ms
+   × workflow-615 observes paragraph left_indent variant 38ms
+   × workflow-616 observes paragraph right_indent variant 35ms
+   × workflow-617 observes paragraph right_indent variant 38ms
+   × workflow-618 observes paragraph first_line_indent variant 38ms
+   × workflow-619 observes paragraph first_line_indent variant 39ms
+   × workflow-620 observes paragraph first_line_indent variant 37ms
+   × workflow-621 observes paragraph left_indent variant 38ms
+   × workflow-622 observes paragraph left_indent variant 37ms
+   × workflow-623 observes paragraph left_indent variant 38ms
+   × workflow-624 observes paragraph right_indent variant 37ms
+   × workflow-625 observes paragraph right_indent variant 37ms
+   × workflow-626 observes paragraph right_indent variant 38ms
+   × workflow-627 observes paragraph keep_together variant 36ms
+   × workflow-628 observes paragraph keep_together variant 36ms
+   × workflow-629 observes paragraph keep_together variant 38ms
+   × workflow-630 observes paragraph keep_with_next variant 37ms
+   × workflow-631 observes paragraph keep_with_next variant 37ms
+   × workflow-632 observes paragraph keep_with_next variant 37ms
+   × workflow-633 observes paragraph page_break_before variant 37ms
+   × workflow-634 observes paragraph page_break_before variant 37ms
+   × workflow-635 observes paragraph page_break_before variant 37ms
+   × workflow-636 observes paragraph widow_control variant 36ms
+   × workflow-637 observes paragraph widow_control variant 38ms
+   × workflow-638 observes paragraph widow_control variant 37ms
+   × workflow-639 observes paragraph keep_together variant 38ms
+   × workflow-640 observes paragraph keep_together variant 36ms
+   × workflow-641 observes paragraph keep_together variant 36ms
+   × workflow-642 observes paragraph keep_with_next variant 37ms
+   × workflow-643 observes paragraph keep_with_next variant 38ms
+   × workflow-644 observes paragraph keep_with_next variant 36ms
+   × workflow-645 observes paragraph page_break_before variant 36ms
+   × workflow-646 observes paragraph page_break_before variant 38ms
+   × workflow-647 observes paragraph page_break_before variant 38ms
+   × workflow-648 observes paragraph widow_control variant 36ms
+   × workflow-649 observes paragraph widow_control variant 36ms
+   × workflow-650 observes paragraph widow_control variant 38ms
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-583 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get alignment [as alignment] packages/docx/src/formatting-model.ts:144:29
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1343:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-584 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get alignment [as alignment] packages/docx/src/formatting-model.ts:144:29
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1349:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-585 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get alignment [as alignment] packages/docx/src/formatting-model.ts:144:29
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1355:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-586 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set alignment [as alignment] packages/docx/src/formatting-model.ts:149:191
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1361:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-587 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set alignment [as alignment] packages/docx/src/formatting-model.ts:149:191
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1368:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-588 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set alignment [as alignment] packages/docx/src/formatting-model.ts:149:191
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1375:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-589 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_before [as space_before] packages/docx/src/formatting-model.ts:154:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1382:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-590 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_before [as space_before] packages/docx/src/formatting-model.ts:154:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1388:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-591 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_after [as space_after] packages/docx/src/formatting-model.ts:156:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1394:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-592 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_after [as space_after] packages/docx/src/formatting-model.ts:156:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1400:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-593 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_before [as space_before] packages/docx/src/formatting-model.ts:155:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1406:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-594 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_before [as space_before] packages/docx/src/formatting-model.ts:155:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1413:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-595 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_before [as space_before] packages/docx/src/formatting-model.ts:155:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1420:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-596 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_after [as space_after] packages/docx/src/formatting-model.ts:157:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1427:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-597 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_after [as space_after] packages/docx/src/formatting-model.ts:157:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1434:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-598 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_after [as space_after] packages/docx/src/formatting-model.ts:157:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1441:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-611 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:152:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1448:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-612 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:152:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1454:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-613 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:152:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1460:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-614 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.get left_indent [as left_indent] packages/docx/src/formatting-model.ts:167:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1466:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-615 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.get left_indent [as left_indent] packages/docx/src/formatting-model.ts:167:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1472:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-616 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get right_indent [as right_indent] packages/docx/src/formatting-model.ts:150:57
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1478:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-617 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get right_indent [as right_indent] packages/docx/src/formatting-model.ts:150:57
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1484:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-618 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:153:58
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1490:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-619 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:153:58
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1497:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-620 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:153:58
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1504:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-621 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set left_indent [as left_indent] packages/docx/src/formatting-model.ts:168:209
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1511:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-622 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set left_indent [as left_indent] packages/docx/src/formatting-model.ts:168:209
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1518:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-623 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set left_indent [as left_indent] packages/docx/src/formatting-model.ts:168:209
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1525:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-624 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set right_indent [as right_indent] packages/docx/src/formatting-model.ts:151:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1532:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-625 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set right_indent [as right_indent] packages/docx/src/formatting-model.ts:151:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1539:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-626 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set right_indent [as right_indent] packages/docx/src/formatting-model.ts:151:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1546:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-627 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_together] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1553:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-628 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_together] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1559:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-629 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_together] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1565:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-630 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_with_next] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1571:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-631 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_with_next] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1577:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-632 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_with_next] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1583:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-633 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as page_break_before] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1589:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-634 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as page_break_before] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1595:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-635 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as page_break_before] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1601:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-636 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as widow_control] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1607:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-637 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as widow_control] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1613:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-638 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as widow_control] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1619:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-639 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_together] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1625:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-640 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_together] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1632:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-641 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_together] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1639:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-642 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_with_next] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1646:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-643 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_with_next] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1653:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-644 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_with_next] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1660:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-645 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as page_break_before] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1667:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-646 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as page_break_before] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1674:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-647 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as page_break_before] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1681:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-648 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as widow_control] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1688:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-649 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as widow_control] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1695:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+FAIL packages/docx/src/workflow-behavior-variants.test.ts > workflow-650 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as widow_control] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1702:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'invalid-xml' }
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 56 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-583 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get alignment [as alignment] packages/docx/src/formatting-model.ts:144:29
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1343:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-584 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get alignment [as alignment] packages/docx/src/formatting-model.ts:144:29
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1349:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-585 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get alignment [as alignment] packages/docx/src/formatting-model.ts:144:29
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1355:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-586 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set alignment [as alignment] packages/docx/src/formatting-model.ts:149:191
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1361:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-587 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set alignment [as alignment] packages/docx/src/formatting-model.ts:149:191
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1368:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-588 observes paragraph alignment variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set alignment [as alignment] packages/docx/src/formatting-model.ts:149:191
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1375:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-589 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_before [as space_before] packages/docx/src/formatting-model.ts:154:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1382:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-590 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_before [as space_before] packages/docx/src/formatting-model.ts:154:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1388:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-591 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_after [as space_after] packages/docx/src/formatting-model.ts:156:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1394:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-592 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get space_after [as space_after] packages/docx/src/formatting-model.ts:156:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1400:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-593 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_before [as space_before] packages/docx/src/formatting-model.ts:155:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1406:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-594 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_before [as space_before] packages/docx/src/formatting-model.ts:155:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1413:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-595 observes paragraph space_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_before [as space_before] packages/docx/src/formatting-model.ts:155:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1420:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-596 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_after [as space_after] packages/docx/src/formatting-model.ts:157:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1427:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-597 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_after [as space_after] packages/docx/src/formatting-model.ts:157:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1434:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-598 observes paragraph space_after variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set space_after [as space_after] packages/docx/src/formatting-model.ts:157:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1441:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-611 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:152:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1448:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-612 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:152:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1454:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-613 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:152:62
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1460:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-614 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.get left_indent [as left_indent] packages/docx/src/formatting-model.ts:167:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1466:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-615 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.get left_indent [as left_indent] packages/docx/src/formatting-model.ts:167:63
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1472:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-616 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get right_indent [as right_indent] packages/docx/src/formatting-model.ts:150:57
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1478:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-617 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get rawElement [as rawElement] packages/docx/src/formatting-model.ts:140:49
+ ❯ ParagraphFormat.property packages/docx/src/formatting-model.ts:142:85
+ ❯ ParagraphFormat.get right_indent [as right_indent] packages/docx/src/formatting-model.ts:150:57
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1484:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-618 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:153:58
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1490:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-619 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:153:58
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1497:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-620 observes paragraph first_line_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set first_line_indent [as first_line_indent] packages/docx/src/formatting-model.ts:153:58
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1504:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-621 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set left_indent [as left_indent] packages/docx/src/formatting-model.ts:168:209
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1511:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-622 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set left_indent [as left_indent] packages/docx/src/formatting-model.ts:168:209
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1518:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-623 observes paragraph left_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set left_indent [as left_indent] packages/docx/src/formatting-model.ts:168:209
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1525:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-624 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set right_indent [as right_indent] packages/docx/src/formatting-model.ts:151:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1532:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-625 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set right_indent [as right_indent] packages/docx/src/formatting-model.ts:151:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1539:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-626 observes paragraph right_indent variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.length packages/docx/src/formatting-model.ts:158:277
+ ❯ ParagraphFormat.set right_indent [as right_indent] packages/docx/src/formatting-model.ts:151:53
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1546:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-627 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_together] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1553:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-628 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_together] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1559:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-629 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_together] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1565:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-630 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_with_next] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1571:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-631 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_with_next] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1577:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-632 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as keep_with_next] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1583:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-633 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as page_break_before] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1589:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-634 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as page_break_before] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1595:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-635 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as page_break_before] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1601:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-636 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as widow_control] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1607:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-637 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as widow_control] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1613:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-638 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ ParagraphFormat.get [as widow_control] packages/docx/src/formatting-model.ts:171:52
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1619:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-639 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_together] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1625:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-640 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_together] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1632:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-641 observes paragraph keep_together variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_together] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1639:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-642 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_with_next] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1646:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-643 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_with_next] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1653:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-644 observes paragraph keep_with_next variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as keep_with_next] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1660:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-645 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as page_break_before] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1667:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-646 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as page_break_before] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1674:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-647 observes paragraph page_break_before variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as page_break_before] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1681:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-648 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as widow_control] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1688:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-649 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as widow_control] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1695:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/56]⎯
+
+ FAIL  packages/docx/src/workflow-behavior-variants.test.ts > workflow-650 observes paragraph widow_control variant
+Error: Malformed, unsupported encoding or prohibited document XML.
+ ❯ documentXmlSteps packages/docx/src/package-xml.ts:112:11
+    110|     if (error instanceof ResourceLimitError || error instanceof Cancel…
+    111|     if (error instanceof XmlLimitError) throw new ResourceLimitError("…
+    112|     throw new InvalidXmlError("Malformed, unsupported encoding or proh…
+       |           ^
+    113|   }
+    114| }
+ ❯ parseDocumentXml packages/docx/src/package-xml.ts:152:27
+ ❯ new DocumentXmlEditor packages/docx/src/xml-write.ts:145:22
+ ❯ editor packages/docx/src/formatting-model.ts:24:72
+ ❯ update packages/docx/src/formatting-model.ts:41:15
+ ❯ ParagraphFormat.set [as widow_control] packages/docx/src/formatting-model.ts:172:67
+ ❯ packages/docx/src/workflow-behavior-variants.test.ts:1702:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/56]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  56 failed | 189 passed (245)
+   Start at  22:43:26
+   Duration  10.32s (transform 842ms, setup 28ms, import 989ms, tests 9.23s, environment 0ms)
+

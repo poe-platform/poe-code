@@ -1,4 +1,6 @@
 import type { AdapterContext } from "./types.js";
+import { pipeRow } from "./gfm-syntax.js";
+import type { Alignment } from "./ast-types.js";
 import { normalizeLabel } from "./commonmark-syntax.js";
 
 export interface BlockPoint { line: number; column: number }
@@ -9,6 +11,7 @@ export interface PendingInline {
 }
 export interface PendingItem { blocks: PendingBlock[]; source: BlockSource }
 export type PendingBlock =
+  | { kind: "table"; alignments: Alignment[]; header: string[]; rows: string[][]; source: BlockSource }
   | { kind: "paragraph"; inline: PendingInline; source: BlockSource }
   | { kind: "heading"; level: number; inline: PendingInline; source: BlockSource }
   | { kind: "thematicBreak"; source: BlockSource }
@@ -38,6 +41,7 @@ type Container =
   | { kind: "list"; node: ListBlock }
   | { kind: "item"; node: PendingItem; indent: number; list: ListBlock; blank: boolean; empty: boolean };
 type Leaf =
+  | { kind: "table"; node: Extract<PendingBlock, { kind: "table" }> }
   | { kind: "paragraph"; node: Extract<PendingBlock, { kind: "paragraph" }> }
   | { kind: "fence"; node: Extract<PendingBlock, { kind: "code" }>; char: string; length: number; indent: number }
   | { kind: "indent"; node: Extract<PendingBlock, { kind: "code" }>; blanks: string[] }
@@ -197,12 +201,12 @@ function htmlStart(text: string, offset: number, interrupt: boolean): { end: rea
   if (blockTags.has(name)) return { end: null };
   if (!interrupt && (closing || !["script", "pre", "style", "textarea"].includes(name)) && completeTag(text, offset)) return { end: null };
 }
-function interrupts(text: string, offset: number): boolean {
+function interrupts(text: string, offset: number, rawHtml = true): boolean {
   const indent = spaces(text, offset);
   if (indent > 3) return false;
   const at = offset + indent;
   const item = marker(text, at);
-  return Boolean(heading(text, at) || rule(text, at) || fence(text, at) || text[at] === ">" || htmlStart(text, at, true) ||
+  return Boolean(heading(text, at) || rule(text, at) || fence(text, at) || text[at] === ">" || rawHtml && htmlStart(text, at, true) ||
     (item && !item.empty && (item.start === null || item.start === 1)));
 }
 
@@ -210,7 +214,8 @@ function interrupts(text: string, offset: number): boolean {
 export async function parseCommonMarkBlocks(
   text: string,
   context: AdapterContext,
-  source = "input"
+  source = "input",
+  extensions: Readonly<Record<string, boolean>> = {}
 ): Promise<CommonMarkBlockDocument> {
   context.checkpoint(0);
   context.charge("text", text.length);
@@ -332,7 +337,7 @@ export async function parseCommonMarkBlocks(
       const siblingIndent = spaces(line.text, offset);
       const sibling = siblingIndent <= 3 ? marker(line.text, offset + siblingIndent) : undefined;
       const siblingItem = failed?.kind === "item" && sibling;
-      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !interrupts(line.text, offset)) {
+      if (leaf?.kind === "paragraph" && !blank && !siblingItem && !interrupts(line.text, offset, extensions.raw_html !== false)) {
         leaf.node.inline.lines.push(inlineLine(line, offset + spaces(line.text, offset)));
         leaf.node.source.end = endPoint(line);
         for (const container of stack) container.node.source.end = endPoint(line);
@@ -396,6 +401,42 @@ export async function parseCommonMarkBlocks(
       if (deepest) deepest.blank = true;
       continue;
     }
+    if (leaf?.kind === "table") {
+      const row = !interrupts(line.text, offset, extensions.raw_html !== false) ? pipeRow(rawFrom(line, offset), context) : undefined;
+      if (row) {
+        context.charge("tableCells", leaf.node.alignments.length);
+        leaf.node.rows.push(row.slice(0, leaf.node.alignments.length));
+        leaf.node.source.end = endPoint(line);
+        continue;
+      }
+      finish();
+    }
+    if (extensions.pipe_tables && leaf?.kind === "paragraph" && leaf.node.inline.lines.length === 1) {
+      const header = pipeRow(leaf.node.inline.lines[0]!.text, context);
+      const delimiter = pipeRow(rawFrom(line, offset), context);
+      const alignments: Alignment[] = [];
+      if (header && delimiter && header.length === delimiter.length) {
+        for (const cell of delimiter) {
+          context.checkpoint(cell.length);
+          let at = cell.startsWith(":") ? 1 : 0;
+          const begin = at;
+          while (cell[at] === "-") at++;
+          const right = cell[at] === ":";
+          if (right) at++;
+          if (at !== cell.length || at === begin || cell[begin] !== "-") break;
+          alignments.push(cell.startsWith(":") ? right ? "AlignCenter" : "AlignLeft" : right ? "AlignRight" : "AlignDefault");
+        }
+        if (alignments.length === header.length) {
+          const previous = leaf.node;
+          context.charge("tableCells", header.length);
+          const node: Extract<PendingBlock, { kind: "table" }> = { kind: "table", alignments, header, rows: [], source: { ...previous.source, end: endPoint(line) } };
+          const siblings = blocks();
+          siblings[siblings.indexOf(previous)] = node;
+          leaf = { kind: "table", node };
+          continue;
+        }
+      }
+    }
     const initialIndent = spaces(line.text, offset);
     const underline = initialIndent <= 3 ? setext(line.text, offset + initialIndent) : 0;
     if (leaf?.kind === "paragraph" && underline) {
@@ -409,7 +450,7 @@ export async function parseCommonMarkBlocks(
       }
       leaf = undefined;
     }
-    if (leaf?.kind === "paragraph" && !interrupts(line.text, offset)) {
+    if (leaf?.kind === "paragraph" && !interrupts(line.text, offset, extensions.raw_html !== false)) {
       leaf.node.inline.lines.push(inlineLine(line, offset + initialIndent));
       leaf.node.source.end = endPoint(line);
       continue;
@@ -476,7 +517,7 @@ export async function parseCommonMarkBlocks(
         leaf = { kind: "fence", node, ...opening, indent };
         break;
       }
-      const html = indent <= 3 ? htmlStart(line.text, at, false) : undefined;
+      const html = extensions.raw_html !== false && indent <= 3 ? htmlStart(line.text, at, false) : undefined;
       if (html) {
         const literal = rawFrom(line, offset) + (ending || "\n");
         context.charge("retainedBytes", literal.length * 2);

@@ -18,7 +18,7 @@ describe("declarative format registry", () => {
     const registry = createFormatRegistry(coreFormats);
     expect(
       registry.parse("gfm-pipe_tables+pipe_tables-strikeout-strikeout", "read").extensions
-    ).toEqual({ autolink_bare_uris: true, pipe_tables: true, strikeout: false, task_lists: true });
+    ).toEqual({ autolink_bare_uris: true, pipe_tables: true, raw_html: true, strikeout: false, task_lists: true });
     for (const name of ["gfm+", "gfm--strikeout", "gfm+unknown", "commonmark+pipe_tables"])
       expect(() => registry.parse(name, "read")).toThrowError(
         expect.objectContaining({ code: "E_EXTENSION" })
@@ -37,7 +37,7 @@ describe("declarative format registry", () => {
     const registry = createFormatRegistry([...coreFormats].reverse(), {
       reader: { format: "docx", read }
     });
-    expect(registry.list("read")).toEqual(["commonmark", "docx", "json"]);
+    expect(registry.list("read")).toEqual(["commonmark", "docx", "gfm", "json"]);
     expect(registry.list("write")).toEqual(["json"]);
     expect(registry.infer("file.md", "read")).toBe("commonmark");
     expect(registry.infer("file.html", "write")).toBe("html5");
@@ -45,6 +45,7 @@ describe("declarative format registry", () => {
     expect(registry.listExtensions("gfm")).toEqual([
       "+autolink_bare_uris",
       "+pipe_tables",
+      "+raw_html",
       "+strikeout",
       "+task_lists"
     ]);

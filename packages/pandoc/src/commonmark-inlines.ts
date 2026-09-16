@@ -1,3 +1,4 @@
+import { bareAutolink, filterGfmHtml } from "./gfm-syntax.js";
 import type { Inline, Attr } from "./ast-types.js";
 import type { BlockDefinition, PendingInline } from "./commonmark-blocks.js";
 import type { AdapterContext } from "./types.js";
@@ -154,7 +155,8 @@ function html(text: string, start: number, context: AdapterContext): number | un
  * stacks, nodes and strings reserve capacity, and AST nesting is bounded before
  * recursive materialization. Definitions have already been discovered globally. */
 export async function parseCommonMarkInlines(
-  pending: PendingInline, definitions: readonly BlockDefinition[], context: AdapterContext
+  pending: PendingInline, definitions: readonly BlockDefinition[], context: AdapterContext,
+  extensions: Readonly<Record<string, boolean>> = {}
 ): Promise<Inline[]> {
   context.checkpoint(0);
   const size = pending.lines.reduce((n, line) => n + line.text.length + 1, -1);
@@ -208,7 +210,7 @@ export async function parseCommonMarkInlines(
       let opener = closer.previous;
       while (opener && opener.index > floor) {
         await context.cooperate();
-        if (opener.char === closer.char && opener.open && !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0))) break;
+        if (opener.char === closer.char && opener.open && (closer.char === "~" || !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
         opener = opener.previous;
       }
       if (!opener || opener.index <= floor) {
@@ -227,7 +229,7 @@ export async function parseCommonMarkInlines(
       const last = closer.node.previous;
       context.charge("nodes", 1);
       context.charge("retainedBytes", 128);
-      const wrap: Node = { value: { t: count === 2 ? "Strong" : "Emph", c: [] }, children: first, previous: opener.node, next: closer.node };
+      const wrap: Node = { value: { t: opener.char === "~" ? "Strikeout" : count === 2 ? "Strong" : "Emph", c: [] }, children: first, previous: opener.node, next: closer.node };
       if (first) first.previous = null;
       if (last) last.next = null;
       opener.node.next = wrap;
@@ -286,16 +288,17 @@ export async function parseCommonMarkInlines(
       i = close + count;
       continue;
     }
-    if (char === "*" || char === "_") {
+    if (char === "*" || char === "_" || char === "~" && extensions.strikeout) {
       let end = i;
       while (text[end] === char) { context.checkpoint(); end++; }
+      if (char === "~" && end - i !== 2) { append(text.slice(i, end)); i = end; continue; }
       const prev = before(text, i), next = after(text, end);
       const left = !unicodeWhitespace(next) && (!unicodePunctuation(next) || unicodeWhitespace(prev) || unicodePunctuation(prev));
       const right = !unicodeWhitespace(prev) && (!unicodePunctuation(prev) || unicodeWhitespace(next) || unicodePunctuation(next));
       const node = append(text.slice(i, end));
       context.bound("references", ++delimiterCount + bracketCount);
       context.charge("retainedBytes", 96);
-      const entry: Delimiter = { node, char, length: end - i, original: end - i, open: char === "*" ? left : left && (!right || unicodePunctuation(prev)), close: char === "*" ? right : right && (!left || unicodePunctuation(next)), index: serial++, previous: delimiter, next: null };
+      const entry: Delimiter = { node, char, length: end - i, original: end - i, open: char !== "_" ? left : left && (!right || unicodePunctuation(prev)), close: char !== "_" ? right : right && (!left || unicodePunctuation(next)), index: serial++, previous: delimiter, next: null };
       if (delimiter) delimiter.next = entry;
       delimiter = entry;
       i = end;
@@ -354,7 +357,19 @@ export async function parseCommonMarkInlines(
         continue;
       }
       const end = html(text, i, context);
-      if (end !== undefined) { append({ t: "RawInline", c: ["html", text.slice(i, end)] }); i = end; continue; }
+      if (end !== undefined) {
+        const literal = text.slice(i, end);
+        if (extensions.raw_html === false || Object.hasOwn(extensions, "raw_html") && filterGfmHtml(literal, context) !== literal) append(literal);
+        else append({ t: "RawInline", c: ["html", literal] });
+        i = end; continue;
+      }
+    }
+    if (extensions.autolink_bare_uris && !bracket) {
+      const auto = bareAutolink(text, i, context);
+      if (auto) {
+        append({ t: "Link", c: [attr(), [{ t: "Str", c: auto.label }], [normalizeUri(auto.url, context), ""]] });
+        deactivateLinks(); i = auto.end; continue;
+      }
     }
     if (char === "&") {
       const decoded = entity(text, i, context);
@@ -370,7 +385,7 @@ export async function parseCommonMarkInlines(
       continue;
     }
     const begin = i++;
-    while (i < text.length && !"\\`*_[]!<& \t\n".includes(text[i]!)) { context.checkpoint(); i++; }
+    while (i < text.length && !"\\`*_~[]!<& \t\n".includes(text[i]!) && !(extensions.autolink_bare_uris && (text.startsWith("https://", i) || text.startsWith("http://", i) || text.startsWith("ftp://", i) || text.startsWith("www.", i) || (letter(text[i]) || digit(text[i])) && !letter(text[i - 1]) && !digit(text[i - 1]) && !".-_+".includes(text[i - 1] ?? "")))) { context.checkpoint(); i++; }
     append(text.slice(begin, i));
   }
   await emphasis(null);
@@ -415,7 +430,7 @@ export async function parseCommonMarkInlines(
       let value = node.value;
       if (node.children) {
         const children = await materialize(node.children, depth + 1);
-        if (value.t === "Emph" || value.t === "Strong") value = { t: value.t, c: children };
+        if (value.t === "Emph" || value.t === "Strong" || value.t === "Strikeout") value = { t: value.t, c: children };
         if (value.t === "Link" || value.t === "Image") value = { t: value.t, c: [value.c[0], children, value.c[2]] };
       }
       push(value);

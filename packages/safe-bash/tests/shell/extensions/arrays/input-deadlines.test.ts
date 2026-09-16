@@ -457,7 +457,7 @@ for (const timeoutMs of [0, -1, NaN, Infinity]) test(`invalid timeout is rejecte
 
 async function native(script: string, input: string | Uint8Array, eof: boolean, args: string[] = [], locale = "C"): Promise<Buffer> {
   const executable = authenticateOracle();
-  const child = spawn(executable, ["--noprofile", "--norc", "-c", `IFS= read -r gate; ${script}`, "probe", ...args], { env: { LC_ALL: locale, PATH: "/__no_native_path__" }, stdio: ["pipe", "pipe", "pipe"] });
+  const child = spawn(executable, ["--noprofile", "--norc", "-c", '"$BASH" --noprofile --norc -c "$1" probe "${@:2}" < <(/bin/cat 2>/dev/null); status=$?; producer=$!; kill "$producer" 2>/dev/null || :; wait "$producer" 2>/dev/null || :; exit "$status"', "oracle", `IFS= read -r gate; ${script}`, ...args], { env: { LC_ALL: locale, PATH: "/__no_native_path__" }, stdio: ["pipe", "pipe", "pipe"] });
   const stdout: Buffer[] = [];
   const stderr: Buffer[] = [];
   let size = 0;

@@ -3,10 +3,16 @@
 README draft for the private TypeScript ESM package. Package README publication
 awaits explicit permission.
 
-The current package reads bounded ZIP containers from supplied bytes. It returns
-owned, decompressed members only after every member passes structural, size and
-CRC validation. This is the archive foundation; document editing and commands
-are not implemented yet.
+The private workspace exposes bounded package admission, inspection, text and
+structure editing, typed utility batches, immutable Image/URI values and a
+bounded style/formatting model. It is not a Word renderer or complete live
+Document model. [Usage](usage.md) documents verified imports, command injection,
+all operation schemas/options, limits, environments and output safety;
+[acceptance](acceptance-matrix.md) records current read/edit/preserve/reject levels.
+The API and publication boundaries remain qualified subsets. Applying this draft
+to a package README requires explicit permission and is pending.
+
+The following low-level archive example is distinct from utility operations:
 
 ```typescript
 import { readArchive } from "docx";
@@ -38,18 +44,18 @@ operation-level overrides, implicit defaults, environment variables or config
 files. It has no filesystem or networking authority. Local workspace imports
 are supported; the package is private and has no published installation promise.
 
-| Option | Meaning |
-| --- | --- |
-| `maxArchiveBytes` | Compressed container byte ceiling before copying |
-| `maxEntryBytes` | Declared and actual expanded bytes per member |
-| `maxTotalBytes` | Aggregate expanded member bytes |
-| `maxMembers` | Central directory member count |
-| `maxPathBytes` | Raw and decoded UTF-8 path bytes, also bounded by ZIP fields |
-| `maxDepth` | Slash-separated path components |
-| `maxExtraBytes` | Extra field bytes per local or central header |
-| `maxCommentBytes` | Archive/member/Unicode-comment bytes |
-| `maxRetainedBytes` | Conservative owned-buffer admission budget |
-| `chunkSize` | Requested processing bytes; 512 through 1048576, capped at 65536 internally |
+| Option             | Meaning                                                                     |
+| ------------------ | --------------------------------------------------------------------------- |
+| `maxArchiveBytes`  | Compressed container byte ceiling before copying                            |
+| `maxEntryBytes`    | Declared and actual expanded bytes per member                               |
+| `maxTotalBytes`    | Aggregate expanded member bytes                                             |
+| `maxMembers`       | Central directory member count                                              |
+| `maxPathBytes`     | Raw and decoded UTF-8 path bytes, also bounded by ZIP fields                |
+| `maxDepth`         | Slash-separated path components                                             |
+| `maxExtraBytes`    | Extra field bytes per local or central header                               |
+| `maxCommentBytes`  | Archive/member/Unicode-comment bytes                                        |
+| `maxRetainedBytes` | Conservative owned-buffer admission budget                                  |
+| `chunkSize`        | Requested processing bytes; 512 through 1048576, capped at 65536 internally |
 
 Limits are safe integers. Metadata byte ceilings may be zero; other capacities
 must be positive. Retained admission reserves four times the input byte count,

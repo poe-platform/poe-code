@@ -138,6 +138,7 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "packages/safe-bash/**",
+      "packages/safe-playwright/**",
       "packages/op/src/*.test.ts",
       "scripts/**/*.lifecycle.test.ts",
       // Share the package's temporary quarantine with root/shared unit runs.

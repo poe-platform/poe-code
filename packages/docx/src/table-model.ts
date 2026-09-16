@@ -1,4 +1,7 @@
 import type { ModelStore, ModelRef } from "./model-store.js";
+import { InputTypeError } from "./archive.js";
+import { BoundsError } from "./model-errors.js";
+import { numericSequence } from "./numeric-index.js";
 import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { mergedTableGrid, editMergedTable } from "./table-merge.js";
@@ -46,9 +49,9 @@ function mark(w: string, tag: string, attrs: Record<string, string> = {}, body =
     .join("")}>${body}</tm:${tag}>`;
 }
 function index(length: number, value: number): number {
-  if (!Number.isSafeInteger(value)) throw new TypeError("Expected an integer index.");
+  if (!Number.isSafeInteger(value)) throw new InputTypeError("Expected an integer index.");
   const result = value < 0 ? length + value : value;
-  if (result < 0 || result >= length) throw new RangeError("Table index is out of range.");
+  if (result < 0 || result >= length) throw new BoundsError("Table index is out of range.");
   return result;
 }
 function enumName<E extends keyof DocxEnumNames>(
@@ -204,7 +207,7 @@ export class Table {
       row = index(grid.rows.length, row_idx),
       column = index(grid.columns.length, col_idx),
       owner = grid.slots[row]?.[column];
-    if (!owner) throw new RangeError("The selected grid slot is omitted.");
+    if (!owner) throw new BoundsError("The selected grid slot is omitted.");
     return this.logicalCell(grid.original(owner.node));
   }
   row_cells(row_idx: number): _Cell[] {
@@ -528,8 +531,11 @@ export class _Column {
   }
 }
 export class _Rows implements Iterable<_Row> {
+  readonly [index: number]: _Row;
   private readonly cache = new Map<number, _Row>();
-  constructor(private readonly owner: Table) {}
+  constructor(private readonly owner: Table) {
+    return numericSequence(this);
+  }
   get table(): Table {
     this.owner.store.node(this.owner.ref);
     return this.owner;
@@ -541,6 +547,9 @@ export class _Rows implements Iterable<_Row> {
     return this.table.grid().rows.length;
   }
   slice(start = 0, end = this.length): _Row[] {
+    for (const value of [start, end])
+      if (!Number.isSafeInteger(value))
+        throw new InputTypeError("Expected safe integer slice bounds.");
     return [...this].slice(start, end);
   }
   at(value: number): _Row {
@@ -559,8 +568,11 @@ export class _Rows implements Iterable<_Row> {
   }
 }
 export class _Columns implements Iterable<_Column> {
+  readonly [index: number]: _Column;
   private readonly cache = new Map<number, _Column>();
-  constructor(private readonly owner: Table) {}
+  constructor(private readonly owner: Table) {
+    return numericSequence(this);
+  }
   get table(): Table {
     this.owner.store.node(this.owner.ref);
     return this.owner;

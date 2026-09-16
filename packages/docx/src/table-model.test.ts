@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Volume } from "memfs";
 import { Table } from "./table-model.js";
+import { InputTypeError } from "./archive.js";
+import { BoundsError } from "./model-errors.js";
 import { ModelStore as Store, type ModelRef } from "./model-store.js";
 import type { ModelStore } from "./model-store.js";
 import { readDocumentArchive } from "./admission.js";
@@ -82,6 +84,65 @@ function fixture(rows: string, columns = 3) {
 }
 
 describe("live table model", () => {
+  it("provides live readonly numeric row and column lookup", () => {
+    const { table, fs } = fixture(`<w:tr>${tc("A")}${tc("B")}</w:tr>`, 2);
+    const rows = table.rows as unknown as Record<number, ReturnType<typeof table.rows.at>>;
+    const columns = table.columns as unknown as Record<number, ReturnType<typeof table.columns.at>>;
+    const before = fs.toJSON();
+    expect(rows[0]).toBe(table.rows.at(0));
+    expect(columns[1]).toBe(table.columns.at(1));
+    for (const sequence of [rows, columns]) {
+      expect(() => { sequence[0] = sequence[0]!; }).toThrow(InputTypeError);
+      expect(() => { delete sequence[0]; }).toThrow(InputTypeError);
+      expect(() => Object.defineProperty(sequence, "0", { value: null })).toThrow(InputTypeError);
+    }
+    expect(fs.toJSON()).toEqual(before);
+    table.add_row();
+    table.add_column(Inches(1));
+    expect(rows[1]).toBe(table.rows.at(-1));
+    expect(columns[2]).toBe(table.columns.at(-1));
+    expect("slice" in table.columns).toBe(false);
+  });
+
+  it("uses typed errors for invalid and absent table indexes", () => {
+    const { table, fs } = fixture(`<w:tr>${tc()}</w:tr>`, 1);
+    const before = fs.toJSON();
+    for (const at of [
+      (value: number) => table.rows.at(value),
+      (value: number) => table.columns.at(value),
+      (value: number) => table.cell(value, 0),
+      (value: number) => table.cell(0, value),
+      (value: number) => table.row_cells(value),
+      (value: number) => table.column_cells(value)
+    ]) {
+      for (const value of [0.5, NaN, Infinity, "0" as unknown as number])
+        expect(() => at(value)).toThrow(InputTypeError);
+      for (const value of [1, -2]) expect(() => at(value)).toThrow(BoundsError);
+    }
+    const rows = table.rows as unknown as Record<number, unknown>;
+    const columns = table.columns as unknown as Record<number, unknown>;
+    for (const sequence of [rows, columns]) {
+      expect(() => sequence[1]).toThrow(BoundsError);
+      expect(() => sequence[0.5]).toThrow(InputTypeError);
+    }
+    const omitted = fixture(`<w:tr><w:trPr><w:gridBefore w:val="1"/></w:trPr>${tc()}</w:tr>`, 2);
+    expect(() => omitted.table.cell(0, 0)).toThrow(BoundsError);
+    expect(fs.toJSON()).toEqual(before);
+  });
+
+  it("validates row slice bounds while retaining exclusive-end normalization", () => {
+    const { table, fs } = fixture(`<w:tr>${tc("A")}</w:tr><w:tr>${tc("B")}</w:tr><w:tr>${tc("C")}</w:tr>`, 1);
+    const before = fs.toJSON();
+    expect(table.rows.slice(-2, 3)).toEqual([table.rows.at(1), table.rows.at(2)]);
+    expect(table.rows.slice(2, 1)).toEqual([]);
+    expect(table.rows.slice(-100, 100)).toEqual([...table.rows]);
+    for (const value of [0.5, NaN, Infinity, "1" as unknown as number]) {
+      expect(() => table.rows.slice(value)).toThrow(InputTypeError);
+      expect(() => table.rows.slice(0, value)).toThrow(InputTypeError);
+    }
+    expect(fs.toJSON()).toEqual(before);
+  });
+
   it("distinguishes absent row slots from empty cells and repeats merged logical owners", () => {
     const { table } = fixture(
       `<w:tr><w:trPr><w:gridBefore w:val="1"/></w:trPr>${tc("Owner", '<w:gridSpan w:val="2"/><w:vMerge w:val="restart"/>')}</w:tr><w:tr><w:trPr><w:gridBefore w:val="1"/></w:trPr>${tc("", '<w:gridSpan w:val="2"/><w:vMerge/>')}</w:tr><w:tr>${tc()}${tc("B")}${tc("C")}</w:tr>`

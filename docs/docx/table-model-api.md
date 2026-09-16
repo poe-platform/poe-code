@@ -14,7 +14,7 @@ absent from implementation, comments and tests.
 | _Cell | Public returned owner; part, element, table, add_paragraph, add_table, grid_span, iter_inner_content, merge, paragraphs, tables, text, vertical_alignment and width. Direct paragraph/table traversal retains order; descendant paragraphs are excluded. Whole text delegates to the shared guarded replacement operation. |
 | _Row | cells, table, part, element, grid_cols_before, grid_cols_after, height and height_rule. Height and rule null setters clear their own attribute independently. |
 | _Column | cells, table, part, element and nullable width; declared width uses EMUs/Length views and exact stored twips. |
-| _Rows / _Columns | Public underscore spellings retained; zero-based at(index), negative indexes, length and Symbol.iterator; inherited table/part; _Rows.slice(start,end) uses JS exclusive-end slicing. Invalid or omitted positions throw bounds errors. |
+| _Rows / _Columns | Public underscore spellings retained; readonly zero-based numeric lookup, at(index), negative indexes, length and Symbol.iterator; inherited table/part; _Rows.slice(start,end) uses checked integer bounds and JS exclusive-end slicing. Invalid types throw InputTypeError; absent positions and omitted grid slots throw BoundsError. |
 | Merged cells | Horizontal grid spans and vertical continuation slots return the same logical cell owner. Omitted grid slots remain absent; empty present cells retain empty text. Columns exclude absent slots and repeat merged aliases. |
 | Nested content | iter_inner_content yields direct paragraph and table owners in stored order. add_table uses admitted geometry and the shared creation engine, including the terminal cell paragraph. |
 | Formatting | Existing neutral enum family names and aliases remain in formatting-values.ts. Table direction is table_direction; no historical direction alias is invented. Nullable properties remove inherited overrides. |
@@ -106,11 +106,11 @@ identities. T1–T11 identify these original cases in table-model.test.ts:
 | _Row.part | part:XmlPartView (get; inherited owner) | T10,T11 |
 | _Column.part | part:XmlPartView (get; inherited owner) | T10,T11 |
 | _Rows.part | part:XmlPartView (get; inherited owner) | T10,T11 |
-| _Rows.__getitem__ | at(value:number):_Row; slice(start=0,end=length):_Row[] | T1,T10 |
+| _Rows.__getitem__ | readonly [index:number]:_Row; at(value:number):_Row; slice(start=0,end=length):_Row[] | T1,T10; verification regressions below |
 | _Rows.__iter__ | [Symbol.iterator]():Iterator<_Row> | T1,T10 |
 | _Rows.__len__ | length:number (get) | T1,T4 |
 | _Columns.part | part:XmlPartView (get; inherited owner) | T10,T11 |
-| _Columns.__getitem__ | at(value:number):_Column | T1,T10 |
+| _Columns.__getitem__ | readonly [index:number]:_Column; at(value:number):_Column | T1,T10; verification regressions below |
 | _Columns.__iter__ | [Symbol.iterator]():Iterator<_Column> | T1,T10 |
 | _Columns.__len__ | length:number (get) | T1,T4 |
 | Table.direction | documentation error D03: no direction alias; table_direction replacement | T10 |
@@ -120,6 +120,16 @@ member. part rows retain their inherited story/parent-owner obligations. The
 underscore class names remain publicly exported.
 Collection indexing uses explicit JS at/slice methods; collection iteration and
 length map the inventoried protocols rather than disappearing from scope.
+
+The 2026-09-15 task verification reproduced three additional original memfs reds
+before changing code: missing numeric collection lookup, generic table index
+errors, and coercive row slice bounds. The same tests now pass, including numeric
+lookup after row/column growth, rejected assignment/deletion/definition, omitted
+slots, negative and absent indexes, invalid types and exclusive-end slicing.
+Both public collections reuse the existing checked numeric-sequence adapter;
+columns do not acquire an unsupported slice method. There are now 14 original
+table-model tests. Full verification and maintained checks are recorded in
+[the verification evidence](table-section-review-verification-20260915.md).
 
 ## Source-case candidate counts
 

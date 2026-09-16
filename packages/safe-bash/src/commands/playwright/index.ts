@@ -6,7 +6,7 @@ import { writeBytes } from '../../contracts/io.js';
 export type PlaywrightCliOptions = PlaywrightControllerOptions & { readonly replace?: boolean };
 
 /** Host-owned qualified agent subset; never installed by agentCommands. */
-export function createPlaywrightCli(options: PlaywrightCliOptions): { readonly plugin: VirtualShellPlugin; dispose(): Promise<void> } {
+export function createPlaywrightCli(options: PlaywrightCliOptions = {}): { readonly plugin: VirtualShellPlugin; dispose(): Promise<void> } {
   if (options?.replace !== undefined && typeof options.replace !== 'boolean') throw new TypeError('Invalid Playwright replacement option');
   const { replace, ...controllerOptions } = options;
   const controller = createPlaywrightController(controllerOptions);

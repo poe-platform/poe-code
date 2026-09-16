@@ -1,9 +1,10 @@
 import type { PlaywrightAdapter, PlaywrightLease, PlaywrightPage } from './adapter.js';
 import { createSnapshotEngine } from './snapshot.js';
 import { parseInvocation, type PlaywrightInvocation } from './invocation.js';
+import { formatPlaywrightHelp } from './help.js';
 
 export interface PlaywrightControllerOptions {
-  readonly adapter: PlaywrightAdapter;
+  readonly adapter?: PlaywrightAdapter;
   readonly limits?: { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly maxSnapshotBytes?: number; readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number };
   /** Billing declarations are separate; reporting/charging is not implemented. */
   readonly billing?: never;
@@ -22,8 +23,9 @@ interface Session {
   releasing?: Promise<void>;
 }
 
-export function createPlaywrightController(options: PlaywrightControllerOptions) {
-  if (!options?.adapter || typeof options.adapter.acquire !== 'function') throw new TypeError('An injected Playwright adapter is required');
+export function createPlaywrightController(options: PlaywrightControllerOptions = {}) {
+  if (!options || typeof options !== 'object') throw new TypeError('Invalid Playwright configuration');
+  if (options.adapter !== undefined && (!options.adapter || typeof options.adapter.acquire !== 'function')) throw new TypeError('An injected Playwright adapter is required');
   if (Object.keys(options).some(key => !['adapter', 'limits', 'billing'].includes(key))) throw new TypeError('Unsupported Playwright configuration');
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs'].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
@@ -125,6 +127,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
     };
     const execute = async () => {
       check();
+      if (parsed.command === 'help') {
+        await invocation.write(formatPlaywrightHelp(parsed.topic));
+        check();
+        return;
+      }
       if (parsed.command === 'list') {
         await invocation.write([...sessions.values()].map(s => `${s.name}\t${s.state}\n`).join(''));
         check();
@@ -163,7 +170,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
             active = { name: parsed.session, generation: ++generation, state: 'acquiring', snapshot: createSnapshotEngine({ maxSnapshotBytes, maxSnapshotRefs }, () => `e${++refSequence}`) };
             sessions.set(parsed.session, active);
             const session = active;
-            session.lease = await options.adapter.acquire({ acquisitionId: `playwright-${session.generation}`, session: session.name, browser: parsed.browser, headless: parsed.headless, signal: local.signal });
+            session.lease = await options.adapter!.acquire({ acquisitionId: `playwright-${session.generation}`, session: session.name, browser: parsed.browser, headless: parsed.headless, signal: local.signal });
             check();
             const unsubscribe = session.lease.onClosed(() => {
               // A late notification belongs only to the lease's own generation.

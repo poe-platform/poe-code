@@ -1,4 +1,5 @@
 import type { BrowserEngine, PlaywrightAdapter } from './adapter.js';
+import { playwrightCommands, type PlaywrightCommand } from './help.js';
 
 export interface PlaywrightInvocation {
   readonly args: readonly string[];
@@ -11,7 +12,7 @@ export interface PlaywrightInvocation {
   readonly registerCleanup?: ((cleanup: () => Promise<void>) => void) | undefined;
 }
 export type ParsedInvocation = {
-  command: 'open' | 'goto' | 'list' | 'close' | 'close-all' | 'snapshot' | 'click' | 'fill' | 'press' | 'screenshot' | 'tab-list' | 'tab-new' | 'tab-select' | 'tab-close';
+  command: PlaywrightCommand;
   session: string;
   browser: BrowserEngine;
   headless: boolean;
@@ -24,7 +25,7 @@ export type ParsedInvocation = {
   imageType: 'png' | 'jpeg';
 };
 
-export function parseInvocation(invocation: PlaywrightInvocation, adapter: PlaywrightAdapter): ParsedInvocation {
+export function parseInvocation(invocation: PlaywrightInvocation, adapter?: PlaywrightAdapter): ParsedInvocation | { command: 'help'; topic?: PlaywrightCommand | 'tab' } {
   let session: string | undefined;
   let browser: string = 'chromium';
   let headless = true;
@@ -32,6 +33,7 @@ export function parseInvocation(invocation: PlaywrightInvocation, adapter: Playw
   let fullPage = false;
   let browserOption = false;
   let modeOption = false;
+  let help = false;
   const positional: string[] = [];
   const seen = new Set<string>();
   let literal = false;
@@ -50,22 +52,23 @@ export function parseInvocation(invocation: PlaywrightInvocation, adapter: Playw
       if (key === '--session') session = value;
       else if (key === '--filename') filename = value;
       else { browser = value; browserOption = true; }
-    } else if (key === '--headed' || key === '--headless') {
+    } else if ((key === '--help' || key === '-h') && separator === -1) help = true;
+    else if (key === '--headed' || key === '--headless') {
       if (separator !== -1 || modeOption) throw new Error(`Invalid option: ${arg}`);
       headless = key === '--headless'; modeOption = true;
     } else if (key === '--full-page' && separator === -1) fullPage = true;
     else throw new Error(`Unsupported option: ${arg}`);
   }
-  session ??= invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
-  if (!session || session.length > 128 || [...session].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(char))) throw new Error('Invalid session name');
+  if (positional[0] === 'help') { help = true; positional.shift(); }
+  if (help && (positional.length === 0 || positional.length === 1 && positional[0] === 'tab')) return { command: 'help', ...(positional[0] === 'tab' ? { topic: 'tab' } : {}) };
   // Accept both agent-oriented CLI tab-* spellings and tab <operation>.
   if (positional[0] === 'tab') positional.splice(0, 2, `tab-${positional[1] ?? ''}`);
   const command = positional[0] as ParsedInvocation['command'];
-  const arity: Record<ParsedInvocation['command'], readonly [number, number]> = {
-    open: [1, 2], goto: [2, 2], list: [1, 1], close: [1, 1], 'close-all': [1, 1], snapshot: [1, 1], click: [2, 2], fill: [3, 3], press: [2, 2], screenshot: [1, 1], 'tab-list': [1, 1], 'tab-new': [1, 2], 'tab-select': [2, 2], 'tab-close': [1, 2],
-  };
-  if (!Object.hasOwn(arity, command)) throw new Error(`Unsupported command in qualified subset: ${command ?? ''}`);
-  const [min, max] = arity[command];
+  if (!Object.hasOwn(playwrightCommands, command)) throw new Error(`Unsupported command in qualified subset: ${command ?? ''}`);
+  if (help) return { command: 'help', topic: command };
+  session ??= invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
+  if (!session || session.length > 128 || [...session].some(char => !'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-'.includes(char))) throw new Error('Invalid session name');
+  const [min, max] = playwrightCommands[command].arity;
   if (positional.length < min || positional.length > max) throw new Error(`Invalid arguments for ${command}`);
   if (command !== 'open' && (browserOption || modeOption)) throw new Error('Browser options require open');
   if (filename !== undefined && command !== 'snapshot' && command !== 'screenshot') throw new Error('Filename requires snapshot or screenshot');
@@ -75,6 +78,7 @@ export function parseInvocation(invocation: PlaywrightInvocation, adapter: Playw
   }
   if (browser !== 'chromium' && browser !== 'firefox' && browser !== 'webkit') throw new Error(`Unsupported browser: ${browser}`);
   if (command === 'open') {
+    if (!adapter) throw new Error('An injected Playwright adapter is required');
     const capability = adapter.browsers[browser];
     if (!capability) throw new Error(`Unsupported browser: ${browser}`);
     if (!headless && !capability.headed) throw new Error(`Headed mode is unsupported for ${browser}`);

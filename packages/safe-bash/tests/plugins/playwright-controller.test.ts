@@ -37,6 +37,19 @@ function fixture(maxSessions = 2) {
   return { controller, adapter, events, leases, run };
 }
 
+test('SDK help needs no adapter, artifact sink or valid session environment', async () => {
+  const controller = createPlaywrightController();
+  try {
+    let output = '';
+    await controller.run({ args: ['--help', 'snapshot'], env: { PLAYWRIGHT_CLI_SESSION: 'invalid session' }, signal: new AbortController().signal, write: async text => { output += text; } });
+    assert.ok(output.includes('Usage: playwright-cli snapshot'));
+    assert.ok(output.includes('--filename'));
+    assert.ok(output.includes('refs'));
+    const signal = AbortSignal.abort(new Error('cancelled help'));
+    await assert.rejects(controller.run({ args: ['--help'], env: {}, signal, write: async () => { throw new Error('unexpected write'); } }), /cancelled help/);
+  } finally { await controller.dispose(); }
+});
+
 test('session selection, retained ownership, explicit engine, and idempotent disposal', async () => {
   const f = fixture(3);
   await f.run(['open']);

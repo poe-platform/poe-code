@@ -23,6 +23,50 @@ function fixture() {
   return { volume, output, adapter, get releases() { return releases; } };
 }
 
+test('standard help works through the shell with and without a configured adapter and never acquires a browser', async () => {
+  const configured = fixture();
+  for (const options of [{ adapter: configured.adapter }, {}]) {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    const cli = createPlaywrightCli(options);
+    shell.use(cli.plugin);
+    try {
+      for (const args of ['--help', '-h', 'help']) {
+        const result = await shell.exec(`playwright-cli ${args}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stderr, '');
+        for (const expected of ['Usage:', 'open [url]', 'goto <url>', 'snapshot', 'click <ref>', 'fill <ref> <text>', 'press <key>', 'screenshot', 'tab-list', 'tab-new', 'tab-select', 'tab-close', 'close-all', '--session', '-s', 'PLAYWRIGHT_CLI_SESSION', 'default', '--filename', '--full-page', 'Unsupported']) assert.ok(result.stdout.includes(expected), expected);
+      }
+      const unsupported = await shell.exec('playwright-cli run-code --help');
+      assert.equal(unsupported.exitCode, 1);
+      assert.equal(unsupported.stdout, '');
+    } finally { await shell.dispose(); }
+  }
+  assert.deepEqual(configured.output, []);
+  assert.equal(configured.releases, 0);
+});
+
+test('command help accepts standard prefix and suffix forms without arguments or browser capabilities', async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  shell.use(createPlaywrightCli().plugin);
+  try {
+    for (const args of ['--help screenshot', 'screenshot --help', 'help screenshot']) {
+      const result = await shell.exec(`playwright-cli ${args}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(result.stdout.includes('Usage: playwright-cli screenshot'));
+      assert.ok(result.stdout.includes('--filename'));
+      assert.ok(result.stdout.includes('--full-page'));
+    }
+    for (const args of ['open --help', 'goto --help', 'list --help', 'close --help', 'close-all --help', 'snapshot --help', 'click --help', 'fill --help', 'press --help', 'tab-list --help', 'tab-new --help', 'tab-select --help', 'tab-close --help', 'tab new --help', 'help tab', '--session research --help']) {
+      const result = await shell.exec(`playwright-cli ${args}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(result.stdout.includes('Usage:'));
+    }
+    const open = await shell.exec('playwright-cli open');
+    assert.equal(open.exitCode, 1);
+    assert.match(open.stderr, /adapter.*required/i);
+  } finally { await shell.dispose(); }
+});
+
 test('opt-in plugin uses exported session values, shell pipelines and canonical virtual redirects', async () => {
   const f = fixture();
   const fs = new MemoryFileSystem();
@@ -103,6 +147,15 @@ function interactiveFixture(limits = {}) {
   const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands()).use(controller.plugin);
   return { volume, fs, shell, controller, events, pages, dom, bytes, newPage, get screenshotOptions() { return screenshotOptions; }, get screenshots() { return screenshots; } };
 }
+
+test('help preserves retained sessions and literal help-like action values', async () => {
+  const fixture = interactiveFixture();
+  try {
+    const result = await fixture.shell.exec('playwright-cli open; playwright-cli snapshot; playwright-cli --help; playwright-cli fill e1 -- --help; playwright-cli press -- --help');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(fixture.events, ['acquire', 'fill:0:0:--help', 'press:--help']);
+  } finally { await fixture.shell.dispose(); }
+});
 
 test('open rejects an injected context already at the tab limit before creating or navigating a page', async () => {
   const f = interactiveFixture({ maxTabs: 1 });

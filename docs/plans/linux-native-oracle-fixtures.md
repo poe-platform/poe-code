@@ -31,3 +31,14 @@ records the same failures before the parser work.
   must independently validate its GNU environment/signal profile.
 - These are fixture/helper changes, not a claim of uniform Bash timeout byte
   behavior across compiler profiles. Preserve the native and virtual distinction.
+
+
+## Local qualification
+
+The affected maintained shards pass when executed sequentially: shard 1 has
+8,212 passes and 284 skips; shard 2 has 9,092 passes and 74 skips. Both have zero
+failures and zero cancellations. Earlier overlapping runs cancelled unrelated
+pattern/public-cleanup parent tests at their existing deadlines; these cases
+pass on the sequential maintained reruns without changing assertions or limits.
+Maintained package typechecks and root ESLint pass. Linux profile qualification
+remains the GitHub release gate.

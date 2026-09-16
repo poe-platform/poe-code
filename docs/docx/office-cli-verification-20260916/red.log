@@ -1,0 +1,82 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/text-match-guidance.test.ts (2 tests | 2 failed) 106ms
+   × guides unmatched literal replacement without leaking text (json=false) 60ms
+   × guides unmatched literal replacement without leaking text (json=true) 46ms
+FAIL packages/docx/src/text-match-guidance.test.ts > guides unmatched literal replacement without leaking text (json=false)
+AssertionError: expected 'docx: Document operation failed: miss…' to contain '--find'
+
+- Expected
++ Received
+
+- --find
++ docx: Document operation failed: missing-selection
++
+
+ ❯ packages/docx/src/text-match-guidance.test.ts:29:17
+     27|     expect(envelope.errors[0].message).toContain("docx help text repla…
+     28|   } else expect(output).toBe("");
+     29|   expect(human).toContain("--find");
+       |                 ^
+     30|   expect(human).toContain("--scope");
+     31|   expect(human).toContain("docx help text replace");
+
+FAIL packages/docx/src/text-match-guidance.test.ts > guides unmatched literal replacement without leaking text (json=true)
+AssertionError: expected 'Document operation failed: missing-se…' to contain 'docx help text replace'
+
+Expected: "docx help text replace"
+Received: "Document operation failed: missing-selection"
+
+ ❯ packages/docx/src/text-match-guidance.test.ts:27:40
+     25|     const envelope = JSON.parse(output);
+     26|     expect(envelope).toMatchObject({ operation: "text.replace", ok: fa…
+     27|     expect(envelope.errors[0].message).toContain("docx help text repla…
+       |                                        ^
+     28|   } else expect(output).toBe("");
+     29|   expect(human).toContain("--find");
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/text-match-guidance.test.ts > guides unmatched literal replacement without leaking text (json=false)
+AssertionError: expected 'docx: Document operation failed: miss…' to contain '--find'
+
+- Expected
++ Received
+
+- --find
++ docx: Document operation failed: missing-selection
++
+
+ ❯ packages/docx/src/text-match-guidance.test.ts:29:17
+     27|     expect(envelope.errors[0].message).toContain("docx help text repla…
+     28|   } else expect(output).toBe("");
+     29|   expect(human).toContain("--find");
+       |                 ^
+     30|   expect(human).toContain("--scope");
+     31|   expect(human).toContain("docx help text replace");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  packages/docx/src/text-match-guidance.test.ts > guides unmatched literal replacement without leaking text (json=true)
+AssertionError: expected 'Document operation failed: missing-se…' to contain 'docx help text replace'
+
+Expected: "docx help text replace"
+Received: "Document operation failed: missing-selection"
+
+ ❯ packages/docx/src/text-match-guidance.test.ts:27:40
+     25|     const envelope = JSON.parse(output);
+     26|     expect(envelope).toMatchObject({ operation: "text.replace", ok: fa…
+     27|     expect(envelope.errors[0].message).toContain("docx help text repla…
+       |                                        ^
+     28|   } else expect(output).toBe("");
+     29|   expect(human).toContain("--find");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  00:30:20
+   Duration  1.25s (transform 909ms, setup 32ms, import 1.06s, tests 106ms, environment 0ms)

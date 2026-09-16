@@ -1,0 +1,72 @@
+[
+  {
+    "id": "Q36",
+    "path": "screenshots/docx-office-verification-20260916/Q36.png",
+    "bytes": 2457105,
+    "sha256": "ca457a70e2a0f2f23e1b917a7f773f31ad6071a6748f37f57a322515ed07d47c",
+    "inspected": true
+  },
+  {
+    "id": "Q37",
+    "path": "screenshots/docx-office-verification-20260916/Q37.png",
+    "bytes": 1140659,
+    "sha256": "9c8080dfc2c5769019b6580ffbdff446d3625b45db7f0dbd482bbc3d117ab12b",
+    "inspected": true
+  },
+  {
+    "id": "Q42",
+    "path": "screenshots/docx-office-verification-20260916/Q42.png",
+    "bytes": 1053187,
+    "sha256": "8b5951253e2fe8d71b9edfc3dfb3a62d0456aaaa07e02064c3645cb2ffdfcdaf",
+    "inspected": true
+  },
+  {
+    "id": "Q33",
+    "path": "screenshots/docx-office-verification-20260916/Q33.png",
+    "bytes": 130836,
+    "sha256": "ecabe3ebddddec6609ce8b09d5a3d9d51ce4634b6769876bee63bc68c3285def",
+    "inspected": true
+  },
+  {
+    "id": "Q33-after",
+    "path": "screenshots/docx-office-verification-20260916/Q33-after.png",
+    "bytes": 89712,
+    "sha256": "1f8abd7c2c6931e45871de724b03225641690c14f26059f70aedd09893fae476",
+    "inspected": true
+  },
+  {
+    "id": "Q43",
+    "path": "screenshots/docx-office-verification-20260916/Q43.png",
+    "bytes": 175157,
+    "sha256": "23ef451fb275777f050883166b4dd97895137606cab1591ddd980fcbccf989d4",
+    "inspected": true
+  },
+  {
+    "id": "Q15-error",
+    "path": "screenshots/docx-office-verification-20260916/Q15-error.png",
+    "bytes": 173634,
+    "sha256": "47b8b89c27c26aa6bfe7a79286f7e62af1eb27ecdb9fb1bb17148388e49d3fc1",
+    "inspected": true
+  },
+  {
+    "id": "Q32-stale",
+    "path": "screenshots/docx-office-verification-20260916/Q32-stale.png",
+    "bytes": 284505,
+    "sha256": "5075c5de2272e3630c0ee999846fcf75e25e58e78319593c7c9c511230f2cb57",
+    "inspected": true
+  },
+  {
+    "id": "Q12-human",
+    "path": "screenshots/docx-office-verification-20260916/Q12-human.png",
+    "bytes": 52836,
+    "sha256": "cfec2f72a548478d7eee8bc1c2ff4118f8e152676b952446fb163120596ca1d1",
+    "inspected": true
+  },
+  {
+    "id": "Q18-schema-error",
+    "path": "screenshots/docx-office-verification-20260916/Q18-schema-error.png",
+    "bytes": 144087,
+    "sha256": "6119129a06ce4e9a2b17b4fc895a6073172a4818d0ca85ead0f26c0b40430596",
+    "inspected": true
+  }
+]

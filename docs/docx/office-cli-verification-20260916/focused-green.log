@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/text-match-guidance.test.ts (2 tests) 105ms
+ ✓ packages/docx/src/semantic-usage-guidance.test.ts (2 tests) 138ms
+ ✓ packages/docx/src/missing-selection-guidance.test.ts (2 tests) 4ms
+ ✓ packages/docx/src/text-replace.test.ts (38 tests) 4614ms
+
+ Test Files  4 passed (4)
+      Tests  44 passed (44)
+   Start at  00:30:39
+   Duration  5.83s (transform 1.91s, setup 74ms, import 2.53s, tests 4.86s, environment 0ms)

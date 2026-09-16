@@ -1,0 +1,30 @@
+{
+  "docs/specs/docx.md": {
+    "bytes": 326839,
+    "sha256": "a3e611eb29a20cb9f3ddfa6d8686cb996ec817d3c1ee1d5ae5b9570fecefb939"
+  },
+  "docs/specs/office-cli.md": {
+    "bytes": 14299,
+    "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+  },
+  "docs/specs/office-sdk.md": {
+    "bytes": 12446,
+    "sha256": "1b2dd9f411621ebdc6ce24974e48f6143e0d3c9fe1191200207dfd6a3ddbfe64"
+  },
+  "docs/docx/upstream-api-audit.md": {
+    "bytes": 23673,
+    "sha256": "515e2622f6fe2427229262f5c28b1aad1acc8877be88ae10f21c706e7476836f"
+  },
+  "docs/docx/upstream-test-audit.md": {
+    "bytes": 11307,
+    "sha256": "c62a986a38d75182a75d630d2d55d05e1c1bcb266b633d976ca31af280d5ec1b"
+  },
+  "docs/docx/upstream-api-inventory.json": {
+    "bytes": 1311100,
+    "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+  },
+  "docs/docx/upstream-test-inventory.json": {
+    "bytes": 711702,
+    "sha256": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+  }
+}

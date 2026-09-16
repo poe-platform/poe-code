@@ -17,7 +17,7 @@ test("root exposes delivered wrapper constructors and package subpaths", async (
       import: `./dist/fs/${name}/index.js`,
     });
   }
-  assert.equal(manifest.name, "virtual-bash");
+  assert.equal(manifest.name, "@poe-platform/safe-bash");
   assert.equal(manifest.private, true);
   assert.deepEqual(manifest.dependencies ?? {}, {});
   for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" }))

@@ -44,7 +44,7 @@ function tar(files: Map<string, Buffer>) {
 function fixture(empty = false) {
   const root = "/checkout/packages/safe-bash";
   const bash = {
-    name: "virtual-bash",
+    name: "@poe-platform/safe-bash",
     private: true,
     peerDependencies: { "poe-code": ">=13.0.0" },
     devDependencies: { "poe-code": "file:../.." },

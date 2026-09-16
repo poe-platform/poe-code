@@ -335,9 +335,9 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   assert.deepEqual(shared.sources.map(source => source.path), [...fixture.files.keys()]);
   assert.throws(() => distChecks.assertArchiveDependencyArtifacts([...bindings.slice(0, 2), { ...shared }], fixture.fileSystem), /captured compilation/);
   const files = {
-    "node_modules/virtual-bash/package.json": '{"type":"module"}',
-    "node_modules/virtual-bash/dist/index.js": 'export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako"; export { createZipCodec } from "@poe-code/office-package/zip";',
-    "node_modules/virtual-bash/dist/fs/s3/http/index.js": "export {};",
+    "node_modules/@poe-platform/safe-bash/package.json": '{"type":"module"}',
+    "node_modules/@poe-platform/safe-bash/dist/index.js": 'export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako"; export { createZipCodec } from "@poe-code/office-package/zip";',
+    "node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js": "export {};",
     "node_modules/poe-code/package.json": '{"type":"module"}',
     "node_modules/poe-code/index.js": "export {};",
   };
@@ -346,7 +346,7 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
     fixture.fileSystem.writeFileSync(`/snapshot/${path}`, bytes);
   }
   const peer = { entries: { "poe-code/safe-fs": "index.js" }, files: ["package.json", "index.js"].map(path => ({ path, sha256: digest(files[`node_modules/poe-code/${path}`]) })) };
-  const packed = Object.keys(files).filter(path => path.startsWith("node_modules/virtual-bash/")).map(path => path.slice("node_modules/virtual-bash/".length));
+  const packed = Object.keys(files).filter(path => path.startsWith("node_modules/@poe-platform/safe-bash/")).map(path => path.slice("node_modules/@poe-platform/safe-bash/".length));
   const bind = () => verifier.bindPackedConsumer("/snapshot", packed, peer, { publicEntries: new Map(), declarations: new Map() }, ts, fixture.fileSystem, bindings);
   const closure = bind();
   assert.equal(closure.entries["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
@@ -354,7 +354,7 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   assert.equal(closure.entries["@poe-code/office-package/zip"], "node_modules/@poe-code/office-package/dist/zip.js");
   assert.equal(closure.edges["node_modules/@poe-code/office-package/dist/compression.js"].pako, "node_modules/pako/dist/pako.mjs");
   assert.equal(closure.entries["@noble/hashes/argon2.js"], undefined);
-  fixture.fileSystem.writeFileSync("/snapshot/node_modules/virtual-bash/dist/index.js", 'import "pako/dist/pako.mjs";');
+  fixture.fileSystem.writeFileSync("/snapshot/node_modules/@poe-platform/safe-bash/dist/index.js", 'import "pako/dist/pako.mjs";');
   assert.throws(bind, /Unbound runtime dependency/);
   const changed = "/snapshot/node_modules/pako/dist/pako.mjs";
   const original = fixture.fileSystem.readFileSync(changed);
@@ -386,7 +386,7 @@ test("private archive offline installation uses only owned pinned tarballs witho
     assert.ifError(installed.error);
     assert.equal(installed.status, 0, installed.stderr);
     distChecks.assertArchiveDependencies(bindings, consumer);
-    const runtime = spawnSync(process.execPath, ["--input-type=module", "-e", 'import { verified } from "virtual-bash"; if (!verified) process.exitCode = 1;'], { cwd: consumer, env: environment, encoding: "utf8", timeout: 10000, maxBuffer: 1048576 });
+    const runtime = spawnSync(process.execPath, ["--input-type=module", "-e", 'import { verified } from "@poe-platform/safe-bash"; if (!verified) process.exitCode = 1;'], { cwd: consumer, env: environment, encoding: "utf8", timeout: 10000, maxBuffer: 1048576 });
     assert.ifError(runtime.error);
     assert.equal(runtime.status, 0, runtime.stderr);
     assert.equal(existsSync(fixture.marker), false);
@@ -858,7 +858,7 @@ function syntheticDist(entries) {
 }
 
 function peerSnapshot() {
-  const committed = new Map([["package.json", Buffer.from('{"name":"poe-code"}')], [`${packagePrefix}/package.json`, Buffer.from('{"name":"virtual-bash"}')]]);
+  const committed = new Map([["package.json", Buffer.from('{"name":"poe-code"}')], [`${packagePrefix}/package.json`, Buffer.from('{"name":"@poe-platform/safe-bash"}')]]);
   const peerBytes = new Map([["package.json", committed.get("package.json")], ["packages/safe-fs/dist/index.d.ts", Buffer.from("export interface Canonical {}")], ["packages/safe-js/dist/safe-fs.js", Buffer.from('export { identity } from "./shared.js";')], ["packages/safe-js/dist/shared.js", Buffer.from("export const identity = {};")]]);
   const peer = { files: [...peerBytes].map(([path, bytes]) => ({ path, sha256: digest(bytes) })) };
   const entries = new Map(committed);
@@ -890,9 +890,9 @@ test("explicit committed peer imports extend declaration closure without scannin
 
 for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/private"]) test(`packed consumer admits only authenticated peer public routes: ${route}`, () => {
   const files = {
-    "node_modules/virtual-bash/package.json": '{"type":"module"}',
-    "node_modules/virtual-bash/dist/index.js": `export { value } from "${route}";`,
-    "node_modules/virtual-bash/dist/fs/s3/http/index.js": "export {};",
+    "node_modules/@poe-platform/safe-bash/package.json": '{"type":"module"}',
+    "node_modules/@poe-platform/safe-bash/dist/index.js": `export { value } from "${route}";`,
+    "node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js": "export {};",
     "node_modules/poe-code/package.json": '{"type":"module"}',
     "node_modules/poe-code/packages/safe-js/dist/safe-fs.js": "export const value = 1;",
     "node_modules/poe-code/packages/safe-js/dist/safe-fs-core.js": 'export { value } from "./shared.js";',
@@ -901,13 +901,13 @@ for (const route of ["poe-code/safe-fs", "poe-code/safe-fs/core", "poe-code/priv
   const io = createFsFromVolume(Volume.fromJSON(Object.fromEntries(Object.entries(files).map(([path, bytes]) => [`/consumer/${path}`, bytes]))));
   const peer = { entries: { "poe-code/safe-fs": "packages/safe-js/dist/safe-fs.js", "poe-code/safe-fs/core": "packages/safe-js/dist/safe-fs-core.js" },
     files: Object.entries(files).filter(([path]) => path.startsWith("node_modules/poe-code/")).map(([path, bytes]) => ({ path: path.slice("node_modules/poe-code/".length), sha256: digest(bytes) })) };
-  const packed = Object.keys(files).filter(path => path.startsWith("node_modules/virtual-bash/")).map(path => path.slice("node_modules/virtual-bash/".length));
+  const packed = Object.keys(files).filter(path => path.startsWith("node_modules/@poe-platform/safe-bash/")).map(path => path.slice("node_modules/@poe-platform/safe-bash/".length));
   const bind = () => verifier.bindPackedConsumer("/consumer", packed, peer, { publicEntries: new Map(), declarations: new Map() }, ts, io);
   if (route === "poe-code/private") assert.throws(bind, /Unbound runtime dependency/);
   else {
     const binding = bind();
     assert.equal(binding.entries[route], `node_modules/poe-code/${peer.entries[route]}`);
-    assert.equal(binding.edges["node_modules/virtual-bash/dist/index.js"][route], binding.entries[route]);
+    assert.equal(binding.edges["node_modules/@poe-platform/safe-bash/dist/index.js"][route], binding.entries[route]);
     assert.equal(binding.edges[binding.entries["poe-code/safe-fs/core"]]["./shared.js"], "node_modules/poe-code/packages/safe-js/dist/shared.js");
     io.writeFileSync("/consumer/node_modules/poe-code/packages/safe-js/dist/shared.js", "changed");
     assert.throws(bind, /Runtime input drift/);
@@ -1245,14 +1245,14 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
     manifest.dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
-    const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "virtual-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
+    const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "@poe-platform/safe-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
     root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
     const marker = join(directory, "unexpected-lifecycle");
     root.scripts = Object.fromEntries(["prepare", "prepack", "postpack", "preinstall", "postinstall"].map(name => [name, `node -e ${JSON.stringify(`require("node:fs").writeFileSync(${JSON.stringify(marker)}, ${JSON.stringify(name)})`)}`]));
     const lock = { name: root.name, version: root.version, lockfileVersion: 3, packages: {
       "": { name: root.name, version: root.version, workspaces: root.workspaces, devDependencies: root.devDependencies },
       [packagePrefix]: { name: manifest.name, version: manifest.version, dependencies: structuredClone(manifest.dependencies), devDependencies: manifest.devDependencies, peerDependencies: structuredClone(manifest.peerDependencies), peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta), engines: manifest.engines },
-      "node_modules/virtual-bash": { resolved: packagePrefix, link: true },
+      "node_modules/@poe-platform/safe-bash": { resolved: packagePrefix, link: true },
       "node_modules/poe-code": { resolved: "", link: true },
     } };
     const op = { name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
@@ -1598,8 +1598,8 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.deepEqual(report.package.runtimeDependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
     assert.deepEqual(report.dependencies.map(binding => binding.name), ["@noble/hashes", "pako"]);
     assert.ok(report.steps.find(step => step.label === "offline tarball install without lifecycles").args.includes(report.dependencies[0].tarball));
-    assert.equal(report.peerRuntimeBinding.edges["node_modules/virtual-bash/dist/index.js"]["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
-    assert.equal(report.peerRuntimeBinding.edges["node_modules/virtual-bash/dist/index.js"].pako, "node_modules/pako/dist/pako.mjs");
+    assert.equal(report.peerRuntimeBinding.edges["node_modules/@poe-platform/safe-bash/dist/index.js"]["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
+    assert.equal(report.peerRuntimeBinding.edges["node_modules/@poe-platform/safe-bash/dist/index.js"].pako, "node_modules/pako/dist/pako.mjs");
     assert.equal(report.peer.profile, profile);
     assert.equal(report.peer.version, fixture.root.version);
     assert.equal(report.peer.integrity, null);
@@ -1607,7 +1607,7 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.equal(report.peer.entries["poe-code/safe-fs"], "packages/safe-js/dist/safe-fs.js");
     assert.equal(report.archivePaths.includes(`${packagePrefix}/src/fs/s3/http/types.ts`), localTypes);
     assert.equal(report.package.files.includes("dist/fs/s3/http/types.d.ts"), localTypes);
-    assert.equal(report.typecheck.files.some(path => path.endsWith("/node_modules/virtual-bash/dist/fs/s3/http/types.d.ts")), localTypes);
+    assert.equal(report.typecheck.files.some(path => path.endsWith("/node_modules/@poe-platform/safe-bash/dist/fs/s3/http/types.d.ts")), localTypes);
     assert.equal(report.runtime.requests, 0);
     assert.equal(report.typecheck.sourceFallback, false);
     assert.deepEqual(report.typecheck.negativeDiagnosticCodes, [2322, 2345, 2741]);
@@ -1736,7 +1736,7 @@ for (const scenario of [
   { name: "installed membership", anchor: '    writeFileSync(join(consumer, "runtime.mjs"),', inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "plain Node packed imports and guard controls" },
   { name: "post-runtime membership", anchor: "    const compilerOptions =", inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "strict public TypeScript consumer" },
   { name: "post-types membership", anchor: "    report.typecheck =", inject: 'writeFileSync(join(installedRoot, "dist/unbound.js"), "unbound");', blocked: "strict invalid consumer controls" },
-  { name: "installed parent before initial reads", anchor: "    const installedRoot =", rootAlias: true, inject: 'const aliasFs = await import("node:fs"); aliasFs.renameSync(join(consumer, "node_modules"), join(consumer, "installed-alias-target")); aliasFs.symlinkSync("installed-alias-target", join(consumer, "node_modules"), "dir"); process.emit("archive-root-alias", join(consumer, "node_modules/virtual-bash"));', blocked: "plain Node packed imports and guard controls" },
+  { name: "installed parent before initial reads", anchor: "    const installedRoot =", rootAlias: true, inject: 'const aliasFs = await import("node:fs"); aliasFs.renameSync(join(consumer, "node_modules"), join(consumer, "installed-alias-target")); aliasFs.symlinkSync("installed-alias-target", join(consumer, "node_modules"), "dir"); process.emit("archive-root-alias", join(consumer, "node_modules/@poe-platform/safe-bash"));', blocked: "plain Node packed imports and guard controls" },
   { name: "installed parent before runtime", anchor: '    writeFileSync(join(consumer, "runtime.mjs"),', rootAlias: true, inject: 'const aliasFs = await import("node:fs"); aliasFs.renameSync(join(consumer, "node_modules"), join(consumer, "installed-alias-target")); aliasFs.symlinkSync("installed-alias-target", join(consumer, "node_modules"), "dir"); process.emit("archive-root-alias", installedRoot);', blocked: "plain Node packed imports and guard controls" },
 ]) test(`actual committed verifier refuses ${scenario.name} drift before the next consumer`, { timeout: 180000 }, async () => {
   await withRepository(() => {}, async fixture => {
@@ -1820,10 +1820,16 @@ test("archive admission authenticates bytes and rejects traversal, symlinks, and
 test("strict consumer origin admission rejects source and workspace fallback", async () => {
   await withRepository(() => {}, fixture => {
     const consumer = join(fixture.directory, "consumer");
-    const installed = join(consumer, "node_modules/virtual-bash");
+    const installed = join(consumer, "node_modules/@poe-platform/safe-bash");
     const library = join(fixture.directory, "compiler/lib");
     for (const path of [installed, library]) mkdirSync(path, { recursive: true });
     const source = join(fixture.repository, packagePrefix, "src/index.ts");
     assert.throws(() => assertTypeOrigins([source], consumer, installed, library), /source fallback/);
+  });
+});
+
+test("root opt-in mirrors use the rebound public declarations", () => {
+  assert.deepEqual(distChecks.mirrorArchiveExportTargets({ types: "./dist/opt-in/entrypoints/yes.d.ts", import: "./dist/opt-in/entrypoints/yes.js" }), {
+    types: "./dist/safe-bash-opt-in/entrypoints/yes.d.ts", import: "./dist/safe-bash-opt-in/entrypoints/yes.js"
   });
 });

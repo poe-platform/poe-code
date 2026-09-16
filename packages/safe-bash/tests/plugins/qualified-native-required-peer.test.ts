@@ -55,7 +55,7 @@ function fixture(
   const root = "/checkout/packages/safe-bash",
     snapshot = "/snapshot";
   const bash = {
-    name: "virtual-bash",
+    name: "@poe-platform/safe-bash",
     private: true,
     peerDependencies: { "poe-code": ">=13.0.0" },
     devDependencies: { "poe-code": release ? "13.0.0" : "file:../.." },

@@ -112,6 +112,13 @@ export function authenticateOracle(env: NodeJS.ProcessEnv = process.env, source:
 }
 
 export function runNative(script: string, input?: string, env: NodeJS.ProcessEnv = process.env, source: OracleHost = host): OracleResult & { readonly executable: string } {
+  if (input !== undefined && Buffer.byteLength(input) > 16384) throw new RangeError("Bash oracle input exceeds pipe transport argument bound");
   const executable = authenticateOracle(env, source);
-  return { ...checkedRun(executable, ["--noprofile", "--norc", "-c", script, "shell"], input, source), executable };
+  // Linux cannot reopen spawnSync's stdin socket through /dev/stdin. The same
+  // authenticated Bash creates a real pipe; the inner script remains unchanged.
+  const args = input === undefined ? ["--noprofile", "--norc", "-c", script, "shell"] : [
+    "--noprofile", "--norc", "-c", `exec "$BASH" --noprofile --norc -c "$1" shell < <(printf '%b' "$2")`, "oracle", script,
+    Array.from(Buffer.from(input), byte => `\\0${byte.toString(8).padStart(3, "0")}`).join(""),
+  ];
+  return { ...checkedRun(executable, args, undefined, source), executable };
 }

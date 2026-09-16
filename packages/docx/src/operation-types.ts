@@ -512,7 +512,7 @@ export interface DocxOperationArgumentMap {
   "model.table._Columns.table.get": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.add_run.call": Readonly<{ "text"?: string | null | undefined; "style"?: string | DocxModelHandle<"CharacterStyle"> | null | undefined }>;
   "model.text.paragraph.Paragraph.alignment.get": Readonly<Record<string, never>>;
-  "model.text.paragraph.Paragraph.alignment.set": Readonly<{ "value": DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> }>;
+  "model.text.paragraph.Paragraph.alignment.set": DocxOperationArgumentMap["model.text.parfmt.ParagraphFormat.alignment.set"];
   "model.text.paragraph.Paragraph.clear.call": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.contains_page_break.get": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.hyperlinks.get": Readonly<Record<string, never>>;
@@ -2035,7 +2035,7 @@ export interface DocxBatchArgumentMap {
   "model.table._Columns.table.get": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.add_run.call": Readonly<{ "text"?: string | null | undefined; "style"?: string | DocxModelHandle<"CharacterStyle"> | null | undefined }>;
   "model.text.paragraph.Paragraph.alignment.get": Readonly<Record<string, never>>;
-  "model.text.paragraph.Paragraph.alignment.set": Readonly<{ "value": DocxEnumValue<"WD_PARAGRAPH_ALIGNMENT"> }>;
+  "model.text.paragraph.Paragraph.alignment.set": DocxOperationArgumentMap["model.text.parfmt.ParagraphFormat.alignment.set"];
   "model.text.paragraph.Paragraph.clear.call": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.contains_page_break.get": Readonly<Record<string, never>>;
   "model.text.paragraph.Paragraph.hyperlinks.get": Readonly<Record<string, never>>;

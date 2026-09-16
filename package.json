@@ -826,7 +826,7 @@
     "turbo": "^2.9.18",
     "typescript": "^5.9.3",
     "typescript-eslint": "8.55.0",
-    "virtual-bash": "*",
+    "@poe-platform/safe-bash": "*",
     "vite": "6.4.3",
     "vitest": "4.1.11",
     "@poe-code/safe-python": "*"

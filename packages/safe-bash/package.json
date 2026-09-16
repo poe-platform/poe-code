@@ -1,5 +1,5 @@
 {
-  "name": "virtual-bash",
+  "name": "@poe-platform/safe-bash",
   "version": "0.0.0",
   "private": true,
   "description": "Extensible virtual shell with pluggable filesystems and streaming commands",

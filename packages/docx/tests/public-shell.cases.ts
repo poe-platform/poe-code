@@ -3,10 +3,10 @@ import test from "node:test";
 import { Volume } from "memfs";
 import * as sdk from "docx";
 import * as rootSdk from "poe-code/docx";
-import { Shell, agentCommands, FsError } from "virtual-bash";
-import { docxCommands, type DocxCommandEngine } from "virtual-bash/commands/docx";
+import { Shell, agentCommands, FsError } from "@poe-platform/safe-bash";
+import { docxCommands, type DocxCommandEngine } from "@poe-platform/safe-bash/commands/docx";
 import { docxCommands as rootCommands } from "poe-code/safe-bash/commands/docx";
-import type { FileSystem, FileStat } from "virtual-bash/contracts";
+import type { FileSystem, FileStat } from "@poe-platform/safe-bash/contracts";
 
 const limits: sdk.ArchiveLimits = {
   maxArchiveBytes: 131072, maxEntryBytes: 65536, maxTotalBytes: 131072,

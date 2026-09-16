@@ -246,10 +246,10 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
         if (edge.asset) throw new Error(`Unsupported asset reference: ${specifier}`);
       } else {
         if (edge.asset) throw new Error(`Unsupported asset reference: ${specifier}`);
-        const aliases = ["poe-code/safe-fs", "@poe-code/safe-fs", "@poe-platform/safe-fs", "virtual-bash", "@poe-platform/safe-bash"];
+        const aliases = ["poe-code/safe-fs", "@poe-code/safe-fs", "@poe-platform/safe-fs", "@poe-platform/safe-bash"];
         const alias = aliases.find(name => specifier === name || specifier.startsWith(name + "/"));
         if (alias) {
-          const isCore = alias === "virtual-bash" || alias === "@poe-platform/safe-bash";
+          const isCore = alias === "@poe-platform/safe-bash";
           const owner = isCore ? coreManifest : fsManifest;
           const directory = isCore ? core : filesystem;
           const key = "." + specifier.slice(alias.length);

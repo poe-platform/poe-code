@@ -6,12 +6,12 @@ declare module "virtual:safe-bash-kernel" {
     normalizePath,
     readBytes,
     FsError
-  } from "virtual-bash";
-  import { Shell as NativeShell } from "virtual-bash";
+  } from "@poe-platform/safe-bash";
+  import { Shell as NativeShell } from "@poe-platform/safe-bash";
   import type {
     ShellExecOptions as NativeShellExecOptions,
     ShellResult
-  } from "virtual-bash";
+  } from "@poe-platform/safe-bash";
   export interface RootShellState {
     readonly cwd: string;
   }
@@ -22,6 +22,6 @@ declare module "virtual:safe-bash-kernel" {
   export class Shell extends NativeShell {
     exec(source: string, options?: ShellExecOptions): Promise<ShellResult>;
   }
-  export { createAgentCommands } from "virtual-bash";
-  export { createNodeRegexProvider as createWorkerRegexProvider } from "virtual-bash/node";
+  export { createAgentCommands } from "@poe-platform/safe-bash";
+  export { createNodeRegexProvider as createWorkerRegexProvider } from "@poe-platform/safe-bash/node";
 }

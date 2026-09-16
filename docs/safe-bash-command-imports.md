@@ -84,7 +84,7 @@ bindings, including `IFS` for input splitting.
 From the repository root, build this workspace and its declared dependencies:
 
 ```sh
-npm run build:workspaces -- --workspace=virtual-bash
+npm run build:workspaces -- --workspace=@poe-platform/safe-bash
 npx vitest run scripts/safe-bash-optional-build.test.ts scripts/package-safe.test.ts
 ```
 

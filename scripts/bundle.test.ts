@@ -100,6 +100,9 @@ it.each([
         JSON.stringify({ name: `@poe-code/${name}` })
       );
     }
+    volume.mkdirSync(path.join(root, "packages/safe-bash/dist/opt-in"), { recursive: true });
+    volume.writeFileSync(path.join(root, "packages/safe-bash/dist/opt-in/optional.js"), "export {};\n");
+    volume.writeFileSync(path.join(root, "packages/safe-bash/dist/opt-in/optional.d.ts"), "export {};\n");
     volume.mkdirSync(path.join(root, "packages/office-package/dist"), { recursive: true });
     volume.writeFileSync(path.join(root, "packages/office-package/package.json"), JSON.stringify({
       name: "@poe-code/office-package", exports: { "./zip": { import: "./dist/zip.js" } }

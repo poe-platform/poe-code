@@ -187,6 +187,19 @@ describe("standalone package publish metadata", () => {
       "./memory",
       "./pptx",
       "./safe-bash",
+      "./safe-bash/yes",
+      "./safe-bash/cmp",
+      "./safe-bash/dd",
+      "./safe-bash/shuf",
+      "./safe-bash/truncate",
+      "./safe-bash/install",
+      "./safe-bash/yq",
+      "./safe-bash/devices",
+      "./safe-bash/arrays",
+      "./safe-bash/jobs",
+      "./safe-bash/mapfile",
+      "./safe-bash/read",
+      "./safe-bash/trap",
       "./safe-bash/commands/apply-patch",
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",
@@ -250,7 +263,7 @@ describe("standalone package publish metadata", () => {
       "./safejs/core",
       "./safejs/workerd",
       "./skills"
-    ]);
+    ].sort());
   });
 
   it("keeps browser contracts portable and Node contracts native across declared paths", () => {

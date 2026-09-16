@@ -39,7 +39,7 @@ export async function buildBrowserEngine(options = {}) {
   const manifest = JSON.parse(await readFile(resolve(engineRoot, "package.json"), "utf8"));
   const bashManifest = JSON.parse(await readFile(resolve(engineRoot, "packages/safe-bash/package.json"), "utf8"));
   const filesystemManifest = JSON.parse(await readFile(resolve(engineRoot, "packages/safe-fs/package.json"), "utf8"));
-  if (manifest.name !== "poe-code" || bashManifest.name !== "virtual-bash" || bashManifest.private !== true ||
+  if (manifest.name !== "poe-code" || bashManifest.name !== "@poe-platform/safe-bash" || bashManifest.private !== true ||
       filesystemManifest.name !== "@poe-code/safe-fs" || filesystemManifest.private !== true) {
     throw new Error("Browser adapters require the current SafeBash and SafeFS workspaces");
   }

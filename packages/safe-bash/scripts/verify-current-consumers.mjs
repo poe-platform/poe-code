@@ -77,7 +77,7 @@ export function currentConsumers(report, { peerArtifact } = {}) {
   json(join(report.directory, "current-peer-artifact.json"), peer);
   step(report, "historical-build-first-types", process.execPath, [compiler, "--noEmit", "-p", "tests/commands/table-text-stress/shared-stdin-review/tsconfig.consumer.json"]);
   const consumer = join(report.directory, "consumer");
-  const installed = join(consumer, "node_modules/virtual-bash");
+  const installed = join(consumer, "node_modules/@poe-platform/safe-bash");
   mkdirSync(installed, { recursive: true });
   copyFileSync(join(report.root, "package.json"), join(installed, "package.json"));
   cpSync(join(report.root, "dist"), join(installed, "dist"), { recursive: true });
@@ -89,7 +89,7 @@ export function currentConsumers(report, { peerArtifact } = {}) {
   for (const group of consumerGroups) {
     const workspace = join(consumer, group.name);
     mkdirSync(workspace);
-    const groupInstalled = group.localPackage ? join(workspace, "node_modules/virtual-bash") : installed;
+    const groupInstalled = group.localPackage ? join(workspace, "node_modules/@poe-platform/safe-bash") : installed;
     if (group.localPackage) cpSync(installed, groupInstalled, { recursive: true });
     const inputs = [...group.files, ...group.companions ?? []].map((path, index) => {
       const name = index < group.files.length ? basename(path) : group.companionNames?.[index - group.files.length] ?? basename(path);

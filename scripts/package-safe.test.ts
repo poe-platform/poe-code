@@ -293,7 +293,7 @@ describe("explicit optional safe package artifact", () => {
   });
 
   for (const source of [
-    'import "virtual-bash";', 'import "poe-code/safe-fs";', 'import "@poe-code/safe-fs";',
+    'import "@poe-platform/safe-bash/unmapped";', 'import "poe-code/safe-fs";', 'import "@poe-code/safe-fs";',
     'import "@poe-platform/safe-bash/private-unexported";', 'import "@poe-platform/safe-fs/private-unexported";',
     'import "@poe-platform/safe-js";', 'import "yaml/private";', 'import "#safe-fs-platform";',
     'import "../../safe-bash/dist/index.js";', 'import "../../safe-fs/dist/index.js";',
@@ -307,10 +307,10 @@ describe("explicit optional safe package artifact", () => {
   });
 
   for (const source of [
-    'export type Value = import("virtual-bash").Value;',
+    'export type Value = import("@poe-platform/safe-bash/unmapped").Value;',
     'export type Value = import("@poe-platform/safe-bash/private-unexported").Value;',
     '/// <reference path="../../safe-bash/dist/index.d.ts" />\nexport {};',
-    'import Value = require("virtual-bash"); export { Value };',
+    'import Value = require("@poe-platform/safe-bash"); export { Value };',
   ]) it(`refuses unmapped declaration edges: ${source}`, async () => {
     const { volume, options } = optionalArtifact();
     volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.d.ts", source);
@@ -344,9 +344,9 @@ describe("explicit optional safe package artifact", () => {
 
   it("validates JavaScript URL assets as runtime graph nodes", async () => {
     const { volume, options } = optionalArtifact();
-    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/fs/devices/worker.js", 'import "virtual-bash";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/fs/devices/worker.js", 'import "@poe-platform/safe-bash/unmapped";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/opt-in/optional.js", 'new URL("./fs/devices/worker.js", import.meta.url);');
-    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Unmapped optional peer");
+    await expect(packageSafeLibraries({ ...options, outDir: "/output" })).rejects.toThrow("Unexported optional peer route");
     expect(volume.existsSync("/output")).toBe(false);
   });
 

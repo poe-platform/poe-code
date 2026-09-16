@@ -20,13 +20,13 @@ function fixture(failedEvent?: string) {
     "/repo/turbo.json": JSON.stringify({ tasks: {
       build: { dependsOn: ["^build"] },
       "test:unit": { dependsOn: [] },
-      "virtual-bash#test:unit": { dependsOn: ["build"] }
+      "@poe-platform/safe-bash#test:unit": { dependsOn: ["build"] }
     } }),
     "/repo/packages/alpha/package.json": JSON.stringify({ name: "alpha", scripts: { "test:unit": "cd ../.. && vitest run packages/alpha/src" } }),
     "/repo/packages/alpha/src/unit.test.ts": "",
     "/repo/packages/beta/package.json": JSON.stringify({ name: "beta", scripts: { "test:unit": "cd ../.. && vitest run packages/beta/src" } }),
     "/repo/packages/beta/src/unit.test.ts": "",
-    "/repo/packages/native/package.json": JSON.stringify({ name: "virtual-bash", scripts: { build: "node build.mjs", "test:unit": "node --test" } })
+    "/repo/packages/native/package.json": JSON.stringify({ name: "@poe-platform/safe-bash", scripts: { build: "node build.mjs", "test:unit": "node --test" } })
   })) as unknown as typeof import("node:fs");
   const host = Object.assign(new EventEmitter(), {
     platform: "linux", execPath: "/node",

@@ -50,7 +50,7 @@ const admitted = new WeakSet<object>();
 const vfsOrigins = new WeakMap<DocumentVfsCapability, DocumentVfsCapability>();
 const fontMeasurements = new WeakMap<DocumentFontMetrics, DocumentFontMetrics["measure"]>();
 
-/** Inspect own data without executing caller accessors or accepting inherited authority. */
+/** Snapshot all own data without executing accessors or accepting inherited authority. */
 export function contextData(value: unknown, keys?: readonly string[]): Record<string, unknown> {
   if (
     !value ||
@@ -58,14 +58,14 @@ export function contextData(value: unknown, keys?: readonly string[]): Record<st
     ![Object.prototype, null].includes(Object.getPrototypeOf(value))
   )
     throw new InputTypeError("Expected finite context capability data.");
+  const result: Record<string, unknown> = {};
   for (const key of Reflect.ownKeys(value)) {
-    if (
-      !("value" in Object.getOwnPropertyDescriptor(value, key)!) ||
-      (keys && (typeof key !== "string" || !keys.includes(key)))
-    )
+    const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
+    if (!("value" in descriptor) || (keys && (typeof key !== "string" || !keys.includes(key))))
       throw new InputTypeError("Expected finite context capability data.");
+    Object.defineProperty(result, key, { value: descriptor.value, enumerable: true });
   }
-  return value as Record<string, unknown>;
+  return result;
 }
 
 export function matchesModelVfs(capability: unknown, context: AdmittedModelContext): boolean {

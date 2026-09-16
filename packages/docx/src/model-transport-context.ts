@@ -16,16 +16,23 @@ export async function resolveDocumentModelContext(
 ): Promise<AdmittedModelContext> {
   const settings = modelContext(host);
   if (value === undefined) return settings;
-  contextData(value, ["vfs", "limits", "timestamp", "author", "fonts", "template"]);
-  if (value.limits !== undefined) contextData(value.limits);
-  if (value.template !== undefined) contextData(value.template);
-  if (!validateDocxValue("DocumentContext", value))
-    throw new DocxUsageError("Expected declarative document context.");
+  const data = contextData(value, [
+    "vfs",
+    "limits",
+    "timestamp",
+    "author",
+    "fonts",
+    "template"
+  ]) as DocxTransportContext;
   const record = {
-    ...value,
-    ...(value.limits ? { limits: { ...value.limits } } : {}),
-    ...(value.template ? { template: { ...value.template } as DocxBinaryInput } : {})
+    ...data,
+    ...(data.limits === undefined ? {} : { limits: contextData(data.limits) }),
+    ...(data.template === undefined
+      ? {}
+      : { template: contextData(data.template) as DocxBinaryInput })
   };
+  if (!validateDocxValue("DocumentContext", record))
+    throw new DocxUsageError("Expected declarative document context.");
   if (record.vfs !== undefined && record.vfs !== settings.binaryResolver?.capability)
     throw new DocxUsageError("Unknown VFS capability token.");
   if (record.fonts !== undefined && record.fonts !== settings.fontResolver?.capability)

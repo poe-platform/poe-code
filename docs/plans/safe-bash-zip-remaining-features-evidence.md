@@ -1812,3 +1812,346 @@ ZIP checks, not a full repository unit run. Task-owned ignored logs, report
 and screenshot were purged after review. The plan's from-CRLF commit status
 is included in the local atomic commit; no push, remote-main delivery or
 release is requested or claimed.
+
+## Incremental ZIP creation — September 16, 2026
+
+Revalidated on current `main`, HEAD
+`d5bc0802f1b79de7e723f256e593453344cba6aa`. The initial index and working
+tree were clean. Applicable root and package AGENTS.md were read; no SafeJS,
+README, dependency, root API or unrelated source was edited. This section
+qualifies the working-tree candidate below, not historical ZIP proof or a release.
+
+### Reproduction and implementation
+
+Fast failing controls preceded implementation:
+
+- `ZIP consumes a live source incrementally after emitting its header` failed
+  with zero input pulls instead of one: the existing writer only used `data`.
+- `ZIP stdout rejects its header before draining stdin` failed with one pull
+  instead of zero: command preparation drained input before sink admission.
+- `ZIP live sink rejection cancels a pending cooperative VFS read` failed its
+  retirement assertion. DEFLATE had prefetched a read before publishing a partial
+  output slab, and generator retirement could wait indefinitely for that read.
+- Invalid expected-size/work-budget admission failed before its fix: NaN reached
+  the source and was reported as a size change rather than rejected at admission.
+
+Live entries now carry uncompressed ByteSource input, codec level and an optional
+expected size. The writer preflights all metadata before its first yield, publishes
+local headers before pulling sources, measures CRC/size incrementally, drives the
+existing raw-DEFLATE/BZIP2 codecs and writes signed descriptors. Central records
+retain metadata and measured compressed sizes, without retaining live payloads.
+Buffered `readZipArchive`/`writeZipArchive` callers retain their convenience APIs;
+buffered entries preserve compression, extras, comments, ordering and ZIP64 offsets.
+Live entries are single-use and receive final measured metadata after consumption.
+
+File creation stages an empty file through existing owned staging, then awaits
+atomic conditional append operations using the returned identity after each write.
+Publication uses the existing destination/parent comparison contract only after
+source completion and progress-text admission. Cleanup preserves replaced staging
+files. No unchecked path append, new runtime dependency or host fallback was added.
+Reader retirement blocks later input acquisition, shares its completion/error
+barrier, and closes cooperative pending VFS reads with a source-local signal.
+Sink/dot failures initiate that retirement before returning the archive generator.
+
+### Qualified profiles and limits
+
+| Profile | Access and retention |
+| --- | --- |
+| New stdout archive, STORE/DEFLATE/BZIP2 | Incremental input and output; descriptors; codec workspace remains bounded by existing codec contracts. |
+| New archive from stdin | Incremental input and staged file/stdout output; descriptors; compressed profiles commit to the selected codec. |
+| New VFS archive, STORE/suffix STORE or forced descriptors | Incremental regular-file reads and conditional staged writes; expected length and post-read source identity are checked. |
+| Ordinary VFS adaptive compression | Buffered: choosing STORE when compression expands requires complete size comparison before committing the local header. |
+| Update/freshen/delete/copy, existing input, integrity testing, latest-time and interactive comments | Existing bounded buffered profile; no incremental source/archive-reader claim. |
+| `-l`/`-ll` conversion | Existing buffered conversion/native-read-schedule profile; no streaming conversion claim. |
+| VFS without streaming reads | Existing `maxBufferedFileBytes` fallback, with no host-process fallback. |
+| VFS without atomic staging and conditional-write authority | Streaming file publication refuses before payload acquisition. The current real CLI adapter lacks staging; memory staging is qualified here. |
+
+Unknown sizes/CRC require descriptors. Consequently classic stdin output with
+`-fz-` now uses extraction version **20**, descriptor flag 8 and classic widths,
+instead of the previous buffered version 10. Its existing regression test now
+checks those requirements and still verifies extraction. This is an intentional
+wire-header change, not a claim of byte-identical native archives. Known empty VFS
+files retain STORE under forced descriptors; stdout retains its existing selected
+compression profile. CLI and SDK use the same command; no new arguments were added.
+
+Input chunks are admitted against entry/total/expected-size limits before CRC work
+and owned copies. Whole serialized metadata, known payloads and descriptor/end
+overhead are admitted before metadata retention; unknown compressed output is
+admitted before publication. Members, paths, depth, extras, comments and work have
+their existing limits. Output sinks retain existing awaited output-budget admission.
+Classic aggregate/archive spans remain capped at `0xfffffffe` even with forced
+ZIP64; this change does not add multi-gigabyte or seekable archive processing.
+Buffered profiles remain limited by `maxEntryBytes`, `maxTotalBytes` and
+`maxArchiveBytes`; they do not acquire constant-payload-memory behavior.
+
+`onRetention` reports serialized local/central metadata bytes and conservative
+owned-input-slab admission bytes. With chunkSize 512 the producer-reuse controls
+retain at most **1,024 input-slab admission bytes** and **102 metadata bytes** for
+the single `live` member, independently of tested payload length. Two slabs account
+for the consumer's old reference while its replacement is admitted. These counters
+exclude caller/provider slabs, codec/output workspace, JavaScript object overhead,
+VFS storage and buffered convenience results. They are bounded logical-retention
+evidence, **not process RSS, sandbox isolation or an aggregate host-memory quota**.
+Headers and codec blocks may precede payload publication; no per-input-chunk flush
+or immediate compressed-payload emission is promised, particularly for BZIP2.
+Opaque/uncooperative sources cannot be forcibly stopped; cooperative settlement
+and close are awaited. Already completed stdout writes cannot be undone.
+
+### Controls and manual QA
+
+Maintained memory-only controls cover STORE/DEFLATE/BZIP2 producer reuse at
+0/1/511/512/513/65,535/65,536/65,537 bytes; descriptors; exact entry/total/archive
+budget admission and one-byte rejection; work rejection; invalid expected sizes;
+size mismatch; metadata preflight; classic/ZIP64 mixed buffered neighbors;
+source failure; early sink rejection; gated EOF and actual slow-sink backpressure.
+The gated DEFLATE source publishes payload before its 16 input slabs are drained
+and stops pulling while the sink is held. Cancellation covers local header,
+payload, descriptor, central and end records; staged acquisition/write/publication;
+pending cooperative input; cleanup settlement and subsequent successful use.
+Unacquired sources remain unpulled; ordinary iterator retirement does not execute
+an unstarted async generator's finally. Conditional replacement and missing
+publication authority are negative controls, not successful publication cases.
+Existing update/copy, alias, conversion, text attributes, move, options, unzip and
+plugin suites remain enabled; no new test file or registration exclusion was added.
+
+Executed manual QA plan:
+
+1. Run `npm run screenshot-poe-code` with explicit real VFS root and commands to
+   create STORE, stream stdin through stdout ZIP, extract via unzip/xxd, and create
+   forced-descriptor output. Inspect the full PNG.
+2. Confirm readable progress and refusal diagnostics. Observed stdout extraction
+   `73747265616d696e67` (`streaming`). STORE/descriptor file publication correctly
+   refused unavailable atomic staging on this adapter; these are negative CLI
+   observations, not real-adapter publication successes.
+3. Through normal `poe-code` public `runBash` and `poe-code/safe-bash` memory FS
+   imports, create/extract STORE files, classic streamed stdin and forced-descriptor
+   files. All **3** controls passed with exact `hello`/`streaming` output.
+4. Generate six independent-oracle archives in isolated ignored scratch using the
+   public SDK, then read with Python zipfile: STORE/DEFLATE/BZIP2, each classic and
+   forced ZIP64, 65,537 bytes with 777-byte transport slabs. All **6** had the
+   expected method, descriptor flag and exact extracted bytes. Native tooling and
+   disk writes remained outside canonical unit fixtures.
+
+Screenshot preparation completed 75 uncached workspace builds and the host bundle,
+exit 0. PNG SHA-256:
+`0c7b4d3bc562e6804d036ae94f0f284ca3b742a2ac4d1c286469eb6f583025fe`.
+Later telemetry/type-only test refinements do not change the visible command flow.
+Absolute `/out` was read-only; task-owned scratch used the existing ignored `out/`
+fallback and is purged after recording results. No native ZIP pipe/device parity,
+deployed-provider behavior, full repository test gate, commit, push, remote-main
+delivery or successful release is claimed.
+
+Candidate SHA-256 (paths relative to packages/safe-bash):
+
+| Input | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip-format.ts | eb677f0bcc9d870b10128e92bf0805933d629a6b221d4f348b7133a4a4543379 |
+| src/commands/archive/zip.ts | 5927c7df92cabd00318ad83141db997fbb1562b35064f86322d23cf42b8d92af |
+| src/commands/archive/zip/safety.ts | 6dee6877a63560a1fec12b0eab1d4da65f093af836691fe01762a18ff0216101 |
+| tests/commands/zip-format.test.ts | 9864f05a927bb16c9b7d9479499e922c8a0d8a1fe36ac75be7015d3ffe717714 |
+| tests/commands/zip-review.test.ts | 556eadb9a9da853cf367eac2e01caccb3d4f6c7dfcfdf30f40a3532d97849b92 |
+| tests/commands/zip-standard-flags.test.ts | 3d51d009fad64c1837794953bfc618d961fc69e376f5d3294da9d18a823bf67a |
+
+Final stable-source verification:
+
+- `TZ=UTC LC_ALL=C TSX_DISABLE_CACHE=1 node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip*.test.ts`: **1,469/1,469 passed**, zero failures/cancellations/skips/TODOs; 18,768.571583 ms.
+- `npm run build:workspaces -- --workspace=virtual-bash`: exit **0**, six uncached builds from maintained declarations, after final product-source changes.
+- `npm run typecheck --workspace=virtual-bash -- --report ../../out/zip-stream-final-type-report`: exit **0**, maintained source/tests, consumers and required exact negative validators. The earlier run caught four test-only ByteSource-vs-AsyncIterator errors; tests now explicitly acquire iterators. That failed run is not a passing gate.
+- Public SDK **3/3** and isolated Python **3.9.6** zipfile **6/6** controls passed as detailed above.
+- Candidate source hashes rechecked against the table; `git diff --check`: exit **0** before final results recording.
+
+An intermediate test run overlapped build removal/recreation of imported SafeJS
+declarations and ended with module-not-found failures (**143 passes/19 failures**).
+No source fix or test relaxation was made for that run. The final complete run
+above followed settled build output. Earlier superseded lint processes were
+terminated to avoid competing full traversals after source refinements; they are
+not passing lint gates. Cohost/build load excludes duration comparisons. These
+are focused ZIP checks, not `npm test` for the whole repository or release proof.
+
+- Final `npm run lint:eslint`: exit **0**, complete **15,493/15,493** configured
+  subjects, zero errors, four warnings (two existing docx warnings and two unused
+  mock readStream parameters in this candidate's ZIP review test). No lint policy,
+  exclusion or rule was changed. This final traversal completed after test iterator
+  corrections; superseded traversals are not counted.
+- Final typecheck covered all **26** maintained current consumer groups and the
+  required negative validators; compile-only, not runtime-service acceptance.
+- Task-owned oracle data, visible-root files, screenshot, reports and temporary
+  logs were purged after review. Final owned-file diff/hashes were rechecked; no
+  unrelated edits, local commit, push or release was introduced.
+
+### Current-main implementation revalidation — September 16, 2026
+
+This execution started on main at `d5bc0802f1b79de7e723f256e593453344cba6aa`
+with the eight dirty files listed in the preceding candidate already present.
+They were preserved. The earlier statement that the initial tree was clean
+describes the preceding execution, not this one. Root and package AGENTS.md
+were read. The incremental source, descriptor, metadata retention and owned
+staging implementation was already present; no speculative rewrite was made.
+
+Fresh initial format/review controls passed **198/198**, including gated source,
+slow sink, producer reuse, budgets, phase cancellation and identity cleanup.
+One additional gap was concretely reproduced: direct `streamZipArchive` of an
+empty classic archive yielded its 22-byte end record with a 21-byte archive
+budget. The new memory-only test failed with `Missing expected rejection`
+before the product edit. Admission of end-record/comment/ZIP64 overhead now
+runs before metadata retention or end-record allocation, including zero members.
+Buffered convenience collection previously supplied a later budget check;
+the new guard also protects direct streaming callers before emission.
+
+The added control checks exact and one-byte-short budgets for classic and
+forced ZIP64 empty archives, with empty and nonempty comments. It also checks
+cancellation before emission and after the end record, preserving reason
+identity. Neighboring nonempty live and buffered controls remain enabled.
+
+Candidate SHA-256 superseding only two rows of the preceding table:
+
+| Input relative to packages/safe-bash | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip-format.ts | 56345d34288897410eeb3254d7285077ce3c4e1cc76660cf39ab3ac666507646 |
+| tests/commands/zip-format.test.ts | dd1eb09b79aab019926adeeb1f90c00ab9821ae65bfa4c0a1b21e65cf23753f9 |
+
+Fresh verification:
+
+- Final format/review run: **199/199 passed**, zero failures, cancellations,
+  skips or TODOs; UTC/C locale, disabled tsx cache, concurrency 1.
+- Full neighboring `zip*.test.ts`, `unzip.test.ts` and plugin ZIP suites:
+  dot-reporter run exited **0** after the product guard was added. The later
+  cancellation assertions were separately covered by the final 199-test run.
+- `npm run build:workspaces -- --workspace=virtual-bash`: exit **0**, six
+  uncached workspace builds selected through maintained declarations.
+- `npm run typecheck --workspace=virtual-bash`: exit **0**, source/tests,
+  all 26 maintained current consumer groups and required negative validators;
+  compile-only, not runtime or service acceptance. Temporary report cleaned
+  by the maintained runner.
+- `npm run lint:eslint`: exit **0**, complete traversal of **15,493/15,493**
+  configured subjects, zero errors and four warnings (the same docx and
+  pre-existing ZIP mock-parameter warnings recorded above). No lint rules,
+  selection or exclusions changed.
+- `git diff --check`: exit **0**.
+
+The qualified streaming/buffered profiles, logical retention counter exclusions
+and publication-authority limitations above remain unchanged. No RSS isolation,
+streaming adaptive compression/update/copy, native pipe/device parity or deployed
+provider claim is added. Prior screenshot/SDK/native-oracle proof binds the
+preceding candidate; those checks were not rerun for this budget-only guard.
+No visible CLI layout or arguments changed. No SafeJS, README, runtime dependency,
+host-process fallback, commit, push, remote-main delivery or release was changed
+or claimed. No temporary logs or fixtures were written by this execution.
+
+
+### 2026-09-16 STORE admission follow-up
+
+This execution inspected the existing dirty streaming implementation on main at
+`d5bc0802f1b79de7e723f256e593453344cba6aa`, preserving the pre-existing ZIP
+and other edits. The original incremental-input gap no longer reproduced:
+the initial zip-format, zip-review and zip-standard-flags run passed 495 tests,
+including gated EOF, slow sinks, early sink rejection and cooperative cleanup.
+
+A new memory-only failing control validated a narrower remaining issue:
+STORE retained a 512-byte owned input slab before rejecting insufficient archive
+capacity (observed payload admission 512, expected 0). The writer now checks
+known STORE output size against remaining archive capacity before slab copying.
+Compressed methods retain their existing output admission after codec production;
+this change makes no new codec-workspace or caller-buffer allocation guarantee.
+
+The final control covers classic and ZIP64 one-byte-short rejection, zero owned
+payload admission on rejection, source-finally cleanup, exact-boundary success
+and decoded payload equality. Existing phase cancellation, producer-reuse,
+mixed-neighbor and publication controls remain enabled. All maintained ZIP
+command and plugin test files ran with the dot reporter and exited 0:
+`node --import tsx --test --test-reporter=dot packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/plugins/zip*.test.ts`.
+Focused ESLint on the edited source/test files and `git diff --check` exited 0.
+
+Final dirty-source SHA-256 identities:
+
+| File | SHA-256 |
+| --- | --- |
+| zip-format.ts | `8b6df2a07e88947c91fae19b332fd340930a2f15ba371baca8bdd221f43caae5` |
+| zip.ts (preserved) | `5927c7df92cabd00318ad83141db997fbb1562b35064f86322d23cf42b8d92af` |
+| zip/safety.ts (preserved) | `6dee6877a63560a1fec12b0eab1d4da65f093af836691fe01762a18ff0216101` |
+| zip-format.test.ts | `f4303ed93079e80dfba03ba1c1332f14f353288f71befcdf861d022558a4a0a6` |
+
+The qualified profiles above remain in force: adaptive file compression and
+update/copy use bounded buffered access; streaming publication requires the
+existing provider staging/identity authority. Counters measure logical slab
+admission and serialized metadata, excluding caller buffers, codec workspace,
+provider storage and buffered convenience results; no process RSS claim is made.
+No visible CLI layout or arguments changed, so screenshots were not rerun for
+this admission-only guard. No SafeJS, README, dependency, host fallback, commit,
+push or release was changed. This is scoped dirty-candidate verification, not a
+full repository gate or remote-main/release qualification. No temporary logs
+or generated fixtures were retained.
+
+`npm run typecheck --workspace=virtual-bash` also exited 0: source/tests,
+26 maintained current consumer groups and required negative validators. Its
+compile-only report was cleaned by the maintained runner; this is not runtime
+provider acceptance.
+
+### 2026-09-16 empty-input work admission review
+
+Reviewed current main at `d5bc0802f1b79de7e723f256e593453344cba6aa`
+with the eight pre-existing dirty ZIP/evidence files preserved. Root and package
+AGENTS.md were read. Initial ZIP/unzip command and plugin regression run exited
+0; the original incremental-source gap remains covered by existing gated EOF,
+slow-sink, producer-reuse, early rejection and staging/identity controls.
+
+A new memory-only failing test reproduced `Missing expected rejection`:
+eight empty source chunks bypassed a four-step work budget. No input slabs or
+payload output existed to trigger the previous work accounting. Empty chunks
+now consume one work step and yield cooperatively before another pull; nonempty
+slab/output admission keeps its existing accounting. This bounds empty-input
+draining without adding runtime dependencies or changing codecs/contracts.
+
+The control covers STORE, DEFLATE and bzip2 rejection on the fourth empty pull,
+producer-finally cleanup, exact four-step STORE success with three empty chunks
+and decoded empty payload equality. Cancellation during empty input preserves
+the reason and closes the producer for all three methods. Existing publication
+failure/phase cancellation and neighboring buffered/update/copy controls remain
+enabled. Final uncached UTC/C-locale command:
+
+```sh
+TZ=UTC LC_ALL=C TSX_DISABLE_CACHE=1 node --import tsx --test --test-concurrency=1 --test-reporter=spec packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip*.test.ts
+```
+
+Result: **1,472/1,472 passed**, zero failures, cancellations, skips or TODOs.
+Focused ESLint on zip-format.ts and zip-format.test.ts and `git diff --check`
+exited 0. This is scoped dirty-candidate verification, not a full repository,
+remote-main or release gate. No new native-oracle or screenshot qualification:
+the fix changes internal empty-input admission, with no CLI arguments/layout
+changes. Existing qualified buffered/update/copy and staging-authority limits
+remain; retention counters describe logical slabs/serialized metadata, excluding
+caller buffers, codec workspace, provider storage and convenience results.
+There is no process RSS isolation claim. SafeJS, README and unrelated edits were
+preserved; no commit, push or release was made. No temporary fixtures/logs were
+retained.
+
+| Changed candidate input | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip-format.ts | `88b647fb9c0387e2ab3c07501a488578f2ec20f031db19f3cc2db6f1bd14074b` |
+| tests/commands/zip-format.test.ts | `c62db3a82e2f7cd3905754becaed5ebd649d9fbea1f86a7ac222bfa763bc2f57` |
+
+`npm run typecheck --workspace=virtual-bash` exited 0 for source/tests,
+26 maintained current consumer groups and required negative validators.
+It used existing built declarations (zero builds) and cleaned its report;
+this is compile-only proof, not a fresh build or runtime provider acceptance.
+
+### Commit verification — September 16, 2026
+
+At the user's request to run tests and commit all pending changes, the eight
+related ZIP source, test and plan files were verified together on main:
+
+- The uncached UTC/C-locale ZIP/unzip command and ZIP plugin regression command
+  above passed again, using the dot reporter (exit 0).
+- `npm run typecheck --workspace=virtual-bash` passed source/tests, all 26 current
+  public consumer groups and required negative validators (exit 0, zero builds).
+- `npm run lint:eslint` completed repository discovery and linted 15,493 inputs:
+  zero errors, four warnings, exit 0. Two warnings concern unused mock parameters
+  in zip-review.test.ts; the other two concern unrelated DOCX tests.
+- `git diff --check` passed.
+
+The guarded lint wrapper rejected positional file arguments before linting;
+its supported repository-wide invocation above completed successfully. This is
+focused runtime regression and package compile verification, with repository-wide
+ESLint, rather than a full repository unit/build gate. The incremental ZIP task's
+local commit status is recorded with this atomic commit. No push or release was
+requested; remote-main delivery and publication remain unverified.

@@ -48,11 +48,11 @@ tasks:
 
       Refactor zip-format.ts and zip.ts so streamable create/stdin/stdout paths consume ByteSource incrementally and emit before source EOF, retaining bounded central metadata rather than all payloads. Keep readZipArchive/writeZipArchive buffered convenience APIs compatible; do not merely chunk an already buffered archive. Use descriptors where sizes/CRC are unknown. Stage VFS file output using existing publication/identity contracts; update/copy must remain correct even when their source profile requires buffered or seekable access, with explicit documented limits. Enforce all input, output, archive, metadata and work budgets before retention/allocation; await sinks and close cooperative sources on cancellation/failure. Prove output before EOF with a gated source, slow-sink backpressure, producer buffer reuse, no eager source draining, early sink rejection, abort at each phase, cleanup and no accidental publication. Record bounded retention counters rather than claiming process RSS isolation.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-large-zip64
     title: "Complete automatic large-size and offset ZIP64"
     prompt: |

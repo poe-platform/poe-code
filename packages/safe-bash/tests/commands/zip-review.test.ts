@@ -7,6 +7,9 @@ import { createZipCommand } from "../../src/commands/archive/zip.js";
 import { createUnzipCommand } from "../../src/commands/archive/unzip.js";
 import { bindFileOutputBudget } from "../../src/contracts/filesystem-output.js";
 import { FsError } from "../../src/contracts/errors.js";
+import { collectBytes } from "../../src/contracts/index.js";
+import { settings } from "../../src/commands/archive/internal.js";
+import { decodeZipEntry, readZipArchive } from "../../src/commands/archive/zip-format.js";
 
 function checksum(bytes: Uint8Array): number {
   let value = 0xffffffff;
@@ -77,6 +80,233 @@ async function run(fs: FileSystem, command: "zip" | "unzip", args: readonly stri
   const result = await definition.execute(context);
   return { ...result, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr) };
 }
+
+test("ZIP stdout rejects its header before draining stdin", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  let pulls = 0;
+  const result = await run(fs, "zip", ["-q0", "-", "-"], {
+    stdin: { async *[Symbol.asyncIterator]() { pulls++; yield Buffer.from("live"); } },
+    stdout: { async write() { throw new Error("sink refused"); } },
+  });
+  assert.notEqual(result.exitCode, 0);
+  assert.equal(pulls, 0);
+});
+
+test("ZIP live stdout awaits a slow sink and emits payload before gated EOF", { timeout: 1000 }, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  let releaseHeader!: () => void;
+  let releasePayload!: () => void;
+  let releaseEof!: () => void;
+  let headerSeen!: () => void;
+  let payloadSeen!: () => void;
+  const header = new Promise<void>(resolve => { headerSeen = resolve; });
+  const payload = new Promise<void>(resolve => { payloadSeen = resolve; });
+  const headerGate = new Promise<void>(resolve => { releaseHeader = resolve; });
+  const payloadGate = new Promise<void>(resolve => { releasePayload = resolve; });
+  const eofGate = new Promise<void>(resolve => { releaseEof = resolve; });
+  let pulls = 0;
+  let eof = false;
+  let closed = false;
+  let writes = 0;
+  let seed = 91626;
+  const slab = new Uint8Array(65536);
+  const expected: Uint8Array[] = [];
+  const chunks: Uint8Array[] = [];
+  const pending = run(fs, "zip", ["-q", "-", "-"], {
+    stdin: (async function* () {
+      try {
+        for (let index = 0; index < 16; index++) {
+          for (let byte = 0; byte < slab.length; byte++) { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; slab[byte] = seed >>> 24; }
+          expected.push(new Uint8Array(slab));
+          pulls++;
+          yield slab;
+          slab.fill(255);
+        }
+        await eofGate;
+        eof = true;
+      } finally { closed = true; slab.fill(255); }
+    })(),
+    stdout: { async write(chunk) {
+      writes++;
+      chunks.push(new Uint8Array(chunk));
+      if (writes === 1) { headerSeen(); await headerGate; }
+      if (writes === 2) { payloadSeen(); await payloadGate; }
+    } },
+  });
+  try {
+    await header;
+    assert.equal(pulls, 0);
+    releaseHeader();
+    await payload;
+    assert.equal(eof, false);
+    assert.ok(pulls < 16, "DEFLATE must emit without draining its producer");
+    const heldPulls = pulls;
+    await setImmediate();
+    assert.equal(pulls, heldPulls, "slow sink must prevent further pulls");
+  } finally { releaseHeader(); releasePayload(); releaseEof(); }
+  const result = await pending;
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(closed, true);
+  const archive = await readZipArchive(Buffer.concat(chunks), settings({}), new AbortController().signal);
+  const decoded = await collectBytes(decodeZipEntry(archive.entries[0]!, settings({}), new AbortController().signal), { maxBytes: 2 * 1024 * 1024 });
+  assert.equal(Buffer.from(decoded).equals(Buffer.concat(expected)), true);
+});
+
+test("ZIP STORE file writes its owned staging before gated source EOF", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/live", Buffer.alloc(1024, 97));
+  let writes = 0;
+  let published = false;
+  const stream = wrapped(fs, {
+    async *readStream(path, options) {
+      yield Buffer.alloc(512, 97);
+      assert.ok(writes >= 2, "header and payload must reach staging before next input");
+      assert.equal(published, false);
+      yield Buffer.alloc(512, 97);
+    },
+    async writeFileConditional(path, bytes, options) { writes++; return fs.writeFileConditional!(path, bytes, options); },
+    async publishStagedFile(staging, path, options) { published = true; return fs.publishStagedFile!(staging, path, options); },
+  });
+  const result = await run(stream, "zip", ["-q0", "created.zip", "live"]);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(published, true);
+  assert.equal((await run(fs, "unzip", ["-p", "created.zip", "live"])).stdout.length, 1024);
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name).sort(), ["created.zip", "live"]);
+});
+
+for (const phase of ["createStagedFile", "writeFileConditional", "publishStagedFile"] as const) {
+  test(`ZIP streamed file abort at ${phase} cleans staging without publication`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/live", Buffer.alloc(1024, 97));
+    const controller = new AbortController();
+    const reason = new Error(`cancel ${phase}`);
+    let injected = false;
+    const stream = new Proxy(fs, { get(target, method) {
+      const value: unknown = Reflect.get(target, method);
+      if (typeof value !== "function") return value;
+      if (method === "readStream") return value.bind(target);
+      return async (...args: unknown[]) => {
+        if (method === phase && !injected && phase === "publishStagedFile") { injected = true; controller.abort(reason); }
+        const result: unknown = await Reflect.apply(value, target, args);
+        if (method === phase && !injected) { injected = true; controller.abort(reason); }
+        return result;
+      };
+    } });
+    await assert.rejects(run(stream, "zip", ["-q0", "created.zip", "live"], { signal: controller.signal }), error => error === reason);
+    assert.equal(injected, true);
+    assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["live"]);
+    assert.equal((await run(fs, "zip", ["-q0", "created.zip", "live"])).exitCode, 0);
+  });
+}
+
+test("ZIP live source failure leaves no file or staging publication", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/live", Buffer.alloc(1024));
+  let closed = false;
+  const stream = wrapped(fs, { async *readStream() {
+    try { yield new Uint8Array(512); throw new Error("producer failed"); }
+    finally { closed = true; }
+  } });
+  const result = await run(stream, "zip", ["-q0", "created.zip", "live"]);
+  assert.equal(result.exitCode, 2);
+  assert.equal(closed, true);
+  assert.deepEqual((await fs.readdir("/work")).map(entry => entry.name), ["live"]);
+});
+
+test("ZIP live conditional writes preserve a replaced staging file", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/live", Buffer.alloc(1024));
+  let injected = false;
+  let replacement = "";
+  const stream = wrapped(fs, { async writeFileConditional(path, bytes, options) {
+    if (!injected) {
+      injected = true;
+      replacement = path;
+      await fs.rm(path);
+      await fs.writeFile(path, Buffer.from("someone else's bytes"));
+    }
+    return fs.writeFileConditional!(path, bytes, options);
+  } });
+  const result = await run(stream, "zip", ["-q0", "created.zip", "live"]);
+  assert.equal(result.exitCode, 2);
+  assert.equal(injected, true);
+  assert.equal(Buffer.from(await fs.readFile(replacement)).toString(), "someone else's bytes");
+  await assert.rejects(fs.stat("/work/created.zip"), error => error instanceof FsError && error.code === "ENOENT");
+});
+
+test("ZIP live staging refuses missing conditional-write authority before input", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  let pulls = 0;
+  const stream = wrapped(fs, { capabilities: { ...fs.capabilities, atomicFileMutation: false } });
+  const result = await run(stream, "zip", ["-q0", "created.zip", "-"], { stdin: (async function* () { pulls++; yield new Uint8Array(512); })() });
+  assert.equal(result.exitCode, 2);
+  assert.equal(pulls, 0);
+  assert.deepEqual(await fs.readdir("/work"), []);
+});
+
+test("ZIP live abort during cooperative input awaits producer cleanup", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const controller = new AbortController();
+  const reason = new Error("pending input aborted");
+  let closed = false;
+  let admitted!: () => void;
+  const reading = new Promise<void>(resolve => { admitted = resolve; });
+  const pending = run(fs, "zip", ["-q0", "created.zip", "-"], {
+    signal: controller.signal,
+    stdin: (async function* () {
+      try {
+        yield new Uint8Array(512);
+        admitted();
+        await new Promise<void>(resolve => { controller.signal.addEventListener("abort", () => resolve(), { once: true }); });
+        controller.signal.throwIfAborted();
+      } finally { await setImmediate(); closed = true; }
+    })(),
+  });
+  await reading;
+  controller.abort(reason);
+  await assert.rejects(pending, error => error === reason);
+  assert.equal(closed, true);
+  assert.deepEqual(await fs.readdir("/work"), []);
+});
+
+test("ZIP live sink rejection cancels a pending cooperative VFS read", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/live", Buffer.alloc(80000));
+  const controller = new AbortController();
+  let closed = false;
+  let rejected!: () => void;
+  const rejection = new Promise<void>(resolve => { rejected = resolve; });
+  const stream = wrapped(fs, { async *readStream(path, options) {
+    try {
+      let seed = 91626;
+      const bytes = new Uint8Array(40000);
+      for (let index = 0; index < bytes.length; index++) { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; bytes[index] = seed >>> 24; }
+      yield bytes;
+      await new Promise<void>(resolve => { options!.signal!.addEventListener("abort", () => resolve(), { once: true }); });
+      options!.signal!.throwIfAborted();
+    } finally { closed = true; }
+  } });
+  let writes = 0;
+  const pending = run(stream, "zip", ["-q", "-", "live"], { signal: controller.signal, stdout: { async write() {
+    if (++writes === 2) { rejected(); throw new Error("sink rejected"); }
+  } } });
+  await rejection;
+  await setImmediate();
+  const retiredBeforeCallerAbort = closed;
+  if (!closed) controller.abort(new Error("test cleanup"));
+  const result = await pending.catch(() => undefined);
+  assert.equal(retiredBeforeCallerAbort, true);
+  assert.equal(result?.exitCode, 2);
+});
 
 test("zip review: late hardlink during output admission cannot mutate the new alias", async () => {
   const original = archive();

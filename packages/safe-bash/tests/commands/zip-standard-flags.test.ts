@@ -1016,7 +1016,10 @@ test("zip stdin uses ZIP64 by default and disabling restores classic records", a
     const result = await execute("zip", fs, ["-q", ...options, "stdin.zip", "-"], {}, { stdin: toByteSource(binary) });
     assert.equal(result.exitCode, 0, result.stderr);
     const bytes = Buffer.from(await fs.readFile("/work/stdin.zip"));
-    assert.equal(bytes.readUInt16LE(4), options.at(-1) === "-fz-" ? 10 : 45);
+    // Live stdin has unknown sizes/CRC: classic records now need a descriptor
+    // and extraction version 20; disabling ZIP64 still selects classic widths.
+    assert.equal(bytes.readUInt16LE(4), options.at(-1) === "-fz-" ? 20 : 45);
+    assert.equal(bytes.readUInt16LE(6) & 8, 8);
     assert.deepEqual((await execute("unzip", fs, ["-p", "stdin.zip"])).stdout, binary);
   }
 });

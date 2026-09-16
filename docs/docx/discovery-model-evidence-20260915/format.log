@@ -1,0 +1,5 @@
+Checking formatting...
+[warn] packages/docx/src/discovery.test.ts
+[warn] packages/docx/src/discovery-completeness.test.ts
+[warn] packages/docx/src/style-formatting-schema.test.ts
+[warn] Code style issues found in 3 files. Run Prettier with --write to fix.

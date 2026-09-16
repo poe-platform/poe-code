@@ -38,13 +38,15 @@ Unix suffix matching is case-sensitive. Defaults are `.Z`, `.zip`, `.zoo`, `.arc
 Attached and equals values such as `-n.txt` and `-n=.txt` are accepted. `-9`
 overrides the suffix list and attempts maximum compression.
 
-`-Z store` / `-Z deflate` and `--compression-method=METHOD` explicitly select the
+`-Z store` / `-Z deflate` / `-Z bzip2` and `--compression-method=METHOD` explicitly select the
 method. Method names are case-insensitive and accept unique prefixes. Store mode
 remains selected through later level flags; `-Z deflate` switches it back. The
 native invalid level-zero/DEFLATE combination returns status 5 when compressing a
-nonempty regular file. Unknown methods return 16. Bzip2 is currently not enabled
-and returns the native disabled-method status 19; reading and writing method-12
-archives remains format implementation work.
+nonempty regular file. Unknown methods return 16. BZIP2 uses the existing bounded
+codec, with no new runtime dependency. Method-12 records require extraction
+version 4.6, including when ZIP64 is enabled. Small files retain the STORE fallback
+when compression expands them. Decoding validates stream integrity, size and ZIP
+CRC32, and rejects trailing bytes or concatenated BZIP2 streams inside a member.
 
 `-@` reads one source filename per stdin line before processing command-line
 operands. Empty lines are ignored; trailing carriage returns are removed, while
@@ -147,6 +149,9 @@ directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
 quiet output. Distinct sources with the same basename return status 16 without
 publishing changes to the archive.
 
+`-p` / `--paths` is accepted as a compatibility no-op, matching Unix Zip 3.0.
+It does not undo `-j`, regardless of option order. Negation and values are invalid.
+
 `-D` omits newly selected directory entries while still traversing directories
 with `-r`. Existing directory members remain in an updated archive. Selecting
 only a directory without recursion produces `Nothing to do!` and status 12.
@@ -157,6 +162,17 @@ targets, so recursive cycles through links are preserved as links. Without `-y`,
 sources are dereferenced. Link reads require the filesystem's `readlink` operation
 and are checked for source replacement before publication. Storing an escaping
 target does not authorize its extraction; extraction path checks remain enabled.
+
+`-m` / `--move` removes selected filesystem sources after successful archive
+publication or stdout stream completion. Unchanged update/freshen also removes
+selected archived sources while retaining status 12; current `-FS` retains status
+0. Stored and dereferenced symlinks remove the link pathname, preserving targets.
+Selected empty directories are removed after files; excluded/nonempty directories
+and directories omitted by `-D` remain. Stdin has no pathname to remove. Copy and
+delete actions ignore move. Removal requires atomic conditional entry removal and
+known scoped source/parent identities and revisions. Replaced sources survive;
+nonquiet failed file removals warn without changing successful ZIP status.
+Publication, integrity or stream failure prevents source deletion.
 
 `-l` / `--to-crlf` expands LF bytes to CRLF in newly selected regular-file and
 stdin payloads. Existing CRLF becomes CRCRLF; stored symlink targets and retained
@@ -339,8 +355,15 @@ pattern to match. The option is not negatable.
 
 ## Supported format and safety
 
+`zip -h` / `zip --help` prints usage and exits successfully when the option is
+encountered, without reading source files or writing an archive. Earlier invalid
+options still fail; later arguments are ignored. Quiet mode does not suppress
+help. After the archive name and `--`, `-h` is an ordinary filename.
+`-h2` / `--more-help` prints extended selection, operation, compression,
+streaming and ZIPOPT guidance with the same immediate-exit behavior.
+
 The bounded format profile supports ordinary single-disk ZIP records with stored
-or raw-DEFLATE payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
+raw-DEFLATE or BZIP2 payloads, UTF-8/Unicode-extra and CP437 names, Unix timestamps and
 modes, archive/member comments, classic and ZIP64 data descriptors, and bounded
 single-disk ZIP64 input and output records. ZIP64 sizes and offsets must be safely representable
 and within configured limits. The classic 65,535-member maximum is admitted;

@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileReadHandle, FileResizeHandle, FileStat, FileSystem,
   FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions, ReadStreamOptions, RemoveOptions,
   FileDescriptor, OpenFileOptions, OpenReadFileOptions, OpenResizeFileOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
@@ -124,7 +124,7 @@ export class MemoryFileSystem implements FileSystem {
       permissions: true,
       timestamps: true,
       atomicRename: true,
-      atomicFileStaging: true, atomicFileMutation: true,
+      atomicFileStaging: true, atomicFileMutation: true, atomicEntryRemoval: true,
       atomicDirectoryMetadata: true,
       streamingRead: true,
       retainedRead: true,
@@ -665,6 +665,26 @@ export class MemoryFileSystem implements FileSystem {
     if (location.node && location.node.type !== "file") this.fail("EINVAL", "writeFileConditional", path);
     this.writeData(path, data, { ...(options.mode === undefined ? {} : { mode: options.mode }), flag: options.append ? "a" : "w" }, "writeFileConditional");
     return Object.freeze(this.snapshot(location.parent.entries.get(location.name)!));
+  }
+
+  async removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    options.signal?.throwIfAborted();
+    const location = this.entry(path, "removeEntryConditional", true);
+    this.expectEntry(location.parent, options.parent, path, false);
+    this.expectEntry(location.node, options.expected, path);
+    const node = location.node!;
+    if (this.terminalDot(path)) this.fail("EINVAL", "removeEntryConditional", path);
+    if (node === this.root) this.fail("EBUSY", "removeEntryConditional", path);
+    if (node.type !== "file" && node.type !== "symlink" && node.type !== "directory") this.fail("EINVAL", "removeEntryConditional", path);
+    this.permission(location.parent, 3, "removeEntryConditional", path);
+    if (node.type === "directory" && node.entries.size > 0) this.fail("ENOTEMPTY", "removeEntryConditional", path);
+    location.parent.entries.delete(location.name);
+    this.ledger.release(location.name.length * 2, 1);
+    node.nlink--;
+    node.ctimeMs = Date.now();
+    node.revision = Math.min(Number.MAX_SAFE_INTEGER + 1, node.revision + 1);
+    this.releaseNode(node);
+    this.changed(location.parent);
   }
 
   async removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {

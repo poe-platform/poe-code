@@ -4,7 +4,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { readBytes } from "../../contracts/io.js";
@@ -143,7 +143,7 @@ export class MountFileSystem implements FileSystem {
     const common = (capability: string): boolean | undefined => {
       const optional: Record<string, readonly (keyof FileSystem)[]> = {
         open: ["open"],
-        atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
+        atomicEntryRemoval: ["removeEntryConditional"], atomicFileMutation: ["writeFileConditional", "removeFileConditional"], atomicFileStaging: ["createStagedFile", "publishStagedFile", "removeStagedFile"], atomicDirectoryMetadata: ["prepareDirectory"],
         symlinks: ["symlink", "readlink"], hardlinks: ["link"], permissions: ["chmod"], timestamps: ["utimes"], readlink: ["readlink"],
         descriptorWriteStream: ["writeStream"], retainedResize: ["openResizeFile"], atomicResize: ["resizeFile"],
       };
@@ -158,7 +158,7 @@ export class MountFileSystem implements FileSystem {
       return values.every(value => value === true) ? true : values.every(value => value === false) ? false : undefined;
     };
     const semantics = Object.fromEntries([
-      "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open",
+      "atomicEntryRemoval", "atomicFileMutation", "atomicFileStaging", "atomicDirectoryMetadata", "read", "stat", "readdir", "realpath", "access", "open",
       "write", "append", "exclusiveCreate", "explicitDirectories", "implicitDirectories", "mkdir", "recursiveMkdir",
       "remove", "removeDirectory", "recursiveRemove", "rename", "atomicRenameNoReplace", "copy", "exclusiveCopy", "readlink", "truncate",
       "streamingAppend", "randomAccessWrite", "descriptorWriteStream", "retainedResize", "atomicResize", "symlinks", "hardlinks", "permissions", "timestamps",
@@ -607,6 +607,18 @@ export class MountFileSystem implements FileSystem {
       if (!backend.writeFileConditional) fail("ENOTSUP");
       return snapshotStat(await backend.writeFileConditional(location.local, data, options));
     }, undefined, true);
+  }
+
+  removeEntryConditional(path: string, options: ConditionalRemoveEntryOptions): Promise<void> {
+    return this.operation("removeEntryConditional", path, options, async () => {
+      const location = await this.resolve(path, options, { followFinal: false, entry: true, allowMissing: true });
+      if (this.protected(location.path)) fail("EBUSY");
+      this.mutable(location);
+      const backend = location.mount.backend;
+      await requireOwnedMutation(backend, location.local, "atomicEntryRemoval", options);
+      if (!backend.removeEntryConditional) fail("ENOTSUP");
+      await backend.removeEntryConditional(location.local, options);
+    });
   }
 
   removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {

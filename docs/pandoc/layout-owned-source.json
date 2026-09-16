@@ -1,0 +1,909 @@
+{
+  "metadata": {},
+  "resources": [
+    {
+      "id": "owned.png",
+      "bytes": [
+        137,
+        80,
+        78,
+        71,
+        13,
+        10,
+        26,
+        10,
+        0,
+        0,
+        0,
+        13,
+        73,
+        72,
+        68,
+        82,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        8,
+        2,
+        0,
+        0,
+        0,
+        144,
+        119,
+        83,
+        222,
+        0,
+        0,
+        0,
+        12,
+        73,
+        68,
+        65,
+        84,
+        120,
+        156,
+        99,
+        80,
+        104,
+        56,
+        0,
+        0,
+        2,
+        36,
+        1,
+        97,
+        221,
+        20,
+        154,
+        144,
+        0,
+        0,
+        0,
+        0,
+        73,
+        69,
+        78,
+        68,
+        174,
+        66,
+        96,
+        130
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Owned PDF layout sample"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Latin Ελληνικά Кириллица. Measured mono advances; explicit supplied font."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Link",
+          "c": [
+            [
+              "",
+              [],
+              []
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "https://example.com/long-path-long-path-long-path-long-path-long-path-long-path-long-path-long-path-long-path-"
+              }
+            ],
+            [
+              "https://example.com",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "BulletList",
+      "c": [
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "First item"
+              }
+            ]
+          },
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                3,
+                "Decimal",
+                "Period"
+              ],
+              [
+                [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Nested third item"
+                      }
+                    ]
+                  }
+                ],
+                [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Nested fourth item"
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Second item"
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "CodeBlock",
+      "c": [
+        [
+          "",
+          [],
+          []
+        ],
+        "const owned = \"long-code-long-code-long-code-long-code-long-code-long-code-long-code-long-code-long-code-long-code-long-code-long-code-\";\nreturn owned;"
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Reference before the table"
+        },
+        {
+          "t": "Note",
+          "c": [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "First owned endnote: content preserved across pagination."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Table",
+      "c": [
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          null,
+          []
+        ],
+        [
+          [
+            "AlignLeft",
+            {
+              "t": "ColWidth",
+              "c": 0.6
+            }
+          ],
+          [
+            "AlignLeft",
+            {
+              "t": "ColWidth",
+              "c": 0.4
+            }
+          ]
+        ],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "AlignLeft",
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Para",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "REPEATED HEADER"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "AlignLeft",
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Para",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "VALUE"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "",
+              [],
+              []
+            ],
+            0,
+            [],
+            [
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 1\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 1"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 2\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 2"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 3\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 3"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 4\nline 1 content\nline 2 content\nline 3 content\nline 4 content\nline 5 content\nline 6 content\nline 7 content\nline 8 content\nline 9 content\nline 10 content\nline 11 content\nline 12 content\nline 13 content\nline 14 content\nline 15 content\nline 16 content\nline 17 content\nline 18 content\nline 19 content\nline 20 content\nline 21 content\nline 22 content\nline 23 content\nline 24 content\nline 25 content\nline 26 content\nline 27 content\nline 28 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 4"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 5\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 5"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 6\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 6"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 7\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 7"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 8\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 8"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Owned row 9\nline 1 content\nline 2 content"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "AlignLeft",
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "value 9"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          []
+        ]
+      ]
+    },
+    {
+      "t": "Header",
+      "c": [
+        2,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Large image and boundary note"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Figure",
+      "c": [
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          null,
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Figure 1. Original blue square retains its aspect ratio."
+                }
+              ]
+            }
+          ]
+        ],
+        [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    [
+                      [
+                        "width",
+                        "500"
+                      ],
+                      [
+                        "height",
+                        "450"
+                      ]
+                    ]
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Owned square"
+                    }
+                  ],
+                  [
+                    "owned.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "After the figure"
+        },
+        {
+          "t": "Note",
+          "c": [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Second owned endnote following the large image."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Math",
+          "c": [
+            "InlineMath",
+            "x^2 + y^2 = z^2"
+          ]
+        }
+      ]
+    }
+  ]
+}

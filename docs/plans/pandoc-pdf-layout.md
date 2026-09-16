@@ -23,8 +23,12 @@ lists, Unicode, table spanning pages, large image and notes. Independently rende
 PDF pages using an available renderer outside unit tests; inspect all pages for
 clipping, missing content, margins and pagination. Record tooling and limitations.
 
-Status: engine original tests and implementation verified (23 engine tests,
-scoped lint/typechecks and maintained selected build closure). All five pages of
-owned engine samples independently rendered with PDFKit and visually inspected;
-evidence in docs/pandoc/layout-engine-evidence.md. AST/CLI implementation is being
-verified separately for its own atomic commit. No push/release authorized.
+Status: engine committed locally as 722d6fb92 (23 engine tests, scoped lint/typechecks
+and maintained selected build closure). AST/SDK/CLI original tests and implementation
+verified (898 Pandoc tests and scoped lint/typechecks). All five pages of owned engine
+samples and all six pages of the converter sample independently rendered with PDFKit
+and visually inspected. Evidence is in docs/pandoc/layout-engine-evidence.md and
+layout-adapter-evidence.md. Font/page options have SDK/CLI parity and early streaming
+budget admission. Profile limitations and endnote policy remain explicit; README
+changes are unauthorized. Repository-wide checks were not run. No push/release
+authorized; adapter implementation is delivered in this atomic local commit.

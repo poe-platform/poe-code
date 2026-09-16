@@ -1,5 +1,6 @@
 import type { FormatSelection } from "./formats.js";
 import type { Block, Inline, MetaValue } from "./ast-types.js";
+import type {PageBox, SuppliedFont} from "@poe-code/pdf";
 export type Node = Block | Inline;
 export interface Resource {
   readonly id: string;
@@ -97,6 +98,10 @@ export interface ReadOptions {
   readonly from: string;
 }
 export interface WriteOptions {
+  /** PDF-only geometry in points, equivalent to --pdf-page WIDTH,HEIGHT,MARGIN. */
+  readonly pdfPage?: PageBox;
+  /** Ordered supplied sfnt sources; replaces the packaged font. CLI: repeat --pdf-font PATH. */
+  readonly pdfFonts?: readonly InputSource[];
   /** Ordered VFS directories, replacing the source-directory search when present. */
   readonly resourcePath?: readonly string[];
   /** Extract image resources into this VFS directory; never download media implicitly. */
@@ -119,6 +124,8 @@ export interface MetadataObject { readonly [key: string]: MetadataValue }
 export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
+  readonly pdfPage?: PageBox | undefined;
+  readonly pdfFonts?: readonly SuppliedFont[] | undefined;
   /** Parser origin sidecar; never serialized into the AST. */
   resourceTarget?(target: object, line: number, origin?: {readonly base?: string; readonly source?: string}): void;
   readonly operation?: Operation;

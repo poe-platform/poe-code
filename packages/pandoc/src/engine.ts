@@ -2,6 +2,7 @@ import { normalizeDocumentCooperatively, AstError } from "./ast.js";
 import type { MetaValue } from "./ast-types.js";
 import { createFormatRegistry } from "./formats.js";
 import { ExecutionContext } from "./execution.js";
+import {defaultPdfLimits} from "@poe-code/pdf";
 import { ResourceSession } from "./resources.js";
 import { PandocError } from "./errors.js";
 import { mergeMetadata, mergeJsonMetadata, parseMetadataJson } from "./metadata.js";
@@ -52,10 +53,13 @@ class Session extends ExecutionContext {
   standalone = false;
   rawContent: WriteOptions["rawContent"];
   metadata: WriteOptions["metadata"];
+  pdfPage: WriteOptions["pdfPage"];
+  pdfFonts: readonly import("@poe-code/pdf").SuppliedFont[] | undefined;
+  pdfFontInputs: WriteOptions["pdfFonts"];
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
-    if (this.operation !== "read") allowed.push("failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia");
+    if (this.operation !== "read") allowed.push("failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && options.wrap !== "none") this.fail("E_OPTION", "Only wrap none is supported");
@@ -80,12 +84,43 @@ class Session extends ExecutionContext {
       this.standalone = options.standalone === true;
       this.rawContent = options.rawContent;
       this.metadata = options.metadata;
+      if (options.pdfPage !== undefined) {
+        const page = options.pdfPage;
+        if (!page || typeof page !== "object" || Object.keys(page).some(key => !["width", "height", "margin"].includes(key)) || ![page.width, page.height, page.margin].every(Number.isFinite) || page.margin < 0 || page.width <= 2 * page.margin || page.height <= 2 * page.margin) this.fail("E_OPTION", "Invalid PDF page geometry");
+        this.pdfPage = {...page};
+      }
+      if (options.pdfFonts !== undefined) {
+        if (!Array.isArray(options.pdfFonts) || !options.pdfFonts.length) this.fail("E_OPTION", "pdfFonts requires nonempty ordered sources");
+        this.bound("fonts", options.pdfFonts.length);
+        if (options.pdfFonts.length > defaultPdfLimits.fonts) this.fail("E_LIMIT", "PDF font count exceeds engine limit");
+        this.pdfFontInputs = options.pdfFonts;
+      }
     }
   }
   readonly registry = createFormatRegistry(undefined, this.context, this.operation);
   async preflightOptions(): Promise<void> {
     if (this.metadata) this.metadata = (await this.document({blocks: [], metadata: this.metadata, resources: []})).metadata;
     for (const layer of this.metadataJson ?? []) await mergeJsonMetadata({}, layer, this);
+    if (this.pdfFontInputs) {
+      const fonts: import("@poe-code/pdf").SuppliedFont[] = [];
+      let fontBytes = 0;
+      for (let i = 0; i < this.pdfFontInputs.length; i++) {
+        const input = this.pdfFontInputs[i]!;
+        if (!input || typeof input !== "object" || !("bytes" in input || "chunks" in input)) this.fail("E_OPTION", "Invalid PDF font input");
+        const chunks = (async function* (this: Session) {
+          for await (const chunk of "bytes" in input ? [input.bytes] : input.chunks) {
+            this.checkpoint(0);
+            if (!(chunk instanceof Uint8Array)) this.fail("E_IO", "Font sources must yield bytes");
+            fontBytes += chunk.byteLength;
+            if (fontBytes > defaultPdfLimits.fontBytes) this.fail("E_LIMIT", "PDF font bytes exceed engine limit");
+            yield chunk;
+          }
+        }).call(this);
+        const bytes = await this.acquire(chunks, "binaryBytes");
+        fonts.push({id: `supplied-${i}`, bytes});
+      }
+      this.pdfFonts = fonts;
+    }
   }
   async readOwned(input: Input, selection: FormatSelection & {reader: ReaderCapability | undefined}, locations: readonly {source: string; line: number; base?: string}[] = []): Promise<Document> {
     this.sourceLocations = locations;

@@ -1,5 +1,5 @@
 import { PandocError } from "./errors.js";
-import type { ConversionOptions, InputSource, MetadataObject } from "./types.js";
+import type { ConversionOptions, InputSource, MetadataObject, WriteOptions } from "./types.js";
 import { resourceDirectory } from "./resources.js";
 
 export interface CommandInputs {
@@ -11,7 +11,8 @@ export interface CommandInputs {
 
 /** Parsing creates lazy inputs. Only the validated converter may acquire them. */
 export function parseConversionArgs(args: readonly string[], files: CommandInputs, signal: AbortSignal): {options: ConversionOptions; operands: readonly InputSource[] | undefined; destination?: string} {
-  const options: {from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; failIfWarnings?: boolean; rawContent?: "reject" | "escape" | "retain"; resourcePath?: readonly string[]; extractMedia?: string} = {};
+  const options: {from?: string; to?: string; wrap?: "none"; lossy?: boolean; standalone?: boolean; failIfWarnings?: boolean; rawContent?: "reject" | "escape" | "retain"; resourcePath?: readonly string[]; extractMedia?: string; pdfPage?: NonNullable<WriteOptions["pdfPage"]>} = {};
+  const pdfFonts: InputSource[] = [];
   const metadataJson: MetadataObject[] = [];
   const metadataFiles: InputSource[] = [];
   const operands: InputSource[] = [];
@@ -42,6 +43,18 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     }
     const equals = arg.indexOf("=");
     const name = equals < 0 ? arg : arg.slice(0, equals);
+    if (name === "--pdf-font" || name === "--pdf-page") {
+      const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
+      if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
+      if (name === "--pdf-font") pdfFonts.push(source(value!));
+      else {
+        if (options.pdfPage !== undefined) fail("Repeated pdf-page option");
+        const parts = value!.split(",");
+        if (parts.length !== 3 || parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) fail("pdf-page requires WIDTH,HEIGHT,MARGIN in points");
+        options.pdfPage = {width: Number(parts[0]), height: Number(parts[1]), margin: Number(parts[2])};
+      }
+      continue;
+    }
     if (name === "--resource-path" || name === "--extract-media") {
       const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
       if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
@@ -98,5 +111,5 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     const media = resourceDirectory(options.extractMedia, files.cwd ?? "/");
     if (output === media || media === "/" || output.startsWith(`${media}/`)) fail("Output cannot be inside the extraction directory");
   }
-  return {options: {...options, from: options.from!, to: options.to!, ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
+  return {options: {...options, from: options.from!, to: options.to!, ...(pdfFonts.length ? {pdfFonts} : {}), ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
 }

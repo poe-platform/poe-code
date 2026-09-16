@@ -1,0 +1,108 @@
+PAGE 1
+Owned PDF layout
+sample
+Latin Ελληνικά Кириллица. Measured
+mono advances; explicit supplied
+font.
+https://example.com/long-path-long-
+path-long-path-long-path-long-path-
+long-path-long-path-long-path-long-
+path-
+- First item
+3. Nested third item
+4. Nested fourth item
+- Second item
+const owned =
+"long-code-long-code-long-code-long-code-l
+ong-code-long-code-long-code-long-code-lon
+g-code-long-code-long-code-long-code-
+";
+return owned;
+
+PAGE 2
+Reference before the table[1]
+REPEATED HEADER VALUE
+Owned row 1
+line 1 content
+line 2 content
+value 1
+Owned row 2
+line 1 content
+line 2 content
+value 2
+Owned row 3
+line 1 content
+line 2 content
+value 3
+Owned row 4
+line 1 content
+line 2 content
+line 3 content
+line 4 content
+line 5 content
+line 6 content
+line 7 content
+line 8 content
+value 4
+
+PAGE 3
+REPEATED HEADER VALUE
+line 9 content
+line 10 content
+line 11 content
+line 12 content
+line 13 content
+line 14 content
+line 15 content
+line 16 content
+line 17 content
+line 18 content
+line 19 content
+line 20 content
+line 21 content
+line 22 content
+line 23 content
+line 24 content
+line 25 content
+line 26 content
+line 27 content
+line 28 content
+
+PAGE 4
+REPEATED HEADER VALUE
+Owned row 5
+line 1 content
+line 2 content
+value 5
+Owned row 6
+line 1 content
+line 2 content
+value 6
+Owned row 7
+line 1 content
+line 2 content
+value 7
+Owned row 8
+line 1 content
+line 2 content
+value 8
+Owned row 9
+line 1 content
+line 2 content
+value 9
+
+PAGE 5
+Large image and
+boundary note
+Figure 1. Original blue square
+retains its aspect ratio.
+
+PAGE 6
+After the figure[2]
+[math source: x^2 + y^2 = z^2]
+Notes
+[1] First owned endnote: content
+preserved across pagination.
+[2] Second owned endnote following
+the large image.
+

@@ -1,4 +1,10 @@
 steps:
+  reproduce:
+    prompt: |
+      Original task:
+      {{prompt}}
+
+      Validate the reported issue against the current code. Reproduce it with a failing test or other concrete evidence before implementation. If it cannot be validated, report that instead of changing code.
   implement:
     prompt: |
       Implement

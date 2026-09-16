@@ -110,7 +110,7 @@ function base64(value: unknown): boolean {
 }
 function receiver(value: unknown, type?: string): boolean {
   if (!object(value)) return false;
-  if (Object.hasOwn(value, "resultHandle")) return closed(value, { resultHandle: "identifier", index: "?nonnegative integer", key: "?identifier" }) && !(value.index !== undefined && value.key !== undefined);
+  if (Object.hasOwn(value, "resultHandle")) return closed(value, { resultHandle: "BatchHandleName", index: "?nonnegative integer", key: "?identifier" }) && !(value.index !== undefined && value.key !== undefined);
   return closed(value, { id: "identifier", type: "identifier", owner: "identifier", revision: "nonnegative integer" }) && (type === undefined || value.type === type);
 }
 export function splitDocxType(type: string): string[] {
@@ -172,6 +172,7 @@ function valid(type: string, value: unknown): boolean {
   }
   if (type === "null") return value === null;
   if (type === "string") return text(value);
+  if (type === "BatchHandleName") return nonempty(value) && "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".includes(value[0]!) && [...value].every(c => "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_".includes(c));
   if (["identifier", "VfsInput", "VfsDestination", "VfsDirectory", "declared binding ID", "PackURI"].includes(type)) return nonempty(value);
   if (type === "boolean") return typeof value === "boolean";
   if (["number", "finite number", "finite degrees"].includes(type)) return typeof value === "number" && Number.isFinite(value) && (type !== "finite degrees" || Math.abs(value) <= 360);

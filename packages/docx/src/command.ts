@@ -461,6 +461,7 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
     if (!schema.receiver && item.receiver !== undefined) usage("This operation does not accept a receiver.");
     if (item.receiver !== undefined) {
       receiver = record(item.receiver, ["id", "type", "owner", "revision", "resultHandle", "index", "key"]);
+      if (!validateDocxValue("Receiver", receiver)) usage("Invalid model receiver.");
       if (receiver.resultHandle !== undefined) {
         if (typeof receiver.resultHandle !== "string" || !handles.has(receiver.resultHandle) || receiver.index !== undefined && receiver.key !== undefined || ["id", "type", "owner", "revision"].some(key => receiver![key] !== undefined)) usage("Invalid batch handle reference.");
         if (receiver.index !== undefined && (typeof receiver.index !== "number" || !Number.isSafeInteger(receiver.index) || receiver.index < 0)) usage("Invalid handle index.");
@@ -475,7 +476,7 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget(),
     if (item.resultHandle !== undefined) {
       if (!schema.resultHandle?.allowed) usage("This operation cannot bind a result handle.");
       const name = item.resultHandle;
-      if (typeof name !== "string" || !name || !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".includes(name[0]!) || [...name].some(c => !"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_".includes(c)) || handles.has(name)) usage("Invalid or duplicate result handle.");
+      if (typeof name !== "string" || !validateDocxValue("BatchHandleName", name) || handles.has(name)) usage("Invalid or duplicate result handle.");
       handles.set(name, schema.resultHandle.type);
     }
     return Object.freeze({ ...(typeof item.id === "string" ? { id: item.id } : {}), operation: item.operation, arguments: Object.freeze(arguments_), ...(receiver ? { receiver: Object.freeze(receiver) } : {}), ...(typeof item.resultHandle === "string" ? { resultHandle: item.resultHandle } : {}) });

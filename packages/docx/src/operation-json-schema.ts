@@ -64,7 +64,7 @@ function contentDefinitions(definitions: Record<string, DocxJsonSchema>): void {
 }
 function receiverSchema(type: string | undefined, definitions: Record<string, DocxJsonSchema>): DocxJsonSchema {
   const direct = objectSchema({ id: "identifier", type: "identifier", owner: "identifier", revision: "nonnegative integer" }, definitions);
-  const handle = objectSchema({ resultHandle: "identifier", index: "?nonnegative integer", key: "?identifier" }, definitions);
+  const handle = objectSchema({ resultHandle: "BatchHandleName", index: "?nonnegative integer", key: "?identifier" }, definitions);
   return { oneOf: [{ ...direct, properties: { ...direct.properties, ...(type ? { type: { const: type } } : {}) } }, { ...handle, not: { required: ["index", "key"] } }] };
 }
 function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>): DocxJsonSchema {
@@ -89,6 +89,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   const variants = splitDocxType(type);
   if (variants.length > 1) return isDocxLiteralUnion(type) ? { enum: variants } : { anyOf: variants.map(item => valueSchema(item, definitions)) };
   if (["string", "boolean", "null"].includes(type)) return { type };
+  if (type === "BatchHandleName") return { type: "string", pattern: "^[A-Za-z][A-Za-z0-9_]*(?![\\s\\S])" };
   if (type === "unknown") return {};
   if (type === "number" || type === "finite number") return number;
   if (type === "finite degrees") return { ...number, minimum: -360, maximum: 360 };
@@ -178,7 +179,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
     const properties: Record<string, DocxJsonSchema> = { id: { type: "string", minLength: 1, maxLength: 64, pattern: "^[A-Za-z][A-Za-z0-9_-]*$" }, operation: { const: id }, arguments: fieldsSchema(declaration.batchFields!, definitions) };
     const required = ["operation", "arguments"];
     if (declaration.receiver) { properties.receiver = receiverSchema(declaration.receiver, definitions); required.push("receiver"); }
-    if (declaration.resultHandle?.allowed) properties.resultHandle = identifier;
+    if (declaration.resultHandle?.allowed) properties.resultHandle = valueSchema("BatchHandleName", definitions);
     return { type: "object", properties, required, additionalProperties: false };
   }) };
 

@@ -49,8 +49,41 @@ it("embeds an original in-memory PNG and rejects oversized decoded dimensions", 
   const block = {kind: "image" as const, bytes, media: "png" as const, width: 24, height: 24};
   const output = await renderPdf({fonts: [font], blocks: [block]});
   expect(new TextDecoder("latin1").decode(output).includes("/Subtype /Image")).toBe(true);
+  const admitted = await renderPdf({fonts: [font], blocks: [block]}, {limits: {decodedImageBytes: 1}}).then(() => "accepted", error => error.code as string);
+  expect(admitted).toBe("E_LIMIT");
   const oversized = new Uint8Array(bytes);
   new DataView(oversized.buffer).setUint32(16, 100000);
   new DataView(oversized.buffer).setUint32(20, 100000);
   await expect(renderPdf({fonts: [font], blocks: [{...block, bytes: oversized}]})).rejects.toMatchObject({code: "E_LIMIT"});
+});
+it("rejects WOFF containers rather than embedding them as TrueType PDF streams", async () => {
+  // Original WOFF derived entirely in memory from the supplied packaged TTF.
+  const {deflateSync} = await import("node:zlib");
+  const source = font.bytes; const sfnt = new DataView(source.buffer, source.byteOffset, source.byteLength);
+  const count = sfnt.getUint16(4); let offset = 44 + count * 20;
+  const tables: {tag: number; checksum: number; length: number; offset: number; data: Uint8Array}[] = [];
+  let sfntSize = 12 + count * 16;
+  for (let i = 0; i < count; i++) {
+    const record = 12 + i * 16; const length = sfnt.getUint32(record + 12);
+    const raw = source.subarray(sfnt.getUint32(record + 8), sfnt.getUint32(record + 8) + length);
+    const compressed = deflateSync(raw); const data = compressed.length < raw.length ? compressed : raw;
+    tables.push({tag: sfnt.getUint32(record), checksum: sfnt.getUint32(record + 4), length, offset, data});
+    offset += Math.ceil(data.length / 4) * 4; sfntSize += Math.ceil(length / 4) * 4;
+  }
+  const woff = new Uint8Array(offset); const view = new DataView(woff.buffer);
+  view.setUint32(0, 0x774f4646); view.setUint32(4, sfnt.getUint32(0)); view.setUint32(8, offset);
+  view.setUint16(12, count); view.setUint32(16, sfntSize); view.setUint16(20, 1);
+  for (let i = 0; i < tables.length; i++) {
+    const table = tables[i]!; const record = 44 + i * 20;
+    view.setUint32(record, table.tag); view.setUint32(record + 4, table.offset); view.setUint32(record + 8, table.data.length);
+    view.setUint32(record + 12, table.length); view.setUint32(record + 16, table.checksum); woff.set(table.data, table.offset);
+  }
+  // Avoid printing full font/PDF bytes if the profile is violated.
+  const result = await renderPdf({fonts: [{id: "mono", bytes: woff}], blocks: [paragraph]}).then(() => "accepted", error => error.code as string);
+  expect(result).toBe("E_CAPABILITY");
+});
+it("charges layout work for measuring empty table cells", async () => {
+  const empty = {kind: "paragraph" as const, runs: []};
+  const result = await renderPdf({fonts: [font], blocks: [{kind: "table", widths: [0.5, 0.5], rows: [[empty, empty]]}]}, {limits: {layoutWork: 1}}).then(() => "accepted", error => error.code as string);
+  expect(result).toBe("E_LIMIT");
 });

@@ -9,7 +9,7 @@ export interface ImageBlock extends PaginationConstraints { readonly kind: "imag
 export interface TableBlock extends PaginationConstraints { readonly kind: "table"; readonly rows: readonly (readonly Paragraph[])[]; readonly widths: readonly number[] }
 export type LayoutBlock = Paragraph | ImageBlock | TableBlock;
 export interface LayoutDocument { readonly page?: PageBox; readonly fonts: readonly SuppliedFont[]; readonly blocks: readonly LayoutBlock[] }
-export interface PdfLimits { readonly fontBytes: number; readonly fonts: number; readonly glyphs: number; readonly pages: number; readonly objects: number; readonly images: number; readonly imageBytes: number; readonly layoutWork: number; readonly outputBytes: number }
+export interface PdfLimits { readonly fontBytes: number; readonly fonts: number; readonly glyphs: number; readonly pages: number; readonly objects: number; readonly images: number; readonly imageBytes: number; readonly decodedImageBytes: number; readonly layoutWork: number; readonly outputBytes: number }
 export interface PdfContext {
   readonly signal?: AbortSignal | undefined;
   readonly limits?: Partial<PdfLimits>;

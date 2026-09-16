@@ -40,5 +40,5 @@
       "fix": "Add packages/pdf/README.md documenting exposed environment variables and config options."
     }
   ],
-  "note": "README copy intentionally pending explicit user instruction; all other package rules pass for these two packages."
+  "note": "README copy intentionally pending explicit user instruction; all other evaluated rules pass for these two packages."
 }

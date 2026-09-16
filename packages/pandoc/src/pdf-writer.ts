@@ -65,7 +65,7 @@ export const pdfWriter: WriterCapability = {
     await visit(document.blocks);
     // Shared reservations occur before work in the engine. Output is admitted by
     // Session.finish once, so do not double-charge publication bytes here.
-    const budgetMap: Partial<Record<keyof PdfLimits, keyof Limits>> = {fontBytes: "binaryBytes", fonts: "fonts", glyphs: "glyphs", pages: "pages", objects: "objects", images: "images", imageBytes: "binaryBytes", layoutWork: "layoutWork"};
+    const budgetMap: Partial<Record<keyof PdfLimits, keyof Limits>> = {fontBytes: "binaryBytes", fonts: "fonts", glyphs: "glyphs", pages: "pages", objects: "objects", images: "images", imageBytes: "binaryBytes", decodedImageBytes: "retainedBytes", layoutWork: "layoutWork"};
     ctx.bound("fonts", 1);
     const font = suppliedDefaultFont(size => {ctx.bound("binaryBytes", size); ctx.charge("retainedBytes", size * 2);});
     try {

@@ -8,7 +8,7 @@ export class PdfError extends Error {
 export function pdfCapabilities() {
   return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false} as const;
 }
-const defaults: PdfLimits = {fontBytes: 4_000_000, fonts: 8, glyphs: 100_000, pages: 200, objects: 100_000, images: 100, imageBytes: 8_000_000, layoutWork: 500_000, outputBytes: 16_000_000};
+const defaults: PdfLimits = {fontBytes: 4_000_000, fonts: 8, glyphs: 100_000, pages: 200, objects: 100_000, images: 100, imageBytes: 8_000_000, decodedImageBytes: 32_000_000, layoutWork: 500_000, outputBytes: 16_000_000};
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
 function positive(value: number): boolean { return Number.isFinite(value) && value > 0; }
 interface Glyph { text: string; font: PDFFont; size: number; width: number; link?: string }
@@ -32,6 +32,9 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   for (const font of document.fonts) {
     if (!font.id || ids.has(font.id)) unsupported("Duplicate/empty font identity");
     ids.add(font.id); charge("fonts", 1); charge("fontBytes", font.bytes.length); charge("objects", 8);
+    if (font.bytes.length < 12) unsupported("Supply an sfnt TrueType/OpenType font");
+    const signature = new DataView(font.bytes.buffer, font.bytes.byteOffset, font.bytes.byteLength).getUint32(0);
+    if (signature !== 0x00010000 && signature !== 0x4f54544f) unsupported("Only sfnt TrueType/OpenType fonts are supported; compressed font containers are forbidden");
   }
   const pdf = await PDFDocument.create(); pdf.registerFontkit(fontkit);
   const fonts = new Map<string, PDFFont>();
@@ -52,6 +55,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     return {text, font, size, width: font.widthOfTextAtSize(text, size), ...(run.link === undefined ? {} : {link: run.link})};
   };
   const lines = async (block: Paragraph, width: number): Promise<Line[]> => {
+    charge("layoutWork", 1);
     const result: Line[] = []; let line: Line = {glyphs: [], height: 14.4}; let used = 0;
     for (const run of block.runs) for (const scalar of run.text) {
       charge("layoutWork", 1);
@@ -114,6 +118,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
         if (bytes.length < 24 || bytes[0] !== 137 || bytes[1] !== 80 || bytes[2] !== 78 || bytes[3] !== 71) unsupported("Invalid PNG");
         const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
         const pixels = view.getUint32(16) * view.getUint32(20); if (!pixels || pixels > 4_000_000) throw new PdfError("E_LIMIT", "PNG pixel limit exceeded");
+        charge("decodedImageBytes", pixels * 8);
       }
       room(block.height);
       try { const image = block.media === "png" ? await pdf.embedPng(new Uint8Array(bytes)) : await pdf.embedJpg(new Uint8Array(bytes)); page!.drawImage(image, {x: box.margin, y: box.height - top - block.height, width: block.width, height: block.height}); }

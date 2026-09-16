@@ -23,3 +23,5 @@ QA procedure: generate representative output using supplied fonts, inspect page 
 - README copy remains pending as instructed. No push or release authorized.
 
 PDF option follow-up: removed the placeholder `pdf` writer option, which has no SDK/CLI implementation. Original public registry test accepted it before the fix and now rejects it with E_OPTION. Only standalone is advertised.
+
+Final scope verification: eight PDF tests, 893 Pandoc tests, both maintained package lint/typecheck routes and the selected build closure pass. Normal workspace/root build, repository ESLint, root type contracts and workflow lint passed. Full test retry was stopped after a validated unrelated missing archive fixture; full-suite completion remains unverified. Package README installation is intentionally pending; code/adapter implementation is delivered locally only.

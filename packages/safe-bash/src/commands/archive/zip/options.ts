@@ -2,6 +2,10 @@ export class ZipFailure extends Error {
   constructor(readonly status: number, readonly label: string, detail: string) { super(detail); }
 }
 
+// Native two-character switches take precedence over grouped one-character
+// flags. These collisions must fail before enabling delete, move or test.
+export const reservedZipShortOptions = new Set(["dc", "dd", "lf", "TT", "mm"]);
+
 const longOptions: Readonly<Record<string, string>> = {
   "recurse-paths": "r", quiet: "q", "junk-paths": "j", paths: "p", help: "h", "more-help": "h2", "no-dir-entries": "D",
   symlinks: "y", test: "T", "names-stdin": "@", update: "u", freshen: "f", filesync: "FS", "archive-comment": "z", "entry-comments": "c", "latest-time": "o", move: "m", "to-crlf": "l",

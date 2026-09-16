@@ -15,7 +15,7 @@ import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZi
 import { zipHelp, zipExtendedHelp } from "./zip/help.js";
 import { publishZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
-import { normalizeZipOption, ZipFailure } from "./zip/options.js";
+import { normalizeZipOption, reservedZipShortOptions, ZipFailure } from "./zip/options.js";
 
 interface ZipOptions {
   readonly args: readonly string[];
@@ -116,6 +116,9 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       literal = true;
     } else if (!literal && argument.startsWith("-") && argument !== "-") {
       for (let offset = 1; offset < argument.length; offset++) {
+        if (reservedZipShortOptions.has(argument.slice(offset, offset + 2))) {
+          throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
+        }
         const flag = argument[offset];
         if (flag === "h") {
           if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h is not negatable");

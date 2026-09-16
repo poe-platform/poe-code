@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { execute, fixture } from "./zip-standard-flags.helpers.js";
+import { binary, execute, fixture } from "./zip-standard-flags.helpers.js";
 import { readZipArchive } from "../../src/commands/archive/zip-format.js";
 import { settings } from "../../src/commands/archive/internal.js";
 
@@ -42,3 +42,65 @@ test("zip treats help-looking arguments after literal terminator as filenames", 
   const archive = await readZipArchive(await fs.readFile("/work/out.zip"), settings({}), new AbortController().signal);
   assert.equal(archive.entries[0]!.name, "-h");
 });
+
+for (const option of ["dc", "dd", "lf", "TT", "mm"]) {
+  for (const prefix of ["", "q"]) {
+    test(`zip refuses reserved -${prefix}${option} without touching archive, sources or stdin`, async () => {
+      const fs = await fixture();
+      const before = await fs.readFile("/work/sample.zip");
+      const paths = await fs.readdir("/work");
+      const result = await execute("zip", fs, [`-${prefix}${option}`, "sample.zip", "binary"], {}, {
+        stdin: (async function* () { assert.fail("invalid options must not pull stdin"); yield binary; })(),
+      });
+      assert.equal(result.exitCode, 16, result.stderr);
+      assert.match(result.stdout.toString(), /unsupported option/);
+      assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+      assert.deepEqual(await fs.readFile("/work/binary"), Uint8Array.from(binary));
+      assert.deepEqual(await fs.readdir("/work"), paths);
+      const control = await execute("zip", fs, ["-q", "control.zip", "binary"]);
+      assert.equal(control.exitCode, 0, control.stderr);
+    });
+  }
+}
+
+for (const option of ["dc", "dd", "lf", "TT", "mm"]) {
+  test(`zip reserved -${option} honors option boundaries, environment defaults and help order`, async () => {
+    for (const args of [
+      [`-${option}-`, "sample.zip", "binary"],
+      [`-${option}=value`, "sample.zip", "binary"],
+      ["sample.zip", "binary", `-${option}`],
+      [`-${option}`, "-h"],
+    ]) {
+      const fs = await fixture();
+      const before = await fs.readFile("/work/sample.zip");
+      assert.equal((await execute("zip", fs, args)).exitCode, 16);
+      assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+      assert.deepEqual(await fs.readFile("/work/binary"), Uint8Array.from(binary));
+    }
+    assert.equal((await execute("zip", await fixture(), ["sample.zip", "binary"], {}, {
+      env: { ZIPOPT: `-${option}` },
+    })).exitCode, 16);
+    assert.equal((await execute("zip", await fixture(), ["-h", `-${option}`])).exitCode, 0);
+    const fs = await fixture();
+    await fs.writeFile(`/work/-${option}`, binary);
+    assert.equal((await execute("zip", fs, ["-q", "literal.zip", "--", `-${option}`])).exitCode, 0);
+    const archive = await readZipArchive(await fs.readFile("/work/literal.zip"), settings({}), new AbortController().signal);
+    assert.equal(archive.entries[0]!.name, `-${option}`);
+  });
+
+  test(`zip cancellation while reporting reserved -${option} preserves reason and files`, async () => {
+    const fs = await fixture();
+    const before = await fs.readFile("/work/sample.zip");
+    const controller = new AbortController();
+    const reason = new Error("cancel reserved-option diagnostic");
+    let writes = 0;
+    await assert.rejects(execute("zip", fs, [`-${option}`, "sample.zip", "binary"], {}, {
+      signal: controller.signal,
+      stdout: { async write() { writes++; controller.abort(reason); } },
+    }), error => error === reason);
+    assert.equal(writes, 1);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+    assert.deepEqual(await fs.readFile("/work/binary"), Uint8Array.from(binary));
+    assert.equal((await execute("zip", fs, ["-q", "control.zip", "binary"])).exitCode, 0);
+  });
+}

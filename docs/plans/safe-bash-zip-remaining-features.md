@@ -13,9 +13,9 @@ tasks:
       Inspect src/commands/archive/zip.ts, unzip.ts, zip-format.ts, zip/options.ts, zip/zip64.ts, zip/crypto.ts, docs/ZIP.md and current ZIP tests. Build docs/plans/safe-bash-zip-compatibility-matrix.md covering EVERY native Unix Info-ZIP Zip 3.0 option (including build-dependent features), relevant UnZip behavior, and ZIP records using a pinned PKWARE APPNOTE revision. Record supported, missing, intentionally restricted, not applicable and unverified separately. Reproduce each gap with the smallest case and passing control. Include currently reserved switches: adjust-sfx, temp-path, display family, difference-archive, encrypt, fix/fixfix, fifo, grow, junk-sfx, DOS-names, from-crlf, logging, license, password, regex, split family, show family, unzip-command, verbose/version. Verify current dependency declarations rather than claiming this package is dependency-free.
       Pin upstream test source revisions from libarchive ZIP tests, CPython test_zipfile and Go archive/zip tests; map useful cases to requirements, preserve license/provenance when adapting, and do not add those libraries as product dependencies. Obtain versioned oracle binaries in an isolated test environment with documented setup; unavailable tools are unverified cells, not passes. Keep fixtures compact and unit tests offline. Produce exact native versions, feature builds, platform/timezone profiles and evidence commands.
     status:
-      reproduce: open
-      implement: open
-      test: open
+      reproduce: done
+      implement: done
+      test: done
       commit: open
   - id: zip-cli-parity
     title: "Complete informational options and option parsing"
@@ -162,7 +162,8 @@ tasks:
       test: open
       commit: open
   - id: zip-final-qualification
-    title: "Verify the complete compatibility profile and document remaining restrictions"
+    title: "Verify the complete compatibility profile and document remaining
+      restrictions"
     prompt: |
       Work in packages/safe-bash on current main; read applicable AGENTS.md and preserve unrelated edits, especially SafeJS. Revalidate the stated gap before changing code and use fast failing tests first. Add no new runtime dependencies and no host-process fallback. Reuse existing codecs, ByteSource/ByteSink, VFS, signal, budgets and owned cleanup contracts. Keep product logic in this package and preserve CLI/SDK parity. Unit fixtures use memory/memfs; upstream/native tools are isolated test oracles only. Do not edit README without authorization. Record revision-specific proof and exclusions in docs/plans/safe-bash-zip-remaining-features-evidence.md. A feature is complete only with positive, negative, boundary, cancellation and neighboring regression controls.
 
@@ -180,6 +181,7 @@ tasks:
       When execution and delivery of this pipeline are authorized, deliver its atomic verified commits on main using normal hooks, no force push and no unrelated staging. This planning request itself does not authorize running the pipeline or pushing. Revalidate after concurrent-main integration; preserve SafeJS and other workers. Verify delivered ancestry and monitor all required GitHub publication workflows, following successors only after confirming they contain the delivered changes. Inspect docs/development/NPM_PUBLISHING.md and the actual scoped-package publication contract; if a new optional package lacks GitHub trusted-publisher bootstrap, report the exact external blocker and approved recovery route, never substitute local/token publishing. Confirm registry versions and provenance, then smoke test installed artifacts with a compact ZIP create/extract/password example. Record local SHA, remote-main evidence, workflow URL/conclusion and each actual published version separately. A push or green build alone is not verified publication.
     status:
       release: open
+finalization: pending
 ---
 
 # Remaining ZIP features

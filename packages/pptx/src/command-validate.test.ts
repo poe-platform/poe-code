@@ -29,6 +29,20 @@ function invocation(args: string[], invalid = false) {
 }
 const data = (output: { stdout: Uint8Array }) => JSON.parse(new TextDecoder().decode(output.stdout));
 describe("public semantic validation command", () => {
+  it.each(["image", "table", "metadata", "replace"])("rejects removed spelling %s with the common help usage envelope", async (operation) => {
+    const request = invocation([operation, "/deck.pptx", "--json"]);
+    const output = await createPptxCommandEngine(options).execute(request);
+    expect(output.exitCode).toBe(2);
+    expect(data(output)).toMatchObject({ operation: "help", ok: false, data: null, affected: 0 });
+    expect(request.readInput).not.toHaveBeenCalled();
+  });
+  it.each(["help", "schema", "version"])("declares discovery operation %s with a matching result schema", async (operation) => {
+    const engine = createPptxCommandEngine(options);
+    const register = data(await engine.execute(invocation(["schema", "--json"]))).data.operations;
+    expect(register).toHaveProperty(operation);
+    const result = data(await engine.execute(invocation([operation, "--json"])));
+    expect(compileJsonSchema(register[operation].result).validate(result).ok).toBe(true);
+  });
   it("validates an original bounded package and exposes truthful schemas", async () => {
     const engine = createPptxCommandEngine(options);
     const output = await engine.execute(invocation(["validate", "/deck.pptx", "--json"]));

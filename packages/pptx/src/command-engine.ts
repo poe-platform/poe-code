@@ -142,6 +142,7 @@ import {
   createSchema,
   inspectSchema,
   validateSchema,
+  discoverySchemas,
   textGetSchema,
   textReplaceSchema,
   textFramesSetSchema,
@@ -3725,6 +3726,7 @@ function parse(
       (operation === "schema" || operation === "help") &&
       [
         "capabilities",
+        ...Object.keys(discoverySchemas),
         "diff",
         "template.apply",
         "batch",
@@ -3958,6 +3960,7 @@ async function transferLocations(bytes: Uint8Array, budget: SlideTransferBudget)
 }
 
 const declaredOperations = {
+  ...discoverySchemas,
   diff: diffSchema,
   "template.apply": templateSchema,
   ...animationSchemas,

@@ -162,3 +162,10 @@ Original semantic validation cases were red before SDK-backed command support.
 Final PPTX maintained suite passes 6,896 tests across 270 files; lint and selected
 build pass. Commit validation grammar, bounded SDK behavior, truthful schema/help
 and capability with original memfs validation regressions.
+
+### PPTX discovery delivery
+
+Missing help/schema/version declarations failed original result-schema cases
+before correction. Declared paths now match public runtime/result schemas; the
+final PPTX suite, lint and selected build pass. Commit the discovery register
+and original schema/removed-spelling regressions independently of inspect limits.

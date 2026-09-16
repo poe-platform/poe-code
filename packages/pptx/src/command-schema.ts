@@ -3161,3 +3161,15 @@ export const validateSchema = {
     }
   }
 };
+
+export const discoverySchemas = Object.fromEntries([
+  ["help", { type: "object", additionalProperties: false, required: ["usage"], properties: { usage: { type: "string" } } }],
+  ["schema", { type: "object", additionalProperties: false, required: ["version", "operations"], properties: { version: { const: 1 }, operations: { type: "object", additionalProperties: { type: "object" } } } }],
+  ["version", { type: "object", additionalProperties: false, required: ["version", "profile"], properties: { version: { const: 1 }, profile: { const: "selectors" } } }]
+].map(([operation, data]) => [operation, {
+  description: operation === "help" ? "Generated command usage." : operation === "schema" ? "Versioned operation schemas." : "Presentation utility version.",
+  input: { type: "null" },
+  ...(operation === "help" || operation === "schema" ? { commandPath: { type: "string", description: "Optional declared operation path." } } : {}),
+  options: { type: "object", additionalProperties: false, properties: { json: { type: "boolean", default: false } } },
+  result: { ...inspectSchema.result, properties: { ...inspectSchema.result.properties, operation: { const: operation }, data: { oneOf: [{ type: "null" }, data] } } }
+}]));

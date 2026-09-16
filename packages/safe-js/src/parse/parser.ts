@@ -1665,7 +1665,7 @@ class Parser {
           const consequent: Statement[] = [];
           while (!this.isSwitchClauseStart() && !this.isCurrentPunctuator("}")) {
             const statement = this.parseStatement();
-            if (statement.type === "VariableDeclaration" && statement.disposal !== undefined)
+            if (this.lexicalContext.grammar !== undefined && statement.type === "VariableDeclaration" && statement.disposal !== undefined)
               throw new Error(`Resource declarations require a block in switch clauses at line ${statement.span.start.line}, column ${statement.span.start.column}.`);
             consequent.push(statement);
             while (

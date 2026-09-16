@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { parseModule } from "./parser.js";
+import { parseModule, parseExecutableModule, parseEvalScript, parseSourceModule } from "./parser.js";
 
 it.each([['using', 'sync'], ['await using', 'async']])("parses %s declarations as immutable resource bindings", (head, disposal) => {
   expect(parseModule(`${head} first = null, second = resource;`).body).toMatchObject([
@@ -48,4 +48,13 @@ it("keeps using contextual and respects newlines", () => {
 it("accepts async function resources and ordinary names using and of", () => {
   expect(parseModule('async function f(){await using using = null; using of = null;}').body[0])
     .toMatchObject({body:{body:[{disposal:'async'},{disposal:'sync'}]}});
+});
+
+
+it("preserves harness switch resources while enforcing standard source grammar", () => {
+  const source = "switch(0){case 0:using value=null;}";
+  expect(() => parseModule(source)).not.toThrow();
+  expect(() => parseExecutableModule(source)).not.toThrow();
+  expect(() => parseSourceModule(source)).toThrow(SyntaxError);
+  expect(() => parseEvalScript(source)).toThrow(SyntaxError);
 });

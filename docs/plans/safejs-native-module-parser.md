@@ -45,3 +45,8 @@ do not include unrelated workspace changes.
   remote main. Rebase only the native-parser and necessary module-integration
   commits onto current remote main in a detached validation worktree; preserve
   the existing worktree and its unrelated changes.
+
+- Full runtime qualification found that the new switch-resource early error also
+  affected the existing harness dialect. A failing regression separates harness
+  parsing from standard module/eval grammar; apply that early error only when
+  ECMAScript grammar is selected, preserving archived harness recovery behavior.

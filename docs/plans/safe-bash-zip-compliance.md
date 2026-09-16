@@ -801,3 +801,19 @@ status zero and returns the captured producer PIPESTATUS, which must be 141;
 exact y-newline output and empty stderr remain asserted. Both system and pinned
 GNU probes keep these checks, without admitting arbitrary exit-one outcomes.
 The native oracle remains bounded and drained; no product command is changed.
+
+## Native timed-read qualification profiles
+
+Linux CI's authenticated Bash 5.2.37 reports different exact bytes for an
+end-requested stdin socket zero-poll and two timeout escape projections. The
+gate-delimiter fixture requests closure without first observing EOF; Bash's
+input_avail uses OS readiness, so this is socket/build evidence, not previously
+observed pipe EOF. Renamed that case and retain separate exact Darwin/Linux
+captures including unchanged variable and subsequent EOF checks. Bash read.def
+has nonvolatile saw_escape (line 207), modified after setjmp (488), then consulted
+for dequoting after timeout longjmp (1030): compiler/build differences are not
+grounds to change product input. The two native Linux hex captures remain exact;
+the existing virtual SOH representation asserts stay unchanged and separate.
+Standalone escape, continuation and incomplete UTF-8 expectations remain exact
+in both profiles. This deliberately ceases to claim native byte equality for
+these two virtual projections; no blanket normalization or production change.

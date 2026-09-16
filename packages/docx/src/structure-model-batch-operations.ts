@@ -70,7 +70,7 @@ surface(
   () => DocumentView,
   ["paragraphs", "tables", "sections", "comments", "core_properties", "styles"],
   [],
-  ["add_comment", "add_paragraph", "add_table", "iter_inner_content"]
+  ["add_comment", "add_paragraph", "add_table", "add_heading", "add_page_break", "add_section", "iter_inner_content"]
 );
 surface(
   "model.text.paragraph.Paragraph",

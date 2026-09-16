@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/document-workflow-boundaries.test.ts (4 tests) 454ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  22:44:12
+   Duration  1.46s (transform 791ms, setup 28ms, import 931ms, tests 454ms, environment 0ms)
+

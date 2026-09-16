@@ -111,7 +111,7 @@ assert.notEqual(foreignCoreArtifact.entry, installedCore.entry);
 const foreignCore = await import(pathToFileURL(foreignCoreArtifact.entry).href);
 const foreignFs = await import(pathToFileURL(foreignFsArtifact.entry).href);
 const foreignOptional = { ...foreignCore };
-for (const [route, entry] of Object.entries(foreignCoreArtifact.manifest.exports)) {
+for (const entry of Object.values(foreignCoreArtifact.manifest.exports)) {
   if (entry.import?.startsWith("./dist/safe-bash/opt-in/")) {
     const artifact = await installedEntry(foreignRoot, "@poe-platform/safe-bash", resolve(foreignRoot, "node_modules/@poe-platform/safe-bash", entry.import));
     Object.assign(foreignOptional, await import(pathToFileURL(artifact.entry).href));

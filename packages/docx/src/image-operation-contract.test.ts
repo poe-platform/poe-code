@@ -13,7 +13,7 @@ it("advertises bounded image utility reads and direct native layout edits", () =
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data).toMatchObject({ operations: expect.arrayContaining([expect.objectContaining({ id: "images.list", support: "read" }), expect.objectContaining({ id: "images.get", support: "read" }), expect.objectContaining({ id: "images.extract", support: "read" })]) });
   expect(schema("images.add")).toMatchObject({ support: "edit", featureIds: expect.arrayContaining(["F32"]) });
   expect(schema("images.set")).toMatchObject({ support: "edit", featureIds: ["F33"] });
-  expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F33", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "stored-image-layout", level: "read" }), expect.objectContaining({ name: "native-picture-layout", level: "edit", reason: expect.stringContaining("utility batch execution and live drawing/collection models remain unsupported") })] })]) });
+  expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F33", level: "edit", detected: null, subsets: [expect.objectContaining({ name: "stored-image-layout", level: "read" }), expect.objectContaining({ name: "native-picture-layout", level: "edit", reason: expect.stringContaining("Live inline picture sizing and collection lookup are available") })] })]) });
 });
 it("declares closed image occurrence records with nullable stored metadata", () => {
   for (const operation of ["images.list", "images.get"]) {

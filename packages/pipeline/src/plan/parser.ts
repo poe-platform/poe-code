@@ -229,6 +229,10 @@ export const pipelineDocumentSchema: JsonSchema = {
       }
     },
     setup: nullableStepDefinitionSchema,
+    setupCompleted: {
+      type: "boolean",
+      description: "Successful setup is persisted and skipped on subsequent runs."
+    },
     teardown: nullableStepDefinitionSchema,
     finalization: {
       type: "string",
@@ -625,6 +629,10 @@ export function parsePlan(
   const mcpValue = getOwnEntry(document, "mcp");
   const mcp = mcpValue !== undefined ? parseMcpConfig(mcpValue) : undefined;
 
+  const setupCompleted = getOwnEntry(document, "setupCompleted");
+  if (setupCompleted !== undefined && typeof setupCompleted !== "boolean") {
+    throw new Error('Invalid plan YAML: "setupCompleted" must be a boolean.');
+  }
   const finalization = getOwnEntry(document, "finalization");
   if (
     finalization !== undefined &&
@@ -654,6 +662,7 @@ export function parsePlan(
     extends: extendsName,
     ...(stepOverrides !== undefined ? { stepOverrides } : {}),
     tasks,
+    ...(setupCompleted !== undefined ? { setupCompleted } : {}),
     ...(finalization !== undefined ? { finalization } : {}),
     ...(vars !== undefined ? { vars } : {}),
     ...(setup !== undefined ? { setup } : {}),

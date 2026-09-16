@@ -1,2 +1,0 @@
-{"public":"SnapshotValidationError","message":"Invalid snapshot at $.version: expected 2"}
-{"lowLevel":"accepted paused","originalWaiters":1,"restoredWaitersBeforeActivation":0}

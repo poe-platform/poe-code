@@ -1,6 +1,0 @@
-{
-  "exitCode": 130,
-  "reason": "Intentional scheduling SIGINT; executor context waited all children; no child signaled",
-  "completedExternalSelection": "02000-02499",
-  "observedUtc": "2026-09-12T04:29:59.955160+00:00"
-}

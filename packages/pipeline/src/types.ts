@@ -53,6 +53,7 @@ export interface PipelineTask {
 
 export interface PipelinePlan {
   finalization?: PipelineFinalizationStatus;
+  setupCompleted?: boolean;
   extends?: string;
   stepOverrides?: StepDefinitionOverrides;
   tasks: PipelineTask[];

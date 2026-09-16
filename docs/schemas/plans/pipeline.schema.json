@@ -140,6 +140,10 @@
         }
       ]
     },
+    "setupCompleted": {
+      "description": "Successful setup is persisted and skipped on subsequent runs.",
+      "type": "boolean"
+    },
     "state": {
       "type": "string"
     },

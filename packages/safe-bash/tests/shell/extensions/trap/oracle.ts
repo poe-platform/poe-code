@@ -113,5 +113,8 @@ export function authenticateOracle(env: NodeJS.ProcessEnv = process.env, source:
 
 export function runNative(script: string, input?: string, env: NodeJS.ProcessEnv = process.env, source: OracleHost = host): OracleResult & { readonly executable: string } {
   const executable = authenticateOracle(env, source);
-  return { ...checkedRun(executable, ["--noprofile", "--norc", "-c", script, "shell"], input, source), executable };
+  // Node's piped stdio is a socket on Linux. Reopening /dev/stdin and Bash's
+  // timed reads require a real pipe, while cat preserves the supplied bytes.
+  const args = ["--noprofile", "--norc", "-c", '"$BASH" --noprofile --norc -c "$1" shell < <(/bin/cat 2>/dev/null); status=$?; producer=$!; kill "$producer" 2>/dev/null || :; wait "$producer" 2>/dev/null || :; exit "$status"', "oracle", script];
+  return { ...checkedRun(executable, args, input, source), executable };
 }

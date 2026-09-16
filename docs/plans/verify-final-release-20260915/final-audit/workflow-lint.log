@@ -1,3 +1,0 @@
-
-> poe-code@0.0.0-dev lint:workflows
-> (command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)

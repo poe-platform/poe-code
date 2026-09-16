@@ -7,7 +7,10 @@ import { createYesCommand } from "../../../src/commands/yes/index.js";
 import { capture, gnuHelp, gnuVersion, prefix, virtualVersion } from "./fixtures.js";
 
 async function oracle(executable: string, args: readonly string[], limit = 4096, extraEnv: Record<string, string> = {}, closeOutput = false) {
-  const child = spawn(executable, args, { argv0: executable === "/bin/bash" ? "bash" : "yes", stdio: ["ignore", "pipe", "pipe"], env: { LC_ALL: "C", LANG: "C", ...extraEnv } });
+  // GNU yes otherwise inherits Node's ignored SIGPIPE and reports EPIPE instead
+  // of exercising the short-consumer signal contract.
+  const restorePipeSignal = closeOutput && process.platform === "linux";
+  const child = spawn(restorePipeSignal ? "/usr/bin/env" : executable, restorePipeSignal ? ["--default-signal=PIPE", executable, ...args] : args, { argv0: executable === "/bin/bash" ? "bash" : "yes", stdio: ["ignore", "pipe", "pipe"], env: { LC_ALL: "C", LANG: "C", ...extraEnv } });
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];
   let outputBytes = 0;

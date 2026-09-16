@@ -1,1 +1,0 @@
-First summary invocation raised KeyError: error, because successful samples omit undefined error keys. Corrected to get(error). No measurement was rerun, removed, or counted from that failed summary invocation.

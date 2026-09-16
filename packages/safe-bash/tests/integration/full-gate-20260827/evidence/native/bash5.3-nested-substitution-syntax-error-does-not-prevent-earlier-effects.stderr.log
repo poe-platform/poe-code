@@ -1,2 +1,0 @@
-shell-stress: -c: line 1: syntax error near unexpected token `)'
-shell-stress: -c: line 1: `printf touched >marker; printf '%s' "$(true |)"'

@@ -1,7 +1,0 @@
-{
-  "changedExistingSafeJsFiles": [
-    "packages/safe-js/src/interp/interpreter.ts"
-  ],
-  "stagedUnchanged": true,
-  "onlyOwnedInterpreterChange": true
-}

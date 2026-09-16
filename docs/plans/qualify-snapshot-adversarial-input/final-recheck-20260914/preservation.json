@@ -1,9 +1,0 @@
-{
-  "changed_existing_files": [
-    "packages/safe-js/src/snapshot/replay-inputs.ts"
-  ],
-  "expected": [
-    "packages/safe-js/src/snapshot/replay-inputs.ts"
-  ],
-  "unrelated_staged_patch_unchanged": true
-}

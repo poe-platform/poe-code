@@ -18,6 +18,7 @@ export type DashboardStats = {
   tokensOut: number;
   elapsedMs: number;
   currentAction?: string;
+  session?: { cwd: string; agent: string; model?: string };
 };
 
 export type Command =

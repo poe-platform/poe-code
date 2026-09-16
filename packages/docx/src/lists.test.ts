@@ -136,7 +136,10 @@ it("preserves unrelated opaque numbering and picture-bullet definitions", async 
 it("rejects style cycles, level mismatches and stale locations", async () => {
   const styles = '<w:style w:type="numbering" w:styleId="Cycle"><w:name w:val="Cycle"/><w:pPr><w:numPr><w:numId w:val="4"/></w:numPr></w:pPr></w:style>';
   await expect(edit(await fixture(item("Cycle"), abstract(0, '', '<w:numStyleLink w:val="Cycle"/>') + instance(4, 0), styles), "lists.set", { paragraph: 1, restart: true })).rejects.toMatchObject({ code: "invalid-package" });
-  await expect(edit(await fixture(item("Mismatch"), abstract(0) + instance(4, 0, '<w:lvlOverride w:ilvl="0">' + level(1) + '</w:lvlOverride>')), "lists.set", { paragraph: 1, restart: true })).rejects.toMatchObject({ code: "unsupported-edit" });
+  await expect(edit(await fixture(item("Mismatch"), abstract(0) + instance(4, 0, '<w:lvlOverride w:ilvl="0">' + level(1) + '</w:lvlOverride>')), "lists.set", { paragraph: 1, restart: true })).rejects.toMatchObject({
+    code: "invalid-package",
+    diagnostics: expect.arrayContaining([expect.objectContaining({ code: "numbering-level", part: "/word/numbering.xml" })])
+  });
   const first = await edit(await fixture(paragraph("Plain")), "lists.add", { kind: "decimal" });
   const stale = (await docx.openDocumentLocations(first.bytes, textContext)).at("paragraph", 2).token;
   const second = await edit(first.bytes, "lists.add", { paragraph: 2, kind: "decimal" });

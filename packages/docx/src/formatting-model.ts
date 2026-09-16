@@ -1,4 +1,7 @@
 import { plainLength, Pt, Twips, Length } from "./formatting-values.js";
+import { BoundsError, StaleHandleError } from "./model-errors.js";
+import { numericSequence } from "./numeric-index.js";
+import { InputTypeError, InvalidValueError } from "./archive.js";
 import type { DocxEnumValue, DocxLength, DocxOperationArguments, DocxTabStop } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
@@ -146,6 +149,7 @@ for (const [name, [option, tag]] of Object.entries(paragraphFlags)) Object.defin
 const alignments = { left: "LEFT", start: "START", center: "CENTER", right: "RIGHT", end: "END", decimal: "DECIMAL", bar: "BAR", list: "LIST", clear: "CLEAR", num: "NUM" } as const;
 const leaders = { none: "SPACES", dot: "DOTS", hyphen: "DASHES", underscore: "LINES", heavy: "HEAVY", middleDot: "MIDDLE_DOT" } as const;
 interface StopRecord { id: number; value: DocxTabStop }
+const tabCollections = new WeakMap<object, TabStops>();
 export class TabStops implements Iterable<TabStop> {
   readonly [index: number]: TabStop;
   private snapshot = "";
@@ -153,15 +157,18 @@ export class TabStops implements Iterable<TabStop> {
   private records: StopRecord[] = [];
   private nextId = 0;
   constructor(readonly owner: FormattingXmlOwner) {
-    return new Proxy(this, {
-      get(target, key, receiver) { if (typeof key === "string" && String(Number(key)) === key && Number.isSafeInteger(Number(key))) return target.at(Number(key)); return Reflect.get(target, key, receiver) as unknown; },
-      set(target, key, value, receiver) { if (typeof key === "string" && String(Number(key)) === key) throw new TypeError("Tab indexes are read-only; use collection operations."); return Reflect.set(target, key, value, receiver); }
-    });
+    const identity = owner.identity;
+    const key = identity !== null && typeof identity === "object" ? identity : owner;
+    const existing = tabCollections.get(key);
+    if (existing) return existing;
+    const collection = numericSequence(this);
+    tabCollections.set(key, collection);
+    return collection;
   }
   get element(): XmlElement { const root = editor(this.owner).root; return child(root, "pPr") ?? root; }
   get part(): unknown { return this.owner.part ?? null; }
   equals(other: unknown): boolean { return other instanceof TabStops && (this.owner.identity ?? this.owner) === (other.owner.identity ?? other.owner); }
-  elementFor(id: number): XmlElement { this.refresh(); const index = this.records.findIndex(record => record.id === id); if (index < 0) throw new RangeError("Tab stop handle is no longer valid."); return child(this.element, "tabs")!.children.filter(node => node.namespace === this.element.namespace && node.localName === "tab")[index]!; }
+  elementFor(id: number): XmlElement { this.refresh(); const index = this.records.findIndex(record => record.id === id); if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid."); return child(this.element, "tabs")!.children.filter(node => node.namespace === this.element.namespace && node.localName === "tab")[index]!; }
 
   private refresh(): void {
     const source = this.owner.getXml(); if (source === this.snapshot) return;
@@ -182,8 +189,8 @@ export class TabStops implements Iterable<TabStop> {
   }
   get length(): number { this.refresh(); return this.records.length; }
   at(index: number): TabStop { this.refresh(); const record = this.records[this.index(index)]; return new TabStop(this, record!.id); }
-  private index(index: number): number { if (!Number.isSafeInteger(index)) throw new TypeError("Expected an integer tab index."); const resolved = index < 0 ? this.records.length + index : index; if (resolved < 0 || resolved >= this.records.length) throw new RangeError("Tab stop index is out of range."); return resolved; }
-  *[Symbol.iterator](): Iterator<TabStop> { this.refresh(); for (const record of this.records) yield new TabStop(this, record.id); }
+  private index(index: number): number { if (!Number.isSafeInteger(index)) throw new InputTypeError("Expected an integer tab index."); const resolved = index < 0 ? this.records.length + index : index; if (resolved < 0 || resolved >= this.records.length) throw new BoundsError("Tab stop index is out of range."); return resolved; }
+  *[Symbol.iterator](): IterableIterator<TabStop> { this.refresh(); for (const record of [...this.records]) yield new TabStop(this, record.id); }
   add_tab_stop(position: DocxLength, alignment: DocxEnumValue<"WD_TAB_ALIGNMENT"> = { enum: "WD_TAB_ALIGNMENT", name: "LEFT" }, leader: DocxEnumValue<"WD_TAB_LEADER"> = { enum: "WD_TAB_LEADER", name: "SPACES" }): TabStop {
     this.refresh(); const value = { position: plainLength(position), alignment, leader };
     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}", value)) throw new TypeError("Expected valid tab stop properties.");
@@ -192,11 +199,12 @@ export class TabStops implements Iterable<TabStop> {
     this.records.push(record); this.records.sort((a, b) => a.value.position.value - b.value.position.value); this.remember();
     return new TabStop(this, record.id);
   }
-  delete(index: number): void { this.refresh(); const resolved = this.index(index); update(this.owner, "p", { tabStopDelete: resolved }); this.records.splice(resolved, 1); this.remember(); }
+  declare delete: (index: number) => void;
+  remove(index: number): void { this.refresh(); const resolved = this.index(index); update(this.owner, "p", { tabStopDelete: resolved }); this.records.splice(resolved, 1); this.remember(); }
   clear_all(): void { update(this.owner, "p", { tabStopsClear: true }); this.records = []; this.remember(); }
-  value(id: number): DocxTabStop { this.refresh(); const record = this.records.find(r => r.id === id); if (!record) throw new RangeError("Tab stop handle is no longer valid."); return structuredClone(record.value); }
+  value(id: number): DocxTabStop { this.refresh(); const record = this.records.find(r => r.id === id); if (!record) throw new StaleHandleError("Tab stop handle is no longer valid."); return structuredClone(record.value); }
   change(id: number, patch: Partial<DocxTabStop>): void {
-    this.refresh(); const index = this.records.findIndex(r => r.id === id); if (index < 0) throw new RangeError("Tab stop handle is no longer valid.");
+    this.refresh(); const index = this.records.findIndex(r => r.id === id); if (index < 0) throw new StaleHandleError("Tab stop handle is no longer valid.");
     const value = { ...this.records[index]!.value, ...patch, ...(patch.position !== undefined ? { position: plainLength(patch.position) } : {}) };
     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIGNMENT; leader?: WD_TAB_LEADER}", value)) throw new TypeError("Expected valid tab stop properties.");
     const xml = editor(this.owner), props = child(xml.root, "pPr")!, tabs = child(props, "tabs")!;
@@ -228,11 +236,12 @@ export class TabStops implements Iterable<TabStop> {
     this.remember();
   }
 }
+Object.defineProperty(TabStops.prototype, "delete", { value: TabStops.prototype.remove });
 export class TabStop {
   constructor(private readonly collection: TabStops, private readonly id: number) {}
   get element(): XmlElement { return this.collection.elementFor(this.id); }
-  get part(): unknown { return this.collection.part; }
-  equals(other: unknown): boolean { return other instanceof TabStop && this.collection.equals(other.collection) && this.id === other.id; }
+  get part(): unknown { this.collection.value(this.id); return this.collection.part; }
+  equals(other: unknown): boolean { this.collection.value(this.id); if (!(other instanceof TabStop)) return false; other.collection.value(other.id); return this.collection.equals(other.collection) && this.id === other.id; }
   get position(): Length { return Twips(paragraphUnits(this.collection.value(this.id).position)); }
   set position(value: DocxLength) { this.collection.change(this.id, { position: value }); }
   get alignment(): DocxEnumValue<"WD_TAB_ALIGNMENT"> { return this.collection.value(this.id).alignment!; }
@@ -242,27 +251,30 @@ export class TabStop {
 }
 
 export class RGBColor implements Iterable<number> {
+  readonly [index: number]: number;
   readonly length = 3;
-  private readonly values: readonly number[];
+  private readonly values: readonly [number, number, number];
   constructor(red: number, green: number, blue: number) {
-    if ([red, green, blue].some(value => typeof value !== "number" || !Number.isInteger(value))) throw new TypeError("RGB components must be integers.");
-    if ([red, green, blue].some(value => value < 0 || value > 255)) throw new RangeError("RGB components must be between zero and 255.");
+    if ([red, green, blue].some(value => typeof value !== "number" || !Number.isInteger(value))) throw new InputTypeError("RGB components must be integers.");
+    if ([red, green, blue].some(value => value < 0 || value > 255)) throw new InvalidValueError("RGB components must be between zero and 255.");
     this.values = Object.freeze([red, green, blue]); Object.freeze(this);
+    return numericSequence(this);
   }
-  static from_string(value: string): RGBColor { if (!validateDocxValue("RGBColor", value)) throw new TypeError("Expected six hexadecimal color digits."); return new RGBColor(...[0, 2, 4].map(offset => Number.parseInt(value.slice(offset, offset + 2), 16)) as [number, number, number]); }
+  static from_string(value: string): RGBColor { if (!validateDocxValue("RGBColor", value)) throw new InputTypeError("Expected six hexadecimal color digits."); return new RGBColor(...[0, 2, 4].map(offset => Number.parseInt(value.slice(offset, offset + 2), 16)) as [number, number, number]); }
   toString(): string { return this.values.map(value => value.toString(16).padStart(2, "0")).join("").toUpperCase(); }
-  *[Symbol.iterator](): Iterator<number> { yield* this.values; }
-  at(index: number): number { if (!Number.isSafeInteger(index)) throw new TypeError("Expected an integer component index."); const value = this.values.at(index); if (value === undefined) throw new RangeError("Color component index is out of range."); return value; }
-  slice(start = 0, end = 3): readonly number[] { if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) throw new TypeError("Expected integer slice bounds."); return this.values.slice(start, end); }
+  *[Symbol.iterator](): IterableIterator<number> { yield* this.values; }
+  at(index: number): number { if (!Number.isSafeInteger(index)) throw new InputTypeError("Expected an integer component index."); const value = this.values.at(index); if (value === undefined) throw new BoundsError("Color component index is out of range."); return value; }
+  toArray(): readonly [number, number, number] { return this.values; }
+  slice(start = 0, end = 3): readonly number[] { if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) throw new InputTypeError("Expected integer slice bounds."); return this.values.slice(start, end); }
   count(value: number): number { return this.values.filter(item => item === value).length; }
   index(value: number, start = 0, stop = 3): number {
-    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(stop)) throw new TypeError("Expected integer component bounds.");
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(stop)) throw new InputTypeError("Expected integer component bounds.");
     const first = Math.min(3, Math.max(0, start < 0 ? 3 + start : start)), end = Math.min(3, Math.max(0, stop < 0 ? 3 + stop : stop));
     for (let index = first; index < end; index++) if (this.values[index] === value) return index;
-    throw new RangeError("Color component was not found.");
+    throw new InvalidValueError("Color component was not found.");
   }
   includes(value: number): boolean { return this.values.includes(value); }
-  reversed(): readonly number[] { return [...this.values].reverse(); }
+  *reversed(): IterableIterator<number> { for (let index = this.values.length - 1; index >= 0; index--) yield this.values[index]!; }
   equals(other: unknown): boolean { return other instanceof RGBColor && this.values.every((value, index) => value === other.values[index]); }
 }
 export class ColorFormat {

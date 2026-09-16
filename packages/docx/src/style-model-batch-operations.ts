@@ -59,7 +59,7 @@ properties("model.text.parfmt.ParagraphFormat", ParagraphFormat, ["alignment", "
 const tabs = "model.text.tabstops.TabStops";
 method(tabs, "add_tab_stop.call", TabStops, (receiver, args) => (receiver as TabStops).add_tab_stop(args.position as DocxLength, args.alignment as DocxEnumValue<"WD_TAB_ALIGNMENT"> | undefined, args.leader as DocxEnumValue<"WD_TAB_LEADER"> | undefined));
 method(tabs, "__getitem__.get", TabStops, (receiver, args) => (receiver as TabStops).at(args.index as number));
-method(tabs, "__delitem__.call", TabStops, (receiver, args) => (receiver as TabStops).delete(args.index as number));
+method(tabs, "__delitem__.call", TabStops, (receiver, args) => (receiver as TabStops).remove(args.index as number));
 method(tabs, "__iter__.call", TabStops, receiver => [...receiver as TabStops]);
 method(tabs, "__len__.get", TabStops, receiver => (receiver as TabStops).length);
 method(tabs, "clear_all.call", TabStops, receiver => (receiver as TabStops).clear_all());
@@ -78,8 +78,8 @@ method("model.shared.RGBColor", "__getitem__.slice", RGBColor, (receiver, args) 
 method("model.shared.RGBColor", "count.call", RGBColor, (receiver, args) => (receiver as RGBColor).count(args.value as number));
 method("model.shared.RGBColor", "index.call", RGBColor, (receiver, args) => (receiver as RGBColor).index(args.value as number, args.start as number | undefined, args.stop as number | undefined));
 method("model.shared.RGBColor", "__contains__.call", RGBColor, (receiver, args) => (receiver as RGBColor).includes(args.channel as number));
-method("model.shared.RGBColor", "__reversed__.call", RGBColor, receiver => (receiver as RGBColor).reversed());
-method("model.shared.RGBColor", "tuple_value_protocol.call", RGBColor, receiver => [...receiver as RGBColor]);
+method("model.shared.RGBColor", "__reversed__.call", RGBColor, receiver => [...(receiver as RGBColor).reversed()]);
+method("model.shared.RGBColor", "tuple_value_protocol.call", RGBColor, receiver => (receiver as RGBColor).toArray());
 method("model.shared.RGBColor", "__eq__.call", RGBColor, (receiver, args) => (receiver as RGBColor).equals(args.other instanceof RGBColor ? args.other : RGBColor.from_string(args.other as string)));
 for (const [prefix, owner] of [
   ["model.styles.styles.Styles", Styles], ["model.styles.style.BaseStyle", BaseStyle], ["model.styles.style.CharacterStyle", CharacterStyle],

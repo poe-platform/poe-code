@@ -1,4 +1,5 @@
 export { sanitizeDocument, type SanitizationData } from "./sanitize.js";
+export { BoundsError, MissingKeyError, StaleHandleError } from "./model-errors.js";
 export {
   readArchive,
   InputTypeError,

@@ -1,3 +1,4 @@
+import { MissingKeyError, StaleHandleError } from "./model-errors.js";
 import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import type { ArchiveSink } from "./archive-write.js";
@@ -48,7 +49,7 @@ class StyleStore {
   nodes(xml: DocumentXmlEditor): XmlElement[] { return xml.root.children.filter(n => n.namespace === xml.root.namespace && n.localName === "style"); }
   node(xml: DocumentXmlEditor, token: number): XmlElement {
     const index = this.tokens.indexOf(token), node = this.nodes(xml)[index];
-    if (!node) throw new RangeError("The style handle is no longer valid.");
+    if (!node) throw new StaleHandleError("The style handle is no longer valid.");
     return node;
   }
   change(action: (xml: DocumentXmlEditor) => void): void {
@@ -102,7 +103,7 @@ export class Styles implements Iterable<BaseStyle> {
     if (matches.length === 1) return matches[0]!;
     if (matches.length > 1) throw new RangeError("Style name is ambiguous.");
     const byId = [...this].find(style => style.style_id === name);
-    if (!byId) throw new RangeError("Style name was not found.");
+    if (!byId) throw new MissingKeyError("Style name was not found.");
     this.store.warnings.push({ code: "deprecated-style-id-lookup" });
     return byId;
   }
@@ -235,7 +236,7 @@ export class LatentStyles implements Iterable<LatentStyle> {
   at(name: string): LatentStyle {
     if (typeof name !== "string") throw new TypeError("Latent styles are keyed by name.");
     const index = this.info().entries.findIndex(entry => styleStoredName(entry.name) === styleStoredName(name));
-    if (index < 0) throw new RangeError("Latent style name was not found.");
+    if (index < 0) throw new MissingKeyError("Latent style name was not found.");
     return new LatentStyle(this, this.store.latentTokens[index]!);
   }
   add_latent_style(name: string): LatentStyle {
@@ -246,12 +247,12 @@ export class LatentStyles implements Iterable<LatentStyle> {
   }
   entry(token: number) {
     const index = this.store.latentTokens.indexOf(token), entry = this.info().entries[index];
-    if (!entry) throw new RangeError("The latent style handle is no longer valid.");
+    if (!entry) throw new StaleHandleError("The latent style handle is no longer valid.");
     return entry;
   }
   node(token: number, xml = this.store.editor()): XmlElement {
     const index = this.store.latentTokens.indexOf(token), node = child(xml.root, "latentStyles")?.children.filter(n => n.namespace === xml.root.namespace && n.localName === "lsdException")[index];
-    if (!node) throw new RangeError("The latent style handle is no longer valid.");
+    if (!node) throw new StaleHandleError("The latent style handle is no longer valid.");
     return node;
   }
   change(token: number, key: string, value: boolean | number | null): void {

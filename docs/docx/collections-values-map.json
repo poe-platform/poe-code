@@ -1,7 +1,7 @@
 {
   "version": 1,
   "sourceCommit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
-  "scope": "sdk-collections-values enum increment",
+  "scope": "sdk-collections-values verified enum and available collection/value increments",
   "namedValueCount": 262,
   "canonicalValueCount": 261,
   "familyCount": 19,
@@ -2889,5 +2889,99 @@
       "test": "../../packages/docx/src/public-enum-protocols.test.ts",
       "testCase": "exports WD_HEADER_FOOTER_INDEX with exact immutable values and conversions"
     }
-  ]
+  ],
+  "prerequisiteProbe": {
+    "version": 1,
+    "scope": "sdk-collections-values live owner prerequisites",
+    "ok": false,
+    "owners": [
+      {
+        "name": "Document",
+        "present": false,
+        "observedType": "undefined"
+      },
+      {
+        "name": "Sections",
+        "present": false,
+        "observedType": "undefined"
+      },
+      {
+        "name": "_Rows",
+        "present": false,
+        "observedType": "undefined"
+      },
+      {
+        "name": "_Columns",
+        "present": false,
+        "observedType": "undefined"
+      },
+      {
+        "name": "InlineShapes",
+        "present": false,
+        "observedType": "undefined"
+      },
+      {
+        "name": "Comments",
+        "present": false,
+        "observedType": "undefined"
+      },
+      {
+        "name": "ImageParts",
+        "present": false,
+        "observedType": "undefined"
+      },
+      {
+        "name": "Relationships",
+        "present": false,
+        "observedType": "undefined"
+      }
+    ],
+    "exitCode": 1
+  },
+  "collectionProtocols": [
+    {
+      "source": "docx.text.tabstops.TabStops",
+      "target": "TabStops readonly numeric lookup, at, length, Symbol.iterator, remove, clear_all",
+      "status": "implemented",
+      "limits": "No slice. Signed numeric compatibility retained. Repeated live views share owner/node tokens.",
+      "test": "../../packages/docx/src/collection-value-protocols.test.ts"
+    },
+    {
+      "source": "docx.text.tabstops.TabStop",
+      "target": "live position/alignment/leader/element/part/equals",
+      "status": "implemented",
+      "limits": "Removed handles reject with StaleHandleError; owner remains distinct.",
+      "test": "../../packages/docx/src/collection-value-protocols.test.ts"
+    },
+    {
+      "source": "docx.shared.RGBColor",
+      "target": "RGBColor numeric lookup, at, slice, count, index, includes, equals, toArray, reversed, length, Symbol.iterator, from_string, toString",
+      "status": "implemented",
+      "limits": "Immutable value tuple; strict ASCII hex. Search miss is InvalidValueError; numeric miss is BoundsError.",
+      "test": "../../packages/docx/src/collection-value-protocols.test.ts"
+    },
+    {
+      "source": "docx.styles.styles.Styles",
+      "target": "Styles keyed at/has/get_by_id/default/length/Symbol.iterator/add_style",
+      "status": "implemented",
+      "limits": "Name-keyed; deprecated ID fallback only, numeric keys reject. No sparse IDs become ordinal positions.",
+      "test": "../../packages/docx/src/collection-value-protocols.test.ts"
+    },
+    {
+      "source": "docx.styles.latent.LatentStyles",
+      "target": "LatentStyles name-keyed lookup/length/iteration/add_latent_style",
+      "status": "implemented",
+      "limits": "Missing throwing lookup rejects; overrides retain null/false/zero.",
+      "test": "../../packages/docx/src/collection-value-protocols.test.ts"
+    }
+  ],
+  "unitHelpers": {
+    "names": ["Length", "Emu", "Inches", "Cm", "Mm", "Pt", "Twips"],
+    "accessors": ["emu", "inches", "cm", "mm", "pt", "twips"],
+    "status": "implemented",
+    "test": "../../packages/docx/src/formatting-values.test.ts",
+    "additionalBoundaryTest": "../../packages/docx/src/collection-value-protocols.test.ts",
+    "mapping": "Immutable safe integer EMUs; signed halfway-away rounding; explicit accessors and no numeric coercion. D15 source float/truncation differences tested explicitly."
+  },
+  "remaining": "Missing prerequisite live owner collections remain pending: Sections/_Rows/_Columns/InlineShapes/Comments/ImageParts/Relationships. Inherited/returned/public underscore types retain all public obligations. This does not establish whole API acceptance or full source test adaptation."
 }

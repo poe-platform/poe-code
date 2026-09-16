@@ -1,3 +1,4 @@
+import { InputTypeError, InvalidValueError } from "./archive.js";
 import type { DocxLength, DocxEnumNames, DocxEnumValue } from "./operation-types.js";
 
 const enumNumbers = {
@@ -277,7 +278,7 @@ function symbols<K extends FormattingEnum>(family: K): Symbols<K> {
         value: { value },
         xml_value: { get: () => enumRepresentation(record) },
         toString: { value: () => `${name} (${value})` },
-        [Symbol.toPrimitive]: { value: (hint: string) => { if (hint === "string") return `${name} (${value})`; throw new TypeError("Use explicit enum values instead of numeric coercion."); } }
+        [Symbol.toPrimitive]: { value: (hint: string) => { if (hint === "string") return `${name} (${value})`; throw new InputTypeError("Use explicit enum values instead of numeric coercion."); } }
       });
       ownedEnumMembers.add(record); member = Object.freeze(record); byValue.set(value, member);
     }
@@ -326,20 +327,20 @@ export const WD_HEADER_FOOTER = WD_HEADER_FOOTER_INDEX;
 export const enumFamilies = Object.freeze({ WD_UNDERLINE, WD_COLOR_INDEX, WD_PARAGRAPH_ALIGNMENT, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER, MSO_THEME_COLOR, MSO_COLOR_TYPE, WD_BUILTIN_STYLE, WD_STYLE_TYPE, WD_CELL_VERTICAL_ALIGNMENT, WD_ORIENTATION, WD_TABLE_ALIGNMENT, WD_ROW_HEIGHT_RULE, WD_SECTION_START, WD_TABLE_DIRECTION, WD_BREAK_TYPE, WD_INLINE_SHAPE_TYPE, WD_HEADER_FOOTER_INDEX });
 export function enumValue(value: DocxEnumValue<keyof DocxEnumNames>): number {
   if (!isEnumMember(value)) {
-    if (value === null || typeof value !== "object" || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) throw new TypeError("Expected an enum symbol.");
+    if (value === null || typeof value !== "object" || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) throw new InputTypeError("Expected an enum symbol.");
     const fields = Object.getOwnPropertyDescriptors(value);
-    if (Reflect.ownKeys(fields).length !== 2 || !fields.enum || !fields.name || !("value" in fields.enum) || !("value" in fields.name) || typeof fields.enum.value !== "string" || typeof fields.name.value !== "string") throw new TypeError("Expected an inert enum symbol.");
+    if (Reflect.ownKeys(fields).length !== 2 || !fields.enum || !fields.name || !("value" in fields.enum) || !("value" in fields.name) || typeof fields.enum.value !== "string" || typeof fields.name.value !== "string") throw new InputTypeError("Expected an inert enum symbol.");
   }
-  if (!Object.hasOwn(enumNumbers, value.enum)) throw new RangeError("Unknown formatting enum family.");
+  if (!Object.hasOwn(enumNumbers, value.enum)) throw new InvalidValueError("Unknown formatting enum family.");
   const family = enumNumbers[value.enum as FormattingEnum];
-  if (!family || !Object.hasOwn(family, value.name)) throw new RangeError("Unknown formatting enum symbol.");
+  if (!family || !Object.hasOwn(family, value.name)) throw new InvalidValueError("Unknown formatting enum symbol.");
   return (family as Readonly<Record<string, number>>)[value.name]!;
 }
 export function enumFromValue<K extends FormattingEnum>(family: K, value: number): EnumMember<K> {
-  if (!Number.isSafeInteger(value)) throw new TypeError("Expected an integer enum value.");
-  const numbers = enumNumbers[family]; if (!numbers) throw new RangeError("Unknown formatting enum family.");
+  if (!Number.isSafeInteger(value)) throw new InputTypeError("Expected an integer enum value.");
+  const numbers = enumNumbers[family]; if (!numbers) throw new InvalidValueError("Unknown formatting enum family.");
   const name = Object.keys(numbers).find(name => (numbers as Readonly<Record<string, number>>)[name] === value);
-  if (!name) throw new RangeError("Unknown formatting enum value.");
+  if (!name) throw new InvalidValueError("Unknown formatting enum value.");
   return (enumFamilies[family] as unknown as Readonly<Record<string, EnumMember<K>>>)[name]!;
 }
 
@@ -353,9 +354,9 @@ class LengthValue implements Length {
   readonly value: number;
   readonly unit: DocxLength["unit"];
   constructor(value: number, unit: DocxLength["unit"]) {
-    if (typeof value !== "number" || !Number.isFinite(value)) throw new TypeError("Expected a finite numeric length.");
+    if (typeof value !== "number" || !Number.isFinite(value)) throw new InputTypeError("Expected a finite numeric length.");
     const scaled = value * unitScale[unit], rounded = Math.sign(scaled) * Math.round(Math.abs(scaled));
-    if (!Number.isSafeInteger(rounded)) throw new RangeError("Length exceeds safe integer EMUs.");
+    if (!Number.isSafeInteger(rounded)) throw new InvalidValueError("Length exceeds safe integer EMUs.");
     this.#emu = rounded; this.value = rounded / unitScale[unit]; this.unit = unit; ownedLengths.add(this); Object.freeze(this);
   }
   get emu(): number { return this.#emu; }
@@ -364,7 +365,7 @@ class LengthValue implements Length {
   get mm(): number { return this.emu / 36000; }
   get pt(): number { return this.emu / 12700; }
   get twips(): number { return Math.sign(this.emu) * Math.round(Math.abs(this.emu) / 635); }
-  [Symbol.toPrimitive](): never { throw new TypeError("Use explicit length accessors instead of numeric coercion."); }
+  [Symbol.toPrimitive](): never { throw new InputTypeError("Use explicit length accessors instead of numeric coercion."); }
 }
 function lengthConstructor(unit: DocxLength["unit"]): (value: number) => Length { return value => new LengthValue(value, unit); }
 export const Length = lengthConstructor("emu");
@@ -499,31 +500,31 @@ function enumRepresentation(value: DocxEnumValue<keyof DocxEnumNames>): string |
   return representation === "UNMAPPED" ? null : representation;
 }
 export function enumToXml<K extends FormattingEnum>(family: K, value: DocxEnumValue<K> | number | null): string | null {
-  if (!enumXmlValues[family]) throw new RangeError("Enum family has no XML conversion.");
+  if (!enumXmlValues[family]) throw new InvalidValueError("Enum family has no XML conversion.");
   if (value === null) return null;
   const number = typeof value === "number" ? value : enumValue(value);
-  if (typeof value !== "number" && value.enum !== family) throw new TypeError("Expected a symbol from the declared enum family.");
+  if (typeof value !== "number" && value.enum !== family) throw new InputTypeError("Expected a symbol from the declared enum family.");
   const member = enumFromValue(family, number);
   const representation = enumXmlValues[family]?.[member.name];
-  if (representation === undefined || representation === "UNMAPPED") throw new RangeError("Enum member has no XML representation.");
+  if (representation === undefined || representation === "UNMAPPED") throw new InvalidValueError("Enum member has no XML representation.");
   return representation;
 }
 export function enumXml(value: DocxEnumValue<keyof DocxEnumNames>): string {
   enumValue(value);
   const representation = enumXmlValues[value.enum as FormattingEnum]?.[value.name];
-  if (!representation || representation === "UNMAPPED") throw new RangeError("Enum member has no XML representation.");
+  if (!representation || representation === "UNMAPPED") throw new InvalidValueError("Enum member has no XML representation.");
   return representation;
 }
 export function enumFromXml<K extends FormattingEnum>(family: K, value: string | null): EnumMember<K> {
-  if (value !== null && typeof value !== "string") throw new TypeError("Expected an XML value or null.");
-  if (value === "UNMAPPED") throw new RangeError("Enum sentinel has no XML representation.");
+  if (value !== null && typeof value !== "string") throw new InputTypeError("Expected an XML value or null.");
+  if (value === "UNMAPPED") throw new InvalidValueError("Enum sentinel has no XML representation.");
   const representations = enumXmlValues[family];
   const name = representations && Object.keys(representations).find(name => representations[name] === value);
-  if (name === undefined) throw new RangeError("Unknown enum XML value.");
+  if (name === undefined) throw new InvalidValueError("Unknown enum XML value.");
   return (enumFamilies[family] as unknown as Readonly<Record<string, EnumMember<K>>>)[name]!;
 }
 export function enumMembers<K extends FormattingEnum>(family: K): readonly EnumMember<K>[] {
-  const symbols = enumFamilies[family]; if (!symbols) throw new RangeError("Unknown formatting enum family.");
+  const symbols = enumFamilies[family]; if (!symbols) throw new InvalidValueError("Unknown formatting enum family.");
   return Object.freeze([...symbols]) as unknown as readonly EnumMember<K>[];
 }
 export function isLength(value: unknown): value is Length { return value !== null && typeof value === "object" && ownedLengths.has(value); }

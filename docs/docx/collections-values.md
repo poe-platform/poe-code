@@ -87,3 +87,52 @@ pending. Utility arrays and relationship graph snapshots cannot count as those
 collections. This task extends the existing live types and must not create a
 second editor or placeholder wrappers to conceal the missing prerequisites.
 Later tasks remain pending.
+
+## Verified live collection and value increment
+
+Original memfs acceptance in `collection-value-protocols.test.ts` qualifies the
+existing TabStops/TabStop, keyed Styles/LatentStyles and immutable RGB/Length
+surfaces. It does not fabricate missing collection owners.
+
+| Protocol          | Exact supported JS behavior                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Numeric lookup    | RGB and TabStops use readonly numeric lookup and `.at`; zero is a value, not absence. Invalid fractional/nonfinite/unsafe indexes reject; out-of-range indexes throw BoundsError. Established signed bracket compatibility is retained alongside primary `.at`.                                                                                                                                                                             |
+| Iteration         | RGB yields channels in order; `.reversed()` returns a real iterable iterator. Tab iteration snapshots membership when traversal starts; insertion/movement cannot duplicate or introduce members into that traversal.                                                                                                                                                                                                                       |
+| Slicing           | RGB tuple slicing uses signed, clamped, half-open bounds and rejects noninteger bounds. TabStops does not gain slicing. Sections/\_Rows slicing remains a missing-owner obligation.                                                                                                                                                                                                                                                         |
+| Mutation          | Tab removal uses `.remove(index)` and supports signed indexing. The earlier `.delete` spelling remains the identical function, without a forwarding wrapper. Numeric writes, deletion and definition reject. Removed node handles reject property, XML, part and equality access.                                                                                                                                                           |
+| Shared live views | Repeated paragraph formatting views reuse one existing tab collection by stable owner identity. Inserting or moving through a second view retains the first view's handles and owner/node equality. No second store or editor is created.                                                                                                                                                                                                   |
+| Keyed lookup      | Styles/latent styles retain string names, deprecated defined-style ID fallback and traversal order. Sparse IDs `Slot0`/`Slot99` remain IDs; numeric ordinal aliases reject. Missing throwing lookups use MissingKeyError; declared nullable/default lookups retain null/default.                                                                                                                                                            |
+| Values            | Defined and inherited null, explicit false and numeric zero remain distinct. RGB tuples and helper values are immutable; hex input requires six ASCII digits, accepts either case, emits uppercase and rejects coercion/whitespace/prefixes.                                                                                                                                                                                                |
+| Units             | All seven DOCX helpers retain exact safe integer EMUs and six accessors. Halfway rounding is away from zero, including negative values; unsafe/nonfinite/nonnumeric input rejects. No centipoint helper is documented for DOCX.                                                                                                                                                                                                             |
+| Errors            | Numeric selection misses use BoundsError (`missing-selection`); keyed misses use MissingKeyError (same code); removed handles use StaleHandleError (`stale-selection`). A tuple value-search miss is a source ValueError, so RGB `.index` uses InvalidValueError (`usage`), not a bounds error. Invalid enum/helper inputs use existing InputTypeError/InvalidValueError, preserving TypeError/RangeError inheritance and CLI usage exit 2. |
+| Batch/CLI         | Existing typed operations expose tuple/reverse results as bounded arrays. Only the known RGB reverse action materializes its iterator; arbitrary generators are not admitted by generic encoding. Missing numeric targets produce exit 1, invalid enum values exit 2, null failure data, affected 0 and unchanged input.                                                                                                                    |
+
+D06 string-key lookup, D15 unit rounding, D20 strict RGB parsing, D22 nullable
+latent overrides and D23 current tab owner/node semantics have original cases.
+The tests preserve the D15 deliberate differences: Cm(2.53) is 910800 EMUs and
+Emu(9144.9) is 9145, rather than source truncation/float artifacts. Existing tests
+still qualify all unit accessors and inherited helper types; new boundary cases
+add unsafe values, zero and negative halfway conversions.
+
+Initial collection red: six of nine cases failed. Further separate reds exposed
+reverse iterator shape, invalid numeric properties, stale metadata, shared-view
+token invalidation, generator transport cloning and incorrect enum error exit.
+The initial new expectation banning all signed brackets was an overinterpretation
+of the mapping; it contradicted an established original test and was corrected
+without changing that existing test. Out-of-range signed lookups still reject.
+Final focused candidate passed eight files / 134 tests, including 21 new cases.
+The first lint attempt exposed two test-only unchecked-index annotations; these
+were corrected without weakening runtime assertions.
+
+The human CLI missing-target check returned exit 1 and emitted only
+`docx: Document operation failed: missing-selection`. Its inspected screenshot,
+`screenshots/cat-tmp-docx-collections-error.txt.png`, is complete and readable,
+with no document content in diagnostics. Screenshot artifacts remain disposable.
+Independent final review approved shared-view state, error mappings and numeric
+mutation protections. Final maintained receipts and local delivery are in the plan.
+
+An actual public export prerequisite probe returned `ok: false` and exit 1 for
+the eight missing owner/factory exports listed above. That failure is retained in
+the exact map as missing prerequisite evidence; it is not an expected-failure pass
+or a reason to classify public underscore types as private. This task remains open
+for those live collections, sparse comment IDs and general relationship mutations.

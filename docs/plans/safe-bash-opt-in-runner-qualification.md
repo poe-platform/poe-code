@@ -82,3 +82,9 @@ unsupported mutation still returns ENOTSUP. Correct those exact assertions,
 preserving errno/output/no-request/no-descendant-mutation checks. Both live
 control suites passed all 49 tests. Finish the maintained package typecheck,
 runner and guarded lint before delivery.
+
+Final local qualification passed: maintained package typecheck (source/tests,
+three current source-consumer groups, 26 copied consumer groups and exact
+negative diagnostics), all 522 runner tests, all 49 live WebDAV controls, and
+guarded repository ESLint with zero errors and two warnings. The earlier core
+archive suite passed all 218 controls before the additional remote mirror test.

@@ -4,6 +4,7 @@ import { cpSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, re
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { createRequire } from "node:module";
 import ts from "typescript";
+import { rewriteModuleSpecifiers } from "../../../scripts/package-safe.mjs";
 import { consumerGroups, currentSourceConsumerGroups, negativeGroups, ownerPath } from "../tests/plugins/qualified-current-release/consumers.mjs";
 import { validateRuntimeCoverage } from "../tests/plugins/qualified-current-release/runtime-coverage.mjs";
 import { resolvePeerProfile } from "../tests/plugins/qualified-current-release/peer.mjs";
@@ -210,6 +211,13 @@ export function checkSourceConsumerTypes(root, temporary, compile, binding = cre
 
 export function checkCurrentConsumerTypes(root, temporary, compile, binding = createBuiltPackageBinding(root)) {
   validateRuntimeCoverage(consumerGroups);
+  const publicSpecifier = specifier => {
+    for (const prefix of ["", "./node_modules/"]) {
+      const legacy = prefix + "virtual-bash";
+      if (specifier === legacy || specifier.startsWith(legacy + "/")) return prefix + binding.name + specifier.slice(legacy.length);
+    }
+    return specifier;
+  };
   const consumer = join(temporary, "consumer"), installed = join(consumer, "node_modules/@poe-platform/safe-bash");
   mkdirSync(installed, { recursive: true });
   cpSync(join(root, "package.json"), join(installed, "package.json"));
@@ -229,7 +237,7 @@ export function checkCurrentConsumerTypes(root, temporary, compile, binding = cr
   writeFileSync(join(consumer, "package.json"), JSON.stringify({ private: true, type: "module" }));
   const groups = [], negativeTypes = [];
   for (const group of consumerGroups) {
-    const result = { name: group.name, files: group.files, status: "pending", runtime: "not executed: typecheck-only route" };
+    const result = { name: group.name, files: group.files, status: "pending", runtime: "not executed: typecheck-only route", fixtureImports: "Legacy module specifiers rebound to the candidate package in temporary copies; original fixture bytes retained" };
     groups.push(result);
     try {
       const workspace = join(consumer, group.name); mkdirSync(workspace);
@@ -238,6 +246,7 @@ export function checkCurrentConsumerTypes(root, temporary, compile, binding = cr
         const name = index < group.files.length ? basename(path) : group.companionNames?.[index - group.files.length] ?? basename(path);
         const target = join(workspace, name); assert.equal(existsSync(target), false, "consumer basename collision");
         cpSync(join(root, path), target); assert.deepEqual(readFileSync(target), readFileSync(join(root, path)));
+        writeFileSync(target, rewriteModuleSpecifiers(target, readFileSync(target, "utf8"), publicSpecifier));
         return target;
       });
       const config = JSON.parse(readFileSync(join(root, ownerPath, "tsconfig.consumer.json")));
@@ -256,6 +265,7 @@ export function checkCurrentConsumerTypes(root, temporary, compile, binding = cr
       assert.equal(groups.find(positive => positive.name === group.positive)?.status, "pass", "positive consumer must pass first");
       const workspace = join(consumer, group.positive), input = join(workspace, basename(group.path));
       cpSync(join(root, group.path), input);
+      writeFileSync(input, rewriteModuleSpecifiers(input, readFileSync(input, "utf8"), publicSpecifier));
       const config = JSON.parse(readFileSync(join(workspace, "tsconfig.json"))); config.files = [input];
       const filename = join(workspace, "negative.json"); writeFileSync(filename, JSON.stringify(config));
       const checked = compile(`negative-${group.name}`, ["-p", filename]);

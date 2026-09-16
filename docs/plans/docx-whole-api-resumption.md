@@ -60,3 +60,30 @@ one unchanged operation-types.test.ts warning). The first maintained full DOCX
 run passed 220 files / 4,948 cases; the enum source/test candidate was unchanged
 thereafter. Broader XML/validation refinements receive separate final checks and
 atomic owned commits. No task-completion or delivery claim follows this receipt.
+
+## Current reconciliation and verification
+
+XML removal is now corrected under its separate owned plan; the earlier
+unresolved paragraph-root observation above is historical red evidence.
+Cell terminal validation has its own atomic domain correction and plan.
+Original guide tests passed 18 cases; formatted owned tests passed 29 cases.
+The final product candidate passed maintained DOCX unit checks: 222 files /
+4,961 cases, and maintained lint/TypeScript checks with zero errors and one
+unchanged warning. Formatting-only test changes received a focused rerun and
+maintained lint. Independent code review passed.
+
+Every map row now links a current structural observation; 231 exports, 1,517
+typed operation IDs and zero external imports were observed. Inventory hashes,
+unique/order-matched 1,337 IDs, twelve guides, eleven workflow rows and disposition
+totals were checked. Zero complete behavior rows are newly accepted. Historical
+case inventories remain unchanged. Numbering creation is explicitly unsupported;
+paragraph getter/nullable schema parity and save/context forms remain gaps.
+All later task gates stay pending. No push/release or completion claim.
+
+Agent screenshot QA used explicit injected original package bytes and captured
+human required-body removal rejection to a disposable /tmp text file. A first
+browser bundle incorrectly included a memfs fixture dependency and failed before
+execution; a Node-only QA harness then executed the actual engine successfully.
+Product browser/worker structural observations remain zero-external-import.
+The resulting readable bounded rejection screenshot was inspected; no screenshot
+test, binary fixture or QA procedure outside docs/plans is introduced.

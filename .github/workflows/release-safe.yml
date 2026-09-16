@@ -143,8 +143,8 @@ jobs:
           for PACKAGE in safe-fs safe-js safe-bash; do
             VERIFIED=false
             for ATTEMPT in {1..12}; do
-              if ACTUAL=$(npm view "@poe-platform/$PACKAGE@$VERSION" version --json --prefer-online --registry=https://registry.npmjs.org/) &&
-                node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]), process.argv[2]);' "$ACTUAL" "$VERSION"; then
+              if ACTUAL=$(curl --fail --silent --show-error --header "Cache-Control: no-cache" "https://registry.npmjs.org/@poe-platform%2F$PACKAGE/$VERSION") &&
+                node --input-type=module -e 'import assert from "node:assert/strict"; assert.equal(JSON.parse(process.argv[1]).version, process.argv[2]);' "$ACTUAL" "$VERSION"; then
                 VERIFIED=true
                 break
               fi

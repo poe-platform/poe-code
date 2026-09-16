@@ -1,0 +1,30 @@
+{
+  "specification": {
+    "url": "https://raw.githubusercontent.com/jgm/pandoc-types/1.23.1.2/src/Text/Pandoc/Definition.hs",
+    "sha256": "686012c18084f5a1daa40146a624ba3e85c9a9ce11f1f4ce3f879c724e488077",
+    "bytes": 17741,
+    "consulted": "Block/Inline/MetaValue/Citation and modern table/figure definitions; deriveJSON options and Pandoc JSON instances"
+  },
+  "native": {
+    "version": "3.11",
+    "apiVersion": [
+      1,
+      23,
+      1,
+      2
+    ],
+    "url": "https://github.com/jgm/pandoc/releases/download/3.11/pandoc-3.11-arm64-macOS.zip",
+    "archiveSha256": "15806bedf9517bfead72e88fe6a6696635c3691efbb6e152173440e9c5bb50b4"
+  },
+  "originalArtifacts": {
+    "original.md": "1c079b5dabf25841129ae898379df230b2093428d1a48a03f32640cbfa2d826b",
+    "native-3.11.json": "99016bcf5f0f09f138b24d6825a7a6ca8cdd8f41af6e4c8db9f2283d1282263e",
+    "typescript-roundtrip.json": "99016bcf5f0f09f138b24d6825a7a6ca8cdd8f41af6e4c8db9f2283d1282263e",
+    "native-reread.json": "99016bcf5f0f09f138b24d6825a7a6ca8cdd8f41af6e4c8db9f2283d1282263e"
+  },
+  "comparison": {
+    "nativeToTypescript": "equal ignoring object key order only",
+    "typescriptToNative": "equal ignoring object key order only"
+  },
+  "policy": "Native executable and downloaded specifications used only for ad hoc research, never canonical unit tests or conversion runtime. No Haskell .native fixture treated as JSON; observation input authored here."
+}

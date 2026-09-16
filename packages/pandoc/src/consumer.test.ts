@@ -268,10 +268,12 @@ describe("public conversion seam (original adapters, no format conformance claim
     expect(ctx.reader!.read).not.toHaveBeenCalled();
     expect(ctx.writer!.write).not.toHaveBeenCalled();
   });
-  it("does not claim a built-in parser", async () => {
+  it("claims only the implemented JSON codec", async () => {
     expect(
-      formatCapabilities.every((format) => !format.read.available && !format.write.available)
-    ).toBe(true);
+      formatCapabilities
+        .filter((format) => format.read.available || format.write.available)
+        .map((format) => format.name)
+    ).toEqual(["json"]);
     await expect(
       readDocument({ bytes: encode("# actual syntax") }, { from: "commonmark" }, {})
     ).rejects.toMatchObject({ code: "E_CAPABILITY" });

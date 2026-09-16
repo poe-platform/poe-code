@@ -415,6 +415,58 @@
       },
       "browser": null,
       "import": "./packages/safe-js/dist/safe-fs-bridge.js"
+    },
+    "./safe-bash/yes": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/yes.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/yes.js"
+    },
+    "./safe-bash/cmp": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/cmp.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/cmp.js"
+    },
+    "./safe-bash/dd": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/dd.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/dd.js"
+    },
+    "./safe-bash/shuf": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/shuf.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/shuf.js"
+    },
+    "./safe-bash/truncate": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/truncate.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/truncate.js"
+    },
+    "./safe-bash/install": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/install.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/install.js"
+    },
+    "./safe-bash/yq": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/yq.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/yq.js"
+    },
+    "./safe-bash/devices": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/devices.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/devices.js"
+    },
+    "./safe-bash/arrays": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/arrays.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/arrays.js"
+    },
+    "./safe-bash/jobs": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/jobs.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/jobs.js"
+    },
+    "./safe-bash/mapfile": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/mapfile.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/mapfile.js"
+    },
+    "./safe-bash/read": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/read.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/read.js"
+    },
+    "./safe-bash/trap": {
+      "types": "./dist/safe-bash-opt-in/entrypoints/trap.d.ts",
+      "import": "./dist/safe-bash-opt-in/entrypoints/trap.js"
     }
   },
   "workspaces": [
@@ -633,7 +685,8 @@
     "packages/safe-fs/src/native/loader.d.ts",
     "packages/docx/dist",
     "packages/docx/LICENSE",
-    "packages/docx/THIRD_PARTY_NOTICES.txt"
+    "packages/docx/THIRD_PARTY_NOTICES.txt",
+    "!packages/safe-bash/dist/opt-in"
   ],
   "engines": {
     "node": ">=18.18"

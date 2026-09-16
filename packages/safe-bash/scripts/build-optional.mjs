@@ -4,8 +4,8 @@ import { builtinModules } from "node:module";
 import { createHash } from "node:crypto";
 import glob from "fast-glob";
 import ts from "typescript";
-import { rewriteModuleSpecifiers } from "../../scripts/package-safe.mjs";
-import { assertSafeOutputDirectory } from "../../scripts/guard-package-dist.mjs";
+import { rewriteModuleSpecifiers } from "../../../scripts/package-safe.mjs";
+import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 
 function below(directory, filename) {
   return filename.startsWith(directory + path.sep);
@@ -79,9 +79,8 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
   const root = path.resolve(rootDir);
   const core = path.join(root, "packages/safe-bash");
   const filesystem = path.join(root, "packages/safe-fs");
-  const destination = path.join(root, "packages/safe-bash-optional");
-  const output = path.join(destination, "dist");
-  await assertSafeOutputDirectory(destination, output, {
+  const output = path.join(core, "dist/opt-in");
+  await assertSafeOutputDirectory(core, output, {
     lstat: async filename => fileSystem.lstatSync(filename),
     realpath: async filename => fileSystem.realpathSync(filename),
   });
@@ -106,17 +105,12 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
   const json = filename => JSON.parse(regular(filename).toString());
   const coreManifest = json(path.join(core, "package.json"));
   const fsManifest = json(path.join(filesystem, "package.json"));
-  const manifest = json(path.join(destination, "package.json"));
-  const checkout = manifest.name === "@poe-code/safe-bash-optional" && manifest.private === true;
-  if ((!checkout && (manifest.name !== "@poe-platform/safe-bash-optional" || manifest.private === true)) || manifest.type !== "module" || Object.keys(manifest.exports ?? {}).join() !== ".") {
-    throw new Error("Expected the optional package's single ESM entry");
-  }
-  const peers = checkout ? {
-    "@poe-platform/safe-bash": manifest.devDependencies?.["virtual-bash"],
-    "@poe-platform/safe-fs": manifest.devDependencies?.["@poe-code/safe-fs"],
+  const peers = {
+    "@poe-platform/safe-bash": coreManifest.version,
+    "@poe-platform/safe-fs": coreManifest.devDependencies?.["@poe-code/safe-fs"],
     yaml: coreManifest.peerDependencies?.yaml,
-  } : manifest.peerDependencies ?? {};
-  const yamlOptional = (checkout ? coreManifest : manifest).peerDependenciesMeta?.yaml?.optional === true;
+  };
+  const yamlOptional = coreManifest.peerDependenciesMeta?.yaml?.optional === true;
   for (const peer of ["@poe-platform/safe-bash", "@poe-platform/safe-fs"]) {
     if (typeof peers[peer] !== "string" || !peers[peer]) throw new Error(`Missing public peer: ${peer}`);
   }
@@ -137,9 +131,6 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
   const dist = parsed.options.outDir;
   const entry = path.relative(parsed.options.rootDir, parsed.fileNames[0]).slice(0, -3);
   const roots = [`${entry}.js`, `${entry}.d.ts`];
-  if (manifest.exports["."].import !== `./dist/${roots[0]}` || manifest.exports["."].types !== `./dist/${roots[1]}`) {
-    throw new Error("Optional exports must match the declared compiler entry");
-  }
   const exclusions = (coreManifest.files ?? []).filter(value => value.startsWith("!")).map(value => {
     const relative = value.slice(1);
     const filename = path.resolve(core, relative);
@@ -281,6 +272,22 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
     contents = Buffer.from(rewriteModuleSpecifiers(filename, parsedModule.text, specifier => replacements.get(specifier) ?? specifier));
     selected.set(filename, contents);
   }
+  const entrypoints = new Map();
+  for (const extension of [".js", ".d.ts"]) {
+    const filename = path.join(dist, "optional" + extension);
+    const source = ts.createSourceFile(filename, selected.get(filename).toString(), ts.ScriptTarget.Latest, true);
+    for (const statement of source.statements) {
+      if (!ts.isExportDeclaration(statement) || !statement.moduleSpecifier || !ts.isStringLiteral(statement.moduleSpecifier)) continue;
+      const specifier = statement.moduleSpecifier.text;
+      const parts = specifier.split("/");
+      const name = parts[1] === "commands" || parts[1] === "fs" ? parts[2] : parts[1] === "shell" && parts[2] === "extensions" ? parts[3] : undefined;
+      if (!name) continue;
+      const target = path.join(dist, "entrypoints", name + extension);
+      const text = rewriteModuleSpecifiers(filename, statement.getText(source), reference => reference.startsWith("./") ? "../" + reference.slice(2) : reference);
+      entrypoints.set(target, (entrypoints.get(target) ?? "") + text + "\n");
+    }
+  }
+  for (const [filename, text] of entrypoints) selected.set(filename, Buffer.from(text));
   const files = [...selected.keys()].map(filename => path.relative(dist, filename)).sort();
   const inspectOutput = directory => {
     if (!fileSystem.existsSync(directory)) return;

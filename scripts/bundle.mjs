@@ -10,7 +10,7 @@ import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { mergeRuntimeBundleOutputs, resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { copyNativeAssets, nativeImportMapping, readNativeRegistry } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "../packages/package-lint/dist/native-assets.js";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { publishRootOptionalPackage, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import {
   canonicalFs,
   collectCanonicalDeclarations,
@@ -265,6 +265,7 @@ await publishBundleOutputs(shellBundle, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
+await publishRootOptionalPackage(rootDir);
 
 consumerBuilds.push(await esbuild.build({
   absWorkingDir: rootDir,

@@ -1,14 +1,16 @@
 # Optional Safe Bash tools
 
-This workspace builds the separately installed `@poe-platform/safe-bash-optional`
-package for Node.js 22 or later. Install it with the exact same release versions
-of `@poe-platform/safe-bash` and `@poe-platform/safe-fs`. Publication requires the
-GitHub release and npm setup described in `docs/development/NPM_PUBLISHING.md`.
+Safe Bash ships these tools in `@poe-platform/safe-bash` for Node.js 22 or
+later. Import each tool explicitly; the default entry does not load or register
+these command implementations. The root package also exposes them through
+`poe-code/safe-bash/<name>`.
 
 ```ts
 import { Shell, agentCommands } from "@poe-platform/safe-bash";
 import { createMemoryFileSystem } from "@poe-platform/safe-fs";
-import { arraysExtension, readExtension, yesCommands } from "@poe-platform/safe-bash-optional";
+import { arraysExtension } from "@poe-platform/safe-bash/arrays";
+import { readExtension } from "@poe-platform/safe-bash/read";
+import { yesCommands } from "@poe-platform/safe-bash/yes";
 
 const shell = new Shell({
   fs: createMemoryFileSystem(),
@@ -22,7 +24,8 @@ try {
 }
 ```
 
-The package exports `yesCommands`, `cmpCommands`, `ddCommands`, `shufCommands`,
+The `/yes`, `/cmp`, `/dd`, `/shuf`, `/truncate`, `/install`, and `/yq` entries
+export `yesCommands`, `cmpCommands`, `ddCommands`, `shufCommands`,
 `truncateCommands`, `installCommands`, and `yqCommands`, with corresponding
 `create*Command` and `create*Commands` factories. These implement bounded command
 profiles, not complete GNU or Bash compatibility. `yqCommands` uses the Mike
@@ -81,11 +84,10 @@ bindings, including `IFS` for input splitting.
 From the repository root, build this workspace and its declared dependencies:
 
 ```sh
-npm run build:workspaces -- --workspace=@poe-code/safe-bash-optional
-npm run test:unit --workspace=@poe-code/safe-bash-optional
+npm run build:workspaces -- --workspace=virtual-bash
+npx vitest run scripts/safe-bash-optional-build.test.ts scripts/package-safe.test.ts
 ```
 
-The build accepts no command-line options or package-specific environment
-variables. The maintained artifact generator's `--include-optional` option
-includes the separate package; its default still prepares only the three core
-safe libraries. Publication happens in GitHub Actions.
+The maintained Safe Bash build compiles the explicit command graph after the
+core build. Artifact preparation includes it automatically in the existing
+package. Publication happens in GitHub Actions.

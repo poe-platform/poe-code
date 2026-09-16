@@ -54,16 +54,12 @@ function publicSpecifier(specifier) {
   return specifier;
 }
 
-async function prepareOptionalPackage({ rootDir, version, files, root, workspaces, excluded }) {
-  const name = "safe-bash-optional";
+async function prepareOptionalPackage({ rootDir, files, workspaces, excluded }) {
+  const name = "safe-bash";
   const packageDir = path.join(rootDir, "packages", name);
-  const dist = path.join(packageDir, "dist");
+  const dist = path.join(packageDir, "dist/opt-in");
   const source = workspaces.find(workspace => workspace.dir === name)?.pkg;
-  if (!source || source.name !== "@poe-code/safe-bash-optional" || source.private !== true || source.type !== "module"
-    || Object.keys(source.exports ?? {}).join() !== "." || source.exports["."].import !== "./dist/optional.js"
-    || source.exports["."].types !== "./dist/optional.d.ts" || Object.keys(source.exports["."]).sort().join() !== "import,types") {
-    throw new Error("Optional workspace must declare its single built dist/optional.js and dist/optional.d.ts entry");
-  }
+  const exports = Object.fromEntries(Object.entries(source.exports).filter(([, value]) => value?.import?.startsWith("./dist/opt-in/")));
   const peers = new Map(["safe-bash", "safe-fs"].map(peer => ["@poe-platform/" + peer, workspaces.find(workspace => workspace.dir === peer)]));
   const core = peers.get("@poe-platform/safe-bash");
   if (core?.pkg.peerDependencies?.yaml !== "2.9.0" || core.pkg.peerDependenciesMeta?.yaml?.optional !== true) {
@@ -85,7 +81,6 @@ async function prepareOptionalPackage({ rootDir, version, files, root, workspace
     }
     return files.readFile(filename);
   };
-  const readme = await read(path.join(packageDir, "README.md"));
   const peerTarget = async (specifier, declaration) => {
     const peerName = specifier.split("/").slice(0, 2).join("/");
     const peer = peers.get(peerName);
@@ -124,11 +119,12 @@ async function prepareOptionalPackage({ rootDir, version, files, root, workspace
   };
   const contents = new Map();
   const inspected = new Set();
-  const pending = ["optional.js", "optional.d.ts"].map(relative => ({ filename: path.join(dist, relative), asset: false }));
+  const entrypoints = new Set(Object.values(exports).flatMap(value => [value.import, value.types]).map(target => path.resolve(packageDir, target)));
+  const pending = ["optional.js", "optional.d.ts", ...Object.values(exports).flatMap(value => [value.import, value.types].map(target => path.relative(dist, path.resolve(packageDir, target))))].map(relative => ({ filename: path.join(dist, relative), asset: false }));
   while (pending.length) {
     const { filename, asset } = pending.pop();
     if (!filename.startsWith(dist + path.sep)) throw new Error(`Optional module escapes owned output: ${filename}`);
-    if (!excluded(path.join(rootDir, "packages/safe-bash/dist", path.relative(dist, filename)))) throw new Error(`Not an optional-owned artifact: ${filename}`);
+    if (!entrypoints.has(filename) && !excluded(path.join(rootDir, "packages/safe-bash/dist", path.relative(dist, filename)))) throw new Error(`Not an optional-owned artifact: ${filename}`);
     const bytes = contents.get(filename) ?? await read(filename);
     contents.set(filename, bytes);
     if (![".js", ".mjs", ".cjs", ".d.ts", ".d.mts", ".d.cts"].some(extension => filename.endsWith(extension))) {
@@ -174,22 +170,13 @@ async function prepareOptionalPackage({ rootDir, version, files, root, workspace
     }
   }
   return {
-    name, readme, contents: new Map([...contents].map(([filename, bytes]) => [path.relative(packageDir, filename), bytes])),
-    manifest: {
-      name: "@poe-platform/safe-bash-optional", version, description: source.description,
-      type: "module", license: root.license, engines: source.engines ?? { node: ">=22" }, files: ["dist"],
-      exports: { ".": { types: "./dist/optional.d.ts", import: "./dist/optional.js" } },
-      repository: { type: "git", url: "git+https://github.com/poe-platform/poe-code.git", directory: "packages/safe-bash-optional" },
-      publishConfig: { access: "public" },
-      peerDependencies: { "@poe-platform/safe-bash": version, "@poe-platform/safe-fs": version, yaml: "2.9.0" },
-      peerDependenciesMeta: { yaml: { optional: true } },
-    },
+    exports, contents: new Map([...contents].map(([filename, bytes]) => [path.relative(dist, filename), bytes])),
   };
 }
 
 /**
  * @param {{
- * rootDir: string, outDir: string, version: string, includeOptional?: boolean,
+ * rootDir: string, outDir: string, version: string,
  * files?: {
  *   readFile(path: string, encoding?: "utf8"): Promise<string | Buffer>,
  *   stat(path: string): Promise<{ isFile(): boolean }>,
@@ -203,8 +190,7 @@ async function prepareOptionalPackage({ rootDir, version, files, root, workspace
  * bundle?: (options: import("esbuild").BuildOptions & { write: false }) => Promise<{ outputFiles: { path: string, contents: Uint8Array }[] }>
  * }} options
  */
-export async function packageSafeLibraries({ rootDir, outDir, version, includeOptional = false, files = fs, bundle = build }) {
-  if (typeof includeOptional !== "boolean") throw new TypeError("includeOptional must be a boolean");
+export async function packageSafeLibraries({ rootDir, outDir, version, files = fs, bundle = build }) {
   if (!semver.valid(version)) throw new Error("A valid explicit package version is required");
   if (path.resolve(outDir) === path.resolve(rootDir) || path.resolve(outDir).startsWith(path.join(rootDir, "packages") + path.sep)) throw new Error("Output must not overwrite workspace packages");
   const readJson = async filename => JSON.parse(await files.readFile(filename, "utf8"));
@@ -247,7 +233,8 @@ export async function packageSafeLibraries({ rootDir, outDir, version, includeOp
   };
   const results = [];
   const fsManifest = workspaces.find(workspace => workspace.dir === "safe-fs").pkg;
-  const optional = includeOptional ? await prepareOptionalPackage({ rootDir, version, files, root, workspaces, excluded }) : undefined;
+  const optional = Object.values(workspaces.find(workspace => workspace.dir === "safe-bash").pkg.exports).some(value => value?.import?.startsWith("./dist/opt-in/"))
+    ? await prepareOptionalPackage({ rootDir, files, workspaces, excluded }) : undefined;
   const nativeAssets = await exists(path.join(rootDir, "packages/safe-fs/native/assets.json"))
     ? await readBuiltNativeAssets({ rootDir, files }) : undefined;
   for (const name of ["safe-fs", "safe-js", "safe-bash"]) {
@@ -302,6 +289,10 @@ export async function packageSafeLibraries({ rootDir, outDir, version, includeOp
       dependencies["@poe-platform/safe-fs"] = version;
     } else {
       for (const [key, value] of Object.entries(source.exports)) {
+        if (name === "safe-bash" && optional?.exports[key]) {
+          exports[key] = Object.fromEntries(Object.entries(value).map(([condition, target]) => [condition, target.replace("./dist/", "./dist/safe-bash/")]));
+          continue;
+        }
         let target = value;
         if (name === "safe-fs") {
           if (key === "." || key === "./contracts") target = { types: { browser: "./dist/core.d.ts", default: value.types }, browser: "./dist/core.js", import: value.import };
@@ -403,6 +394,15 @@ export async function packageSafeLibraries({ rootDir, outDir, version, includeOp
     if (name === "safe-js") {
       if (source.bin) manifest.bin = Object.fromEntries(Object.entries(source.bin).map(([command, target]) => [command, "./" + artifactPath(rootDir, path.resolve(packageDir, target))]));
     }
+    if (name === "safe-bash" && optional) {
+      manifest.peerDependencies = { yaml: source.peerDependencies.yaml };
+      manifest.peerDependenciesMeta = { yaml: { optional: true } };
+      for (const [filename, bytes] of optional.contents) {
+        const target = path.join(directory, "dist/safe-bash/opt-in", filename);
+        await files.mkdir(path.dirname(target), { recursive: true });
+        await files.writeFile(target, bytes);
+      }
+    }
     await files.mkdir(directory, { recursive: true });
     await files.writeFile(path.join(directory, "package.json"), JSON.stringify(manifest, null, 2) + "\n");
     await files.copyFile(path.join(packageDir, "README.md"), path.join(directory, "README.md"));
@@ -410,26 +410,13 @@ export async function packageSafeLibraries({ rootDir, outDir, version, includeOp
     for (const target of Object.values(manifest.bin ?? {})) await files.chmod(path.join(directory, target), 0o755);
     results.push({ name: manifest.name, directory, version, files: copied.size });
   }
-  if (optional) {
-    const directory = path.join(outDir, optional.name);
-    await files.mkdir(directory);
-    for (const [filename, bytes] of optional.contents) {
-      const target = path.join(directory, filename);
-      await files.mkdir(path.dirname(target), { recursive: true });
-      await files.writeFile(target, bytes);
-    }
-    await files.writeFile(path.join(directory, "package.json"), JSON.stringify(optional.manifest, null, 2) + "\n");
-    await files.writeFile(path.join(directory, "README.md"), optional.readme);
-    if (await exists(path.join(rootDir, "LICENSE"))) await files.copyFile(path.join(rootDir, "LICENSE"), path.join(directory, "LICENSE"));
-    results.push({ name: optional.manifest.name, directory, version, files: optional.contents.size });
-  }
   return results;
 }
 
 export function parsePackageSafeArguments(args = process.argv.slice(2)) {
-  const { values } = parseArgs({ args, options: { "out-dir": { type: "string" }, version: { type: "string" }, "include-optional": { type: "boolean", default: false } } });
-  if (!values["out-dir"] || !values.version) throw new Error("Usage: node scripts/package-safe.mjs --out-dir <directory> --version <version> [--include-optional]");
-  return { outDir: path.resolve(values["out-dir"]), version: values.version, includeOptional: values["include-optional"] };
+  const { values } = parseArgs({ args, options: { "out-dir": { type: "string" }, version: { type: "string" } } });
+  if (!values["out-dir"] || !values.version) throw new Error("Usage: node scripts/package-safe.mjs --out-dir <directory> --version <version>");
+  return { outDir: path.resolve(values["out-dir"]), version: values.version };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

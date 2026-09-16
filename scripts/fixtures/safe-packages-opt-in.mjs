@@ -1,0 +1,14 @@
+export { Shell, agentCommands } from "@poe-platform/safe-bash";
+export { createYesCommand, createYesCommands, yesCommands } from "@poe-platform/safe-bash/yes";
+export { createCmpCommand, createCmpCommands, cmpCommands } from "@poe-platform/safe-bash/cmp";
+export { createDdCommand, createDdCommands, ddCommands } from "@poe-platform/safe-bash/dd";
+export { createShufCommand, createShufCommands, shufCommands } from "@poe-platform/safe-bash/shuf";
+export { createTruncateCommand, createTruncateCommands, truncateCommands } from "@poe-platform/safe-bash/truncate";
+export { createInstallCommand, createInstallCommands, installCommands } from "@poe-platform/safe-bash/install";
+export { createYqCommand, createYqCommands, yqCommands } from "@poe-platform/safe-bash/yq";
+export { createDeviceFileSystem } from "@poe-platform/safe-bash/devices";
+export { arraysExtension } from "@poe-platform/safe-bash/arrays";
+export { jobsExtension } from "@poe-platform/safe-bash/jobs";
+export { mapfileExtension } from "@poe-platform/safe-bash/mapfile";
+export { readExtension } from "@poe-platform/safe-bash/read";
+export { trapExtension } from "@poe-platform/safe-bash/trap";

@@ -3,24 +3,22 @@ import { createHash } from "node:crypto";
 import { createFsFromVolume, Volume } from "memfs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { buildOptionalPackage } from "./build.mjs";
+import { buildOptionalPackage } from "../packages/safe-bash/scripts/build-optional.mjs";
 
-const bashManifest = JSON.parse(readFileSync(new URL("../safe-bash/package.json", import.meta.url), "utf8"));
-const fsManifest = JSON.parse(readFileSync(new URL("../safe-fs/package.json", import.meta.url), "utf8"));
-const checkoutManifest = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
-const hostSource = readFileSync(new URL("../safe-bash/src/optional-host.ts", import.meta.url), "utf8");
+const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
+const fsManifest = JSON.parse(readFileSync(new URL("../packages/safe-fs/package.json", import.meta.url), "utf8"));
+const hostSource = readFileSync(new URL("../packages/safe-bash/src/optional-host.ts", import.meta.url), "utf8");
 const hostDeclarations = ts.createSourceFile("optional-host.ts", hostSource, ts.ScriptTarget.Latest, true);
 const hostRuntime = hostDeclarations.statements.filter(statement => ts.isExportDeclaration(statement) && !statement.isTypeOnly).map(statement => statement.getText(hostDeclarations)).join("\n") + "\n";
-const configurations = Object.fromEntries(["tsconfig.json", "tsconfig.build.json", "tsconfig.optional.json"].map(name => [name, readFileSync(new URL(`../safe-bash/${name}`, import.meta.url), "utf8")]));
+const configurations = Object.fromEntries(["tsconfig.json", "tsconfig.build.json", "tsconfig.optional.json"].map(name => [name, readFileSync(new URL(`../packages/safe-bash/${name}`, import.meta.url), "utf8")]));
 const root = "/repo";
 const core = root + "/packages/safe-bash";
-const optional = root + "/packages/safe-bash-optional";
+const optional = core;
 
 function fixture() {
   const data: Record<string, string | Buffer> = {
     [core + "/package.json"]: JSON.stringify({ ...bashManifest, exports: { ...bashManifest.exports, "./optional-host": { types: "./dist/optional-host.d.ts", import: "./dist/optional-host.js" } } }),
     [root + "/packages/safe-fs/package.json"]: JSON.stringify(fsManifest),
-    [optional + "/package.json"]: JSON.stringify({ name: "@poe-platform/safe-bash-optional", type: "module", exports: { ".": { types: "./dist/optional.d.ts", import: "./dist/optional.js" } }, peerDependencies: { "@poe-platform/safe-bash": "1.2.3", "@poe-platform/safe-fs": "1.2.3", yaml: "2.9.0" }, peerDependenciesMeta: { yaml: { optional: true } } }),
     ...Object.fromEntries(Object.entries(configurations).map(([name, contents]) => [core + "/" + name, contents])),
     [core + "/src/optional.ts"]: "export {};\n",
     [core + "/src/commands/yes/payload.bin"]: Buffer.from([0, 255, 195, 169]),
@@ -64,7 +62,7 @@ describe("optional-owned compiled graph", () => {
     const { volume, options } = fixture();
     const result = await buildOptionalPackage(options);
     expect(result.status).toBe(0);
-    const read = (name: string) => volume.readFileSync(optional + "/dist/" + name, "utf8").toString();
+    const read = (name: string) => volume.readFileSync(optional + "/dist/opt-in/" + name, "utf8").toString();
     expect(read("optional.js")).toContain('from "@poe-platform/safe-bash"');
     expect(read("optional.d.ts")).toContain('from "@poe-platform/safe-bash/optional-host"');
     expect(read("commands/yes/index.js")).toContain('from "@poe-platform/safe-bash/contracts/command"');
@@ -74,12 +72,13 @@ describe("optional-owned compiled graph", () => {
     expect(read("commands/yes/helper.js")).toContain('from "@poe-platform/safe-fs"');
     for (const name of ["value", "yield", "filesystem-output"]) expect(read("commands/yes/helper.js")).toContain(`from "@poe-platform/safe-bash/contracts/${name}"`);
     expect(read("commands/yes/index.d.ts")).toContain('from "@poe-platform/safe-bash/contracts/plugin"');
-    expect(volume.readFileSync(optional + "/dist/commands/yes/payload.bin")).toEqual(Buffer.from([0, 255, 195, 169]));
-    expect(Object.keys(volume.toJSON()).filter(name => name.startsWith(optional + "/dist/")).sort()).toEqual([
-      "commands/yes/helper.js", "commands/yes/index.d.ts", "commands/yes/index.js", "commands/yes/payload.bin", "optional.d.ts", "optional.js",
-    ].map(name => optional + "/dist/" + name).sort());
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/payload.bin")).toEqual(Buffer.from([0, 255, 195, 169]));
+    expect(Object.keys(volume.toJSON()).filter(name => name.startsWith(optional + "/dist/opt-in/")).sort()).toEqual([
+      "commands/yes/helper.js", "commands/yes/index.d.ts", "commands/yes/index.js", "commands/yes/payload.bin", "entrypoints/yes.js", "entrypoints/yes.d.ts", "optional.d.ts", "optional.js",
+    ].map(name => optional + "/dist/opt-in/" + name).sort());
     expect(read("optional.js")).not.toContain("sourceMappingURL");
     expect(read("optional.d.ts")).not.toContain("sourceMappingURL");
+    expect(read("entrypoints/yes.js")).toBe('export { yesCommands } from "../commands/yes/index.js";\n');
   });
 
   it("does not select unrelated optional leftovers even when the compiler emitted them", async () => {
@@ -89,7 +88,7 @@ describe("optional-owned compiled graph", () => {
     volume.writeFileSync(unrelated, "export const unrelated = true;\n");
     compilation.emittedFiles.push(unrelated);
     await buildOptionalPackage(options);
-    expect(volume.existsSync(optional + "/dist/commands/dd/index.js")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in/commands/dd/index.js")).toBe(false);
   });
 
   it("refuses an absent support entry rather than inventing an API", async () => {
@@ -98,14 +97,14 @@ describe("optional-owned compiled graph", () => {
     delete manifest.exports["./optional-host"];
     volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
     await expect(buildOptionalPackage(options)).rejects.toThrow("Unmapped core boundary:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("refuses a stale or failed compiler result before publishing files", async () => {
     const { volume, compilation, options } = fixture();
     compilation.status = 1;
     await expect(buildOptionalPackage(options)).rejects.toThrow("Successful maintained compilation required");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("refuses a private module that only shares an optional directory prefix", async () => {
@@ -116,7 +115,7 @@ describe("optional-owned compiled graph", () => {
     compilation.emittedFiles.push(target);
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", 'export * from "../yes-extra/identity.js";');
     await expect(buildOptionalPackage(options)).rejects.toThrow("Unmapped core boundary:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("retains literal dynamic imports and assets without admitting an undeclared external", async () => {
@@ -124,7 +123,7 @@ describe("optional-owned compiled graph", () => {
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", 'export const load = () => import("yaml"); export { randomBytes } from "node:crypto";');
     const result = await buildOptionalPackage(options);
     expect(result.peerImports).toContain("yaml");
-    expect(volume.readFileSync(optional + "/dist/commands/yes/helper.js", "utf8")).toContain('import("yaml")');
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8")).toContain('import("yaml")');
   });
 
   it("preserves declaration import types and import aliases across the named support boundary", async () => {
@@ -132,8 +131,8 @@ describe("optional-owned compiled graph", () => {
     volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", 'export type Context = import("../../shell/extensions.js").ShellExtension;');
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", 'import { output as write } from "../internal.js"; export { write };');
     await buildOptionalPackage(options);
-    expect(volume.readFileSync(optional + "/dist/commands/yes/index.d.ts", "utf8")).toContain('import("@poe-platform/safe-bash/optional-host").ShellExtension');
-    expect(volume.readFileSync(optional + "/dist/commands/yes/helper.js", "utf8")).toContain('import { output as write } from "@poe-platform/safe-bash/optional-host"');
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/index.d.ts", "utf8")).toContain('import("@poe-platform/safe-bash/optional-host").ShellExtension');
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8")).toContain('import { output as write } from "@poe-platform/safe-bash/optional-host"');
   });
 
   it.each([
@@ -151,28 +150,28 @@ describe("optional-owned compiled graph", () => {
     const { volume, options } = fixture();
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", text);
     await expect(buildOptionalPackage(options)).rejects.toThrow(message);
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("refuses support re-exports renamed away from the requested name", async () => {
     const { volume, options } = fixture();
     volume.writeFileSync(core + "/dist/optional-host.js", 'export { output as other } from "./commands/internal.js";');
     await expect(buildOptionalPackage(options)).rejects.toThrow("Unmapped core boundary:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("requires both runtime and declaration outputs in the successful compiler inventory", async () => {
     const { volume, compilation, options } = fixture();
     compilation.emittedFiles = compilation.emittedFiles.filter(name => !name.endsWith("commands/yes/index.d.ts"));
     await expect(buildOptionalPackage(options)).rejects.toThrow("Not in successful compiler output:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("rejects a different compiler root even when emitted files are present", async () => {
     const { volume, compilation, options } = fixture();
     compilation.rootNames = [core + "/src/index.ts"];
     await expect(buildOptionalPackage(options)).rejects.toThrow("Compilation must match the declared optional config");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("requires the referenced public target to exist", async () => {
@@ -180,7 +179,7 @@ describe("optional-owned compiled graph", () => {
     volume.unlinkSync(core + "/dist/contracts/value.js");
     compilation.emittedFiles = compilation.emittedFiles.filter(name => name !== core + "/dist/contracts/value.js");
     await expect(buildOptionalPackage(options)).rejects.toThrow("ENOENT");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("rejects optional ownership patterns rather than widening admission", async () => {
@@ -189,7 +188,7 @@ describe("optional-owned compiled graph", () => {
     manifest.files.push("!dist/**");
     volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
     await expect(buildOptionalPackage(options)).rejects.toThrow("Unsupported package file exclusion:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it.each(["input", "output", "asset"])("refuses %s symlink members", async kind => {
@@ -201,19 +200,19 @@ describe("optional-owned compiled graph", () => {
       volume.unlinkSync(core + "/src/commands/yes/payload.bin");
       volume.symlinkSync(core + "/dist/commands/internal.js", core + "/src/commands/yes/payload.bin");
     } else {
-      volume.symlinkSync(core + "/dist", optional + "/dist");
+      volume.symlinkSync(core + "/dist", optional + "/dist/opt-in");
     }
     await expect(buildOptionalPackage(options)).rejects.toThrow();
-    expect(volume.existsSync(optional + "/dist/optional-host.js")).toBe(kind === "output");
+    expect(volume.existsSync(optional + "/dist/opt-in/optional-host.js")).toBe(kind === "output");
   });
 
   it("refuses stale destination core files without deleting or overwriting them", async () => {
     const { volume, options } = fixture();
-    volume.mkdirSync(optional + "/dist", { recursive: true });
-    volume.writeFileSync(optional + "/dist/identity.js", "retained");
+    volume.mkdirSync(optional + "/dist/opt-in", { recursive: true });
+    volume.writeFileSync(optional + "/dist/opt-in/identity.js", "retained");
     await expect(buildOptionalPackage(options)).rejects.toThrow("Unexpected existing output member:");
-    expect(volume.readFileSync(optional + "/dist/identity.js", "utf8")).toBe("retained");
-    expect(volume.existsSync(optional + "/dist/optional.js")).toBe(false);
+    expect(volume.readFileSync(optional + "/dist/opt-in/identity.js", "utf8")).toBe("retained");
+    expect(volume.existsSync(optional + "/dist/opt-in/optional.js")).toBe(false);
   });
 
   it("rejects entry imports that use a public route to vendor optional code back into the peer", async () => {
@@ -223,31 +222,31 @@ describe("optional-owned compiled graph", () => {
     volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", 'export * from "@poe-platform/safe-bash/commands/yes";');
     await expect(buildOptionalPackage(options)).rejects.toThrow("Unexported peer route:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("refuses to infer missing peer dependencies", async () => {
     const { volume, options } = fixture();
     const manifest = JSON.parse(volume.readFileSync(optional + "/package.json", "utf8").toString());
-    delete manifest.peerDependencies["@poe-platform/safe-fs"];
+    delete manifest.devDependencies["@poe-code/safe-fs"];
     volume.writeFileSync(optional + "/package.json", JSON.stringify(manifest));
     await expect(buildOptionalPackage(options)).rejects.toThrow("Missing public peer:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("has deterministic output on a second materialization", async () => {
     const { volume, options } = fixture();
     const first = await buildOptionalPackage(options);
-    const before = volume.toJSON(optional + "/dist");
+    const before = volume.toJSON(optional + "/dist/opt-in");
     expect(await buildOptionalPackage(options)).toEqual(first);
-    expect(volume.toJSON(optional + "/dist")).toEqual(before);
+    expect(volume.toJSON(optional + "/dist/opt-in")).toEqual(before);
   });
 
   it("does not leave a source-map directive on an otherwise empty emitted module", async () => {
     const { volume, options } = fixture();
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", "//# sourceMappingURL=helper.js.map\n");
     await buildOptionalPackage(options);
-    expect(volume.readFileSync(optional + "/dist/commands/yes/helper.js", "utf8")).not.toContain("sourceMappingURL");
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8")).not.toContain("sourceMappingURL");
   });
 
   it("requests exactly one fresh optional compilation through the maintained bridge", async () => {
@@ -262,7 +261,7 @@ describe("optional-owned compiled graph", () => {
     const { volume, options } = fixture();
     const compile = options.compile;
     await expect(buildOptionalPackage({ ...options, compile: async () => ({ ...await compile(), [key]: undefined }) })).rejects.toThrow("Missing compilation byte binding");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it.each(["src/optional.ts", "dist/commands/yes/helper.js", "package.json"])("rejects %s mutation after the compiler captured its bytes", async relative => {
@@ -273,7 +272,7 @@ describe("optional-owned compiled graph", () => {
       volume.appendFileSync(core + "/" + relative, "\n");
       return result;
     } })).rejects.toThrow("Input changed:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it.each([undefined, null, false, 0, ""])("preserves exact compiler failure identity: %s", async failure => {
@@ -281,14 +280,14 @@ describe("optional-owned compiled graph", () => {
     let settled = false;
     await buildOptionalPackage({ ...options, compile: async () => { throw failure; } }).catch((error: unknown) => { settled = true; expect(error).toBe(failure); });
     expect(settled).toBe(true);
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it("copies source assets rather than un-emitted stale output assets", async () => {
     const { volume, options } = fixture();
     volume.writeFileSync(core + "/dist/commands/yes/payload.bin", Buffer.from([9]));
     await buildOptionalPackage(options);
-    expect(volume.readFileSync(optional + "/dist/commands/yes/payload.bin")).toEqual(Buffer.from([0, 255, 195, 169]));
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/payload.bin")).toEqual(Buffer.from([0, 255, 195, 169]));
   });
 
   it.each(["input", "output"])("rejects %s hard links without modifying the core", async kind => {
@@ -299,8 +298,8 @@ describe("optional-owned compiled graph", () => {
       volume.unlinkSync(core + "/dist/commands/yes/helper.js");
       volume.linkSync(target, core + "/dist/commands/yes/helper.js");
     } else {
-      volume.mkdirSync(optional + "/dist", { recursive: true });
-      volume.linkSync(target, optional + "/dist/optional.js");
+      volume.mkdirSync(optional + "/dist/opt-in", { recursive: true });
+      volume.linkSync(target, optional + "/dist/opt-in/optional.js");
     }
     await expect(buildOptionalPackage(options)).rejects.toThrow("single-link");
     expect(volume.readFileSync(target)).toEqual(original);
@@ -323,7 +322,7 @@ describe("optional-owned compiled graph", () => {
     const { volume, options } = fixture();
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", 'export const label = "//# sourceMappingURL=label.map";\n//# sourceMappingURL=helper.js.map\n');
     await buildOptionalPackage(options);
-    const output = volume.readFileSync(optional + "/dist/commands/yes/helper.js", "utf8").toString();
+    const output = volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8").toString();
     expect(output).toContain('"//# sourceMappingURL=label.map"');
     expect(output).not.toContain("sourceMappingURL=helper.js.map");
   });
@@ -345,8 +344,8 @@ describe("optional-owned compiled graph", () => {
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", runtime.join("\n"));
     volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", declarations.join("\n"));
     const result = await buildOptionalPackage(options);
-    const runtimeOutput = volume.readFileSync(optional + "/dist/commands/yes/helper.js", "utf8").toString();
-    const typesOutput = volume.readFileSync(optional + "/dist/commands/yes/index.d.ts", "utf8").toString();
+    const runtimeOutput = volume.readFileSync(optional + "/dist/opt-in/commands/yes/helper.js", "utf8").toString();
+    const typesOutput = volume.readFileSync(optional + "/dist/opt-in/commands/yes/index.d.ts", "utf8").toString();
     for (const name of ["codeOf", "pathOf", "output", "compareCopyIdentity", "compareObservedEntries"]) expect(runtimeOutput).toContain(name);
     expect(typesOutput).toContain("ShellIndexedWriter");
     expect(typesOutput).toContain("ReadLine");
@@ -360,14 +359,14 @@ describe("optional-owned compiled graph", () => {
     const { volume, options } = fixture();
     volume.writeFileSync(core + "/dist/commands/yes/index.d.ts", `import Reference = require(${JSON.stringify(specifier)}); export type Value = typeof Reference;`);
     await expect(buildOptionalPackage(options)).rejects.toThrow("Unsupported external import-equals:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it.each(["optional.js.map", "optional.d.ts.map"])("rejects explicit compiler-map asset %s before publication", async name => {
     const { volume, options } = fixture();
     volume.writeFileSync(core + "/dist/optional.js", `export const asset = new URL(${JSON.stringify("./" + name)}, import.meta.url);\n`);
     await expect(buildOptionalPackage(options)).rejects.toThrow("Compiler map assets are not published:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 
   it.each(["terrain.map", "terrain.js.map"])("does not confuse source-owned %s data with an emitted compiler map", async name => {
@@ -376,30 +375,28 @@ describe("optional-owned compiled graph", () => {
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", `export const asset = new URL(${JSON.stringify("./" + name)}, import.meta.url);`);
     const result = await buildOptionalPackage(options);
     expect(result.files).toContain("commands/yes/" + name);
-    expect(volume.readFileSync(optional + "/dist/commands/yes/" + name)).toEqual(Buffer.from([0, 255]));
+    expect(volume.readFileSync(optional + "/dist/opt-in/commands/yes/" + name)).toEqual(Buffer.from([0, 255]));
   });
 
   it("admits the actual private workspace while keeping emitted imports on public peers", async () => {
     const { volume, options } = fixture();
-    volume.writeFileSync(optional + "/package.json", JSON.stringify(checkoutManifest));
     volume.writeFileSync(core + "/dist/commands/yes/helper.js", 'export const load = () => import("yaml");');
     const before = volume.readFileSync(optional + "/package.json");
     const result = await buildOptionalPackage(options);
     expect(result.peerImports).toContain("@poe-platform/safe-bash");
     expect(result.peerImports).toContain("yaml");
     expect(volume.readFileSync(optional + "/package.json")).toEqual(before);
-    expect(checkoutManifest.private).toBe(true);
-    expect(checkoutManifest.peerDependencies).toBeUndefined();
-    expect(volume.readFileSync(optional + "/dist/optional.js", "utf8")).toContain('from "@poe-platform/safe-bash"');
+    expect(bashManifest.private).toBe(true);
+    expect(volume.readFileSync(optional + "/dist/opt-in/optional.js", "utf8")).toContain('from "@poe-platform/safe-bash"');
   });
 
-  it.each(["virtual-bash", "@poe-code/safe-fs"])("requires actual private checkout dependency %s without inventing public install dependencies", async dependency => {
+  it.each(["@poe-code/safe-fs"])("requires actual private checkout dependency %s without inventing public install dependencies", async dependency => {
     const { volume, options } = fixture();
-    const manifest = structuredClone(checkoutManifest);
+    const manifest = structuredClone(bashManifest);
     delete manifest.devDependencies[dependency];
     manifest.peerDependencies = { "@poe-platform/safe-bash": "1.0.0", "@poe-platform/safe-fs": "1.0.0" };
     volume.writeFileSync(optional + "/package.json", JSON.stringify(manifest));
     await expect(buildOptionalPackage(options)).rejects.toThrow("Missing public peer:");
-    expect(volume.existsSync(optional + "/dist")).toBe(false);
+    expect(volume.existsSync(optional + "/dist/opt-in")).toBe(false);
   });
 });

@@ -17,22 +17,16 @@ import {
   formatAgentSpecifier,
   allAgents
 } from "@poe-code/agent-defs";
-import {
-  getSpawnConfig,
-  streamAcpEventsToDashboard,
-  type AcpMiddleware
-} from "@poe-code/agent-spawn";
+import { getSpawnConfig, streamAcpEventsToDashboard } from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import { resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
 import { installSkillFile, type SkillInstallOutcome } from "./install-skill-file.js";
 import {
-  mergePipelineCallbacks,
   readMergedDocument,
   readMergedDocumentReadonly,
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config/core";
-import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
@@ -148,7 +142,6 @@ type PipelineDashboardRunOptions = {
   totalPlans: number;
   queuedPlans: string[];
   runOptions: PipelineRunOptions;
-  integrations?: Integrations;
 };
 
 function createPipelinePlanPromptHandlers(cancelMessage: string): {
@@ -388,7 +381,10 @@ function formatDashboardCurrentAction(progress: TaskProgress): string {
     return progress.taskTitle;
   }
 
-  const parts = [`Task ${progress.taskIndex}/${progress.totalTasks}`, progress.taskTitle || progress.taskId];
+  const parts = [
+    `Task ${progress.taskIndex}/${progress.totalTasks}`,
+    progress.taskTitle || progress.taskId
+  ];
   if (progress.stepName) {
     parts.push(progress.stepName);
   }
@@ -411,7 +407,6 @@ function createPipelineDashboardRunAgent(options: {
   appendOutput: (kind: "tool" | "error", message: string, id?: string) => void;
   activeStage: () => string;
   onRun: (input: Parameters<NonNullable<PipelineRunOptions["runAgent"]>>[0]) => void;
-  middlewares?: AcpMiddleware[];
 }): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) => {
     options.onRun(input);
@@ -439,7 +434,6 @@ function createPipelineDashboardRunAgent(options: {
           ...(input.hooks ? { hooks: input.hooks } : {}),
           ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
           ...(input.signal ? { signal: input.signal } : {}),
-          ...(options.middlewares ? { middlewares: options.middlewares } : {}),
           tee: {
             stdout: {
               write(chunk: string) {
@@ -500,23 +494,6 @@ function createPipelineDashboardRunAgent(options: {
   };
 }
 
-function createPipelineCliRunAgent(
-  middlewares: AcpMiddleware[]
-): NonNullable<PipelineRunOptions["runAgent"]> {
-  return async (input) =>
-    sdkSpawn.autonomous(input.agent, {
-      prompt: input.prompt,
-      cwd: input.cwd,
-      logDir: input.logDir,
-      model: input.model,
-      mode: input.mode,
-      ...(input.hooks ? { hooks: input.hooks } : {}),
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.signal ? { signal: input.signal } : {}),
-      middlewares
-    });
-}
-
 function dashboardStatusForResult(result: PipelineRunResult): "done" | "error" {
   return result.stopReason === "failed" ? "error" : "done";
 }
@@ -536,7 +513,9 @@ async function runPipelineWithDashboard(
   });
   const abortController = new AbortController();
   let finishCleanup!: () => void;
-  const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
+  const cleanupComplete = new Promise<void>((resolve) => {
+    finishCleanup = resolve;
+  });
   const startedAt = Date.now();
   let iterations = 0;
   let iterationsTotal: number | undefined;
@@ -557,7 +536,12 @@ async function runPipelineWithDashboard(
       iterations,
       iterationsLabel: "Tasks",
       iterationsTotal,
-      context: [`Plan ${options.planIndex + 1}/${options.totalPlans}: ${options.planPath}`, ...options.queuedPlans.map((plan, index) => `Next ${options.planIndex + index + 2}/${options.totalPlans}: ${plan}`)],
+      context: [
+        `Plan ${options.planIndex + 1}/${options.totalPlans}: ${options.planPath}`,
+        ...options.queuedPlans.map(
+          (plan, index) => `Next ${options.planIndex + index + 2}/${options.totalPlans}: ${plan}`
+        )
+      ],
       tokensIn,
       tokensOut,
       elapsedMs: Math.max(0, Date.now() - startedAt),
@@ -624,12 +608,13 @@ async function runPipelineWithDashboard(
         activeStage: () => currentStage,
         onRun(input) {
           const specifier = parseAgentSpecifier(input.agent);
-          session = { cwd: input.cwd, agent: specifier.agent, model: input.model ?? specifier.model };
+          session = {
+            cwd: input.cwd,
+            agent: specifier.agent,
+            model: input.model ?? specifier.model
+          };
           syncStats();
-        },
-        ...(options.integrations?.spawnMiddleware
-          ? { middlewares: [options.integrations.spawnMiddleware] }
-          : {})
+        }
       }),
       signal: abortController.signal,
       onPlanReloadError(error: Error) {
@@ -667,14 +652,14 @@ async function runPipelineWithDashboard(
           tokensIn += progress.usage.inputTokens;
           tokensOut += progress.usage.outputTokens;
         }
-        appendOutput(progress.cancelled ? "status" : progress.success ? "success" : "error", formatTaskCompleteMessage(progress));
+        appendOutput(
+          progress.cancelled ? "status" : progress.success ? "success" : "error",
+          formatTaskCompleteMessage(progress)
+        );
         syncStats();
       }
     };
-    const result = await runPipelineWithIntegrations(options.integrations, options.planPath, {
-      ...runOptions,
-      ...mergePipelineCallbacks(runOptions, options.integrations?.pipelineCallbacks)
-    });
+    const result = await sdkRunPipeline(runOptions);
 
     status = dashboardStatusForResult(result);
     syncStats();
@@ -693,17 +678,6 @@ async function runPipelineWithDashboard(
     dashboard.destroy();
     finishCleanup();
   }
-}
-
-async function runPipelineWithIntegrations(
-  integrations: Integrations | null | undefined,
-  name: string,
-  options: PipelineRunOptions
-): Promise<PipelineRunResult> {
-  return (
-    integrations?.traceRun("pipeline", name, () => sdkRunPipeline(options)) ??
-    sdkRunPipeline(options)
-  );
 }
 
 function resolvePipelinePaths(
@@ -886,8 +860,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     }>();
 
     resources.logger.intro("pipeline run");
-
-    let integrations: Integrations | null = null;
     try {
       const planSources = [
         positionalPlans.length > 0 ? "positional plans" : undefined,
@@ -950,7 +922,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       const agent = resolvePipelineAgent(selectedAgent.agent);
 
       const commandConfig = await resolvePipelineCommandConfig(container);
-      integrations = await loadIntegrations(commandConfig.configDoc);
       const planPaths = await resolvePlanPaths({
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
@@ -998,9 +969,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
               ...(maxRuns != null ? { maxRuns } : {}),
               assumeYes: flags.assumeYes
             };
-            if (integrations?.spawnMiddleware) {
-              runOptions.runAgent = createPipelineCliRunAgent([integrations.spawnMiddleware]);
-            }
 
             const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
             const result = useDashboard
@@ -1011,40 +979,34 @@ export function registerPipelineCommand(program: Command, container: CliContaine
                   planIndex: index,
                   totalPlans,
                   queuedPlans: planPaths.slice(index + 1),
-                  runOptions,
-                  ...(integrations ? { integrations } : {})
+                  runOptions
                 })
-              : await runPipelineWithIntegrations(integrations, runPlanPath, {
+              : await sdkRunPipeline({
                   ...runOptions,
                   onPlanReloadError(error: Error) {
                     resources.logger.warn(
                       `Plan reload failed, using last good state: ${error.message}`
                     );
                   },
-                  ...mergePipelineCallbacks(
-                    {
-                      onPlanResolved(summary: PlanSummary) {
-                        resources.logger.resolved(
-                          "Config",
-                          formatPipelineConfigSummary({
-                            agent,
-                            model: options.model,
-                            planPath: summary.planPath,
-                            planIndex: index,
-                            totalPlans
-                          }).replaceAll(" · ", "\n   ")
-                        );
-                        resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
-                      },
-                      onTaskStart(progress: TaskProgress) {
-                        resources.logger.info(formatTaskStartMessage(progress));
-                      },
-                      onTaskComplete(progress: TaskCompletion) {
-                        resources.logger.info(formatTaskCompleteMessage(progress));
-                      }
-                    },
-                    integrations?.pipelineCallbacks
-                  )
+                  onPlanResolved(summary: PlanSummary) {
+                    resources.logger.resolved(
+                      "Config",
+                      formatPipelineConfigSummary({
+                        agent,
+                        model: options.model,
+                        planPath: summary.planPath,
+                        planIndex: index,
+                        totalPlans
+                      }).replaceAll(" · ", "\n   ")
+                    );
+                    resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
+                  },
+                  onTaskStart(progress: TaskProgress) {
+                    resources.logger.info(formatTaskStartMessage(progress));
+                  },
+                  onTaskComplete(progress: TaskCompletion) {
+                    resources.logger.info(formatTaskCompleteMessage(progress));
+                  }
                 });
 
             const summary = formatRunSummary(result);
@@ -1110,7 +1072,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         ]);
       }
     } finally {
-      await integrations?.shutdown();
       resources.context.finalize();
     }
   });

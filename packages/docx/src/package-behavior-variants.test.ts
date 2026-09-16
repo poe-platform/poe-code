@@ -466,7 +466,8 @@ it("Absent core properties create one owned resource with deterministic defaults
   expect(owner.core_properties).toBe(first);
   expect(first.part.package).toBe(owner);
   expect(owner.parts.filter((part) => part === first.part)).toHaveLength(1);
-  expect(first.modified).toBeNull();
+  expect(first.modified?.toISOString()).toBe("1980-01-01T00:00:00.000Z");
+  expect(first.revision).toBe(1);
 });
 
 it("Package finalization preserves admitted owner identity and valid traversal", async () => {

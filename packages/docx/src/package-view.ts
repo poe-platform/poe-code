@@ -194,6 +194,12 @@ export class PackageView {
       const root = this.main_document_part.element.tag;
       const dialect: DocumentDialect = root.namespaceURI === documentDialects.strict.w ? "strict" : "transitional";
       const created = createPropertyPart({ ...archive, package: graph, dialect }, "core", archiveSettings(this.#binding.context).budget);
+      const context = this.#binding.context as DocumentModelContext;
+      const timestamp = context.timestamp ?? new Date("1980-01-01T00:00:00Z");
+      if (!(timestamp instanceof Date) || !Number.isFinite(Date.prototype.getTime.call(timestamp))) throw new InputTypeError("Expected admitted core-property metadata.");
+      const modified = new Date(Math.floor(Date.prototype.getTime.call(timestamp) / 1000) * 1000).toISOString();
+      const metadata = new TextEncoder().encode(`<cp:coreProperties xmlns:cp="${corePropertyNamespace}" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Document</dc:title><cp:lastModifiedBy>${xmlValue(context.author ?? "")}</cp:lastModifiedBy><cp:revision>1</cp:revision><dcterms:modified xsi:type="dcterms:W3CDTF">${modified}</dcterms:modified></cp:coreProperties>`);
+      created.archive = { ...created.archive, members: created.archive.members.map(member => member.name === created.name.slice(1) ? { ...member, bytes: metadata } : member) };
       this.commit(created.archive);
       part = this[packagePart](created.name) as CorePropertiesPartView;
     }

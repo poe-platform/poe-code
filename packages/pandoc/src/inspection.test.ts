@@ -6,7 +6,7 @@ it("lists built-in and supplied directions, labels combined lists, and derives e
     read: async () => ({ blocks: [], metadata: {}, resources: [] })
   };
   expect(inspectFormats(["--list-input-formats", "--list-output-formats"], { reader })).toBe(
-    "Input formats:\ncommonmark\ncsv\ndocx\ngfm\nhtml\njson\nlatex\nrst\ntsv\nOutput formats:\ncommonmark\ngfm\nhtml\nhtml5\njson\nlatex\nplain\n"
+    "Input formats:\ncommonmark\ncsv\ndocx\ngfm\nhtml\njson\nlatex\nrst\ntsv\nOutput formats:\ncommonmark\ngfm\nhtml\nhtml5\njson\nlatex\nplain\nrst\n"
   );
   expect(inspectFormats(["--list-extensions=gfm-task_lists"])).toBe(
     "+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n-task_lists\n"

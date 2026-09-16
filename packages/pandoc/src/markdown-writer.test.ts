@@ -43,12 +43,12 @@ it("serializes images, link targets and adjacent nested emphasis", async () => {
 it("supports declared GFM strike/tasks and rejects or diagnoses CommonMark projection", async () => {
   const strike = [p({t: "Strikeout", c: [s("gone")]})];
   expect(await md(strike, "gfm")).toBe("~~gone~~\n");
-  await expect(md(strike)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(md(strike)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   expect(await md(strike, "commonmark", {lossy: true})).toBe("gone\n");
   const task: Inline = {t: "Span", c: [["", ["task-list-marker"], [["checked", "true"]]], []]};
   const blocks: Block[] = [{t: "BulletList", c: [[{t: "Plain", c: [task, s("todo")]}]]}];
   expect(await md(blocks, "gfm")).toBe("- [x] todo\n");
-  await expect(md(blocks)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(md(blocks)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("supports only wrap none and bounds amplification", async () => {
   expect(await md([p(s("x"))], "commonmark", {wrap: "none"} as Partial<WriteOptions>)).toBe("x\n");
@@ -70,7 +70,7 @@ it("preserves rich GFM table cells and rejects CommonMark tables even under loss
   const actual = await md([table], "gfm");
   expect(actual).toBe("| H |\n| --- |\n| **bold** `a\\|b` |\n");
   expect(await back(actual, "gfm")).toEqual([table]);
-  await expect(md([table], "commonmark", {lossy: true})).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(md([table], "commonmark", {lossy: true})).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });
 it("does not turn prose into bare GFM autolinks and handles formatted boundary spaces", async () => {
   expect(await md([p(s("https://example.com"))], "gfm")).toBe("https\\://example.com\n");

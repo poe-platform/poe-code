@@ -39,6 +39,7 @@ export type DiagnosticCode =
   | "E_OPTION"
   | "E_METADATA"
   | "E_CAPABILITY"
+  | "E_UNSUPPORTED_FEATURE"
   | "E_AST"
   | "E_ENCODING"
   | "E_PARSE"

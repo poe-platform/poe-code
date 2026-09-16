@@ -18,7 +18,7 @@ class Markdown {
     return parts.join(separator);
   }
   loss(path: string, feature: string): void {
-    if(!this.context.lossy) throw new PandocError("E_CAPABILITY", this.context.operation ?? "write", `Markdown cannot represent ${feature}`, this.selection.descriptor.name, path);
+    if(!this.context.lossy) throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", `Markdown cannot represent ${feature}`, this.selection.descriptor.name, path);
     this.context.report({code: "W_RAW_CONTENT", operation: this.context.operation ?? "write", format: this.selection.descriptor.name, location: path, message: `Projected ${feature}`});
   }
   attrs(attr: Attr, path: string): void {
@@ -66,7 +66,7 @@ class Markdown {
         case "Str": {
           let value = node.c;
           if(cell && [...value].some(ch => "\r\n\t".includes(ch))) {
-            if(!this.context.lossy) throw new PandocError("E_CAPABILITY", this.context.operation ?? "write", "Flattened cell text line boundaries", "gfm", p);
+            if(!this.context.lossy) throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", "Flattened cell text line boundaries", "gfm", p);
             this.context.report({code: "W_TABLE_LOSS", operation: this.context.operation ?? "write", format: "gfm", location: p, message: "Flattened cell text line boundaries"});
             this.reserve(value.length); value = value.split("\n").join(" ").split("\r").join(" ").split("\t").join(" ");
           }
@@ -165,7 +165,7 @@ class Markdown {
           parts.push(this.join(rendered, loose ? "\n\n" : "\n")); break;
         }
         case "Table": {
-          if(!this.selection.extensions.pipe_tables) throw new PandocError("E_CAPABILITY", this.context.operation ?? "write", "Pipe tables are unavailable", this.selection.descriptor.name, p);
+          if(!this.selection.extensions.pipe_tables) throw new PandocError("E_UNSUPPORTED_FEATURE", this.context.operation ?? "write", "Pipe tables are unavailable", this.selection.descriptor.name, p);
           const result = await writeGfm({blocks: [node], metadata: {}, resources: []}, this.context, this.selection, (nodes, path) => this.inline(nodes, path, "", false, true));
           if(result.kind === "text") parts.push(result.text.endsWith("\n") ? result.text.slice(0, -1) : result.text); break;
         }

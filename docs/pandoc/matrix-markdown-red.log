@@ -1,0 +1,158 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ❯ packages/pandoc/src/markdown-matrix-regression.test.ts (3 tests | 3 failed) 16ms
+   × reports attributed publication content as unsupported in commonmark 8ms
+   × reports attributed publication content as unsupported in gfm 1ms
+   × reports a nonrepresentable table with status 5 and keeps the memfs destination 6ms
+FAIL packages/pandoc/src/markdown-matrix-regression.test.ts > reports attributed publication content as unsupported in commonmark
+AssertionError: expected PandocError: Markdown cannot represent at… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(2) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "commonmark",
+    "location": "$.blocks[0]",
+  }
+
+ ❯ packages/pandoc/src/markdown-matrix-regression.test.ts:8:92
+      6| it.each(["commonmark", "gfm"])("reports attributed publication content…
+      7|   await expect(writeDocument({blocks: [{t: "Div", c: [["chapter", ["ep…
+      8|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+       |                                                                                            ^
+      9|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to,…
+     10| });
+
+FAIL packages/pandoc/src/markdown-matrix-regression.test.ts > reports attributed publication content as unsupported in gfm
+AssertionError: expected PandocError: Markdown cannot represent at… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(2) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "gfm",
+    "location": "$.blocks[0]",
+  }
+
+ ❯ packages/pandoc/src/markdown-matrix-regression.test.ts:8:92
+      6| it.each(["commonmark", "gfm"])("reports attributed publication content…
+      7|   await expect(writeDocument({blocks: [{t: "Div", c: [["chapter", ["ep…
+      8|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+       |                                                                                            ^
+      9|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to,…
+     10| });
+
+FAIL packages/pandoc/src/markdown-matrix-regression.test.ts > reports a nonrepresentable table with status 5 and keeps the memfs destination
+AssertionError: expected PandocError: Pipe tables are unavailable { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "commonmark",
+  }
+
+ ❯ packages/pandoc/src/markdown-matrix-regression.test.ts:14:71
+     12| it("reports a nonrepresentable table with status 5 and keeps the memfs…
+     13|   const bytes = new TextEncoder().encode("Matrix");
+     14|   await expect(convert([{bytes}], {from: "csv", to: "commonmark"}, {})…
+       |                                                                       ^
+     15|     .toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: "commonmark…
+     16|   const volume = Volume.fromJSON({"/result": "Keep"});
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/pandoc/src/markdown-matrix-regression.test.ts > reports attributed publication content as unsupported in commonmark
+AssertionError: expected PandocError: Markdown cannot represent at… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(2) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "commonmark",
+    "location": "$.blocks[0]",
+  }
+
+ ❯ packages/pandoc/src/markdown-matrix-regression.test.ts:8:92
+      6| it.each(["commonmark", "gfm"])("reports attributed publication content…
+      7|   await expect(writeDocument({blocks: [{t: "Div", c: [["chapter", ["ep…
+      8|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+       |                                                                                            ^
+      9|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to,…
+     10| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  packages/pandoc/src/markdown-matrix-regression.test.ts > reports attributed publication content as unsupported in gfm
+AssertionError: expected PandocError: Markdown cannot represent at… { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(2) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "gfm",
+    "location": "$.blocks[0]",
+  }
+
+ ❯ packages/pandoc/src/markdown-matrix-regression.test.ts:8:92
+      6| it.each(["commonmark", "gfm"])("reports attributed publication content…
+      7|   await expect(writeDocument({blocks: [{t: "Div", c: [["chapter", ["ep…
+      8|     [{t: "Para", c: [{t: "Str", c: "Matrix"}]}]]}], metadata: {}, reso…
+       |                                                                                            ^
+      9|     .rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: to,…
+     10| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  packages/pandoc/src/markdown-matrix-regression.test.ts > reports a nonrepresentable table with status 5 and keeps the memfs destination
+AssertionError: expected PandocError: Pipe tables are unavailable { …(4) } to match object { code: 'E_UNSUPPORTED_FEATURE', …(1) }
+(3 matching properties omitted from actual)
+
+- Expected
++ Received
+
+- {
+-   "code": "E_UNSUPPORTED_FEATURE",
++ PandocError {
++   "code": "E_CAPABILITY",
+    "format": "commonmark",
+  }
+
+ ❯ packages/pandoc/src/markdown-matrix-regression.test.ts:14:71
+     12| it("reports a nonrepresentable table with status 5 and keeps the memfs…
+     13|   const bytes = new TextEncoder().encode("Matrix");
+     14|   await expect(convert([{bytes}], {from: "csv", to: "commonmark"}, {})…
+       |                                                                       ^
+     15|     .toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: "commonmark…
+     16|   const volume = Volume.fromJSON({"/result": "Keep"});
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  18:53:30
+   Duration  2.17s (transform 1.46s, setup 74ms, import 1.95s, tests 16ms, environment 0ms)
+

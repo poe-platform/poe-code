@@ -34,3 +34,15 @@
   maintained package tests pass 960/960; package lint/typecheck and selected
   workspace build pass. Existing typed diagnostics and memfs destination
   preservation remain asserted. No push is authorized.
+- Markdown feature classification: three valid original tests failed with
+  `E_CAPABILITY` before implementation. Attributed content, unavailable pipe
+  tables and flattened line boundaries now use `E_UNSUPPORTED_FEATURE`.
+  Maintained package tests pass 963/963, lint/typecheck and build pass.
+- Initial owned matrix executed 156 SDK pairs and 156 safe-bash commands.
+  Independent output checks pass 46/46 (24 EPUB, 12 PDF, 10 PPTX); both owned
+  EPUB input profiles validate. Initial native comparisons include genuine
+  provenance differences and an internal-enum versus JSON representation
+  comparison that must be corrected in the comparison lane, not in the reader.
+- Pinned integration tools are isolated under docs/pandoc/matrix-oracle-tools:
+  official Pandoc 3.10.1 release, pypdf 6.0.0, PyMuPDF 1.26.4/MuPDF 1.26.7,
+  docutils 0.21.2. Tool files will be removed after execution; evidence remains.

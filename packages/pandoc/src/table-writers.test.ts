@@ -74,7 +74,7 @@ it("GFM declares its single-header subset, preserves an empty body and supplies 
   expect(await output(doc([r(c("a"), c("b"))], []), "gfm", true)).toMatchObject({text: "|  |  |\n| :--- | ---: |\n| a | b |\n"});
 });
 it("honors pipe_tables disabling, malformed geometry, diagnostics and output budgets before publication", async () => {
-  await expect(output(doc([]), "gfm-pipe_tables", true)).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(output(doc([]), "gfm-pipe_tables", true)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   await expect(output(doc([r(c("short"))]), "html5", true)).rejects.toMatchObject({code: "E_AST"});
   const publish = vi.fn(async () => {});
   for (const limits of [{diagnostics: 0}, {outputBytes: 1}, {retainedBytes: 100}]) {
@@ -125,6 +125,6 @@ it("preserves embedded Plain cell notes with an explicit label", async () => {
   expect(await output(doc([r(note, c("end"))]), "plain")).toMatchObject({text: "H1\tH2\n[note: note]\tend\n", diagnostics: []});
 });
 it("requires explicit loss for GFM text line boundaries", async () => {
-  await expect(output(doc([r(c("one\ntwo"), c("end"))]), "gfm")).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(output(doc([r(c("one\ntwo"), c("end"))]), "gfm")).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
   expect(await output(doc([r(c("one\ntwo"), c("end"))]), "gfm", true)).toMatchObject({text: "| H1 | H2 |\n| :--- | ---: |\n| one two | end |\n", diagnostics: [expect.objectContaining({message: "Flattened cell text line boundaries"})]});
 });

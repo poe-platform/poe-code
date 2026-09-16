@@ -34,11 +34,16 @@ test('standard help works through the shell with and without a configured adapte
         const result = await shell.exec(`playwright-cli ${args}`);
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stderr, '');
-        for (const expected of ['Usage:', 'open [url]', 'goto <url>', 'snapshot', 'click <ref>', 'fill <ref> <text>', 'press <key>', 'screenshot', 'tab-list', 'tab-new', 'tab-select', 'tab-close', 'close-all', '--session', '-s', 'PLAYWRIGHT_CLI_SESSION', 'default', '--filename', '--full-page', 'Unsupported']) assert.ok(result.stdout.includes(expected), expected);
+        for (const expected of ['Usage:', 'open [url]', 'goto <url>', 'snapshot [target]', 'click <target> [button]', 'fill <target> <text>', 'press <key>', 'screenshot [target]', 'tab-list', 'tab-new', 'tab-select', 'tab-close', 'close-all', '--session', '-s', 'PLAYWRIGHT_CLI_SESSION', 'default', '--filename', '--full-page', 'Unsupported']) assert.ok(result.stdout.includes(expected), expected);
       }
       const unsupported = await shell.exec('playwright-cli run-code --help');
       assert.equal(unsupported.exitCode, 1);
       assert.equal(unsupported.stdout, '');
+      for (const args of ['click e1 right', 'snapshot e1', 'screenshot e1', 'cookie-list', 'requests', 'webmcp-list', '--json list', '--raw list', '--version']) {
+        const result = await shell.exec(`playwright-cli ${args}`);
+        assert.equal(result.exitCode, 1, args);
+        assert.equal(result.stdout, '', args);
+      }
     } finally { await shell.dispose(); }
   }
   assert.deepEqual(configured.output, []);

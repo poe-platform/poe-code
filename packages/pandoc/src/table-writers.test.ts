@@ -120,9 +120,9 @@ it("bounded generated spans preserve text exactly once in HTML and lossy GFM", a
     }
   }
 });
-it("requires explicit loss for embedded complex Plain cell notes", async () => {
+it("preserves embedded Plain cell notes with an explicit label", async () => {
   const note: Cell = [a, "AlignDefault", 1, 1, [{t: "Plain", c: [{t: "Note", c: [{t: "Plain", c: [{t: "Str", c: "note"}]}]}]}]];
-  await expect(output(doc([r(note, c("end"))]), "plain")).rejects.toMatchObject({code: "E_CAPABILITY", location: "$.blocks[0].c[4][0][3][0][1][0][4][0].c[0]"});
+  expect(await output(doc([r(note, c("end"))]), "plain")).toMatchObject({text: "H1\tH2\n[note: note]\tend\n", diagnostics: []});
 });
 it("requires explicit loss for GFM text line boundaries", async () => {
   await expect(output(doc([r(c("one\ntwo"), c("end"))]), "gfm")).rejects.toMatchObject({code: "E_CAPABILITY"});

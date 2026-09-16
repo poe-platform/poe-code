@@ -207,31 +207,6 @@ async function gfmTable(t: Table, out: Projection, p: string): Promise<void> {
   for(const [i, body] of t.c[4].entries()) {await rectangularRows(body[2], out, columns, `${p}.c[4][${i}][2]`); await rectangularRows(body[3], out, columns, `${p}.c[4][${i}][3]`);}
   await rectangularRows(t.c[5][1], out, columns, `${p}.c[5][1]`);
 }
-async function plainTable(t: Table, out: Projection, p: string): Promise<void> {
-  if(t.c[1][0]?.length && t.c[1][1].length) out.loss(`${p}.c[1][0]`, "Flattened alternative short caption");
-  if(t.c[1][1].length) {textBlocks(t.c[1][1], out); out.add("\n");}
-  else if(t.c[1][0]?.length) {textInlines(t.c[1][0], out); out.add("\n");}
-  const sections: readonly (readonly [readonly Row[], string])[] = [[t.c[3][1], `${p}.c[3][1]`], ...t.c[4].flatMap((b, i) => [[b[2], `${p}.c[4][${i}][2]`] as const, [b[3], `${p}.c[4][${i}][3]`] as const]), [t.c[5][1], `${p}.c[5][1]`]];
-  for(const [rows, path] of sections) for(const [i, row] of rows.entries()) {
-    await out.context.cooperate();
-    for(const [j, cell] of row[1].entries()) {
-      const cp = `${path}[${i}][1][${j}]`;
-      if(j) out.add("\t");
-      if(cell[2] !== 1 || cell[3] !== 1) out.loss(cp, "Flattened cell span");
-      if(!simpleCell(cell[4])) out.loss(`${cp}[4]`, "Flattened complex cell blocks");
-      else checkPlainNotes(cell[4], `${cp}[4]`, out);
-      textBlocks(cell[4], out);
-    }
-    out.add("\n");
-  }
-}
-function checkPlainNotes(value: unknown, path: string, out: Projection): void {
-  out.context.checkpoint();
-  if(value === null || typeof value !== "object") return;
-  if("t" in value && value.t === "Note") {out.loss(path, "Flattened complex cell note"); return;}
-  if(Array.isArray(value)) for(const [i, child] of value.entries()) checkPlainNotes(child, `${path}[${i}]`, out);
-  else for(const [key, child] of Object.entries(value)) checkPlainNotes(child, `${path}.${key}`, out);
-}
 export async function writeGfm(document: Document, context: AdapterContext, selection?: FormatSelection, cellWriter?: CellWriter): Promise<SerializedDocument> {
   const out = new Projection(context, "gfm", cellWriter);
   for(const [i, node] of document.blocks.entries()) {
@@ -240,15 +215,6 @@ export async function writeGfm(document: Document, context: AdapterContext, sele
       if(selection?.extensions.pipe_tables === false) throw new PandocError("E_CAPABILITY", context.operation ?? "write", "GFM pipe_tables is disabled", "gfm", `$.blocks[${i}]`);
       await gfmTable(node, out, `$.blocks[${i}]`);
     } else blocks([node], out, "$.blocks", false, i);
-  }
-  return out.finish();
-}
-export async function writePlain(document: Document, context: AdapterContext): Promise<SerializedDocument> {
-  const out = new Projection(context, "plain");
-  for(const [i, node] of document.blocks.entries()) {
-    await context.cooperate();
-    if(node.t === "Table") await plainTable(node, out, `$.blocks[${i}]`);
-    else {textBlocks([node], out); out.add("\n");}
   }
   return out.finish();
 }

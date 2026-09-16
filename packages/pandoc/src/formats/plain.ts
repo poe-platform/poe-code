@@ -1,5 +1,5 @@
 import type { FormatDescriptor } from "../formats.js";
-import { writePlain } from "../table-writers.js";
+import { writePlain } from "../plain-writer.js";
 export default {
   name: "plain",
   writer: { format: "plain", write: writePlain },
@@ -11,6 +11,6 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["wrap", "columns"]
+    write: ["wrap", "rawContent"]
   }
 } satisfies FormatDescriptor;

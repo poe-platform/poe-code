@@ -4,6 +4,14 @@ Task: `adapt-upstream-opc-xml-images`. Status: in progress; later tasks pending.
 
 ## Ownership
 
+The completion increment additionally owns `package-view.ts`, the eight numeric
+setter declarations in `operation-schema-data.ts`,
+`numeric-property-schema-contract.test.ts`, `numeric-property-command.test.ts`,
+`relationship-deletion-references.test.ts`, `relationship-deletion-command.test.ts`,
+`image-characterization-variants.test.ts`, `xml-behavior-variants.test.ts`,
+`package-behavior-variants.test.ts`, and the completion evidence under
+`docs/docx/opc-xml-image-*`. The ownership below describes the earlier URI milestone.
+
 Own `packages/docx/src/pack-uri.ts`, `pack-uri.test.ts`,
 `pack-uri-batch-operations.ts`, `pack-uri-batch.test.ts`,
 `style-model-batch-operations.ts`, `style-model-batch.ts`, the single static
@@ -109,6 +117,30 @@ selectors, JSON and exit contracts remain authoritative.
 
 ## Completion gate
 
+### Completion increment procedure
+
+1. Consume the retained source-expression and parameter catalogs; write one
+   independently named original memfs test for each of the remaining 338 rows.
+   Existing behavior may pass immediately. Record fixture drafting errors
+   separately from product failures.
+2. Capture eight failing numeric schema tests before correcting declarations,
+   and eight failing nested/collection relationship deletion tests before adding
+   the owner-local reference guard. Check both fixes through public SDK/CLI batch
+   calls, including successful controls, failure statuses and unchanged input.
+3. Correct the historical first-removal row to retain the middle and last child.
+4. Run all seven adaptation/regression files plus the two new command files,
+   maintained DOCX unit/lint checks and the declared DOCX workspace build closure.
+5. Generate real built-engine numeric schema/help and deletion failure transcripts
+   with explicit limits. Render transcripts with the maintained screenshot command
+   through `bash --root /tmp/docx-adaptation-qa -c 'cat schema.txt'` (and error.txt),
+   then inspect both PNGs. These are disposable visual QA inputs, not unit fixtures.
+6. Match every selected identity to an exact executed passing test. Reject missing,
+   duplicate and orphan links with read-only negative controls. Preserve concise
+   execution, hashes, language/security mappings and screenshot receipts in
+   `docs/docx`. Keep historical inventories unchanged and later tasks pending.
+7. Commit each atomic fix/test family with its relevant owned plan/evidence update
+   on main after maintained checks pass. Do not push or release.
+
 The nine URI and 22 XML sequence rows have passing original tests and
 separately staged owned increments. All 338 remaining source rows retain pending
 delivery dispositions and require exact observable tests and executed receipts. Existing broad tests do not automatically satisfy dedicated variant
@@ -127,6 +159,18 @@ readable and present. Earlier broad runs observed active red tests and are not
 final gates. No final test timeout or failure remains.
 
 ## Owned local delivery
+
+### Numeric schema correction
+
+Eight dedicated tests failed before product changes because discovery declared
+generic numeric inputs for checked style/latent priorities and core revision.
+Parsed declaration corrections now match direct/SDK/batch/JSON validation.
+Eight schema and five paired SDK/CLI tests pass. The maintained completion run
+passes 3,987 tests in 201 files with four existing pending PPTX skips, no failures;
+lint passes with one existing warning and the maintained DOCX build passes.
+The built `_TableStyle.priority.set` help screenshot was inspected and shows the
+checked nullable integer argument. Exact receipt:
+`docs/docx/opc-xml-image-numeric-schema-receipt.json`. Later tasks remain pending.
 
 `549d639ae` adds checked URI values with typed batch CLI/schema/discovery parity.
 The next atomic test commit delivers the 22 original XML sequence variants and

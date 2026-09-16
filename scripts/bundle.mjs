@@ -396,11 +396,15 @@ for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   });
 }
 
-await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, { rootDir, profile: "node" });
+const excludedDeclarationPaths = (packageJson.files ?? [])
+  .filter(entry => entry.startsWith("!") && !entry.includes("*"))
+  .map(entry => path.resolve(rootDir, entry.slice(1)));
+await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons, { rootDir, profile: "node", excludedPaths: excludedDeclarationPaths });
 for (const { dir } of packageJsons) {
   await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons, {
     rootDir,
-    profile: "node"
+    profile: "node",
+    excludedPaths: excludedDeclarationPaths
   });
 }
 

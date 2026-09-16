@@ -4,7 +4,7 @@ import { DocumentBudget } from "./budget.js";
 import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, InvalidXmlError, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { documentDialects, validatePackageDialect } from "./dialect.js";
-import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityElement } from "./compatibility.js";
+import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityElement, type CompatibilityContent } from "./compatibility.js";
 import { tableRows } from "./table-rows.js";
 import { UnsupportedEditError } from "./xml-write.js";
 
@@ -168,6 +168,20 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     return node.element.content.flatMap((child, i) => "source" in child && child.source.namespace === w && child.source.localName === name ?
       [{ ...node, element: child, location: `${node.location}/${name}[${i + 1}]` }] : []);
   };
+  const terminalCellBlock = (content: readonly CompatibilityContent[]): string | undefined => {
+    for (let index = content.length - 1; index >= 0; index--) {
+      budget.charge("work", 1);
+      const item = content[index]!;
+      if (!("source" in item) || item.source.namespace !== w) continue;
+      const name = item.source.localName;
+      if (name === "p" || name === "tbl") return name;
+      if (["sdt", "sdtContent", "customXml", "ins", "del", "moveFrom", "moveTo"].includes(name) && "content" in item) {
+        const last = terminalCellBlock(item.content);
+        if (last) return last;
+      }
+    }
+    return undefined;
+  };
   const issue = (node: Node, code: string, message: string) => add(code, node.part, node.location, message);
   const semanticParts = new Set([main.partname]);
   for (const edge of graph.relationships(main.partname)) {
@@ -319,6 +333,10 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     }
     if (namespace === wp && name === "docPr" && !claim("drawing", integer(attr(node, "id", ""), 0, 4294967295))) issue(node, "drawing-id", "Invalid or duplicate document drawing ID.");
     if (namespace !== w) continue;
+    if (name === "tc") {
+      if (terminalCellBlock(node.element.content) !== "p")
+        add("cell-terminal-paragraph", node.part, node.location, "A table cell requires a terminal paragraph.", "structure");
+    }
     if (["pStyle", "rStyle", "tblStyle", "basedOn", "next", "link", "numStyleLink", "styleLink"].includes(name) && !lookup("style", attr(node, "val"))) {
       if (attr(node, "val") !== undefined && !["numStyleLink", "styleLink"].includes(name)) styleFallback = true;
       else issue(node, "style-reference", "Style reference has no definition.");

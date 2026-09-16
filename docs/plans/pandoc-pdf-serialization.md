@@ -22,3 +22,10 @@ graph tests pass (26 PDF tests). PDF package lint/typecheck and maintained
 selected workspace build pass. Deterministic Unicode metadata, flat page-linked outlines and escaped URI
 strings implemented; explicit untagged/non-conformance capabilities. All 32 PDF
 tests, lint/typecheck and selected workspace build pass. Integration and QA pending.
+
+Resource admission: original regression reproduced overlong PNG inflation and
+ignored CRC; owned PNG decoder now validates chunk order/CRC, fixed scanline
+length and filters before bounded RGB/alpha emission. Static noninterlaced 8-bit
+PNG; JPEG 8-bit gray/RGB and Adobe CMYK transform zero; unsupported CFF
+outline programs rejected before fontkit. Pako 3.0.1 pinned explicitly.
+All 38 PDF tests, package lint/typecheck and selected workspace build pass.

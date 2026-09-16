@@ -1,6 +1,7 @@
-import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import {admitCharacterMaps, admitMetricTables} from "./font-admission.js";
+import {decodePng} from "./png.js";
 import {imageBox} from "./image-box.js";
 import type { LayoutDocument, Paragraph, PdfContext, PdfLimits, TextRun } from "./model.js";
 export type * from "./model.js";
@@ -9,7 +10,7 @@ import {pdfTextString} from "./text-string.js";
 import {serializePdf} from "./serialization.js";
 export {PdfError} from "./errors.js";
 export function pdfCapabilities() {
-  return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
+  return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], fonts: ["sfnt-TrueType-glyf"], png: "static-noninterlaced-8bit", jpeg: "8bit-gray-rgb-adobe-cmyk", images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
 }
 export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: 4_000_000, fonts: 8, glyphs: 100_000, pages: 200, objects: 100_000, images: 100, imageBytes: 8_000_000, decodedImageBytes: 32_000_000, layoutWork: 500_000, outputBytes: 16_000_000});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
@@ -38,7 +39,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     ids.add(font.id); charge("fonts", 1); charge("fontBytes", font.bytes.length); charge("objects", 8);
     if (font.bytes.length < 12) unsupported("Supply an sfnt TrueType/OpenType font");
     const signature = new DataView(font.bytes.buffer, font.bytes.byteOffset, font.bytes.byteLength).getUint32(0);
-    if (signature !== 0x00010000 && signature !== 0x4f54544f) unsupported("Only sfnt TrueType/OpenType fonts are supported; compressed font containers are forbidden");
+    if (signature !== 0x00010000) unsupported("Only sfnt TrueType glyf fonts are supported; CFF and compressed containers are forbidden");
     const view = new DataView(font.bytes.buffer, font.bytes.byteOffset, font.bytes.byteLength);
     const count = view.getUint16(4);
     if (!count || count > 128 || 12 + count * 16 > font.bytes.length) unsupported("Invalid sfnt table directory");
@@ -53,6 +54,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       if (tag === 0x636d6170) admitCharacterMaps(view, start, length, unsupported, amount => charge("layoutWork", amount));
     }
     if (!tags.has(0x636d6170)) unsupported("Missing font character map");
+    if (!tags.has(0x676c7966) || !tags.has(0x6c6f6361)) unsupported("Only TrueType glyf outline programs are supported");
     admitMetricTables(view, tables, unsupported, amount => charge("layoutWork", amount));
   }
   const pdf = await PDFDocument.create({updateMetadata: false}); pdf.registerFontkit(fontkit);
@@ -250,13 +252,20 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       const bytes = block.bytes;
       const {width, height, pixels} = imageBox(block, box, unsupported, () => charge("layoutWork", 1));
       if (pixels > 4_000_000) throw new PdfError("E_LIMIT", "Image pixel limit exceeded");
-      charge("decodedImageBytes", pixels * 8);
-      let image;
-      try { image = block.media === "png" ? await pdf.embedPng(new Uint8Array(bytes)) : await pdf.embedJpg(new Uint8Array(bytes)); }
-      catch { unsupported("Invalid image bytes"); }
+      charge("decodedImageBytes", pixels * 16 + 65536);
+      let imageRef;
+      if (block.media === "png") {
+        const decoded = decodePng(bytes, amount => charge("layoutWork", amount));
+        const mask = decoded.alpha === undefined ? undefined : pdf.context.register(pdf.context.flateStream(decoded.alpha, {Type: "XObject", Subtype: "Image", Width: decoded.width, Height: decoded.height, BitsPerComponent: 8, ColorSpace: "DeviceGray"}));
+        imageRef = pdf.context.register(pdf.context.flateStream(decoded.rgb, {Type: "XObject", Subtype: "Image", Width: decoded.width, Height: decoded.height, BitsPerComponent: 8, ColorSpace: "DeviceRGB", SMask: mask}));
+      } else {
+        try {imageRef = (await pdf.embedJpg(new Uint8Array(bytes))).ref;}
+        catch {unsupported("Invalid image bytes");}
+      }
       room(height);
       context.onPlacement?.({kind: "image", page: usage.pages, x: box.margin, y: top, width, height});
-      page!.drawImage(image, {x: box.margin, y: box.height - top - height, width, height});
+      const key = page!.node.newXObject("Image", imageRef);
+      page!.pushOperators(pushGraphicsState(), concatTransformationMatrix(width, 0, 0, height, box.margin, box.height - top - height), drawObject(key), popGraphicsState());
       top += height + 8;
     } else unsupported("Unknown layout block");
     await cooperate();

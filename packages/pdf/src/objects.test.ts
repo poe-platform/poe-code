@@ -87,3 +87,14 @@ it("rejects malformed Unicode and exhausted metadata before encoding", async () 
   for (const title of ["\ud800", "\udc00"]) await expect(renderPdf({fonts, blocks: [], metadata: {title}})).rejects.toMatchObject({code: "E_CAPABILITY"});
   await expect(renderPdf({fonts, blocks: [], metadata: {title: "a".repeat(100)}}, {limits: {outputBytes: 100}})).rejects.toMatchObject({code: "E_LIMIT"});
 });
+it("rejects unsupported outline programs before the font parser", async () => {
+  const fontkit = (await import("@pdf-lib/fontkit")).default;
+  const {vi} = await import("vitest");
+  const bytes = new Uint8Array(fonts[0]!.bytes); const view = new DataView(bytes.buffer);
+  for (let i = 0; i < view.getUint16(4); i++) {const at = 12 + i * 16; if (view.getUint32(at) === 0x676c7966) view.setUint32(at, 0x43464620);}
+  const parse = vi.spyOn(fontkit, "create");
+  try {
+    const result = await renderPdf({fonts: [{id: "original-unsupported", bytes}], blocks: []}).then(() => "accepted", error => error.code as string);
+    expect(result).toBe("E_CAPABILITY"); expect(parse).not.toHaveBeenCalled();
+  } finally {parse.mockRestore();}
+});

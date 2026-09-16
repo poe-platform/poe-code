@@ -8,15 +8,19 @@ export function imageBox(block: ImageBlock, page: PageBox, fail: (message: strin
     width = view.getUint32(16); height = view.getUint32(20);
   } else if (block.media === "jpeg") {
     if (bytes.length < 4 || bytes[0] !== 255 || bytes[1] !== 216) fail("Invalid JPEG");
-    let cursor = 2;
+    let cursor = 2; let adobeCmyk = false;
     while (cursor + 4 <= bytes.length) {
       work(); if (bytes[cursor++] !== 255) fail("Invalid JPEG marker");
       while (bytes[cursor] === 255) {cursor++; work();}
       const marker = bytes[cursor++]!;
       if (marker === 217 || marker === 218 || cursor + 2 > bytes.length) break;
       const length = view.getUint16(cursor); if (length < 2 || cursor + length > bytes.length) fail("Invalid JPEG segment");
+      if (marker === 238 && length === 14 && [65,100,111,98,101].every((b, i) => bytes[cursor + 2 + i] === b)) adobeCmyk = bytes[cursor + 13] === 0;
       if ([192,193,194].includes(marker)) {
-        if (length < 8) fail("Invalid JPEG frame"); height = view.getUint16(cursor + 3); width = view.getUint16(cursor + 5); break;
+        if (length < 8) fail("Invalid JPEG frame");
+        const channels = bytes[cursor + 7]!;
+        if (bytes[cursor + 2] !== 8 || ![1,3,4].includes(channels) || length !== 8 + channels * 3 || channels === 4 && !adobeCmyk) fail("Unsupported JPEG precision or color transform");
+        height = view.getUint16(cursor + 3); width = view.getUint16(cursor + 5); break;
       }
       cursor += length;
     }

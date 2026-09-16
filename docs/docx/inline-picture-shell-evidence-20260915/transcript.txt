@@ -1,0 +1,77 @@
+Picture sizing/count/type (exit 0)
+{
+  "version": 1,
+  "operation": "batch",
+  "ok": true,
+  "data": {
+    "results": [
+      {
+        "operation": "model.document.Document.add_picture.call",
+        "value": {
+          "id": "handle1",
+          "type": "InlineShape",
+          "owner": "document",
+          "revision": 0
+        }
+      },
+      {
+        "operation": "model.shape.InlineShape.width.get",
+        "value": {
+          "value": 914400,
+          "unit": "emu"
+        }
+      },
+      {
+        "operation": "model.shape.InlineShape.height.get",
+        "value": {
+          "value": 914400,
+          "unit": "emu"
+        }
+      },
+      {
+        "operation": "model.document.Document.inline_shapes.get",
+        "value": {
+          "id": "handle2",
+          "type": "InlineShapes",
+          "owner": "document",
+          "revision": 0
+        }
+      },
+      {
+        "operation": "model.shape.InlineShapes.__len__.get",
+        "value": 1
+      },
+      {
+        "operation": "model.shape.InlineShape.type.get",
+        "value": {
+          "enum": "WD_INLINE_SHAPE_TYPE",
+          "name": "PICTURE"
+        }
+      }
+    ],
+    "dryRun": true,
+    "output": []
+  },
+  "warnings": [],
+  "errors": [],
+  "affected": 1,
+  "locations": []
+}
+
+Invalid merge (exit 1)
+{
+  "version": 1,
+  "operation": "batch",
+  "ok": false,
+  "data": null,
+  "warnings": [],
+  "errors": [
+    {
+      "code": "ambiguous-selection",
+      "message": "Document operation failed: ambiguous-selection. Inspect the input and choose an unambiguous owner or location."
+    }
+  ],
+  "affected": 0,
+  "locations": []
+}
+docx: Document operation failed: ambiguous-selection. Inspect the input and choose an unambiguous owner or location.

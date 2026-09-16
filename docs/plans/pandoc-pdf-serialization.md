@@ -2,52 +2,45 @@
 
 Own serialization in packages/pdf using pinned pdf-lib 1.17.1 object primitives;
 keep conversion in packages/pandoc and the existing safe-bash adapter thin.
-Preserve unrelated changes; local atomic commits only.
+Preserve unrelated changes; local atomic commits on main only.
 
-1. Original failing object tests: exact minimal object graph, xref offsets, stream
-   lengths, references, escaped strings, malformed graphs, pre-allocation budgets.
-2. Checked serialization after resource admission; deterministic Unicode metadata,
-   heading outlines, explicit untagged/non-conformance capability guarantees.
-3. Independent text-to-glyph, image color space and multipage graph tests; all
-   supported readers have representable PDF cases; awaited sink, --yes PDF suffix
-   inference, explicit external engine rejection.
-4. Maintained package tests/lint/build. Explicit QA (never unit tests): record
-   installed parser/checker and renderer versions under docs/pandoc, generate an
-   original multipage linked/outlined Unicode document with an image, inspect
-   objects/fonts/pages/text/links and rendered screenshots. Native Pandoc is not
-   an oracle for this serializer. Different engines need not match bytes.
+## Implemented and verified
 
-Status: checked serialization implemented; original expected-object and malformed
-graph tests pass (26 PDF tests). PDF package lint/typecheck and maintained
-selected workspace build pass. Deterministic Unicode metadata, flat page-linked outlines and escaped URI
-strings implemented; explicit untagged/non-conformance capabilities. All 32 PDF
-tests, lint/typecheck and selected workspace build pass. Integration and QA pending.
+1. Original failing object tests preceded checked serialization: exact minimal
+   objects, xref offsets, stream lengths, references and pre-allocation budgets.
+   Reject dangling/sparse identities, unsafe counts/sizes, nonfinite numbers and
+   direct cycles. Validate budgets before resource buffers and metadata admission.
+2. Deterministic Unicode metadata without implicit clock fields; flat outlines
+   linked to real page identities; UTF-16BE hex strings preserve URI delimiters
+   and backslashes. Explicit untagged/non-conformance capability guarantees.
+3. Static noninterlaced 8-bit PNG with bounded inflation, CRC/chunk/filter checks,
+   RGB colors and gray alpha masks; 8-bit gray/RGB and Adobe CMYK JPEG admission.
+   Pako 3.0.1 pinned. TrueType glyf supported; reject CFF/compressed font programs
+   before fontkit. Emit admitted scalar glyph codes/metrics without font shaping;
+   reject conflicting emitted Unicode aliases. Batch compatible text runs to
+   eliminate independently observed per-glyph extraction line breaks.
+4. SDK descriptive metadata and heading outlines use the same PDF engine/options
+   and awaited sink. --yes permits .pdf target inference; external --pdf-engine
+   commands are rejected before acquisition. Original representable cases cover
+   every available reader (10); unit mutations use memfs, no host scratch,
+   subprocess, LLM or downloaded fixture.
+5. Maintained PDF/Pandoc package tests and lint/typechecks pass (45/912 tests).
+   Selected @poe-code/pandoc build closure passes (PDF, office-package, Pandoc).
+   Repository-wide lint passes. Independent pypdf 6.0.0 and PyMuPDF 1.26.4 /
+   MuPDF 1.26.7 QA verifies objects, text, fonts, links, images, outlines and all ten
+   reader pairs. Viewed all four rendered page screenshots. Procedure:
+   pandoc-pdf-serialization-qa.md. Original inputs/results/artifacts: docs/pandoc.
 
-Resource admission: original regression reproduced overlong PNG inflation and
-ignored CRC; owned PNG decoder now validates chunk order/CRC, fixed scanline
-length and filters before bounded RGB/alpha emission. Static noninterlaced 8-bit
-PNG; JPEG 8-bit gray/RGB and Adobe CMYK transform zero; unsupported CFF
-outline programs rejected before fontkit. Pako 3.0.1 pinned explicitly.
-All 38 PDF tests, package lint/typecheck and selected workspace build pass.
+## Remaining validation limitation
 
-Additional graph regression: nonfinite PDF numbers were serialized rather than
-rejected. Serializer now rejects nonfinite numbers and direct cycles before output
-copying. Original failing regression passes; PDF tests (45), lint/typecheck and
-selected Pandoc workspace build closure pass.
+Full npm test reported a toolcraft-design demo failure because
+`docs/plans/archive/cli-aliasing.md` is missing; the remaining run was stopped
+following that failure. Repository-wide unit validation is incomplete. Preserve
+scope: do not restore/create unrelated files or alter unrelated tests.
 
-Text emission: original QA showed per-glyph extraction line breaks. Compatible
-glyphs now form one text run using admitted cmap glyph codes and metrics, without
-invoking font shaping tables. Original hostile-layout mock and alias regressions
-pass; conflicting emitted Unicode aliases are rejected explicitly. Validate
-all budgets before font buffers/metadata admission. All 45 PDF tests, package
-lint/typecheck and selected workspace build closure pass.
+## Delivery and guarantees
 
-SDK/CLI integration: metadata and heading outlines share PDF options/sink path;
---yes allows .pdf target inference and --pdf-engine is rejected before acquisition.
-Representable original inputs cover every available reader (10); streaming writes
-and close are awaited. All 912 Pandoc tests and package lint/typecheck pass;
-maintained selected workspace build closure passes. Independent parser and
-renderer QA also passes for the final engine (four pages, ten reader pairs).
-Repository-wide lint passes. Repository-wide npm test still running, with an
-observed failure in unrelated toolcraft-design demo test: missing
-docs/plans/archive/cli-aliasing.md. Preserve task scope and unrelated files.
+Verified atomic local commits only; no push or release. Scoped implementation
+and explicit QA complete. Output is untagged; no PDF/A, PDF/UA or universal
+searchability/extraction/reading-order guarantees. Different engines need not
+emit identical bytes; native Pandoc alone cannot validate this serializer.

@@ -1,0 +1,488 @@
+{
+  "metadata": {
+    "title": {
+      "t": "MetaString",
+      "c": "Café 東京 (original) \\"
+    },
+    "author": {
+      "t": "MetaString",
+      "c": "Zoë"
+    }
+  },
+  "blocks": [
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Original PDF café Ω Ж"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original body café Ω Ж (escaped) \\"
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Link",
+          "c": [
+            [
+              "",
+              [],
+              []
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "External link"
+              }
+            ],
+            [
+              "https://example.com/a(b)?x=\\value",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Table",
+      "c": [
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          null,
+          []
+        ],
+        [
+          [
+            "AlignLeft",
+            {
+              "t": "ColWidthDefault"
+            }
+          ],
+          [
+            "AlignLeft",
+            {
+              "t": "ColWidthDefault"
+            }
+          ]
+        ],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "AlignLeft",
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Para",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Owned table"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "AlignLeft",
+                  1,
+                  1,
+                  [
+                    {
+                      "t": "Para",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Value 42"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        [],
+        [
+          [
+            "",
+            [],
+            []
+          ],
+          []
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "serialization-input.png"
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Image",
+          "c": [
+            [
+              "",
+              [],
+              [
+                [
+                  "width",
+                  "48"
+                ],
+                [
+                  "height",
+                  "48"
+                ]
+              ]
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "serialization-input.png"
+              }
+            ],
+            [
+              "serialization-input.png",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "serialization-gray.jpg"
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Image",
+          "c": [
+            [
+              "",
+              [],
+              [
+                [
+                  "width",
+                  "48"
+                ],
+                [
+                  "height",
+                  "48"
+                ]
+              ]
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "serialization-gray.jpg"
+              }
+            ],
+            [
+              "serialization-gray.jpg",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "serialization-rgb.jpg"
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Image",
+          "c": [
+            [
+              "",
+              [],
+              [
+                [
+                  "width",
+                  "48"
+                ],
+                [
+                  "height",
+                  "48"
+                ]
+              ]
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "serialization-rgb.jpg"
+              }
+            ],
+            [
+              "serialization-rgb.jpg",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "serialization-cmyk.jpg"
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Image",
+          "c": [
+            [
+              "",
+              [],
+              [
+                [
+                  "width",
+                  "48"
+                ],
+                [
+                  "height",
+                  "48"
+                ]
+              ]
+            ],
+            [
+              {
+                "t": "Str",
+                "c": "serialization-cmyk.jpg"
+              }
+            ],
+            [
+              "serialization-cmyk.jpg",
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "t": "Header",
+      "c": [
+        1,
+        [
+          "",
+          [],
+          []
+        ],
+        [
+          {
+            "t": "Str",
+            "c": "Pagination example"
+          }
+        ]
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 1. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 2. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 3. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 4. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 5. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 6. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 7. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 8. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 9. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 10. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 11. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 12. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 13. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    },
+    {
+      "t": "Para",
+      "c": [
+        {
+          "t": "Str",
+          "c": "Original paragraph 14. Bounded layout wraps readable text inside the page margins."
+        }
+      ]
+    }
+  ],
+  "pdfPage": {
+    "width": 300,
+    "height": 400,
+    "margin": 30
+  },
+  "resourceFiles": [
+    "serialization-input.png",
+    "serialization-gray.jpg",
+    "serialization-rgb.jpg",
+    "serialization-cmyk.jpg"
+  ]
+}

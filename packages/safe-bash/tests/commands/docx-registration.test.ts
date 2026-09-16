@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { createDocumentArchive, readDocumentArchive, writeDocumentArchive, createDocxCommandEngine, DocxUsageError } from "../../../docx/src/index.js";
 import { createDocxCommand, docxCommands, type DocxCommandEngine } from "../../src/commands/docx/index.js";
@@ -7,10 +8,135 @@ import { collectBytes, writeBytes } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands, createAgentCommands } from "../../src/plugins/index.js";
 import { Shell } from "../../src/shell/index.js";
+import { FsError } from "../../src/contracts/errors.js";
+import type { FileSystem } from "../../src/contracts/filesystem.js";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 500000, chunkSize: 1024 };
+
+async function packFixture() {
+  const { createDocxInspectionCommandEngine } = await import("../../../docx/src/inspection-command.js");
+  const archive = await createDocumentArchive({ kind: "dotx", dialect: "strict", content: { version: 1, blocks: [{ kind: "paragraph", text: "  Coast café 日本語  " }] } }, { limits, signal: new AbortController().signal });
+  const directory = "/work/coast café 日本語";
+  const volume = Volume.fromJSON({ "/work/existing.dotx": "Preserve destination", [directory]: null });
+  const entries = archive.members.filter(member => !member.directory).map(member => ({
+    part: member.name === "[Content_Types].xml" ? member.name : `/${member.name}`,
+    path: member.name,
+    contentType: member.name === "[Content_Types].xml" ? "application/xml" : archive.package.getPart(`/${member.name}`).content_type,
+    bytes: member.bytes.length,
+    sha256: createHash("sha256").update(member.bytes).digest("hex"),
+  })).sort((left, right) => left.part < right.part ? -1 : left.part > right.part ? 1 : 0);
+  for (const member of archive.members.filter(member => !member.directory)) {
+    const path = `${directory}/${member.name}`;
+    volume.mkdirSync(path.slice(0, path.lastIndexOf("/")), { recursive: true });
+    volume.writeFileSync(path, member.bytes);
+  }
+  const inventory = { version: 1, kind: archive.kind, dialect: archive.dialect, entries };
+  volume.writeFileSync(`${directory}/inventory.json`, JSON.stringify(inventory));
+  volume.writeFileSync(`${directory}/unknown.bin`, "Do not import this file");
+  const fs: FileSystem = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  const identityScope = {};
+  fs.lstat = fs.stat = async (path, options) => {
+    options?.signal?.throwIfAborted();
+    if (!volume.existsSync(path)) throw new FsError("ENOENT", { path });
+    const stat = volume.lstatSync(path);
+    return { type: stat.isSymbolicLink() ? "symlink" : stat.isDirectory() ? "directory" : "file", size: stat.size, mode: stat.mode, mtimeMs: stat.mtimeMs, ctimeMs: stat.ctimeMs, atimeMs: stat.atimeMs, ino: stat.ino, dev: stat.dev, identityScope, revision: Math.floor(stat.mtimeMs) };
+  };
+  fs.realpath = async (path, options) => { options?.signal?.throwIfAborted(); return String(volume.realpathSync(path)); };
+  fs.readFile = async (path, options) => { options?.signal?.throwIfAborted(); return new Uint8Array(volume.readFileSync(path) as Buffer); };
+  fs.readStream = (path, options) => ({ async *[Symbol.asyncIterator]() { yield await fs.readFile(path, options); } });
+  fs.readdir = async () => { assert.fail("Pack scanned unlisted files"); };
+  fs.capabilitiesFor = async () => ({ ...fs.capabilities, atomicFileStaging: true });
+  fs.createStagedFile = async () => { assert.fail("Rejected output acquired staging"); };
+  fs.publishStagedFile = async () => { assert.fail("Rejected output reached publication"); };
+  fs.removeStagedFile = async () => { assert.fail("Rejected output acquired cleanup resources"); };
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands()).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits }) }));
+  return { archive, directory, volume, fs, shell, inventory };
+}
+
+test("docx pack reads a quoted Unicode VFS inventory and preserves every admitted payload", async () => {
+  const { archive, directory, shell } = await packFixture();
+  try {
+    const result = await shell.exec(`docx pack '${directory}/inventory.json' --output -`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    const output = await readDocumentArchive(result.stdoutBytes, { limits, signal: new AbortController().signal });
+    assert.equal(output.kind, "dotx");
+    assert.equal(output.dialect, "strict");
+    assert.deepEqual(output.members.map(member => member.name).sort(), archive.members.map(member => member.name).sort());
+    for (const member of archive.members) assert.deepEqual(output.members.find(item => item.name === member.name)?.bytes, member.bytes, member.name);
+  } finally { await shell.dispose(); }
+});
+
+test("docx pack consumes stdin inventory with explicit VFS records through a shell pipe", async () => {
+  const { archive, directory, shell, inventory, volume } = await packFixture();
+  const explicit = { ...inventory, entries: inventory.entries.map(entry => ({ ...entry, path: `${directory}/${entry.path}` })) };
+  volume.writeFileSync("/work/explicit.json", JSON.stringify(explicit));
+  try {
+    const result = await shell.exec("cat explicit.json | docx pack - --output -");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = await readDocumentArchive(result.stdoutBytes, { limits, signal: new AbortController().signal });
+    for (const member of archive.members) assert.deepEqual(output.members.find(item => item.name === member.name)?.bytes, member.bytes, member.name);
+    const relative = await shell.exec("docx pack - --output - --dry-run --json", { stdin: encoder.encode(JSON.stringify(inventory)) });
+    assert.notEqual(relative.exitCode, 0);
+    assert.equal(JSON.parse(relative.stdout).affected, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("docx pack rejects a missing relationship payload before binary publication", async () => {
+  const { directory, inventory, volume, shell } = await packFixture();
+  volume.writeFileSync(`${directory}/inventory.json`, JSON.stringify({ ...inventory, entries: inventory.entries.filter(entry => entry.part !== "/word/styles.xml") }));
+  try {
+    const result = await shell.exec(`docx pack '${directory}/inventory.json' --output -`);
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.stdoutBytes.length, 0);
+    const report = await shell.exec(`docx pack '${directory}/inventory.json' --dry-run --json`);
+    assert.equal(JSON.parse(report.stdout).errors[0].code, "invalid-package");
+  } finally { await shell.dispose(); }
+});
+
+test("docx pack output conflicts preserve existing files and reject input-tree destinations", async () => {
+  const { directory, volume, shell } = await packFixture();
+  try {
+    for (const destination of ["/work/existing.dotx", `${directory}/new.dotx`]) {
+      const result = await shell.exec(`docx pack '${directory}/inventory.json' --output '${destination}' --json`);
+      assert.notEqual(result.exitCode, 0);
+      const envelope = JSON.parse(result.stdout);
+      assert.equal(envelope.affected, 0);
+      assert.equal(envelope.data, null);
+      assert.equal(envelope.errors[0].code, "conflict");
+    }
+    assert.equal(String(volume.readFileSync("/work/existing.dotx")), "Preserve destination");
+    assert.equal(volume.existsSync(`${directory}/new.dotx`), false);
+  } finally { await shell.dispose(); }
+});
+
+test("docx pack refuses VFS payload symlinks even when their target is admitted", async () => {
+  const { directory, volume, shell } = await packFixture();
+  const payload = `${directory}/word/document.xml`;
+  volume.renameSync(payload, `${directory}/word/original.xml`);
+  volume.symlinkSync("original.xml", payload);
+  try {
+    const result = await shell.exec(`docx pack '${directory}/inventory.json' --dry-run --json`);
+    assert.equal(result.exitCode, 1, result.stderr);
+    const envelope = JSON.parse(result.stdout);
+    assert.equal(envelope.affected, 0);
+    assert.equal(envelope.errors[0].code, "invalid-container");
+  } finally { await shell.dispose(); }
+});
+
+test("docx pack cancellation during VFS admission leaves stdout unpublished", async () => {
+  const { directory, fs, shell } = await packFixture();
+  const controller = new AbortController();
+  const read = fs.readFile.bind(fs);
+  const reason = new Error("Caller stopped package admission");
+  fs.readFile = async (path, options) => { if (path.endsWith("word/document.xml")) controller.abort(reason); return read(path, options); };
+  try {
+    await assert.rejects(shell.exec(`docx pack '${directory}/inventory.json' --output -`, { signal: controller.signal }), error => error === reason);
+  } finally { await shell.dispose(); }
+});
 
 test("docx registers only by opt-in and refuses collisions before deliberate replacement", async () => {
   assert.equal(createAgentCommands().some(command => command.name === "docx"), false);

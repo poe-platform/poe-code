@@ -10,7 +10,8 @@ Options use the shared CLI/SDK contract: `outputDir` / `--output-dir` is require
 false. The SDK destination is an absolute VFS path; the CLI resolves its destination
 against its explicit cwd. Media selection means files/directories in `word/media/`;
 it is separate from occurrence-based `images extract` and inert `objects extract`.
-Generic batch and packing remain unsupported.
+Generic batch remains unsupported; full manifests can be reconstructed through
+the bounded [packing operation](../plans/docx-safe-packing.md).
 
 The entire admitted archive namespace is checked before selection/publication,
 including excluded entries and explicit directories. Unsafe ZIP paths, duplicate
@@ -37,7 +38,11 @@ preserving mixed character content and xml:space; selected XML and relationship
 parts may have different display bytes. Binary media stays exact. `manifest.json`
 is version 1, with document kind/dialect, selection, pretty intent, explicit relative
 directories and file entries containing relative path, output byte count and
-lowercase SHA-256. This does not declare a completed pack-input contract.
+lowercase SHA-256, plus canonical part and contentType. Manifest entries are sorted
+by Unicode scalar part names; payload and receipt order remains archive order.
+All-selection manifests satisfy the bounded pack-input contract; media-only
+manifests do not. After editing, callers update the exact byte count and hash.
+Pretty XML bytes are packed verbatim, including text whitespace.
 
 The readonly receipt contains outputDir, complete, possiblePartialOutput, entries
 and manifestPublished. Each entry has relative path, output bytes, SHA-256 and a

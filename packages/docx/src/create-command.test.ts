@@ -44,6 +44,6 @@ it("discovers creation while retaining pending operations", () => {
   const discover = (...args: string[]) => getDocxDiscovery(parseDocxArguments(args.map(arg => new TextEncoder().encode(arg))))!;
   expect(discover("schema", "create").data).toMatchObject({ operations: [{ id: "create", support: "edit" }] });
   expect(discover("schema", "template", "apply").data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F47"] }] });
-  expect(discover("schema", "pack").data).toMatchObject({ operations: [{ support: "reject" }] });
+  expect(discover("schema", "pack").data).toMatchObject({ operations: [{ support: "edit" }] });
   expect(discover("help", "create").human).toContain("append");
 });

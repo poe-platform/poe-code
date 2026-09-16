@@ -1,3 +1,4 @@
+import { packageInventorySchema } from "./pack-inventory.js";
 import { DocxUsageError } from "./argument-json.js";
 import { documentLimitDefaults } from "./budget.js";
 import { docxEnumSymbols } from "./operation-schema-data.js";
@@ -196,6 +197,7 @@ export function getDocxOperationSchema(id: string, transport: "sdk" | "cli" | "b
   const fields = transport === "cli" ? declaration.fields : transport === "batch" ? declaration.batchFields : declaration.sdkFields;
   if (!fields) throw new DocxUsageError("Operation is not available in batch.");
   const definitions: Record<string, DocxJsonSchema> = {};
+  if (id === "pack") definitions.PackageInventoryV1 = packageInventorySchema;
   const applicable = transport === "batch" ? fields : { ...Object.fromEntries(declaration.commonOptions.map(key => [key, docxCommonOptions[key]!])), ...fields };
   const schema = fieldsSchema(applicable, definitions);
   const conditions: DocxJsonSchema[] = [];

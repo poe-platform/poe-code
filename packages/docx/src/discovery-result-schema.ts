@@ -417,3 +417,10 @@ export const archiveExtractionContract = {
       data: { oneOf: [{ type: "null" }, object({ ...archiveExtractionData.properties, complete: { const: false } })] },
       affected: { const: 0 }, locations: empty, warnings: empty, errors: { ...array(diagnostic), minItems: 1 } })] } as DocxJsonSchema
 };
+
+export const archivePackingContract = {
+  featureIds: ["F01", "F50"],
+  description: "Pack a sorted explicit VFS inventory of authenticated payloads into one validated document, preserving kind, dialect and opaque bytes.",
+  result: { oneOf: [object({ version: { const: 1 }, operation: { const: "pack" }, ok: { const: true }, data: mutationData, affected: { const: 1 }, locations: empty, warnings: empty, errors: empty }),
+    object({ version: { const: 1 }, operation: { const: "pack" }, ok: { const: false }, data: { type: "null" }, affected: { const: 0 }, locations: empty, warnings: empty, errors: { ...array(diagnostic), minItems: 1 } })] } as DocxJsonSchema
+};

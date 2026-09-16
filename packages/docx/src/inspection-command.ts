@@ -1,4 +1,5 @@
 import { inspectDocxCapabilities } from "./discovery.js";
+import { executePackCommand } from "./pack-command.js";
 import { extractDocumentArchive, ArchiveExtractionError, type ArchiveExtractionData } from "./extract.js";
 import { compareDocument, type DocumentDiffOptions } from "./diff.js";
 import { executeContentRemovalCommand } from "./removal-command.js";
@@ -148,6 +149,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           const data = await compareDocument(inputs[0]!, inputs[1]!, context, invocation.options as DocumentDiffOptions);
           exitCode = data.equal ? 0 : 1;
           output = new TextEncoder().encode(invocation.options.json ? JSON.stringify({ version: 1, operation: "diff", ok: true, data, warnings: [], errors: [], affected: 0, locations: [] }) + "\n" : `docx diff: ${data.equal ? "equal" : "different"} (${data.mode}); ${data.differences.length} changed parts\n`);
+          budget.check("serializedOutput", output.length);
+        } else if (invocation.operation === "pack") {
+          output = await executePackCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);

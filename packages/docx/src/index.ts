@@ -178,3 +178,6 @@ export type { DocxTemplateRecord } from "./operation-types.js";
 export { compareDocument, type DocumentDiffData, type DocumentDiffOptions, type DocumentDiffScope } from "./diff.js";
 
 export { extractDocumentArchive, ArchiveExtractionError, type ArchiveExtractionData } from "./extract.js";
+
+export { packDocumentArchive, type ArchivePackingContext } from "./pack.js";
+export { type PackageInventoryV1, type PackageEntry } from "./pack-inventory.js";

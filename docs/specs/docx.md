@@ -6,8 +6,9 @@ Implemented Through: Not applicable
 
 The bounded [archive extraction record](../docx/archive-extraction.md) implements
 `extract` with all/media-only selection, optional pretty XML and conditional new-tree
-VFS publication. Packing, live package owners and whole-public-API coverage remain
-pending; the full proposed contract below is retained.
+VFS publication. The bounded [packing record](../plans/docx-safe-packing.md)
+implements explicit authenticated inventory reconstruction and one staged package
+publication. Live package owners and whole-public-API coverage remain pending; the full proposed contract below is retained.
 
 Purpose: Define the intended document-format coverage and observable behavior of the original `docx` utility and its TypeScript SDK.
 
@@ -2570,6 +2571,9 @@ type PackageInventoryV1 = {
   kind: "docx" | "dotx";
   dialect: "strict" | "transitional";
   entries: PackageEntry[];
+  selection?: "all";
+  pretty?: boolean;
+  directories?: string[];
 };
 type PackageEntry = {
   part: string;
@@ -2628,6 +2632,22 @@ VFS path for stdin inventory. It cannot contain dot segments, backslashes, encod
 separators, absolute host paths or symlink escapes. Media manifests are not pack
 inventories. Editing a payload requires updating the caller-owned inventory hash;
 pack never trusts a stale hash or follows targets outside its capability.
+Entries MUST be strictly sorted by canonical `part` using Unicode scalar order.
+Full extraction manifests MUST include `part` and `contentType` alongside each
+existing path/length/hash and use this inventory ordering; extraction payload and
+receipt ordering remains archive order. Optional `selection` MUST be `all`;
+media-only manifests MUST reject. Optional `pretty` records intent only: packing
+MUST preserve the supplied XML bytes, including all character whitespace.
+Optional `directories` declares safe relative explicit archive directory names,
+including empty directories, and MUST pass the same whole-namespace admission.
+SDK relative paths require explicit `inventoryDirectory`; file-based CLI inventory
+paths grant their admitted directory, while stdin records require absolute VFS
+paths. Customized record/array prototypes, accessors, holes and unknown fields
+MUST reject without evaluating caller callbacks. Output MUST be outside the
+inventory input tree; stdin uses the common ancestor of explicit file parents.
+A root input tree permits only binary stdout. Existing forced output MUST have
+proven distinct identity from every admitted payload; unknown aliases MUST reject.
+
 
 `OperationArguments` is a closed discriminated union, not a free dictionary:
 for every direct-and-batch operation it is the section 6.4 fields plus its

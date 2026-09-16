@@ -285,7 +285,8 @@ later tasks and whole-model coverage remain pending.
 The [bounded archive extraction record](archive-extraction.md) adds explicit async
 byte/VFS mappings, all/media-only selection, optional pretty XML and conditional
 new-tree publication with truthful partial receipts. It supersedes only the
-unimplemented general extract utility status. Packing remains pending. Package,
+unimplemented general extract utility status. The later [bounded packing record](../plans/docx-safe-packing.md) adds explicit
+authenticated VFS inventory reconstruction and shared staged publication. Package,
 Part/XmlPart, inherited protocols, enums, collections, helpers and public
 underscore-prefixed owners retain their inventoried dispositions; neutral model
 spellings, historical research evidence and documentation-error decisions are

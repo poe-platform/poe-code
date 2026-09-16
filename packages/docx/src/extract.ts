@@ -1,3 +1,5 @@
+import { validateArchiveNamespace } from "./archive-namespace.js";
+import { compareInventoryNames } from "./pack-inventory.js";
 import { resolvePath, type FileSystem, type FileStat } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, ResourceLimitError, InvalidContainerError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
@@ -35,31 +37,7 @@ export async function extractDocumentArchive(
   if (!admitted.outputDir?.startsWith("/")) throw new InvalidContainerError("Extraction requires an absolute VFS destination.");
   const outputDir = resolvePath("/", admitted.outputDir), fs = context.filesystem;
   const archive = await readDocumentArchive(input, settings);
-  const spellings = new Map<string, string>();
-  const names = new Map<string, boolean>();
-  // Validate the whole namespace, including directories and unselected resources.
-  for (const member of archive.members) {
-    const name = member.directory ? member.name.slice(0, -1) : member.name;
-    const segments = name.split("/");
-    if (!name || segments.some(segment => !segment || segment === "." || segment === ".." || segment.endsWith(".") || segment.endsWith(" ") || [...segment].some(c => c.codePointAt(0)! < 32 || c === "\x7f")) || name.includes("\\") || name.includes(":"))
-      throw new InvalidContainerError("Unsafe archive extraction path.");
-    for (let end = 1; end <= segments.length; end++) {
-      const spelling = segments.slice(0, end).join("/");
-      let decoded: string;
-      try { decoded = decodeURIComponent(spelling); } catch { throw new InvalidContainerError("Invalid archive path escape."); }
-      const alias = decoded.normalize("NFC").toUpperCase().toLowerCase();
-      if (spellings.has(alias) && spellings.get(alias) !== spelling) throw new InvalidContainerError("Ambiguous archive directory alias.");
-      spellings.set(alias, spelling);
-    }
-    const key = name.normalize("NFC").toUpperCase().toLowerCase();
-    if (key === "manifest.json" || key.startsWith("manifest.json/") || names.has(key)) throw new InvalidContainerError("Ambiguous archive extraction path.");
-    names.set(key, member.directory);
-  }
-  for (const key of names.keys()) {
-    const segments = key.split("/");
-    for (let end = 1; end < segments.length; end++)
-      if (names.get(segments.slice(0, end).join("/")) === false) throw new InvalidContainerError("Archive file conflicts with a directory.");
-  }
+  validateArchiveNamespace(archive.members, budget);
   const files: { path: string; bytes: Uint8Array; sha256: string; published: boolean }[] = [];
   for (const member of archive.members) {
     if (member.directory || admitted.selection === "media-only" && !asciiKey(member.name).startsWith("word/media/")) continue;
@@ -76,7 +54,7 @@ export async function extractDocumentArchive(
   }
   const directories = archive.members.filter(m => m.directory && (admitted.selection !== "media-only" || asciiKey(m.name).startsWith("word/media/"))).map(m => m.name.slice(0, -1));
   const manifest = { version: 1, kind: archive.kind, dialect: archive.dialect, selection: admitted.selection ?? "all", pretty: admitted.pretty ?? false,
-    directories, entries: files.map(f => ({ path: f.path, bytes: f.bytes.length, sha256: f.sha256 })) };
+    directories, entries: files.map(f => ({ part: f.path === "[Content_Types].xml" ? f.path : "/" + f.path, path: f.path, contentType: f.path === "[Content_Types].xml" ? "application/xml" : archive.package.getPart("/" + f.path).content_type, bytes: f.bytes.length, sha256: f.sha256 })).sort((a, b) => compareInventoryNames(a.part, b.part)) };
   const manifestText = JSON.stringify(manifest);
   budget.check("serializedOutput", new TextEncoder().encode(manifestText).length);
   budget.charge("retainedBytes", manifestText.length * 4);

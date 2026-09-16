@@ -42,3 +42,12 @@ it("rejects dangling references, sparse identities and unsafe object sizes", asy
   const oversized = minimal(); vi.spyOn(oversized.lookup(oversized.trailerInfo.Root!)!, "sizeInBytes").mockReturnValue(Number.MAX_SAFE_INTEGER);
   await expect(serializePdf(oversized, {outputBytes: 1000, objects: 10})).rejects.toMatchObject({code: "E_LIMIT"});
 });
+it("rejects nonfinite PDF numbers and direct cycles before copying", async () => {
+  for (const value of [NaN, Infinity, -Infinity]) {
+    const context = minimal(); context.register(context.obj({BadNumber: value}));
+    expect(await serializePdf(context, {outputBytes: 1000, objects: 10}).then(() => "accepted", error => error.code as string)).toBe("E_CAPABILITY");
+  }
+  const context = minimal(); const dict = context.obj({});
+  const {PDFName} = await import("pdf-lib"); dict.set(PDFName.of("Cycle"), dict); context.register(dict);
+  expect(await serializePdf(context, {outputBytes: 1000, objects: 10}).then(() => "accepted", error => error.code as string)).toBe("E_CAPABILITY");
+});

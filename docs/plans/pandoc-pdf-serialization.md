@@ -29,3 +29,8 @@ length and filters before bounded RGB/alpha emission. Static noninterlaced 8-bit
 PNG; JPEG 8-bit gray/RGB and Adobe CMYK transform zero; unsupported CFF
 outline programs rejected before fontkit. Pako 3.0.1 pinned explicitly.
 All 38 PDF tests, package lint/typecheck and selected workspace build pass.
+
+Additional graph regression: nonfinite PDF numbers were serialized rather than
+rejected. Serializer now rejects nonfinite numbers and direct cycles before output
+copying. Original failing regression passes; PDF tests (45), lint/typecheck and
+selected Pandoc workspace build closure pass.

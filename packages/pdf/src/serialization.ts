@@ -1,4 +1,4 @@
-import {PDFArray, PDFDict, PDFRef, PDFStream, type PDFContext, type PDFObject} from "pdf-lib";
+import {PDFArray, PDFDict, PDFNumber, PDFRef, PDFStream, type PDFContext, type PDFObject} from "pdf-lib";
 import {PdfError} from "./errors.js";
 
 interface SerializationBudget {
@@ -23,6 +23,7 @@ export async function serializePdf(context: PDFContext, budget: SerializationBud
   const validate = (object: PDFObject, depth = 0): void => {
     budget.work?.();
     if (++visited > 1_000_000 || depth > 64) limit("PDF object graph exhausted");
+    if (object instanceof PDFNumber && !Number.isFinite(object.asNumber())) invalid("Nonfinite PDF number");
     if (object instanceof PDFRef) {if (!identities.has(object)) invalid("Dangling PDF reference"); return;}
     if (path.has(object)) invalid("Direct PDF object cycle");
     path.add(object);

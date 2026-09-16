@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import {admitCharacterMaps, admitMetricTables} from "./font-admission.js";
 import {decodePng} from "./png.js";
@@ -15,7 +15,7 @@ export function pdfCapabilities() {
 export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: 4_000_000, fonts: 8, glyphs: 100_000, pages: 200, objects: 100_000, images: 100, imageBytes: 8_000_000, decodedImageBytes: 32_000_000, layoutWork: 500_000, outputBytes: 16_000_000});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
 function positive(value: number): boolean { return Number.isFinite(value) && value > 0; }
-interface Glyph { text: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string }
+interface Glyph { text: string; code: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string }
 interface Line { glyphs: Glyph[]; height: number; ascent: number; descent: number }
 function emptyLine(): Line {return {glyphs: [], height: 14.4, ascent: 0, descent: 0};}
 export async function renderPdf(document: LayoutDocument, context: PdfContext = {}): Promise<Uint8Array> {
@@ -29,6 +29,10 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   };
   const cooperate = async () => { check(); if (context.yield) await context.yield(); else await new Promise<void>(resolve => setTimeout(resolve, 0)); check(); };
   check();
+  for (const key of Object.keys(defaultPdfLimits) as (keyof PdfLimits)[]) {
+    if (!Number.isSafeInteger(limits[key]) || limits[key] < 0) throw new PdfError("E_LIMIT", `Invalid PDF ${key} budget`);
+  }
+  if (limits.outputBytes > 0x7fffffff || limits.objects > 1_000_000) throw new PdfError("E_LIMIT", "Invalid PDF serialization budget");
   const box = document.page ?? {width: 595.28, height: 841.89, margin: 48};
   if (![box.width, box.height].every(positive) || !Number.isFinite(box.margin) || box.margin < 0 || box.width <= box.margin * 2 || box.height <= box.margin * 2) unsupported("Invalid page box");
   if (!document.fonts.length) unsupported("Supply at least one font");
@@ -37,7 +41,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   for (const font of document.fonts) {
     if (!font.id || ids.has(font.id)) unsupported("Duplicate/empty font identity");
     ids.add(font.id); charge("fonts", 1); charge("fontBytes", font.bytes.length); charge("objects", 8);
-    if (font.bytes.length < 12) unsupported("Supply an sfnt TrueType/OpenType font");
+    if (font.bytes.length < 12) unsupported("Supply an sfnt TrueType glyf font");
     const signature = new DataView(font.bytes.buffer, font.bytes.byteOffset, font.bytes.byteLength).getUint32(0);
     if (signature !== 0x00010000) unsupported("Only sfnt TrueType glyf fonts are supported; CFF and compressed containers are forbidden");
     const view = new DataView(font.bytes.buffer, font.bytes.byteOffset, font.bytes.byteLength);
@@ -82,6 +86,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       const font = await pdf.embedFont(bytes, {subset: false}); fonts.set(resource.id, font); parsedFonts.set(font, parsed); await cooperate();
     }
   } catch (error) { if (error instanceof PdfError) throw error; unsupported("Invalid or unsupported supplied font"); }
+  const emittedScalars = new Map<PDFFont, Map<string, number>>();
   const coverage = new Map([...fonts.values()].map(font => [font, new Set(font.getCharacterSet())]));
   const glyph = (text: string, run: TextRun): Glyph => {
     charge("glyphs", 1); charge("layoutWork", 1);
@@ -91,14 +96,22 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     if (run.font !== undefined && !fonts.has(run.font)) unsupported("Unknown font identity");
     const font = candidates.find(candidate => candidate && coverage.get(candidate)!.has(cp) && parsedFonts.get(candidate)!.glyphForCodePoint(cp).id > 0);
     if (!font) unsupported(`No supplied font covers U+${cp.toString(16)}`);
+    const parsedGlyph = parsedFonts.get(font)!.glyphForCodePoint(cp);
+    if (!Number.isInteger(parsedGlyph.id) || parsedGlyph.id <= 0 || parsedGlyph.id >= parsedFonts.get(font)!.numGlyphs) unsupported("Font character map points outside glyph records");
+    const encoded = parsedGlyph.id.toString(16).padStart(4, "0").toUpperCase();
+    let scalars = emittedScalars.get(font);
+    if (!scalars) {scalars = new Map(); emittedScalars.set(font, scalars);}
+    const previous = scalars.get(encoded);
+    if (previous !== undefined && previous !== cp) unsupported("Conflicting Unicode scalars share an emitted font glyph");
+    scalars.set(encoded, cp);
     const size = run.size ?? 12; if (!positive(size) || size > 144) unsupported("Invalid font size");
     if (run.link !== undefined) { let url: URL; try { url = new URL(run.link); } catch { unsupported("Invalid link"); } if (!["https:", "http:", "mailto:"].includes(url.protocol)) unsupported("Unsafe link scheme"); }
-    const width = font.widthOfTextAtSize(text, size);
+    const width = parsedGlyph.advanceWidth / parsedFonts.get(font)!.unitsPerEm * size;
     if (!positive(width)) unsupported(`Nonadvancing glyph U+${cp.toString(16)}`);
     const parsed = parsedFonts.get(font)!;
     const ascent = parsed.ascent / parsed.unitsPerEm * size; const descent = -parsed.descent / parsed.unitsPerEm * size;
     if (!positive(ascent) || !Number.isFinite(descent) || descent < 0) unsupported("Invalid vertical font metrics");
-    return {text, font, size, width, ascent, descent, ...(run.link === undefined ? {} : {link: run.link})};
+    return {text, code: encoded, font, size, width, ascent, descent, ...(run.link === undefined ? {} : {link: run.link})};
   };
   const lines = async (block: Paragraph, width: number): Promise<Line[]> => {
     charge("layoutWork", 1);
@@ -127,17 +140,24 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     flush(); if (line.glyphs.length || !result.length) result.push(line);
     return result;
   };
-  let page: PDFPage; let top = box.margin;
-  const newPage = () => { charge("pages", 1); charge("objects", 3); page = pdf.addPage([box.width, box.height]); top = box.margin; };
+  let page: PDFPage; let top = box.margin; let fontKeys = new Map<PDFFont, PDFName>();
+  const newPage = () => { charge("pages", 1); charge("objects", 3); page = pdf.addPage([box.width, box.height]); fontKeys = new Map(); top = box.margin; };
   const usableHeight = box.height - 2 * box.margin;
   const room = (height: number) => { if (height > usableHeight) unsupported("Indivisible layout exceeds page"); if (top + height > box.height - box.margin) newPage(); };
   const draw = (line: Line, x: number, baselineTop: number) => {
     context.onPlacement?.({kind: "text", page: usage.pages, x, y: baselineTop, width: line.glyphs.reduce((sum, g) => sum + g.width, 0), height: line.height, text: line.glyphs.map(g => g.text).join("")});
-    for (const g of line.glyphs) {
-      charge("objects", 1); charge("layoutWork", 1);
-      page.drawText(g.text, {x, y: box.height - baselineTop - line.ascent, size: g.size, font: g.font});
-      if (g.link) { charge("objects", 1); const ref = pdf.context.register(pdf.context.obj({Type: "Annot", Subtype: "Link", Rect: [x, box.height - baselineTop - line.height, x + g.width, box.height - baselineTop], Border: [0, 0, 0], A: {Type: "Action", S: "URI", URI: textString(g.link)}})); page.node.addAnnot(ref); }
-      x += g.width;
+    for (let i = 0; i < line.glyphs.length;) {
+      const g = line.glyphs[i]!; let codes = ""; let width = 0;
+      do {
+        charge("layoutWork", 1); const current = line.glyphs[i++]!; codes += current.code; width += current.width;
+      } while (i < line.glyphs.length && line.glyphs[i]!.font === g.font && line.glyphs[i]!.size === g.size && line.glyphs[i]!.link === g.link);
+      charge("objects", 1);
+      let fontKey = fontKeys.get(g.font);
+      if (!fontKey) {fontKey = page.node.newFontDictionary("Font", g.font.ref); fontKeys.set(g.font, fontKey);}
+      // Use admitted scalar codes directly: no cross-scalar ligatures or shaping.
+      page.pushOperators(pushGraphicsState(), setFillingRgbColor(0, 0, 0), beginText(), setFontAndSize(fontKey, g.size), setTextMatrix(1, 0, 0, 1, x, box.height - baselineTop - line.ascent), showText(PDFHexString.of(codes)), endText(), popGraphicsState());
+      if (g.link) { charge("objects", 1); const ref = pdf.context.register(pdf.context.obj({Type: "Annot", Subtype: "Link", Rect: [x, box.height - baselineTop - line.height, x + width, box.height - baselineTop], Border: [0, 0, 0], A: {Type: "Action", S: "URI", URI: textString(g.link)}})); page.node.addAnnot(ref); }
+      x += width;
     }
   };
   newPage();

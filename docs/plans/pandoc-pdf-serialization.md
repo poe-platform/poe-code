@@ -34,3 +34,10 @@ Additional graph regression: nonfinite PDF numbers were serialized rather than
 rejected. Serializer now rejects nonfinite numbers and direct cycles before output
 copying. Original failing regression passes; PDF tests (45), lint/typecheck and
 selected Pandoc workspace build closure pass.
+
+Text emission: original QA showed per-glyph extraction line breaks. Compatible
+glyphs now form one text run using admitted cmap glyph codes and metrics, without
+invoking font shaping tables. Original hostile-layout mock and alias regressions
+pass; conflicting emitted Unicode aliases are rejected explicitly. Validate
+all budgets before font buffers/metadata admission. All 45 PDF tests, package
+lint/typecheck and selected workspace build closure pass.

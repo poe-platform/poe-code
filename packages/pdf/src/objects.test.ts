@@ -62,9 +62,10 @@ it("maps each emitted text code to its font glyph and one Unicode scalar indepen
   const cmap = pdf.context.lookup(dict.get(PDFName.of("ToUnicode"))) as PDFRawStream;
   const mappings = new TextDecoder().decode(decodePDFRawStream(cmap).decode());
   const operators = pdf.context.enumerateIndirectObjects().map(([, object]) => object).filter((object): object is PDFRawStream => object instanceof PDFRawStream).map(stream => new TextDecoder().decode(decodePDFRawStream(stream).decode())).filter(text => text.includes(" Tj")).join("\n");
+  const codes = [...paragraph.runs[0]!.text].map(scalar => glyphId(scalar.codePointAt(0)!).toString(16).padStart(4, "0").toUpperCase()).join("");
+  expect(operators).toContain(`<${codes}> Tj`);
   for (const scalar of paragraph.runs[0]!.text) {
     const cp = scalar.codePointAt(0)!; const gid = glyphId(cp).toString(16).padStart(4, "0").toUpperCase();
-    expect(operators).toContain(`<${gid}> Tj`);
     expect(mappings).toContain(`<${gid}> <${cp.toString(16).padStart(4, "0").toUpperCase()}>`);
   }
 });
@@ -97,4 +98,71 @@ it("rejects unsupported outline programs before the font parser", async () => {
     const result = await renderPdf({fonts: [{id: "original-unsupported", bytes}], blocks: []}).then(() => "accepted", error => error.code as string);
     expect(result).toBe("E_CAPABILITY"); expect(parse).not.toHaveBeenCalled();
   } finally {parse.mockRestore();}
+});
+function aliasedFont() {
+  const bytes = new Uint8Array(fonts[0]!.bytes); const view = new DataView(bytes.buffer); let base = 0;
+  for (let i = 0; i < view.getUint16(4); i++) {const at = 12 + i * 16; if (view.getUint32(at) === 0x636d6170) base = view.getUint32(at + 8);}
+  const visited = new Set<number>();
+  for (let i = 0; i < view.getUint16(base + 2); i++) {
+    const sub = base + view.getUint32(base + 8 + i * 8); if (visited.has(sub)) continue; visited.add(sub);
+    const format = view.getUint16(sub);
+    if (format === 4) {
+      const count = view.getUint16(sub + 6) / 2;
+      for (let j = 0; j < count; j++) {
+        const first = view.getUint16(sub + 16 + count * 2 + j * 2); const last = view.getUint16(sub + 14 + j * 2);
+        if (233 < first || 233 > last) continue;
+        const rangeAt = sub + 16 + count * 6 + j * 2; const range = view.getUint16(rangeAt);
+        if (!range) throw new Error("Original fixture must use glyph array");
+        view.setUint16(rangeAt + range + 2 * (233 - first), (1 - view.getInt16(sub + 16 + count * 4 + j * 2)) & 65535);
+      }
+    } else if (format === 12) {
+      for (let j = 0; j < view.getUint32(sub + 12); j++) {
+        const at = sub + 16 + j * 12; if (view.getUint32(at) <= 233 && view.getUint32(at + 4) >= 233) {
+          if (view.getUint32(at) !== 233 || view.getUint32(at + 4) !== 233) throw new Error("Original fixture must have singleton group");
+          view.setUint32(at + 8, 1);
+        }
+      }
+    }
+  }
+  return {id: "aliased", bytes};
+}
+it("maps emitted scalar rather than all Unicode aliases of a font glyph", async () => {
+  const pdf = await PDFDocument.load(await renderPdf({fonts: [aliasedFont()], blocks: [{kind: "paragraph", runs: [{text: "é"}]}]}));
+  const dict = pdf.context.lookup(pdf.getPages()[0]!.node.Resources()!.lookup(PDFName.of("Font"), PDFDict).values()[0], PDFDict);
+  const cmap = pdf.context.lookup(dict.get(PDFName.of("ToUnicode"))) as PDFRawStream;
+  const source = new TextDecoder().decode(decodePDFRawStream(cmap).decode());
+  expect(source).toContain("<0001> <00E9>"); expect(source).not.toContain("<0001> <004100E9>");
+});
+it("rejects conflicting emitted scalar aliases instead of claiming correct extraction", async () => {
+  expect(await renderPdf({fonts: [aliasedFont()], blocks: [{kind: "paragraph", runs: [{text: "Aé"}]}]}).then(() => "accepted", error => error.code as string)).toBe("E_CAPABILITY");
+});
+it("emits consecutive compatible glyphs as one text run without losing their mapping", async () => {
+  const pdf = await PDFDocument.load(await renderPdf({fonts, blocks: [{kind: "paragraph", runs: [{text: "ABC"}]}]}));
+  const contents = pdf.getPages()[0]!.node.Contents() as PDFArray;
+  const stream = pdf.context.lookup(contents.get(0)) as PDFRawStream;
+  expect(new TextDecoder().decode(decodePDFRawStream(stream).decode())).toContain("<0001001A001B> Tj");
+});
+it("does not let an unused Unicode alias overwrite the emitted scalar mapping", async () => {
+  const pdf = await PDFDocument.load(await renderPdf({fonts: [aliasedFont()], blocks: [{kind: "paragraph", runs: [{text: "A"}]}]}));
+  const dict = pdf.context.lookup(pdf.getPages()[0]!.node.Resources()!.lookup(PDFName.of("Font"), PDFDict).values()[0], PDFDict);
+  const cmap = pdf.context.lookup(dict.get(PDFName.of("ToUnicode"))) as PDFRawStream;
+  const source = new TextDecoder().decode(decodePDFRawStream(cmap).decode());
+  expect(source).toContain("<0001> <0041>"); expect(source).not.toContain("<0001> <00E9>");
+});
+it("renders the scalar-only profile without entering unbounded font shaping tables", async () => {
+  const fontkit = (await import("@pdf-lib/fontkit")).default; const {vi} = await import("vitest");
+  const original = fontkit.create.bind(fontkit);
+  const parse = vi.spyOn(fontkit, "create").mockImplementation(bytes => {
+    const parsed = original(bytes); parsed.layout = () => {throw new Error("Original hostile shaping table");}; return parsed;
+  });
+  try {
+    expect(await renderPdf({fonts, blocks: [{kind: "paragraph", runs: [{text: "ABC"}]}]}).then(() => "rendered", error => error.code ?? error.message)).toBe("rendered");
+  } finally {parse.mockRestore();}
+});
+it("rejects invalid budgets before font buffers or metadata are admitted", async () => {
+  const {vi} = await import("vitest"); const charge = vi.fn();
+  for (const outputBytes of [Infinity, NaN, -1, Number.MAX_SAFE_INTEGER]) {
+    expect(await renderPdf({fonts, blocks: []}, {limits: {outputBytes}, charge}).then(() => "accepted", error => error.code as string)).toBe("E_LIMIT");
+    expect(charge.mock.calls.length).toBe(0);
+  }
 });

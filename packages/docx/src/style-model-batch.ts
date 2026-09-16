@@ -16,6 +16,7 @@ import { structureModelBatchActions } from "./structure-model-batch-operations.j
 import { modelContext } from "./model-context.js";
 import { UnsupportedProfileError } from "./package-xml.js";
 import { DocxUsageError } from "./argument-json.js";
+import { BoundsError } from "./model-errors.js";
 import { validateDocxBatch } from "./command.js";
 import { docxOperationSchemas } from "./operation-schema.js";
 import { BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, Styles, LatentStyles, LatentStyle, openDocumentStyleModel, StylePartView, styleModelMutations } from "./styles-model.js";
@@ -84,7 +85,8 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
       let found = named.get(record.resultHandle);
       if (record.index !== undefined) {
         const sequence = Array.isArray(found) || found instanceof InlineShapes || found instanceof Sections || found instanceof _Rows || found instanceof _Columns;
-        if (!sequence || !Number.isSafeInteger(record.index) || Number(record.index) < 0 || Number(record.index) >= (found as { length: number }).length) throw new DocxUsageError("Result handle index is out of bounds.");
+        if (!sequence) throw new DocxUsageError("The result handle does not support indexed selection.");
+        if (!Number.isSafeInteger(record.index) || Number(record.index) < 0 || Number(record.index) >= (found as { length: number }).length) throw new BoundsError("Result handle index is out of bounds.");
         found = Array.isArray(found) ? found[Number(record.index)] : (found as InlineShapes | Sections | _Rows | _Columns).at(Number(record.index));
       }
       if (record.key !== undefined) {

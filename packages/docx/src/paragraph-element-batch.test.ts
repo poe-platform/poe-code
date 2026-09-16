@@ -6,6 +6,10 @@ import {
   Paragraph,
   XmlElementView,
   StaleHandleError,
+  BoundsError,
+  DocumentBudget,
+  ResourceLimitError,
+  CancellationError,
   applyStyleModelBatch,
   createDocxInspectionCommandEngine,
   getDocxDiscovery,
@@ -54,7 +58,7 @@ async function fixture() {
   return textFixture(paragraph("Leave this berth") + paragraph("Inspect this buoy"));
 }
 
-async function cli(input: Uint8Array, args: string[]) {
+async function cli(input: Uint8Array, args: string[], signal = textContext.signal) {
   const volume = Volume.fromJSON({
     "/source.docx": Buffer.from(input),
     "/stdout": "",
@@ -69,7 +73,7 @@ async function cli(input: Uint8Array, args: string[]) {
   const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
     args: args.map((arg) => new TextEncoder().encode(arg)),
     cwd: "/",
-    signal: textContext.signal,
+    signal,
     filesystem: { readFile },
     stdin: { [Symbol.asyncIterator]: stdin },
     stdout: {
@@ -456,3 +460,419 @@ it("rejects evaluation, dynamic property access and ambient paths before input a
   expect(evaluate).not.toHaveBeenCalled();
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it.each([false, true])(
+  "keeps repeated getter aliases on the selected paragraph after a preceding sibling is removed (Strict=%s)",
+  async (strict) => {
+    const namespaceURI = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : w;
+    const input = await textFixture(
+      paragraph("Leave this berth") + paragraph("Inspect this buoy"),
+      {},
+      strict
+    );
+    const operations = [
+      ...select,
+      { ...select[1], resultHandle: "alias" },
+      { operation: getter, receiver: ref("paragraphs", 0), arguments: {}, resultHandle: "first" },
+      { operation: "model.XmlElementView.remove.call", receiver: ref("first"), arguments: {} },
+      {
+        operation: "model.XmlElementView.set_attribute.call",
+        receiver: ref("alias"),
+        arguments: { name: { namespaceURI, localName: "rsidR" }, value: "0123ABCD" }
+      },
+      { operation: "model.XmlElementView.attributes.get", receiver: ref("element"), arguments: {} },
+      {
+        operation: "model.text.paragraph.Paragraph.text.get",
+        receiver: ref("paragraphs", 1),
+        arguments: {}
+      },
+      {
+        operation: "model.XmlElementView.set_attribute.call",
+        receiver: ref("element"),
+        arguments: { name: { namespaceURI, localName: "rsidR" }, value: null }
+      },
+      { operation: "model.XmlElementView.attributes.get", receiver: ref("alias"), arguments: {} }
+    ];
+    const applied = await applyStyleModelBatch(input, { version: 1, operations }, textContext);
+    expect(applied.results[1]!.value).toEqual(applied.results[2]!.value);
+    expect(applied.results[6]!.value).toEqual([
+      { key: { namespaceURI, localName: "rsidR" }, value: "0123ABCD" }
+    ]);
+    expect(applied.results[7]!.value).toBe("Inspect this buoy");
+    expect(applied.results[9]!.value).toEqual([]);
+    const saved = await cli(input, [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations }),
+      "--output",
+      "-"
+    ]);
+    expect(saved.result.exitCode).toBe(0);
+    const reopened = await Document(
+      new Uint8Array(saved.volume.readFileSync("/stdout") as Buffer),
+      textContext
+    );
+    expect(reopened.paragraphs.map((p) => p.text)).toEqual(["Inspect this buoy"]);
+    expect(reopened.paragraphs[0]!.element.tag).toEqual({ namespaceURI, localName: "p" });
+    expect([...reopened.paragraphs[0]!.element.attributes]).toEqual([]);
+  }
+);
+
+it("retains child identity through insertion/removal via the actual getter and reloads the resulting text", async () => {
+  const input = await fixture();
+  const operations = [
+    ...select,
+    {
+      operation: "model.XmlElementView.children.get",
+      receiver: ref("element"),
+      arguments: {},
+      resultHandle: "children"
+    },
+    {
+      operation: "model.XmlElementView.insert.call",
+      receiver: ref("element"),
+      arguments: {
+        index: 0,
+        node: {
+          kind: "element",
+          name: { namespaceURI: w, localName: "r" },
+          children: [
+            {
+              kind: "element",
+              name: { namespaceURI: w, localName: "t" },
+              children: [{ kind: "text", text: "New marker" }]
+            }
+          ]
+        }
+      },
+      resultHandle: "added"
+    },
+    {
+      operation: "model.XmlElementView.serialize.call",
+      receiver: ref("children", 0),
+      arguments: {}
+    },
+    { operation: "model.XmlElementView.remove.call", receiver: ref("children", 0), arguments: {} },
+    { operation: "model.XmlElementView.serialize.call", receiver: ref("added"), arguments: {} }
+  ];
+  const applied = await applyStyleModelBatch(input, { version: 1, operations }, textContext);
+  const decode = (value: unknown) =>
+    Buffer.from((value as { base64: string }).base64, "base64").toString();
+  expect(decode(applied.results[4]!.value)).toContain("Inspect this buoy");
+  expect(decode(applied.results[6]!.value)).toContain("New marker");
+  expect(applied.affected).toBe(2);
+  const saved = await cli(input, [
+    "batch",
+    "/source.docx",
+    "--ops-json",
+    JSON.stringify({ version: 1, operations }),
+    "--output",
+    "-"
+  ]);
+  expect(saved.result.exitCode).toBe(0);
+  const reopened = await Document(
+    new Uint8Array(saved.volume.readFileSync("/stdout") as Buffer),
+    textContext
+  );
+  expect(reopened.paragraphs.map((p) => p.text)).toEqual(["Leave this berth", "New marker"]);
+});
+
+it("keeps the root getter live but invalidates descendants after whole-paragraph text replacement", async () => {
+  const doc = await Document(await fixture(), textContext);
+  const paragraph = doc.paragraphs[1]!,
+    element = paragraph.element,
+    child = element.children[0]!;
+  paragraph.text = "Replacement buoy";
+  expect(paragraph.element).toBe(element);
+  expect(element.tag).toEqual({ namespaceURI: w, localName: "p" });
+  expect(new TextDecoder().decode(element.serialize())).toContain("Replacement buoy");
+  for (const operation of [() => child.tag, () => child.serialize(), () => child.remove()])
+    expect(operation).toThrow(StaleHandleError);
+  expect(doc.paragraphs[1]!.text).toBe("Replacement buoy");
+});
+
+it("publishes no bytes when a later stale descendant fails after a valid edit", async () => {
+  const input = await fixture();
+  const operations = [
+    ...select,
+    {
+      operation: "model.XmlElementView.children.get",
+      receiver: ref("element"),
+      arguments: {},
+      resultHandle: "children"
+    },
+    {
+      operation: "model.text.paragraph.Paragraph.text.set",
+      receiver: ref("paragraphs", 1),
+      arguments: { value: "Replacement buoy" }
+    },
+    { operation: "model.XmlElementView.tag.get", receiver: ref("children", 0), arguments: {} }
+  ];
+  await expect(
+    applyStyleModelBatch(input, { version: 1, operations }, textContext)
+  ).rejects.toThrow(StaleHandleError);
+  for (const output of [
+    ["--output", "-"],
+    ["--dry-run", "--json"]
+  ]) {
+    const run = await cli(input, [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations }),
+      ...output
+    ]);
+    expect(run.result.exitCode).toBe(1);
+    expect(run.volume.readFileSync("/stderr", "utf8")).toContain("stale-selection");
+    if (output.includes("--json"))
+      expect(JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
+        ok: false,
+        data: null,
+        affected: 0,
+        errors: [{ code: "stale-selection" }]
+      });
+    else expect(run.volume.readFileSync("/stdout").length).toBe(0);
+  }
+});
+
+it("keeps returned attribute and byte snapshots independent of the live paragraph", async () => {
+  const doc = await Document(await fixture(), textContext),
+    element = doc.paragraphs[1]!.element;
+  const before = element.serialize(),
+    revision = doc.store.revision;
+  (element.attributes as Map<unknown, unknown>).set(
+    { namespaceURI: w, localName: "rsidR" },
+    "1234ABCD"
+  );
+  element.serialize().fill(0);
+  expect(Object.isFrozen(element.tag)).toBe(true);
+  expect(Object.isFrozen(element.children)).toBe(true);
+  expect(element.attributes.size).toBe(0);
+  expect(element.serialize()).toEqual(before);
+  expect(doc.store.revision).toBe(revision);
+});
+
+it.each([
+  { resultHandle: "paragraphs" },
+  { resultHandle: "paragraphs", index: -1 },
+  { resultHandle: "paragraphs", index: 0.5 },
+  { resultHandle: "paragraphs", index: "1" },
+  { resultHandle: "paragraphs", index: null },
+  { resultHandle: "paragraphs", index: 0, key: "one" },
+  { resultHandle: "paragraphs", index: 1, owner: "document" },
+  { resultHandle: "notDefined", index: 1 },
+  { resultHandle: "document" }
+])("rejects malformed getter receiver %j before acquiring the input", async (receiver) => {
+  const input = await fixture();
+  const operations = [select[0], { ...select[1], receiver }];
+  await expect(
+    applyStyleModelBatch(input, { version: 1, operations }, textContext)
+  ).rejects.toThrow(DocxUsageError);
+  const run = await cli(input, [
+    "batch",
+    "/source.docx",
+    "--ops-json",
+    JSON.stringify({ version: 1, operations }),
+    "--json"
+  ]);
+  expect(run.result.exitCode).toBe(2);
+  expect(run.readFile).not.toHaveBeenCalled();
+  expect(JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
+    ok: false,
+    data: null,
+    affected: 0
+  });
+});
+
+it.each([0, 2])(
+  "rejects selection beyond a %i-paragraph collection without publication",
+  async (count) => {
+    const input = await textFixture(
+      Array.from({ length: count }, (_, i) => paragraph(`Berth ${i}`)).join("")
+    );
+    const operations = [select[0], { ...select[1], receiver: ref("paragraphs", count) }];
+    await expect
+      .soft(applyStyleModelBatch(input, { version: 1, operations }, textContext))
+      .rejects.toThrow(BoundsError);
+    const run = await cli(input, [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations }),
+      "--json"
+    ]);
+    expect.soft(run.result.exitCode).toBe(1);
+    expect(run.readFile.mock.calls.map(([path]) => path)).toEqual(["/source.docx"]);
+    expect.soft(JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string)).toMatchObject({
+      ok: false,
+      data: null,
+      affected: 0,
+      errors: [{ code: "missing-selection" }]
+    });
+    expect(run.volume.readFileSync("/stderr", "utf8")).not.toContain("Berth");
+  }
+);
+
+it.each(["document", "paragraphs", "", "bad-name", "__proto__"])(
+  "rejects reserved, duplicate or malformed result binding %j",
+  async (resultHandle) => {
+    const operations = [select[0], { ...select[1], resultHandle }];
+    const input = await fixture();
+    await expect(
+      applyStyleModelBatch(input, { version: 1, operations }, textContext)
+    ).rejects.toThrow(DocxUsageError);
+    const run = await cli(input, [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations }),
+      "--json"
+    ]);
+    expect(run.result.exitCode).toBe(2);
+    expect(run.readFile).not.toHaveBeenCalled();
+  }
+);
+
+it("treats a constructor-named result binding as data and never as executable property access", async () => {
+  const operations = [
+    select[0],
+    { ...select[1], resultHandle: "constructor" },
+    { operation: "model.XmlElementView.tag.get", receiver: ref("constructor"), arguments: {} }
+  ];
+  const run = await cli(await fixture(), [
+    "batch",
+    "/source.docx",
+    "--ops-json",
+    JSON.stringify({ version: 1, operations }),
+    "--json"
+  ]);
+  expect(run.result.exitCode).toBe(0);
+  expect(
+    JSON.parse(run.volume.readFileSync("/stdout", "utf8") as string).data.results.at(-1).value
+  ).toEqual({ namespaceURI: w, localName: "p" });
+});
+
+it("rolls back forbidden cell removal and retains the original getter and child handles", async () => {
+  const input = await textFixture(table([paragraph("Keep the terminal cell paragraph")]));
+  const doc = await Document(input, textContext),
+    p = doc.tables[0]!.cell(0, 0).paragraphs[0]!;
+  const element = p.element,
+    child = element.children[0]!,
+    bytes = element.serialize();
+  const revision = doc.store.revision;
+  expect(() => element.remove()).toThrow();
+  expect(p.element).toBe(element);
+  expect(element.serialize()).toEqual(bytes);
+  expect(child.tag).toEqual({ namespaceURI: w, localName: "r" });
+  expect(doc.store.revision).toBe(revision);
+});
+
+it.each([
+  { name: { namespaceURI: "http://www.w3.org/2000/xmlns/", localName: "w" }, value: "urn:changed" },
+  { name: { namespaceURI: "urn:opaque", localName: "marker" }, value: "changed" },
+  { name: { namespaceURI: w, localName: "rsidR" }, value: "\0" }
+])("rejects unsupported XML attribute mutation %j and preserves live handles", async (args) => {
+  const input = await fixture(),
+    doc = await Document(input, textContext),
+    p = doc.paragraphs[1]!;
+  const bytes = p.element.serialize(),
+    child = p.element.children[0]!,
+    revision = doc.store.revision;
+  expect(() => p.element.set_attribute(args.name, args.value)).toThrow();
+  expect(p.element.serialize()).toEqual(bytes);
+  expect(child.tag.localName).toBe("r");
+  expect(doc.store.revision).toBe(revision);
+  const operations = [
+    ...select,
+    {
+      operation: "model.XmlElementView.set_attribute.call",
+      receiver: ref("element"),
+      arguments: args
+    }
+  ];
+  await expect(
+    applyStyleModelBatch(input, { version: 1, operations }, textContext)
+  ).rejects.toThrow();
+  const run = await cli(input, [
+    "batch",
+    "/source.docx",
+    "--ops-json",
+    JSON.stringify({ version: 1, operations }),
+    "--output",
+    "-"
+  ]);
+  expect(run.result.exitCode).toBe(1);
+  expect(run.volume.readFileSync("/stdout").length).toBe(0);
+});
+
+it("honors cancellation of an acquired paragraph view and of CLI admission", async () => {
+  const input = await fixture(),
+    controller = new AbortController();
+  const doc = await Document(input, { ...textContext, signal: controller.signal });
+  const p = doc.paragraphs[1]!,
+    element = p.element;
+  controller.abort();
+  for (const operation of [
+    () => p.element,
+    () => element.tag,
+    () => element.serialize(),
+    () => element.remove()
+  ])
+    expect(operation).toThrow(CancellationError);
+  await expect(
+    applyStyleModelBatch(
+      input,
+      { version: 1, operations: read },
+      { ...textContext, signal: controller.signal }
+    )
+  ).rejects.toThrow(CancellationError);
+  const run = await cli(
+    input,
+    [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations: read }),
+      "--json"
+    ],
+    controller.signal
+  );
+  expect(run.result.exitCode).toBe(130);
+  expect(run.readFile).not.toHaveBeenCalled();
+});
+
+it("shares the document work budget with an acquired getter and bounds XML serialization", async () => {
+  const input = await fixture();
+  const budget = new DocumentBudget({ work: 1_000_000 }, textContext.signal);
+  const doc = await Document(input, { ...textContext, budget }),
+    p = doc.paragraphs[1]!,
+    element = p.element;
+  const before = budget.usage.work;
+  void element.children;
+  expect(budget.usage.work).toBeGreaterThan(before);
+  budget.charge("work", budget.limits.work - budget.usage.work);
+  expect(() => element.children[0]!.tag).toThrow(ResourceLimitError);
+  const limited = await Document(input, {
+    ...textContext,
+    budget: new DocumentBudget({ serializedOutput: 1 })
+  });
+  expect(() => limited.paragraphs[1]!.element.serialize()).toThrow(ResourceLimitError);
+});
+
+it.each(["batchOperations=3", "serializedOutput=1"])(
+  "enforces CLI getter batch limit %s without partial output",
+  async (limit) => {
+    const run = await cli(await fixture(), [
+      "batch",
+      "/source.docx",
+      "--ops-json",
+      JSON.stringify({ version: 1, operations: read }),
+      "--limit",
+      limit
+    ]);
+    expect(run.result.exitCode).toBe(4);
+    expect(run.volume.readFileSync("/stdout").length).toBe(0);
+    expect(run.volume.readFileSync("/stderr", "utf8")).toContain("limit");
+  }
+);

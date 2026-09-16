@@ -146,7 +146,7 @@ import {
 } from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { createPendingPromiseCapability, getPromiseMember } from "./promise.js";
-import { resolveModuleNamespace } from "../modules/registry.js";
+import { importModuleNamespace } from "../modules/registry.js";
 import { acquireSandboxIterator, closeIterator, readIteratorResult, restoreSandboxIterator } from "./iteration.js";
 import { createIteratorResult } from "./iterator-result.js";
 import type { GeneratorExpressionState } from "./generator-expression-state.js";
@@ -255,6 +255,7 @@ export type InterpreterResult =
     };
 
 export type InterpretOptions = {
+  modulePhase?: "link" | "evaluate";
   script?: { strict: boolean };
   assertActive?: () => void;
   onSuspend?: () => void;
@@ -387,7 +388,20 @@ const dispatchTable: DispatchTable = {
       }
       const environment = context.scope.lookupModuleEnvironment();
       if (environment === undefined) throw new Error(`Unknown module '${specifier}'. No modules are registered.`);
-      await invokeBuiltinClosure(capability.resolve,[resolveModuleNamespace(environment,specifier)],context.budget,callContext,undefined);
+      const namespace = importModuleNamespace(environment,specifier,context.scope.lookupModuleId());
+      if (namespace instanceof Promise) {
+        void namespace.then(
+          value => invokeBuiltinClosure(capability.resolve,[value],context.budget,callContext,undefined),
+          error => {
+            if (isFatalSandboxError(error) || error instanceof HostCallResumabilityError) {
+              capability.rejectNative(error);
+              return;
+            }
+            const value = coerceThrownValue(error,context.budget,context.callStack,node.span,true);
+            return invokeBuiltinClosure(capability.reject,[value],context.budget,callContext,undefined);
+          }
+        ).catch(capability.rejectNative);
+      } else await invokeBuiltinClosure(capability.resolve,[namespace],context.budget,callContext,undefined);
     } catch (error) {
       const captured = isCapturedException(error) ? error : undefined;
       const reason = captured === undefined ? error : captured.reason;
@@ -479,7 +493,7 @@ export async function interpret(
           ? surfaceThrownValue(value, budget, [], node.span) : value;
       }
     }
-    hoistVarDeclarations(node, scope);
+    if (options.modulePhase !== "evaluate") hoistVarDeclarations(node, scope);
     if (options.script?.strict === false && node.type === "BlockStatement")
       prepareLegacyEvalFunctions(node.body, scope, { deletable: false });
     const context = {
@@ -494,6 +508,7 @@ export async function interpret(
       onSuspend: options.onSuspend,
       captureReplayState: options.captureReplayState,
       rootNode: node,
+      moduleInstantiated: options.modulePhase === "evaluate",
       scope,
       signal: options.signal,
       stats,
@@ -514,16 +529,21 @@ export async function interpret(
     const realm = activeFunctionRealmPrototypes.get(budget);
     if (realm !== undefined && !intrinsicRealmContexts.has(realm))
       intrinsicRealmContexts.set(realm, { ...context, scope: scope.globalScope() });
+    if (options.modulePhase === "link") {
+      if (node.type !== "BlockStatement") throw new TypeError("Module linking requires a statement list.");
+      predeclareBlockBindings(node, context);
+      return {ok: true, snapshot: {bindings: {}}, stats};
+    }
     const execute = () => node.type === "VariableDeclaration" && node.disposal !== undefined
       ? evaluateResourceScope(scope, budget, {...createCoercionContext(context), onSuspend: context.onSuspend, signal: context.signal}, () => evaluateNode(node, context))
       : evaluateNode(node, context);
     let evaluation = await withCancellationSignal(options.signal, () =>
-      // A reported async prefix suspends its own job while its caller continues.
-      // Nested host operations without a prefix retain the enclosing token.
+      // A reported async prefix must suspend its own job, not release its caller.
+      // Joined host operations without a prefix still share the caller's token.
       options.nested ? runAsyncPrefix(execute, options.onSuspend === undefined) : jobs.run(execute)
     );
     if (!options.nested) await jobs.drain();
-    if (options.script !== undefined && evaluation.kind === "error" && referenceErrorDiagnostics.has(evaluation.error)) {
+    if ((options.script !== undefined || options.modulePhase === "evaluate") && evaluation.kind === "error" && referenceErrorDiagnostics.has(evaluation.error)) {
       evaluation = createThrowCompletion(evaluation.error, budget, context.callStack, evaluation.error.span);
     }
     const snapshot = scope.snapshot();
@@ -1834,7 +1854,7 @@ function createBlockContext(node: BlockStatement, context: EvaluationContext): E
       generatorBlockScopes: new Map([...(context.generatorBlockScopes ?? []), [node.nodeId, scope]])
     })
   };
-  if (context.generatorResume === undefined) {
+  if (context.generatorResume === undefined && !(context.moduleInstantiated && node === context.rootNode)) {
     predeclareBlockBindings(node, blockContext);
   }
   return blockContext;
@@ -4541,7 +4561,7 @@ function setSuperProperty(
   const budget = context.budget;
   if (typeof base !== "object" || base === null)
     throw new TypeError("Cannot assign a property of null.");
-  if (typeof receiver === "object" && receiver !== null && guestProxyStates.has(receiver)) {
+  if (typeof receiver === "object" && receiver !== null && (guestProxyStates.has(receiver) || isSandboxModuleNamespace(receiver))) {
     return sandboxSetProperty(base, key, value, receiver, budget, createCoercionContext(context)).then(success => {
       if (!success && context.strict !== false) throw new TypeError("Cannot assign a super property.");
     });

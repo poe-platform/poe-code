@@ -12,7 +12,7 @@ import { weakCollectionStates } from "./weak-collection.js";
 import { wellKnownSymbols } from "./symbols.js";
 import { hostFunctionMetadata } from "./host-function-metadata.js";
 import { NativeSuppressedError } from "../error/native-suppressed-error.js";
-import { isSandboxModuleNamespace } from "./module-namespace.js";
+import { isSandboxModuleNamespace, moduleNamespaceRetainedValues } from "./module-namespace.js";
 import { arrayBufferDataProperties, arrayBufferLength, arrayBufferOptions, copyArrayBufferStorage, isSandboxArrayBuffer } from "./array-buffer.js";
 import { isSandboxSharedArrayBuffer, sharedArrayBufferStorage } from "./shared-array-buffer.js";
 import { copyDataViewStorage, dataViewBuffer, dataViewDataProperties, dataViewGetters, isSandboxDataView } from "./data-view.js";
@@ -847,6 +847,12 @@ export function measureSandboxData(
     }
 
     usage += 1;
+    const moduleRoots = moduleNamespaceRetainedValues.get(value);
+    if (moduleRoots !== undefined) {
+      for (const key of Reflect.ownKeys(value)) { usage += 1; visit(key,depth + 1); }
+      for (const root of moduleRoots()) visit(root,depth + 1);
+      return;
+    }
     const proxyState = guestProxyStates.get(value);
     const finalization = finalizationRegistryStates.get(value);
     if (finalization !== undefined) {
@@ -1922,7 +1928,7 @@ function copyFromSandbox(
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
     return copy;
   }
-  if (!isSandboxClosure(value) && hasGuestObjectState(value)) {
+  if (!isSandboxClosure(value) && !isSandboxModuleNamespace(value) && hasGuestObjectState(value)) {
     throw new TypeError("Guest prototype links and custom descriptors cannot be copied as data.");
   }
 
@@ -2180,7 +2186,7 @@ function copyFromSandbox(
     return copy;
   }
 
-  if (isPlainObject(value)) {
+  if (isPlainObject(value) || isSandboxModuleNamespace(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) {
       return existing;

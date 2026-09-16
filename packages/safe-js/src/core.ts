@@ -10,3 +10,5 @@ export { createReplayableRandom, type ReplayableRandom } from "./random.js";
 export type { RunClock, RunClockSnapshot, RunRandom } from "./run.js";
 export { Budget } from "./interp/budget.js";
 export type { SnapshotValidationCode } from "./snapshot/validation.js";
+
+export type {SourceResolver, SourceModule} from "./modules/source-graph.js";

@@ -1,4 +1,5 @@
 import { SandboxError } from "../interp/budget.js";
+import { splitSourceLines as splitLines } from "./source-lines.js";
 
 export type InterpreterDiagnostic = {
   kind: string;
@@ -387,10 +388,6 @@ function createExcerpt(
   }
 
   return excerpt;
-}
-
-function splitLines(source: string): string[] {
-  return source.split(/\r\n|\n|\r/);
 }
 
 function createCaretPadding(line: string, column: number, hasSource: boolean): string {

@@ -1,3 +1,4 @@
+import {hashParsedAst} from "./parse/hash.js";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { types } from "node:util";
 import { guestProxyStates } from "./interp/guest-proxy.js";
@@ -59,6 +60,7 @@ import {
   type HostOperation,
   type SafeJSExtension
 } from "./extensions.js";
+import {SourceModuleGraph, type SourceResolver} from "./modules/source-graph.js";
 import { createModuleEnvironment, resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 import { parseExecutableModule } from "./parse/parser.js";
 import { createReplayableRandom } from "./random.js";
@@ -77,6 +79,7 @@ export type RealmLimits = {
   nestedEvaluations?: number;
 };
 export type RealmOptions = {
+  sourceResolver?: SourceResolver;
   clock?: RunClock;
   bindings?: Record<string, CallerInjectedBinding>;
   modules?: ModuleRegistry;
@@ -96,7 +99,7 @@ export type RealmResult =
   | Omit<Extract<InterpreterResult, { ok: false }>, "snapshot">;
 export type SafeJSRealm = ExecutionControl & {
   readonly extensions: readonly SafeJSExtension["manifest"][];
-  evaluate(source: string, options?: { filename?: string }): Promise<RealmResult>;
+  evaluate(source: string, options?: { filename?: string; sourceType?: "module" }): Promise<RealmResult>;
   startCallback(callback: unknown, options?: CallbackOptions): CallbackInvocation;
   invokeCallback(callback: unknown, options?: CallbackOptions): Promise<unknown>;
   releaseCallback(callback: unknown): void;
@@ -144,6 +147,8 @@ class RealmState {
   readonly globals: Record<string, CallerInjectedBinding>;
   readonly builtinBindings: ReturnType<typeof createBuiltinBindings>;
   scope?: Scope;
+  sourceGraph?: SourceModuleGraph;
+  sourceModuleHash?: string;
   active?: Promise<unknown>;
   disposal?: Promise<void>;
   closed = false;
@@ -751,10 +756,26 @@ class RealmState {
   async evaluateRaw(
     source: string,
     filename = "<realm>",
-    nested = false
+    nested = false,
+    sourceType?: "module"
   ): Promise<InterpreterResult> {
     this.assertOpen();
     if (typeof source !== "string") throw new TypeError("Realm source must be a string.");
+    if (sourceType === "module") {
+      this.initialize();
+      this.sourceGraph ??= new SourceModuleGraph({
+        resolver:this.options.sourceResolver ?? (() => undefined), scope:this.scope!,
+        modules:createModuleEnvironment(this.modules,{...this.bridgeOptions(),wrappedModules:this.convertedModules}),
+        budget:this.budget, compilation:this.compilation, signal:this.controller.signal,
+        jobs:this.queue, assertActive:this.assertOpen, surfaceUnhandledThrows:true
+      });
+      const before = this.sourceGraph.stats.nodeVisits;
+      const namespace = await this.sourceGraph.evaluateSource({id:filename,source}, module => {
+        this.sourceModuleHash = hashParsedAst(module);
+      });
+      await this.sourceGraph.settle();
+      return {ok:true,returnValue:namespace,snapshot:{bindings:{}},stats:{nodeVisits:this.sourceGraph.stats.nodeVisits - before,currentDataSize:this.budget.currentDataSize,peakDataSize:this.budget.peakDataSize}};
+    }
     const module = parseExecutableModule(source, filename, this.lease.owner);
     this.initialize();
     const moduleEnvironment = createModuleEnvironment(this.modules, {...this.bridgeOptions(),wrappedModules:this.convertedModules});
@@ -822,9 +843,9 @@ class RealmState {
     }
   };
 
-  evaluate = async (source: string, options: { filename?: string } = {}): Promise<RealmResult> =>
+  evaluate = async (source: string, options: { filename?: string; sourceType?: "module" } = {}): Promise<RealmResult> =>
     this.perform(async () => {
-      const result = await this.evaluateRaw(source, options.filename);
+      const result = await this.evaluateRaw(source, options.filename, false, options.sourceType);
       if (!result.ok) {
         await this.dispose();
         return { ok: false, error: result.error, stats: result.stats };
@@ -901,6 +922,7 @@ class RealmState {
     for (const release of this.referenceReleases) release();
     this.referenceReleases.clear();
     this.budget.setRetainedValues(this, undefined);
+    this.sourceGraph?.close();
     releaseObjectPrototype(this.budget);
     this.disposal = (async () => {
       const errors: unknown[] = [];
@@ -982,13 +1004,13 @@ export async function runWithExtensions(source: string, options: RunOptions, job
     );
   const state = new RealmState(readRealmOptions(options, true), jobs);
   try {
-    const result = await state.perform(() => state.evaluateRaw(source, options.filename));
-    if (result.ok) encodeReplayData(result.returnValue);
+    const result = await state.perform(() => state.evaluateRaw(source, options.filename, false, options.sourceType));
+    if (result.ok && options.sourceType !== "module") encodeReplayData(result.returnValue);
     return {
       ...result,
       snapshot: {
         version: 1,
-        sourceHash: hashSource(source),
+        sourceHash: state.sourceModuleHash ?? hashSource(source),
         bindings: {},
         replayError: "Live realm state cannot be serialized or replayed."
       }
@@ -1012,6 +1034,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
   const supported = new Set([
     "bindings",
     "modules",
+    "sourceResolver",
     "extensions",
     "builtinOverrides",
     "grants",
@@ -1023,7 +1046,7 @@ function readRealmOptions(value: unknown, oneShot = false): RealmOptions {
     "limits"
   ]);
   for (const [key, entry] of Object.entries(options)) {
-    if (supported.has(key) || (oneShot && (key === "filename" || entry === undefined))) continue;
+    if (supported.has(key) || (oneShot && (key === "filename" || key === "sourceType" || entry === undefined))) continue;
     throw new TypeError(`Unsupported ${oneShot ? "extension-run" : "realm"} option '${key}'.`);
   }
   return options as RealmOptions;

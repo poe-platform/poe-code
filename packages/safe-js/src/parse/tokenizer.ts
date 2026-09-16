@@ -1251,6 +1251,11 @@ function shouldRejectRegexLiteral(
     return true;
   }
 
+  // `new` is tokenized as an identifier but starts a constructor expression.
+  // An IdentifierName in a member access still ends an expression.
+  if (previousToken.type === "identifier" && previousToken.value === "new" &&
+      tokens.at(-2)?.value !== "." && tokens.at(-2)?.value !== "?.") return true;
+
   if (
     previousToken.type === "identifier" ||
     previousToken.type === "private-identifier" ||

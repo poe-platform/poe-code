@@ -414,7 +414,7 @@ There are no runtime environment variables to set. `makeEnvModule({ allow, value
 | `largeLiteralThreshold` | Threshold for large-literal diagnostics. |
 | `fix`, `fixRanges` | Apply available fixes, optionally restricted to source ranges. |
 
-`parse(source, filename?)` parses a single statement/expression; `parseModule(source, filename?)` parses a module. `formatInterpreterError(error, { source?, filename?, hostCallName?, maxMessageLength? })` formats an error; `(source, diagnostic)` is also supported.
+`parse(source, filename?)` parses a single statement/expression; `parseModule(source, filename?)` parses a harness module. `parseSourceModule(source, filename?)` uses the same built-in parser for ECMAScript source modules and returns executable syntax plus import/export metadata. Source-module execution uses `run(source, { sourceType: "module", sourceResolver })`; the resolver explicitly grants each imported source. `formatInterpreterError(error, { source?, filename?, hostCallName?, maxMessageLength? })` formats an error; `(source, diagnostic)` is also supported.
 Diagnostic module parsing retains missing-`async` forms so lint can report and
 autofix them. Executable parsing and restored-source compilation reject `await`
 inside non-async functions, including nested functions and template substitutions.

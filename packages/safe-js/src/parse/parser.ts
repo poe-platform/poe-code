@@ -5,6 +5,7 @@ import { assignIds } from "./assign-ids.js";
 import { evalFunctionDeclarations, functionSources, functionStrictness, templateSources } from "./function-source.js";
 import { formatParseError } from "./format-error.js";
 import { createSyntaxDiagnostic } from "./syntax-diagnostic.js";
+import type { ParsedSourceModule, SourceExport, SourceModuleSyntax } from "./module-syntax.js";
 import {
   createExportDefaultDeclaration,
   createExportNamedDeclaration,
@@ -17,6 +18,7 @@ import { CompileScope, RegexCompileGuard } from "../interp/regex/compile-guard.j
 import { SandboxError, type CompileOwner } from "../interp/budget.js";
 
 export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-export.js";
+export type { ParsedSourceModule, SourceImport, SourceExport } from "./module-syntax.js";
 
 const MAX_CONDITIONAL_EXPRESSION_DEPTH = 256;
 const MAX_IF_STATEMENT_DEPTH = 2_048;
@@ -701,6 +703,46 @@ export function parseModule(source: string, filename = "<input>", owner?: Compil
   }
 }
 
+export function parseSourceModule(source: string, filename = "<input>", owner?: CompileOwner): ParsedSourceModule {
+  const compilation = new CompileScope(owner);
+  const syntax: SourceModuleSyntax = {imports: [], exports: [], moduleRequests: []};
+  let parser: Parser | undefined;
+  try {
+    const limit = owner?.budget.limits.stringLength;
+    if (limit !== undefined && source.length > limit)
+      throw new SandboxError({budget: "stringLength", current: source.length, limit});
+    owner?.budget.visitNode(source.length);
+    parser = new Parser(
+      tokenize(source, {allowRegexLiterals: true, statementList: true, compilation}),
+      source, compilation, "top-level",
+      {...ordinaryFunctionContext, newTarget: false, return: false, requireAsyncAwait: true,
+        grammar: {await: true, yield: false, strict: true}}, true, syntax
+    );
+    const module = assignIds(parser.parseModule());
+    if (source.includes("#")) validatePrivateNames(module);
+    let hasTLA = false;
+    const pending: unknown[] = [module];
+    while (pending.length > 0) {
+      const node = pending.pop();
+      if (node === null || typeof node !== "object") continue;
+      owner?.budget.visitNode();
+      if ("type" in node && ["FunctionDeclaration", "FunctionExpression", "ArrowFunctionExpression"].includes(String(node.type))) continue;
+      if ("type" in node && (node.type === "AwaitExpression" || ("await" in node && node.await === true) ||
+          (node.type === "VariableDeclaration" && "disposal" in node && node.disposal === "async"))) hasTLA = true;
+      pending.push(...Object.values(node));
+    }
+    return {...syntax, module, hasTLA, requests: [...new Set(syntax.moduleRequests.map(request => request.specifier))]};
+  } catch (error) {
+    if (error instanceof SandboxError) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    const position = parser?.position;
+    throw createSyntaxDiagnostic(source, filename, new SyntaxError(
+      message.includes(" at line ") || position === undefined ? message
+        : `${message} at line ${position.line}, column ${position.column}.`
+    ));
+  } finally { compilation.dispose(); }
+}
+
 export function parseExecutableModule(
   source: string,
   filename = "<input>",
@@ -843,6 +885,8 @@ class Parser {
   private readonly functionScopes = new WeakSet<ParserScope>();
   private readonly parenthesizedNodes = new WeakSet<Expression>();
   private readonly varNames = new WeakMap<ParserScope, Set<string>>();
+  private readonly sourceExportNames = new Set<string>();
+  private readonly sourceLocalExports = new Map<string, Identifier>();
 
   constructor(
     private readonly tokens: Token[],
@@ -850,10 +894,13 @@ class Parser {
     private readonly compilation?: CompileScope,
     private functionContext: FunctionParseContext = "top-level",
     private lexicalContext: LexicalParseContext = { ...ordinaryFunctionContext, newTarget: false },
-    private readonly allowImportMeta = true
+    private readonly allowImportMeta = true,
+    private readonly moduleSyntax?: SourceModuleSyntax
   ) {
     this.functionScopes.add(this.scopes[0]!);
   }
+
+  get position(): Position { return (this.tokens[this.index] ?? this.tokens[this.tokens.length - 1]!).start; }
 
   private withFunctionSource<T extends FunctionNode | ClassNode>(node: T): T {
     if ((node.type === "FunctionDeclaration" || node.type === "FunctionExpression") &&
@@ -904,11 +951,29 @@ class Parser {
     const body: Statement[] = [];
 
     while (this.currentToken().type !== "eof") {
+      if (this.moduleSyntax !== undefined) {
+        const token = this.currentToken();
+        if (token.value === "import" && token.type === "keyword" &&
+            this.peekToken(1).value !== "(" && !this.isImportMetaStart()) {
+          this.parseSourceImport();
+          continue;
+        }
+        if (this.isExportToken(token)) {
+          const statement = this.parseSourceExport();
+          if (statement !== undefined) body.push(statement);
+          continue;
+        }
+      }
       const statement = this.parseTopLevelItem();
       body.push(statement);
       while (statement.type !== "EmptyStatement" && this.consumePunctuator(";") !== undefined) {
         continue;
       }
+    }
+
+    for (const [name, identifier] of this.sourceLocalExports) {
+      if (!this.scopes[0]!.has(name) && !this.varNames.get(this.scopes[0]!)?.has(name))
+        throw new Error(`Export '${name}' is not defined at line ${identifier.span.start.line}, column ${identifier.span.start.column}.`);
     }
 
     const end = this.currentToken().end;
@@ -948,6 +1013,9 @@ class Parser {
     }
 
     const token = this.currentToken();
+    if (this.moduleSyntax !== undefined && !this.shouldParseTopLevelStatement() && token.value !== "{") {
+      return this.parseStatement();
+    }
     if (
       token.type === "keyword" &&
       token.value === "return" &&
@@ -1505,7 +1573,7 @@ class Parser {
       }
       if (["const", "class", "function", "export"].includes(token.value) ||
           (token.value === "let" && this.isVariableDeclarationStart(false)) ||
-          (token.value === "import" && this.peekToken(1).value !== "(") ||
+          (token.value === "import" && this.peekToken(1).value !== "(" && !this.isImportMetaStart()) ||
           this.isAsyncFunctionDeclarationStart() || this.resourceDeclarationHint() !== undefined)
         throw new DisallowedSyntaxError("labeled declaration", firstLabelToken.start);
       const statement = this.parseStatement(false);
@@ -1597,6 +1665,8 @@ class Parser {
           const consequent: Statement[] = [];
           while (!this.isSwitchClauseStart() && !this.isCurrentPunctuator("}")) {
             const statement = this.parseStatement();
+            if (statement.type === "VariableDeclaration" && statement.disposal !== undefined)
+              throw new Error(`Resource declarations require a block in switch clauses at line ${statement.span.start.line}, column ${statement.span.start.column}.`);
             consequent.push(statement);
             while (
               statement.type !== "EmptyStatement" &&
@@ -1852,6 +1922,179 @@ class Parser {
       finalizer,
       span: createSpan(tryToken.start, finalizer?.span.end ?? handler?.span.end ?? block.span.end)
     };
+  }
+
+  private parseModuleName(): Identifier | StringLiteral {
+    const token = this.currentToken();
+    if (token.type !== "string") return this.parseIdentifierName();
+    this.index++;
+    const name = createStringLiteral(token);
+    for (const character of name.value) {
+      const code = character.codePointAt(0)!;
+      if (code >= 0xd800 && code <= 0xdfff) throw unexpectedTokenError(token);
+    }
+    return name;
+  }
+
+  private finishModuleDeclaration(): void {
+    if (this.consumePunctuator(";") !== undefined) return;
+    const next = this.currentToken();
+    if (next.type !== "eof" && !hasLineBreakBetween(this.previousToken(), next))
+      throw unexpectedTokenError(next);
+  }
+
+  private parseSourceRequest(): string {
+    const token = this.currentToken();
+    if (token.type !== "string") throw unexpectedTokenError(token);
+    this.index++;
+    const specifier = createStringLiteral(token).value;
+    const attributes: Array<[string, string]> = [];
+    if (this.consumeKeyword("with") !== undefined) {
+      this.expectPunctuator("{");
+      const names = new Set<string>();
+      while (this.currentToken().value !== "}") {
+        const key = this.currentToken();
+        const name = key.type === "string" ? (this.index++, createStringLiteral(key).value)
+          : this.parseIdentifierName().name;
+        if (names.has(name)) throw unexpectedTokenError(key);
+        names.add(name);
+        this.expectPunctuator(":");
+        const value = this.currentToken();
+        if (value.type !== "string") throw unexpectedTokenError(value);
+        this.index++;
+        attributes.push([name, createStringLiteral(value).value]);
+        if (this.consumePunctuator(",") === undefined) break;
+      }
+      this.expectPunctuator("}");
+    }
+    this.moduleSyntax!.moduleRequests.push({specifier, attributes});
+    this.finishModuleDeclaration();
+    return specifier;
+  }
+
+  private parseSourceImport(): void {
+    this.expectKeyword("import");
+    if (this.currentToken().type === "string") {
+      this.parseSourceRequest();
+      return;
+    }
+    const bindings: Array<{imported: string; local: Identifier; namespace?: true}> = [];
+    if (this.currentToken().value !== "{" && this.currentToken().value !== "*") {
+      const local = this.parseBindingIdentifier();
+      bindings.push({imported: "default", local});
+      if (this.consumePunctuator(",") === undefined) {
+        this.expectModuleFrom();
+        const request = this.parseSourceRequest();
+        this.declareBinding(local);
+        this.moduleSyntax!.imports.push({request, imported: "default", local: local.name});
+        return;
+      }
+    }
+    if (this.consumePunctuator("*") !== undefined) {
+      this.expectKeyword("as");
+      bindings.push({imported: "*", local: this.parseBindingIdentifier(), namespace: true});
+    } else {
+      this.expectPunctuator("{");
+      while (this.currentToken().value !== "}") {
+        const imported = this.parseModuleName();
+        let local: Identifier;
+        if (this.consumeKeyword("as") !== undefined) local = this.parseBindingIdentifier();
+        else {
+          this.index--;
+          local = this.parseBindingIdentifier();
+        }
+        bindings.push({imported: imported.type === "Identifier" ? imported.name : imported.value, local});
+        if (this.consumePunctuator(",") === undefined) break;
+      }
+      this.expectPunctuator("}");
+    }
+    this.expectModuleFrom();
+    const request = this.parseSourceRequest();
+    for (const binding of bindings) {
+      this.declareBinding(binding.local);
+      this.moduleSyntax!.imports.push({request, imported: binding.imported, local: binding.local.name,
+        ...(binding.namespace === true ? {namespace: true} : {})});
+    }
+  }
+
+  private expectModuleFrom(): void {
+    const token = this.currentToken();
+    if (token.type !== "identifier" || token.value !== "from" ||
+        token.end.offset - token.start.offset !== token.value.length) throw unexpectedTokenError(token);
+    this.index++;
+  }
+
+  private recordSourceExport(entry: SourceExport, span: SourceSpan): void {
+    if (entry.exported !== undefined) {
+      if (this.sourceExportNames.has(entry.exported))
+        throw new Error(`Duplicate export '${entry.exported}' at line ${span.start.line}, column ${span.start.column}.`);
+      this.sourceExportNames.add(entry.exported);
+    }
+    this.moduleSyntax!.exports.push(entry);
+  }
+
+  private parseSourceExport(): Statement | undefined {
+    const start = this.currentToken();
+    if (start.end.offset - start.start.offset !== start.value.length) throw unexpectedTokenError(start);
+    this.index++;
+    if (this.currentToken().value === "default") {
+      const token = this.currentToken();
+      if (token.end.offset - token.start.offset !== token.value.length) throw unexpectedTokenError(token);
+      const statement = this.parseExportDefaultDeclaration(start);
+      this.recordSourceExport({exported: "default", local: "default"}, createTokenSpan(start));
+      if (statement.declaration.type === "FunctionDeclaration" || statement.declaration.type === "ClassDeclaration" ||
+          statement.declaration.type === "ClassExpression") this.consumePunctuator(";");
+      else this.finishModuleDeclaration();
+      return statement;
+    }
+    if (this.consumePunctuator("*") !== undefined) {
+      const name = this.consumeKeyword("as") === undefined ? undefined : this.parseModuleName();
+      this.expectModuleFrom();
+      const request = this.parseSourceRequest();
+      this.recordSourceExport({request, ...(name === undefined ? {} : {
+        exported: name.type === "Identifier" ? name.name : name.value, imported: "*", namespace: true
+      })}, name?.span ?? createTokenSpan(start));
+      return;
+    }
+    if (this.consumePunctuator("{") !== undefined) {
+      const entries: Array<{local: Identifier | StringLiteral; exported: Identifier | StringLiteral}> = [];
+      while (this.currentToken().value !== "}") {
+        const local = this.parseModuleName();
+        const exported = this.consumeKeyword("as") === undefined ? local : this.parseModuleName();
+        entries.push({local, exported});
+        if (this.consumePunctuator(",") === undefined) break;
+      }
+      this.expectPunctuator("}");
+      let request: string | undefined;
+      if (this.currentToken().value === "from") {
+        this.expectModuleFrom();
+        request = this.parseSourceRequest();
+      } else this.finishModuleDeclaration();
+      for (const entry of entries) {
+        const local = entry.local.type === "Identifier" ? entry.local.name : entry.local.value;
+        const exported = entry.exported.type === "Identifier" ? entry.exported.name : entry.exported.value;
+        if (request === undefined) {
+          if (entry.local.type !== "Identifier")
+            throw new Error(`Local export must be an identifier at line ${entry.local.span.start.line}, column ${entry.local.span.start.column}.`);
+          this.sourceLocalExports.set(local, entry.local);
+        }
+        this.recordSourceExport({exported, ...(request === undefined ? {local} : {request, imported: local})}, entry.exported.span);
+      }
+      return;
+    }
+    let declaration: VariableDeclaration | FunctionDeclaration | ClassDeclaration;
+    if (this.isVariableDeclarationStart()) {
+      declaration = this.parseVariableDeclaration();
+      this.finishModuleDeclaration();
+    } else if (this.currentToken().value === "function" || this.isAsyncFunctionDeclarationStart()) {
+      declaration = this.parseFunctionDeclaration();
+    } else if (this.currentToken().value === "class") declaration = this.parseClass(true) as ClassDeclaration;
+    else throw unexpectedTokenError(this.currentToken());
+    const names = declaration.type === "VariableDeclaration"
+      ? declaration.declarations.flatMap(item => [...boundIdentifiers(item.id)]) : [declaration.id!];
+    for (const identifier of names)
+      this.recordSourceExport({exported: identifier.name, local: identifier.name}, identifier.span);
+    return declaration;
   }
 
   private parseImportDeclaration(): ImportDeclaration {
@@ -2406,7 +2649,7 @@ class Parser {
   private isContextualIdentifier(token: Token): boolean {
     const grammar = this.lexicalContext.grammar;
     return grammar !== undefined && (token.type === "keyword" || token.type === "escaped-keyword") &&
-      ((token.value === "await" && !grammar.await) ||
+      ((token.value === "await" && !grammar.await && this.moduleSyntax === undefined) ||
         (token.value === "yield" && !grammar.yield && !grammar.strict) ||
         (token.value === "let" && !grammar.strict));
   }
@@ -3957,6 +4200,8 @@ class Parser {
   }
 
   private toAssignmentTarget(node: Expression): AssignmentTarget {
+    if (node.type === "MetaProperty" && this.moduleSyntax !== undefined)
+      throw invalidAssignmentTargetError(node.span.start);
     if (node.type === "Identifier") {
       this.assertUnrestrictedTarget(node);
       return node;
@@ -4465,7 +4710,8 @@ class Parser {
     }
 
     const existing = scope.get(identifier.name);
-    const variableFunction = kind === "function" && this.functionScopes.has(scope);
+    const variableFunction = kind === "function" && this.functionScopes.has(scope) &&
+      !(this.moduleSyntax !== undefined && scope === this.scopes[0]);
     if (
       (existing !== undefined &&
         !(variableFunction && (existing === "function" || existing === "parameter")) &&
@@ -4485,7 +4731,8 @@ class Parser {
       const scope = this.scopes[index]!;
       const existing = scope.get(identifier.name);
       if (existing === "lexical" || existing === "legacy-function" ||
-          (existing === "function" && !this.functionScopes.has(scope))) {
+          (existing === "function" && (!this.functionScopes.has(scope) ||
+            (this.moduleSyntax !== undefined && scope === this.scopes[0])))) {
         throw new Error(
           `Cannot redeclare binding '${identifier.name}' at line ${identifier.span.start.line}, column ${identifier.span.start.column}.`
         );
@@ -4580,7 +4827,7 @@ class Parser {
   }
 
   private isImportMetaStart(): boolean {
-    return isImportMetaTokenSequence(this.currentToken(), this.peekToken(1), this.peekToken(2));
+    return isImportMetaTokenSequence(this.currentToken(), this.peekToken(1), this.peekToken(2), this.moduleSyntax !== undefined);
   }
 
   private parseImportMeta(): MetaProperty {

@@ -52,6 +52,8 @@ function createUsage(): string {
     "Compatibility alias: poe-safejs",
     "",
     "Options:",
+    "  --source-type module  execute an ECMAScript source module",
+    "  --source-root <path>  grant relative module files within this directory",
     "  --fix                 apply lint fixes before running",
     "  --fs                  register the fs module: a real filesystem, unlike the agent",
     "                        and metric stubs this runner bundles",

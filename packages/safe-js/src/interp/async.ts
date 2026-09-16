@@ -101,6 +101,7 @@ export type AsyncEvaluationContext = {
   onSuspend?: () => void;
   captureReplayState?: () => unknown;
   rootNode?: ParseResult;
+  moduleInstantiated?: boolean;
   functionBody?: BlockStatement;
   restoredLoopIterations: Map<number, LoopIterationSnapshot>;
   resumeTarget?: { nodeId?: number };

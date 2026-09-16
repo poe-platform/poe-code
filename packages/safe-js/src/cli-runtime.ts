@@ -1,3 +1,4 @@
+import {parseSourceModule} from "./parse/source-module.js";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path, { dirname, extname } from "node:path";
 import { formatWithOptions } from "node:util";
@@ -69,6 +70,8 @@ type HarnessMeta = {
 };
 
 type ParsedArgs = {
+  sourceType?: "module";
+  sourceRoot?: string;
   filepath?: string;
   fix: boolean;
   fs: boolean;
@@ -234,6 +237,19 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 
     if (arg === "--fs") {
       parsed.fs = true;
+      continue;
+    }
+
+    if (arg === "--source-type") {
+      const type = readFlagValue(argv,index,arg);
+      if (type !== "module") throw new CliExitError("--source-type must be module.",EXIT_RUNTIME);
+      parsed.sourceType = type;
+      index += 1;
+      continue;
+    }
+    if (arg === "--source-root") {
+      parsed.sourceRoot = readFlagValue(argv,index,arg);
+      index += 1;
       continue;
     }
 
@@ -433,7 +449,13 @@ async function runScriptFile(
   const modules = excludeHarnessModule(runtime.registry, loaded.isRawScript);
   let executableSource = loaded.executableSource;
   const diagnosticFilename = parsed.filepath ?? filepath;
-  const lintResult = parsed.fix
+  if (parsed.sourceRoot !== undefined && parsed.sourceType !== "module")
+    throw new CliExitError("--source-root requires --source-type module.",EXIT_RUNTIME);
+  if (parsed.sourceType === "module") {
+    if (parsed.fix) throw new CliExitError("--fix applies to harness sources, not source modules.",EXIT_RUNTIME);
+    parseSourceModule(executableSource,diagnosticFilename);
+  }
+  const lintResult = parsed.sourceType === "module" ? [] : parsed.fix
     ? lint(executableSource, {
         allowedExportNames: ["schema"],
         filename: diagnosticFilename,
@@ -506,7 +528,9 @@ async function runScriptFile(
         parsed.maxSteps === undefined && parsed.dataSize === undefined
           ? undefined
           : new Budget({ dataSize: parsed.dataSize, maxSteps: parsed.maxSteps }),
-      entryPointArgs: hasDefaultExport(executableSource, diagnosticFilename) ? [] : undefined,
+      entryPointArgs: parsed.sourceType === "module" ? undefined : hasDefaultExport(executableSource, diagnosticFilename) ? [] : undefined,
+      sourceType:parsed.sourceType,
+      sourceRoot:parsed.sourceRoot === undefined ? undefined : path.resolve(options.cwd,parsed.sourceRoot),
       filename: diagnosticFilename,
       modules,
       signal: abortController.signal,
@@ -781,7 +805,8 @@ export function exitCodeForError(error: unknown): number {
 }
 
 function isParseError(error: unknown): boolean {
-  return error instanceof Error && error.name === "ParseError";
+  return error instanceof Error && (error.name === "ParseError" ||
+    ("kind" in error && error.kind === "ParseError"));
 }
 
 function hasDefaultExport(source: string, filename: string): boolean {

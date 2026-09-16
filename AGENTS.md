@@ -26,12 +26,6 @@ ALWAYS monitor the build after push until the release is successful.
 
 Prefer adding code to specific packages e.g. `agent-spawn`. The core should be lightweight and only wire packages and expose public apis, sdk, cli, no real logic.
 
-### Rules
-
-- Package must have own readme
-  - includes all env variables exposed
-  - includes all config options via config
-
 ## github workflows
 
 Do NOT write unit tests for github workflows
@@ -135,9 +129,17 @@ Do not use libraries like @clack/prompts or chalk directly, otherwise we won't a
 
 Use judgement when to run these `npm run e2e:verbose`
 
-## Readme
+## Root README
 
-Keep the readme up to date but you are not allowed to add anything to readme without user's permission.
+Keep the main README up to date, changing in API or different behaviors
+Do not add new sections, new additions unless specifically requested. 
+Readme is our landing page, keep it simple
+
+## Package README
+
+- Package must have own readme. Approach it from user perspective, not contributor perspective (nothing about contributing in readme)
+- Readme should be treated as marketing page for users, focus on solving their problems, use cases and code examples.
+- It should typically include some index card of features e.g. commands available
 
 ## Planning
 

@@ -3,6 +3,7 @@ import test from "node:test";
 import { textCommands } from "../../src/commands/text.js";
 import { toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield.js";
+import { createStandardCommands } from "../../src/commands/index.js";
 import { chunks, fixture, run } from "./helpers.js";
 
 function sortProbe(args: readonly string[], stdin: string, signal: AbortSignal, fs: FileSystem) {
@@ -337,4 +338,31 @@ test("cut preserves range union record and Unicode behavior across chunk boundar
     assert.equal((await run("cut", ["-b", ranges])).exitCode, 2, ranges);
   }
   assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).stdout, "ab\n");
+});
+
+test("cut field mode works with portable Buffer indexOf contracts", async () => {
+  const indexOf = Buffer.prototype.indexOf;
+  const descriptor = Object.getOwnPropertyDescriptor(Buffer.prototype, "indexOf")!;
+  Object.defineProperty(Buffer.prototype, "indexOf", {
+    ...descriptor,
+    value(this: Buffer, needle: string | number | Uint8Array, offset?: number, encoding?: BufferEncoding) {
+      if (needle instanceof Uint8Array && !Buffer.isBuffer(needle)) {
+        throw new TypeError("val must be string, number or Buffer");
+      }
+      return indexOf.call(this, needle, offset, encoding);
+    },
+  });
+  try {
+    const commands = createStandardCommands();
+    const stdin = await run("cut", ["-f", "2,3"], { commands, stdin: "a\tb\t\nc\t\td\n" });
+    assert.equal(stdin.exitCode, 0, stdin.stderr);
+    assert.equal(stdin.stdout, "b\t\n\td\n");
+
+    const fs = await fixture({ rows: "a,b\nc,,d\n" });
+    const file = await run("cut", ["-d", ",", "-f", "2,3", "rows"], { commands, fs });
+    assert.equal(file.exitCode, 0, file.stderr);
+    assert.equal(file.stdout, "b\n,d\n");
+  } finally {
+    Object.defineProperty(Buffer.prototype, "indexOf", descriptor);
+  }
 });

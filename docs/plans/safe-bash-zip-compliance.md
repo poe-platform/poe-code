@@ -774,19 +774,3 @@ capability expected object missing atomicEntryRemoval: false. The adapter
 correctly disables the new move prerequisite; updated the explicit conservative
 expected list. Final main integrates remote 4f6988bed and all ZIP local commits;
 full verification and GitHub publication remain required before delivery claims.
-
-## Integrated release native pipe transport correction
-
-Initial delivery ee3ffc295 passed normal build, full npm test and full repository
-lint. Main advanced to 4e2e26229; merged its shared filesystem and distribution
-work in 405a12083, preserving both API additions. Its integrated build passed;
-the subsequent unit run was intentionally stopped (exit 143) to correct concrete
-remote CI blockers, and is not a passing full gate. Remote native trap probes
-failed with /dev/stdin ENXIO because Linux cannot reopen spawnSync stdin sockets.
-Four new memory host tests reproduce the missing pipe transport and input bound
-before correction. The authenticated Bash now supplies input through a real
-process-substitution pipe, passing the original script unchanged. Octal UTF-8
-encoding preserves NUL, Unicode, quotes, slashes and final-newline bytes; a 16KiB
-input bound prevents exceeding the per-argument transport limit. Authentication,
-clean environment, native deadlines and output caps remain active. This changes
-only native qualification tooling, not product execution or a host fallback.

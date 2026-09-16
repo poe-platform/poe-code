@@ -60,34 +60,6 @@ test("valid bounded executable is hashed before version and script execution", (
   assert.equal(candidate.executions(), 3);
 });
 
-for (const input of ["", "\0\n\\'é", "no final newline\n\n"]) test(`oracle input uses a reopenable pipe without rewriting source: ${JSON.stringify(input)}`, () => {
-  const candidate = fixture();
-  const original = candidate.host.spawn;
-  const script = `printf '%s' "$0"; . /dev/stdin`;
-  candidate.host.spawn = (executable, args, options) => {
-    if (!args.includes("--version")) {
-      assert.deepEqual(args.slice(0, 4), ["--noprofile", "--norc", "-c", `exec "$BASH" --noprofile --norc -c "$1" shell < <(printf '%b' "$2")`]);
-      assert.equal(args[5], script);
-      assert.equal(options.input, undefined);
-      const encoded = args[6]!;
-      const decoded: number[] = [];
-      for (let index = 0; index < encoded.length; index += 5) {
-        assert.equal(encoded.slice(index, index + 2), "\\0");
-        decoded.push(Number.parseInt(encoded.slice(index + 2, index + 5), 8));
-      }
-      assert.deepEqual(Buffer.from(decoded), Buffer.from(input));
-    }
-    return original(executable, args, options);
-  };
-  runNative(script, input, env, candidate.host);
-});
-
-test("oracle input argument bound refuses before native execution", () => {
-  const candidate = fixture();
-  assert.throws(() => runNative(":", "é".repeat(8193), env, candidate.host), RangeError);
-  assert.equal(candidate.executions(), 0);
-});
-
 for (const problem of ["missing", "symlink", "directory", "empty", "oversized", "non-executable", "hash"] as const) {
   test(`oracle ${problem} fails before native execution`, () => {
     const candidate = fixture();

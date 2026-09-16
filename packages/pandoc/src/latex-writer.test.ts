@@ -14,7 +14,7 @@ async function latex(blocks: readonly Block[], options: Partial<WriteOptions> = 
 it("escapes special characters and keeps adjacent formatting grouped", async () => {
   expect(await latex([p(s("#$%&_{}~^\\"), {t: "Emph", c: [s("a")]}, {t: "Emph", c: [s("b")]},
     {t: "Strong", c: [{t: "Underline", c: [s("c")]}]}, {t: "Strikeout", c: [s("d")]} )])).toMatchObject({
-    text: "\\#\\$\\%\\&\\_\\{\\}\\textasciitilde{}\\textasciicircum{}\\textbackslash{}\\emph{a}\\emph{b}\\textbf{\\uline{c}}\\sout{d}\n\n", diagnostics: []});
+    text: "\\#\\$\\%\\&\\_\\{\\}\\textasciitilde{}\\textasciicircum{}\\textbackslash{}\\emph{a}\\emph{b}\\textbf{\\uline{c}}\\sout{d}\n", diagnostics: []});
 });
 it("handles all code delimiters and environment terminators as literal escaped code", async () => {
   const source = "|!+{}%\\end{verbatim}\n  next";
@@ -48,7 +48,7 @@ it("writes nested lists, definitions, lines, quotes and figures", async () => {
   expect(result).toMatchObject({text: expect.stringContaining("\\caption{caption")});
 });
 it("preserves typed math but rejects executable raw content and math breakouts before publication", async () => {
-  expect(await latex([p({t: "Math", c: ["InlineMath", "x_{1}+\\alpha"]}, {t: "Math", c: ["DisplayMath", "\\frac{a}{b}"]})])).toMatchObject({text: "\\(x_{1}+\\alpha\\)\\[\\frac{a}{b}\\]\n\n"});
+  expect(await latex([p({t: "Math", c: ["InlineMath", "x_{1}+\\alpha"]}, {t: "Math", c: ["DisplayMath", "\\frac{a}{b}"]})])).toMatchObject({text: "\\(x_{1}+\\alpha\\)\\[\\frac{a}{b}\\]\n"});
   const publish = vi.fn(async () => {});
   for(const node of [{t: "RawBlock", c: ["latex", "\\input{secret}"]}, {t: "Para", c: [{t: "Math", c: ["InlineMath", "x\\)\\input{secret}\\(y"]}]}] as Block[]) {
     await expect(writeDocument({blocks: [node], metadata: {}, resources: []}, {to: "latex"}, {output: {publish}})).rejects.toMatchObject({code: "E_CAPABILITY"});
@@ -105,7 +105,7 @@ it("publishes LaTeX via the thin adapter using only memfs and SDK options", asyn
 it("rejects TeX superscript preprocessing in math and keeps note text near its owning block", async () => {
   await expect(latex([p({t: "Math", c: ["InlineMath", "^^5cinput{secret}"]})])).rejects.toMatchObject({code: "E_CAPABILITY"});
   expect(await latex([p(s("one"), {t: "Note", c: [p(s("note"))]}), p(s("two"))])).toMatchObject({
-    text: "one\\protect\\footnotemark[1]\n\n\\footnotetext[1]{note\n\n}\ntwo\n\n"});
+    text: "one\\protect\\footnotemark[1]\n\n\\footnotetext[1]{note\n\n}\ntwo\n"});
 });
 it("rejects table section/row attributes that would introduce alignment tokens outside cells", async () => {
   const block = table([[ ["row", [], []], [cell("one"), cell("two")] ]]);

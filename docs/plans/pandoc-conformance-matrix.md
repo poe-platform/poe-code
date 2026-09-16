@@ -46,3 +46,7 @@
 - Pinned integration tools are isolated under docs/pandoc/matrix-oracle-tools:
   official Pandoc 3.10.1 release, pypdf 6.0.0, PyMuPDF 1.26.4/MuPDF 1.26.7,
   docutils 0.21.2. Tool files will be removed after execution; evidence remains.
+- LaTeX terminal formatting: two original tests failed before implementation.
+  Final serialization now ends with one LF while preserving internal paragraph
+  separators and code-line representation. Package tests pass 965/965 and
+  lint/typecheck pass; selected build is recorded with this improvement.

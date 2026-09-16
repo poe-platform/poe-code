@@ -1,0 +1,80 @@
+
+> @poe-code/pandoc@0.0.1 test
+> cd ../.. && vitest run packages/pandoc
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ packages/pandoc/src/pdf-integration.test.ts (15 tests) 3208ms
+   ✓ infers PDF output only with --yes and rejects external engines before acquisition  331ms
+   ✓ converts representable pptx content to mapped PDF text  1281ms
+ ✓ packages/pandoc/src/json.test.ts (115 tests) 1553ms
+ ✓ packages/pandoc/src/pdf-writer.test.ts (10 tests) 1313ms
+   ✓ delivers built-in PDF bytes without an injected writer  351ms
+ ✓ packages/pandoc/src/pptx-registry.test.ts (1 test) 1208ms
+   ✓ exposes verified PPTX conversion through the registry and byte command adapter  1206ms
+ ✓ packages/pandoc/src/pptx-conversion.test.ts (21 tests) 13591ms
+   ✓ rejects table formatting and section semantics that cannot be preserved  790ms
+   ✓ keeps preamble, title-only and consecutive empty slides in order  684ms
+   ✓ treats deeper headings as content and rejects ambiguous automatic heading inference  360ms
+   ✓ preserves original nested list structure in the conversion round trip  1059ms
+   ✓ writes hyperlink relationships and recovers linked text  676ms
+   ✓ separates structural extraction order from visual reading order  315ms
+   ✓ writes and reads speaker notes separately from visible content  683ms
+   ✓ retains original jpg bytes and contains the image without changing its aspect ratio  719ms
+   ✓ retains original png bytes and contains the image without changing its aspect ratio  456ms
+   ✓ resolves presentation relationship order independently for more than nine slides  2276ms
+   ✓ keeps an original rectangular table with surrounding paragraphs on the same slide  572ms
+   ✓ uses explicit reference layout names, preserves deck ratio and rejects missing layouts  319ms
+   ✓ rejects conservative geometric overflow instead of claiming measured text fit  857ms
+   ✓ rejects authored animations and diagnoses explicit lossy extraction  496ms
+   ✓ rebuilds reader slide Divs without discarding title-only and empty slides  764ms
+   ✓ retains mixed list nesting, numbering starts and continuation paragraphs  1096ms
+   ✓ rejects authored charts and embedded objects without native activation  578ms
+   ✓ reports unmeasured text layout and allows warning rejection  339ms
+ ✓ packages/pandoc/src/epub-writer.test.ts (20 tests) 893ms
+   ✓ handles empty and bounded long books deterministically without empty trailing chapters  383ms
+ ✓ packages/pandoc/src/pptx-dependency.test.ts (1 test) 593ms
+   ✓ admits original presentation bytes through the public presentation engine  591ms
+ ✓ packages/pandoc/src/latex-writer.test.ts (23 tests) 606ms
+ ✓ packages/pandoc/src/epub.test.ts (26 tests) 440ms
+ ✓ packages/pandoc/src/table-writers.test.ts (15 tests) 792ms
+   ✓ bounded generated spans preserve text exactly once in HTML and lossy GFM  439ms
+ ✓ packages/pandoc/src/publication-options.test.ts (9 tests) 415ms
+   ✓ uses typed PDF geometry and text size options  371ms
+ ✓ packages/pandoc/src/rtf-writer.test.ts (20 tests) 459ms
+ ✓ packages/pandoc/src/delimited.test.ts (22 tests) 411ms
+ ✓ packages/pandoc/src/resources.test.ts (30 tests) 391ms
+ ✓ packages/pandoc/src/html-writer.test.ts (14 tests) 364ms
+ ✓ packages/pandoc/src/gfm.test.ts (41 tests) 390ms
+ ✓ packages/pandoc/src/safe-bash.test.ts (17 tests) 498ms
+ ✓ packages/pandoc/src/rst-writer.test.ts (20 tests) 289ms
+ ✓ packages/pandoc/src/tables.test.ts (14 tests) 399ms
+   ✓ preserves captions, colspecs, all sections and cell order with bounded generated tables  350ms
+ ✓ packages/pandoc/src/rtf.test.ts (68 tests) 258ms
+ ✓ packages/pandoc/src/plain-writer.test.ts (8 tests) 102ms
+ ✓ packages/pandoc/src/rst.test.ts (34 tests) 401ms
+ ✓ packages/pandoc/src/markdown-writer.test.ts (17 tests) 146ms
+ ✓ packages/pandoc/src/latex.test.ts (47 tests) 256ms
+ ✓ packages/pandoc/src/markdown-matrix-regression.test.ts (3 tests) 22ms
+ ✓ packages/pandoc/src/html.test.ts (11 tests) 200ms
+ ✓ packages/pandoc/src/epub-defaults.test.ts (5 tests) 199ms
+ ✓ packages/pandoc/src/consumer.test.ts (21 tests) 193ms
+ ✓ packages/pandoc/src/execution.test.ts (26 tests) 20ms
+ ✓ packages/pandoc/src/commonmark-inlines.test.ts (76 tests) 141ms
+ ✓ packages/pandoc/src/ast.test.ts (35 tests) 134ms
+ ✓ packages/pandoc/src/commonmark-blocks.test.ts (117 tests) 37ms
+ ✓ packages/pandoc/src/orchestration.test.ts (13 tests) 141ms
+ ✓ packages/pandoc/src/formats.test.ts (8 tests) 8ms
+ ✓ packages/pandoc/src/command-status.test.ts (4 tests) 10ms
+ ✓ packages/pandoc/src/commonmark-characters.test.ts (28 tests) 6ms
+ ✓ packages/pandoc/src/inspection.test.ts (2 tests) 4ms
+ ✓ packages/pandoc/src/cli-adapter.test.ts (5 tests) 7ms
+ ✓ packages/pandoc/src/command-info.test.ts (1 test) 6ms
+ ✓ packages/pandoc/src/latex-matrix-regression.test.ts (2 tests) 12ms
+
+ Test Files  40 passed (40)
+      Tests  965 passed (965)
+   Start at  18:56:20
+   Duration  52.79s (transform 6.25s, setup 1.56s, import 67.53s, tests 30.12s, environment 3ms)
+

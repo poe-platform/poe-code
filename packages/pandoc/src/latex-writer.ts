@@ -291,7 +291,13 @@ class LatexWriter {
     await this.flushNotes();
     if(fragmentLanguage) this.add("\\end{otherlanguage}\n");
     if(this.context.standalone) this.add("\\end{document}\n");
-    this.context.charge("retainedBytes", this.length * 2); return {kind: "text", text: this.chunks.join("")};
+    this.context.charge("retainedBytes", this.length * 2);
+    const text = this.chunks.join("");
+    let end = text.length;
+    while(end > 0 && text[end - 1] === "\n") end--;
+    this.context.bound("outputBytes", end + 1);
+    this.context.charge("retainedBytes", (end + 1) * 2);
+    return {kind: "text", text: text.slice(0, end) + "\n"};
   }
 }
 export async function writeLatex(document: Document, context: AdapterContext): Promise<SerializedDocument> {

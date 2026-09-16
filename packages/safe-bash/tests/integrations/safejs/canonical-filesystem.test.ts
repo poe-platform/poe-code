@@ -122,7 +122,7 @@ test("actual Shell and published SDK share virtual cwd, filesystem effects and c
   shell.use(standardCommands());
   shell.use(safeJsCommands({ runtime }));
   try {
-    const result = await shell.exec(`printf before > file; safejs -p -e 'import * as fs from "fs"; await fs.appendFile("file", ":guest"); return await fs.readFile("file", "utf8");'; cat file`);
+    const result = await shell.exec(`printf before > file; node -e 'import * as fs from "fs"; await fs.appendFile("file", ":guest"); console.log(await fs.readFile("file", "utf8"));'; cat file`);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "before:guest\nbefore:guest");

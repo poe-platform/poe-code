@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
 import { toByteSource, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createSafeJsCommands } from "../../../src/commands/safejs/index.js";
+import { createSafeJsCommands } from "../../../src/commands/safejs/runtime.js";
+import { invocation } from "../../../src/commands/safejs/options.js";
 import type { SafeJsCommandsOptions, SafeJsRunOptions, SafeJsRuntime } from "../../../src/commands/safejs/types.js";
+
+export const engineDialect = { name: "safejs", description: "Internal engine contract", help: "Internal engine contract\n", invocation };
 
 export function contractRuntime(run: (source: string, options: SafeJsRunOptions<object>) => Promise<unknown>): SafeJsRuntime<object> {
   return {
@@ -26,7 +29,7 @@ export async function execute<Budget>(args: readonly string[], options: SafeJsCo
     stderr: { async write(bytes) { stderr.push(bytes.slice()); } },
     ...overrides,
   };
-  const definition = createSafeJsCommands(options)[0];
+  const definition = createSafeJsCommands(options, engineDialect)[0];
   assert(definition);
   const result = await definition.execute(context);
   return { ...result, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr).toString(), context };

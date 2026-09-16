@@ -127,7 +127,15 @@ test("unzip does not follow an existing member symlink or create special entries
   await fs.writeFile("/outside", Buffer.from("keep")); await fs.symlink!("/outside", "/work/hello.txt");
   assert.equal((await run(fs, ["-o", "sample.zip"])).exitCode, 2);
   assert.equal(Buffer.from(await fs.readFile("/outside")).toString(), "keep");
-  assert.equal((await run(await fixture([{ name: "fifo", mode: 0o10644 }]), ["sample.zip"])).exitCode, 2);
+  assert.equal((await run(await fixture([{ name: "device", mode: 0o20644 }]), ["sample.zip"])).exitCode, 2);
+});
+
+test("unzip extracts pipe-mode payloads as regular files", async () => {
+  const fs = await fixture([{ name: "fifo", body: "payload", mode: 0o10644 }]);
+  const result = await run(fs, ["sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/work/fifo")).type, "file");
+  assert.equal(Buffer.from(await fs.readFile("/work/fifo")).toString(), "payload");
 });
 
 test("unzip charges actual decoded bytes exactly once before publication", async () => {

@@ -146,6 +146,7 @@ type PipelineDashboardRunOptions = {
   planPath: string;
   planIndex: number;
   totalPlans: number;
+  queuedPlans: string[];
   runOptions: PipelineRunOptions;
   integrations?: Integrations;
 };
@@ -524,7 +525,7 @@ async function runPipelineWithDashboard(
   const dashboard = createDashboard({
     title: "Pipeline",
     statsTitle: "Run",
-    rightPaneWidth: 32,
+    rightPaneWidth: 44,
     hints: [
       { key: "q", label: "Quit" },
       { key: "↑↓", label: "Scroll" },
@@ -536,6 +537,7 @@ async function runPipelineWithDashboard(
   const cleanupComplete = new Promise<void>((resolve) => { finishCleanup = resolve; });
   const startedAt = Date.now();
   let iterations = 0;
+  let iterationsTotal: number | undefined;
   let tokensIn = 0;
   let tokensOut = 0;
   let currentAction: string | undefined = "Preparing pipeline";
@@ -547,6 +549,8 @@ async function runPipelineWithDashboard(
       status,
       iterations,
       iterationsLabel: "Tasks",
+      iterationsTotal,
+      context: [`Plan ${options.planIndex + 1}/${options.totalPlans}: ${options.planPath}`, ...options.queuedPlans.map((plan, index) => `Next ${options.planIndex + index + 2}/${options.totalPlans}: ${plan}`)],
       tokensIn,
       tokensOut,
       elapsedMs: Math.max(0, Date.now() - startedAt),
@@ -624,6 +628,8 @@ async function runPipelineWithDashboard(
         syncStats();
       },
       onPlanResolved(summary: PlanSummary) {
+        iterations = summary.done;
+        iterationsTotal = summary.total;
         currentAction = undefined;
         if (summary.initializationUsage) {
           tokensIn += summary.initializationUsage.inputTokens;
@@ -633,6 +639,8 @@ async function runPipelineWithDashboard(
         syncStats();
       },
       onTaskStart(progress: TaskProgress) {
+        iterations = progress.completedTasks ?? iterations;
+        iterationsTotal = progress.totalTasks;
         currentStage = formatPipelineStageLabel(progress);
         currentAction = formatDashboardCurrentAction(progress);
         appendOutput("status", formatTaskStartMessage(progress));
@@ -989,6 +997,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
                   planPath: runPlanPath,
                   planIndex: index,
                   totalPlans,
+                  queuedPlans: planPaths.slice(index + 1),
                   runOptions,
                   ...(integrations ? { integrations } : {})
                 })

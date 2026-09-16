@@ -9,6 +9,7 @@ import { openCommandFile, type CommandFileDescriptor } from "./filesystem-descri
 export { bindFileOutputBudget, assertCountedFileOutput, writeFileOutputCounted } from "./filesystem-output-budget.js";
 export type { CountedFileWrite, FileOutputContext } from "./filesystem-output-budget.js";
 
+
 export async function writeFileOutput(context: Pick<CommandContext, "signal" | "registerCleanup">, bytes: Uint8Array, write: (bytes: Uint8Array) => Promise<void>): Promise<void> {
   context.signal.throwIfAborted();
   const budget = context.registerCleanup && filesystemOutputBudgets.get(context.registerCleanup);
@@ -234,7 +235,8 @@ export async function openFileOutput(context: FileOutputContext, path: string, o
       await writing;
     },
   };
-  const budget = context.registerCleanup && filesystemOutputBudgets.get(context.registerCleanup);
+  const budget = context.outputBudget !== "independent" && context.registerCleanup
+    ? filesystemOutputBudgets.get(context.registerCleanup) : undefined;
   const operation = createOutputOperation(context, budget?.sinkBudget(destination) ?? destination);
   operation.registerCleanup(async () => {
     closing = true;

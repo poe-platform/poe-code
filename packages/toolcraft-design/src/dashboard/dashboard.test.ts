@@ -1837,3 +1837,69 @@ describe("createDashboard", () => {
     });
   });
 });
+
+it.each([[120, 24], [50, 16], [100, 8]])("keeps the plan queue and saved task count fixed while scrolling at %sx%s", (cols, rows) => {
+  vi.useFakeTimers();
+  try {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(cols, rows);
+      const dashboard = createDashboard({ stdin, stdout, rightPaneWidth: 44 });
+      dashboard.start();
+      dashboard.updateStats({ status: "running", iterationsLabel: "Tasks", iterations: 68, iterationsTotal: 90, context: ["Plan 1/3: first.md", "Next 2/3: second.md", "Next 3/3: third.md"], currentAction: "Task 69/90 · implement" });
+      for (let index = 0; index < 100; index++) dashboard.appendOutput({ kind: "tool", text: `entry ${index}`, ts: index });
+      vi.advanceTimersByTime(20);
+      const before = renderTerminalOutput(stdout.output, cols, rows);
+      expect(before.join("\n")).toContain("68/90");
+      stdin.emit("data", Buffer.from("\u001b[5~"));
+      vi.advanceTimersByTime(20);
+      const after = renderTerminalOutput(stdout.output, cols, rows);
+      expect(after.slice(0, 3)).toEqual(before.slice(0, 3));
+      expect(after.join("\n")).toContain("68/90");
+      expect(after.join("\n")).not.toBe(before.join("\n"));
+      dashboard.destroy();
+    });
+  } finally { vi.useRealTimers(); }
+});
+
+it.each([[50, 6], [50, 5], [20, 6]])("keeps the footer frame intact with plan context at %sx%s", (cols, rows) => {
+  vi.useFakeTimers();
+  try {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(cols, rows);
+      const dashboard = createDashboard({ stdin, stdout, rightPaneWidth: 44 });
+      dashboard.start();
+      dashboard.updateStats({ status: "running", iterations: 68, iterationsTotal: 90, context: ["Plan: docs/plans/resumed.md"], currentAction: "Review implementation" });
+      vi.advanceTimersByTime(20);
+      const screen = renderTerminalOutput(stdout.output, cols, rows);
+      expect(screen[rows - 3]).toBe(`├${"─".repeat(cols - 2)}┤`);
+      expect(screen[rows - 1]).toBe(`└${"─".repeat(cols - 2)}┘`);
+      expect(screen.join("\n")).toContain("68/90");
+      dashboard.destroy();
+    });
+  } finally { vi.useRealTimers(); }
+});
+
+it.each([[120, 24], [50, 16]])("pages through consecutive history with fixed plan context at %sx%s", (cols, rows) => {
+  vi.useFakeTimers();
+  try {
+    withOutputFormat("terminal", () => {
+      const stdin = new TestDashboardStdin();
+      const stdout = new TestDashboardStdout(cols, rows);
+      const dashboard = createDashboard({ stdin, stdout, rightPaneWidth: 44 });
+      dashboard.start();
+      dashboard.updateStats({ context: ["Plan: first.md", "Next: second.md", "Next: third.md"] });
+      for (let index = 0; index < 100; index++) dashboard.appendOutput({ kind: "tool", text: `entry ${index}`, ts: index });
+      vi.advanceTimersByTime(20);
+      const before = renderTerminalOutput(stdout.output, cols, rows);
+      const visibleEntries = before.filter(line => line.includes("entry ")).length;
+      stdin.emit("data", Buffer.from("\u001b[5~"));
+      vi.advanceTimersByTime(20);
+      const after = renderTerminalOutput(stdout.output, cols, rows).join("\n");
+      expect(after).toContain(`entry ${99 - visibleEntries}`);
+      expect(after).not.toContain(`entry ${100 - visibleEntries}`);
+      dashboard.destroy();
+    });
+  } finally { vi.useRealTimers(); }
+});

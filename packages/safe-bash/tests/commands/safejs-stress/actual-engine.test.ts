@@ -123,7 +123,7 @@ test("actual engine: asynchronous sink backpressure delays later virtual writes"
 test("actual engine: Shell early-close pipeline stops producer without hanging", { skip: localSkip, timeout: 2000 }, async () => {
   const source = 'import { write } from "stdio"; for (let index = 0; index < 1000; index++) { await write("line\\n"); }';
   const shell = new Shell({ fs: new MemoryFileSystem(), limits: { pipeHighWaterMark: 1 } }).use(standardCommands()).use(safeJsCommands({ runtime: await localRuntime() }));
-  const result = await shell.exec(`safejs -e ${quote(source)} | head -n 1`);
+  const result = await shell.exec(`node -e ${quote(source)} | head -n 1`);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "line\n");
 });

@@ -34,7 +34,7 @@ export async function writeOutput(context: CommandContext, path: string | undefi
     return;
   }
   try {
-    const target = await openFileOutput({ ...context, signal }, pathOf(context, path), "w");
+    const target = await openFileOutput({ ...context, signal, outputBudget: "independent" }, pathOf(context, path), "w");
     try {
       for await (const chunk of readBytes(source, target.signal)) await target.sink.write(chunk);
       await target.finish();
@@ -50,7 +50,7 @@ export async function dumpHeaders(context: CommandContext, path: string, bytes: 
   try {
     if (path === "-") await writeBytes(context.stdout, bytes, signal);
     else {
-      const target = await openFileOutput({ ...context, signal }, pathOf(context, path), append ? "a" : "w");
+      const target = await openFileOutput({ ...context, signal, outputBudget: "independent" }, pathOf(context, path), append ? "a" : "w");
       try { await target.sink.write(bytes); await target.finish(); }
       catch (error) { await target.abort(error); throw error; }
     }

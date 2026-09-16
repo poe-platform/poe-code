@@ -143,6 +143,7 @@ export interface TaskProgress {
   stepName?: string;
   taskIndex: number;
   totalTasks: number;
+  completedTasks?: number;
   stepIndex?: number;
   totalSteps?: number;
   phase?: "setup" | "teardown";

@@ -108,12 +108,20 @@ for (const route of routes) {
       } finally { await shell.dispose(); }
     });
   }
-  test(`${route.name}: global byte budget preserves atomic original`, async () => {
+  test(`${route.name}: terminal byte budget only charges shell output`, async () => {
     const { backing, shell, state } = fixture([Uint8Array.of(1, 2), Uint8Array.of(3, 4)], { maxOutputBytes: 3 });
     await backing.writeFile("/out", original);
     try {
-      await assert.rejects(shell.exec(route.command), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
-      assert.deepEqual(await backing.readFile("/out"), original);
+      if (route.name === "curl -o") {
+        const result = await shell.exec(route.command);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, "");
+        assert.equal(result.stderr, "");
+        assert.deepEqual(await backing.readFile("/out"), Uint8Array.of(1, 2, 3, 4));
+      } else {
+        await assert.rejects(shell.exec(route.command), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+        assert.deepEqual(await backing.readFile("/out"), original);
+      }
       assert.equal(state.active, 0);
     } finally { await shell.dispose(); }
   });
@@ -404,12 +412,15 @@ test("curl header file uses the shared streaming lifecycle", async () => {
   } finally { await shell.dispose(); }
 });
 
-test("curl header file shares the shell byte budget and preserves atomic original", async () => {
+test("curl header file does not consume the terminal byte budget", async () => {
   const { backing, shell, state } = fixture([], { maxOutputBytes: 8 });
   await backing.writeFile("/headers", original);
   try {
-    await assert.rejects(shell.exec("curl -D /headers https://example.invalid/body"), error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
-    assert.deepEqual(await backing.readFile("/headers"), original);
+    const result = await shell.exec("curl -D /headers https://example.invalid/body");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.equal(new TextDecoder().decode(await backing.readFile("/headers")), "HTTP/1.1 200 OK\r\n\r\n");
     assert.equal(state.active, 0);
   } finally { await shell.dispose(); }
 });

@@ -11,6 +11,7 @@ export const filesystemOutputBudgets = new WeakMap<NonNullable<CommandContext["r
 
 export type FileOutputContext = Pick<CommandContext, "fs" | "signal" | "registerCleanup"> & {
   readonly cleanupFailurePrioritySignal?: AbortSignal | undefined;
+  readonly outputBudget?: "shell" | "independent";
 };
 
 export function bindFileOutputBudget(context: Pick<CommandContext, "registerCleanup">, budget: (sink: ByteSink) => ByteSink, countedWrite?: CountedFileWrite): void {

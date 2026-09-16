@@ -462,6 +462,7 @@ function assertSource7Discovery(files) {
     "tests/commands/network/mounted-output.test.ts",
     "tests/commands/network/aggregate-deadline.test.ts",
     "tests/commands/network/response-body-mode.test.ts",
+    "tests/commands/network/file-output-budget.test.ts",
     "tests/contracts/value.test.ts",
     "tests/contracts/runtime-identity.test.ts",
     "tests/plugins/optional-runtime.test.ts",

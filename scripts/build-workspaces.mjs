@@ -61,7 +61,7 @@ export function readManifest(directoryPath, filename = "package.json", fileSyste
 }
 
 function stableVersion(value) {
-  assert.equal(typeof value, "string", "A caret workspace dependency needs a version");
+  assert.equal(typeof value, "string", "A stable workspace dependency needs a version");
   assert.match(value, /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/, `Unsupported stable version: ${value}`);
   const parts = value.split(".").map(Number);
   assert.ok(parts.every(Number.isSafeInteger), "Version component exceeds safe integer");
@@ -71,9 +71,10 @@ function stableVersion(value) {
 export function matchesWorkspaceRange(specifier, version) {
   if (specifier === "*") return true;
   assert.equal(typeof specifier, "string");
-  assert.ok(specifier.startsWith("^"), `Unsupported local dependency range: ${specifier}`);
-  const lower = stableVersion(specifier.slice(1));
+  const caret = specifier.startsWith("^");
+  const lower = stableVersion(caret ? specifier.slice(1) : specifier);
   const actual = stableVersion(version);
+  if (!caret) return actual.every((part, index) => part === lower[index]);
   const difference = actual.findIndex((part, index) => part !== lower[index]);
   if (difference >= 0 && actual[difference] < lower[difference]) return false;
   if (lower[0] > 0) return actual[0] === lower[0];

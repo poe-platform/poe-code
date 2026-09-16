@@ -17,8 +17,9 @@ command and built public-export checks recorded in the corresponding issue plan.
 
 ## Problem Statement, Goals and Non-Goals
 
-File output must preserve its adapter's lifecycle and visibility while sharing
-the enclosing Shell's cumulative output accounting. Per-buffer limits and host
+File output must preserve its adapter's lifecycle and visibility. By default it
+shares the enclosing Shell's cumulative output accounting; network downloads use
+their independent transfer limits as specified below. Per-buffer limits and host
 storage quotas are independent: neither bounds cumulative repeated writes.
 This contract does not promise a transaction across files, rollback of completed
 incremental writes, total memory bounds or preemption of arbitrary host work.
@@ -177,11 +178,22 @@ adapter advances past the fragment. This prevents premature acknowledgement and
 unbounded producer read-ahead. Callers retain ownership of submitted buffers until
 their awaited write completes; mutation while a write is pending is unsupported.
 
-The helper uses the enclosing shell's output accounting and cancellation, not a
-fresh byte/time allowance. Files, pipeline writes and standard output each charge
-their actual destination. In particular, `tee` file copies and curl header files
-are not outside the global budget. Direct command hosts that do not supply shell
-accounting remain responsible for their own host limits.
+By default the helper uses the enclosing shell's output accounting and
+cancellation, not a fresh byte/time allowance. Shell redirections, `tee` file
+copies, pipeline writes and standard output each charge their actual destination.
+Direct command hosts that do not supply shell accounting remain responsible for
+their own host limits.
+
+An internal caller with independent byte admission may select
+`FileOutputContext.outputBudget: "independent"`. This skips only the shell output
+byte charge, not cancellation, filesystem quotas, backpressure or cleanup. Curl
+body files (`-o`, `-O`) and header files (`-D`), including the shared wget transfer
+path, use this mode. Network `maxDownloadBytes` and `maxHeaderBytes` continue to
+bound their respective data. They therefore work when the file exceeds
+`ShellLimits.maxOutputBytes`, even when that limit is zero and no terminal bytes
+are emitted. Stdout (`-o -`, `-D -`), stderr, write-out text, pipelines and shell
+redirections remain subject to `maxOutputBytes`. This does not exempt other
+commands' file writes or introduce a new storage quota.
 
 Writer failure closes the file sink's owned output capability. An enrolled
 producer can stop while waiting for its next input rather than waiting for a

@@ -8,7 +8,7 @@ const labelControl = scenario === "label-controls" ? "\u001b]52;c;" + "HIDDEN_".
 const dashboard = createDashboard({
   title: scenario === "unicode-title" ? "Pipeline · 界界 · 👩‍💻 · é · ".repeat(3) : `Pipeline · ${scenario}${labelControl}`,
   statsTitle: scenario === "unicode-title" ? "Run · 界界 · 👩‍💻 · é" : `Run${labelControl}`,
-  rightPaneWidth: 32,
+  rightPaneWidth: 44,
   hints: [
     { key: "q", label: `Quit${labelControl}` },
     { key: "↑↓", label: "Scroll" },
@@ -33,14 +33,16 @@ dashboard.start();
 if (scenario !== "empty") dashboard.updateStats({
   status: "running",
   iterationsLabel: `Tasks${labelControl}`,
-  iterations: 1,
+  iterations: scenario === "resumed" || scenario === "queue" ? 68 : 1,
+  iterationsTotal: scenario === "resumed" || scenario === "queue" ? 90 : 8,
+  context: scenario === "queue" ? ["Plan 1/3: docs/plans/improve-pipeline-task-counts-and-restart-progress.md", "Next 2/3: docs/plans/agent-conversation-recovery.md", "Next 3/3: docs/plans/界界-unicode-long-plan-title.md"] : ["Plan 1/1: docs/plans/improve-pipeline-task-counts-and-restart-progress.md"],
   tokensIn: 24000,
   tokensOut: 7000,
   elapsedMs: 65000,
-  currentAction: "Improve streaming output (implement)"
+  currentAction: scenario === "resumed" || scenario === "queue" ? "Task 69/90 · Improve persisted pipeline progress · implement · step 1/2" : "Improve streaming output (implement)"
 });
 append("info", "Config · codex · model-example · docs/plans/fake-pipeline.md");
-if (scenario !== "empty") append("status", "Task 2/8 · Improve streaming output (implement)");
+if (scenario !== "empty") append("status", scenario === "resumed" || scenario === "queue" ? "Task 69/90 · Improve persisted pipeline progress (implement)" : "Task 2/8 · Improve streaming output (implement)");
 if (scenario === "empty") {
   dashboard.updateStats({
     status: "done",
@@ -112,7 +114,7 @@ if (scenario === "empty") {
     }, 100);
   } else {
     timer = setInterval(
-      () => append("info", `Streaming response ${count} · working on task 2/8`),
+      () => append("info", `Streaming response ${count} · working on the current task`),
       500
     );
   }

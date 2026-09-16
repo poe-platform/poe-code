@@ -2,6 +2,7 @@ import { createRenderPerformanceMonitor, formatRenderPerformance, type RenderPer
 import { createLogger } from "../components/logger.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { ScreenBuffer, diff } from "./buffer.js";
+import { renderContextPane } from "./components/context-pane.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
 import type { FooterHint } from "./components/footer.js";
@@ -63,6 +64,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
   const performanceMonitor = createRenderPerformanceMonitor();
   let showPerformance = false;
   let scrollOffset = 0;
+  let outputViewportHeight = 0;
   let heldOutput: OutputItem[] | undefined;
   let renderTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -147,14 +149,7 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
         command === "page-up" ||
         command === "page-down"
       ) {
-        const page = Math.max(
-          1,
-          computeDashboardLayout({
-            totalWidth: driver!.getSize().cols,
-            totalHeight: driver!.getSize().rows,
-            rightPaneWidth
-          }).leftPane.height
-        );
+        const page = Math.max(1, outputViewportHeight);
         const amount = command === "page-up" || command === "page-down" ? page : 1;
         const direction = command === "scroll-up" || command === "page-up" ? 1 : -1;
         if (direction > 0) heldOutput ??= getStore().getState().output;
@@ -242,9 +237,30 @@ export function createDashboard(opts: DashboardOptions = {}): Dashboard {
       rightTitle: statsTitle,
       style: { dim: true }
     });
+    if (state.stats.context?.length) {
+      const contextRect = layout.summary ?? layout.leftPane;
+      // Context spans both panes on wide terminals.
+      const remaining = renderContextPane(nextBuffer, {
+        x: contextRect.x, y: contextRect.y, width: Math.max(0, cols - 2),
+        height: layout.summary ? layout.summary.height + layout.leftPane.height : layout.leftPane.height
+      }, state.stats.context);
+      const height = remaining.y - contextRect.y;
+      if (layout.summary) {
+        layout.summary.y = remaining.y;
+        layout.summary.height = Math.min(layout.summary.height, remaining.height);
+        layout.leftPane.y = layout.summary.y + layout.summary.height;
+        layout.leftPane.height = Math.max(0, remaining.height - layout.summary.height);
+      } else {
+        layout.leftPane.y += height;
+        layout.leftPane.height -= height;
+        layout.rightPane.y += height;
+        layout.rightPane.height -= height;
+      }
+    }
+    outputViewportHeight = Math.max(0, layout.leftPane.height - (showPerformance ? 1 : 0));
     scrollOffset = renderOutputPane(
       nextBuffer,
-      { ...layout.leftPane, height: Math.max(0, layout.leftPane.height - (showPerformance ? 1 : 0)) },
+      { ...layout.leftPane, height: outputViewportHeight },
       heldOutput ?? state.output,
       scrollOffset
     );

@@ -25,6 +25,7 @@ export function resolveBrowserShellBuild(rootDir) {
       "commands/xml/index.browser": path.join(directory, "src/commands/xml/index.ts"),
       "commands/yq/index.browser": path.join(directory, "src/commands/yq/index.ts"),
       "commands/network/index.browser": path.join(directory, "src/commands/network/public.ts"),
+      "commands/node/index.browser": path.join(directory, "src/commands/node/browser.ts"),
       "commands/csplit/index.browser": path.join(directory, "src/commands/csplit/index.ts"),
       "commands/pr/index.browser": path.join(directory, "src/commands/pr/index.ts"),
       "commands/tsort/index.browser": path.join(directory, "src/commands/tsort/index.ts"),

@@ -40,3 +40,8 @@ All 838 package tests, lint and selected build passed. Regenerated the entire QA
 document directly from the independently authored AST (stored as JSON evidence).
 LibreOffice 26.8.0 is the additional independent application lane because macOS
 Quick Look omits pict images. PDF export and visual inspection remain pending.
+
+JPEG scan extension: independently authored progressive DC/AC scans failed on
+the baseline-only marker check, then passed after bounded multi-scan and restart
+marker traversal was implemented. All 839 package tests, lint and selected build
+passed. No native runtime converter fallback was introduced.

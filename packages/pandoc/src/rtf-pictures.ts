@@ -87,10 +87,10 @@ function jpeg(bytes: Uint8Array, context: AdapterContext): Picture {
     if(bytes[offset++] !== 255) invalid(context, "Invalid JPEG marker");
     const marker = bytes[offset++];
     if(marker === 217) break;
-    if(![192,196,219,218,224].includes(marker ?? 0) || bytes.length - offset < 2) invalid(context, "Unsupported or truncated JPEG marker");
+    if(![192,194,196,219,218,224,221].includes(marker ?? 0) || bytes.length - offset < 2) invalid(context, "Unsupported or truncated JPEG marker");
     const length = view.getUint16(offset);
     if(length < 2 || length > bytes.length - offset) invalid(context, "Invalid JPEG segment length");
-    if(marker === 192) {
+    if(marker === 192 || marker === 194) {
       if(width || length < 11 || bytes[offset + 2] !== 8) invalid(context, "Invalid JPEG frame");
       height = view.getUint16(offset + 3); width = view.getUint16(offset + 5); components = bytes[offset + 7]!;
       if(![1,3].includes(components) || length !== 8 + components * 3) invalid(context, "Unsupported JPEG components");
@@ -103,14 +103,17 @@ function jpeg(bytes: Uint8Array, context: AdapterContext): Picture {
     if(marker === 224 && (length < 16 || String.fromCharCode(...bytes.subarray(offset + 2, offset + 7)) !== "JFIF\0")) invalid(context, "Only JFIF JPEG application metadata supported");
     offset += length;
     if(marker === 218) {
-      if(!width || scanned) invalid(context, "Invalid JPEG scan");
+      if(!width) invalid(context, "Invalid JPEG scan");
       scanned = true;
-      // This bounded baseline profile has one scan; escaped FF bytes are data.
-      while(offset < bytes.length && bytes[offset] !== 255) {context.checkpoint(); offset++;}
-      while(offset + 1 < bytes.length && bytes[offset] === 255 && bytes[offset + 1] === 0) {
-        offset += 2; while(offset < bytes.length && bytes[offset] !== 255) {context.checkpoint(); offset++;}
+      // Escaped FF bytes and restart markers belong to entropy data; other
+      // markers return to the bounded segment loop for progressive scans.
+      while(offset < bytes.length) {
+        context.checkpoint();
+        if(bytes[offset] !== 255) {offset++; continue;}
+        const next = bytes[offset + 1];
+        if(next === 0 || next !== undefined && next >= 208 && next <= 215) {offset += 2; continue;}
+        break;
       }
-      if(offset + 2 !== bytes.length || bytes[offset] !== 255 || bytes[offset + 1] !== 217) invalid(context, "JPEG requires one complete baseline scan and end marker");
     }
   }
   if(!width || !scanned || offset !== bytes.length || bytes.at(-1) !== 217) invalid(context, "Incomplete JPEG");
@@ -131,5 +134,5 @@ export async function inspectRtfPicture(bytes: Uint8Array, context: AdapterConte
   context.charge("binaryBytes", bytes.length);
   if(bytes.length >= 8 && [137,80,78,71,13,10,26,10].every((n, i) => bytes[i] === n)) return png(bytes, context);
   if(bytes[0] === 255 && bytes[1] === 216) return jpeg(bytes, context);
-  return invalid(context, "RTF pictures require valid PNG or baseline JPEG resources");
+  return invalid(context, "RTF pictures require valid PNG or JPEG resources");
 }

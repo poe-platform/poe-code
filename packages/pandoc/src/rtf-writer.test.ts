@@ -110,12 +110,12 @@ function png(width = 1, height = 1): Uint8Array {
     ...chunk("IDAT", [0x78,0x01,0x01,2,0,253,255,0,128,0,130,0,129]), ...chunk("IEND", [])]);
 }
 // A one-component baseline JPEG: DC zero and EOB, with explicit one-bit tables.
-function jpeg(): Uint8Array {
+function jpeg(progressive = false): Uint8Array {
   const segment = (marker: number, data: number[]) => [255, marker, (data.length + 2) >>> 8, (data.length + 2) & 255, ...data];
   return new Uint8Array([255,216, ...segment(219, [0, ...Array<number>(64).fill(1)]),
-    ...segment(192, [8,0,1,0,1,1,1,0x11,0]),
+    ...segment(progressive ? 194 : 192, [8,0,1,0,1,1,1,0x11,0]),
     ...segment(196, [0,1,...Array<number>(15).fill(0),0, 16,1,...Array<number>(15).fill(0),0]),
-    ...segment(218, [1,1,0,0,63,0]), 0x3f,255,217]);
+    ...(progressive ? [...segment(218,[1,1,0,0,0,0]),0x7f,...segment(218,[1,1,0,1,63,0]),0x7f] : [...segment(218, [1,1,0,0,63,0]), 0x3f]),255,217]);
 }
 const image = (id: string): Inline => ({t: "Image", c: [a, [], [id, ""]]});
 it("embeds bounded PNG/JPEG bytes with checked dimensions and exact hex expansion", async () => {
@@ -144,6 +144,12 @@ it("resolves images only through an explicit resource capability and rejects mis
   const resolve = vi.fn(async () => png());
   expect(await rtf([p(image("x"))], {}, {resources: {resolve}})).toContain("\\pngblip");
   expect(resolve).toHaveBeenCalledWith("x", undefined, undefined);
+});
+it("validates progressive JPEG scan sequences with separately authored DC and AC scans", async () => {
+  const bytes = jpeg(true);
+  expect(await rtf([p(image("progressive"))], {resources: [{id: "progressive", bytes}]})).toContain("\\jpegblip\\picw1\\pich1");
+  const broken = bytes.slice(); broken[broken.length - 3] = 0xff;
+  await expect(rtf([p(image("progressive"))], {resources: [{id: "progressive", bytes: broken}]})).rejects.toMatchObject({code: "E_RESOURCE"});
 });
 it("accepts the exact ASCII output-byte limit and balances syntax independently of the reader", async () => {
   const blocks = [p(s("\\{}😀"), {t: "Superscript", c: [s("1")]}, {t: "Subscript", c: [s("2")]}, image("x"))];

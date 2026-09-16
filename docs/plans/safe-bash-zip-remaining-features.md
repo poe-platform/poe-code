@@ -72,10 +72,10 @@ tasks:
 
       Integrate the existing zip/crypto.ts ZipCrypto transform into writer, reader, zip and unzip password workflows. Implement -P and -e native command semantics using legitimate injected entropy and interactive input capabilities; never read ambient host state or use deterministic product encryption headers. If no no-echo prompt capability exists, add the minimum explicit host contract and carry it through SDK/CLI without changing SafeJS, or document the capability failure precisely. Encode/validate 12-byte encryption headers, correct CRC/time verifier under descriptor flags, compression/encryption ordering and per-member keys. Cover empty/Unicode/raw-byte passwords according to the pinned profile, wrong passwords, truncated headers, deliberately colliding verifier bytes, mixed encrypted/plain members, comments, copy/update, -T and -p. Always verify final CRC/length before publication; the header byte is not authentication. Never leak passwords through progress/debug/log diagnostics. Use deterministic test entropy only in fixtures and native cross-read both directions.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
       commit: open
   - id: zip-archive-operations
     title: "Complete remaining archive operation switches"

@@ -20,6 +20,8 @@ Usage: zip [options] archive [file ...]
   -@          read filenames from stdin
   -t / -tt    select files from / before a date
   -T          test archive integrity before replacement
+  -P PASSWORD encrypt new members with a supplied password
+  -e          request and confirm a password through a no-echo host capability
   -z / -c     read archive / entry comments from stdin
   -o          set archive time to the latest member time
   -l          convert text LF line endings to CRLF
@@ -118,7 +120,7 @@ export const zipVersion = `safe-bash zip (virtual-bash)
 Bounded virtual ZIP implementation; not an Info-ZIP native build.
 Compression: store, deflate, bzip2. Single-volume ZIP and ZIP64 output.
 Filesystem, signals and byte limits are supplied by the host.
-Native compiler identity, ambient environment and encryption are not reported.
+Native compiler identity and ambient environment are not reported.
 `;
 
 export const zipLicense = `safe-bash zip (virtual-bash)

@@ -139,7 +139,9 @@ test("zip show-options lists only implemented options and validates later errors
   assert.equal(result.exitCode, 0);
   assert.match(result.stdout.toString(), /available options:/);
   assert.match(result.stdout.toString(), /show-files/);
-  assert.doesNotMatch(result.stdout.toString(), /password|encrypt|split-size/);
+  assert.match(result.stdout.toString(), /password\s+req/u);
+  assert.match(result.stdout.toString(), /encrypt/u);
+  assert.doesNotMatch(result.stdout.toString(), /split-size/);
   assert.equal((await execute("zip", await fixture(), ["-so", "--unknown"])).exitCode, 16);
 });
 
@@ -239,7 +241,7 @@ test("zip show-command reorders option lists, escapes controls and redacts crede
   assert.ok(url.stdout.toString().includes("a'\\''b"));
   for (const args of [["-sc", "-Pprivate", "out", "binary"], ["-sd", "--password=private", "out", "binary"]]) {
     const refusal = await execute("zip", await fixture(), args);
-    assert.equal(refusal.exitCode, 16);
+    assert.equal(refusal.exitCode, args[0] === "-sc" ? 9 : 2);
     assert.doesNotMatch(refusal.stdout.toString() + refusal.stderr, /private/);
   }
   const attached = await execute("zip", await fixture(), ["-sc", "out", "binary", "--include=binary"]);
@@ -405,7 +407,7 @@ test("zip show-command redacts native password abbreviations without consuming u
   assert.ok(attached.stdout.toString().includes("'visible'"));
   assert.deepEqual(await fs.readdir("/work"), before);
   assert.equal((await execute("zip", fs, ["-sc", "out.zip", "--", "--pass", ""])).exitCode, 2);
-  assert.equal((await execute("zip", fs, ["-sc", "--pass=private", "out.zip", "binary"])).exitCode, 16);
+  assert.equal((await execute("zip", fs, ["-sc", "--pass=private", "out.zip", "binary"])).exitCode, 9);
   const controller = new AbortController();
   const reason = new Error("cancel password abbreviation display");
   await assert.rejects(execute("zip", fs, ["-sc", "out.zip", "--", "--pass", "private"], {}, {

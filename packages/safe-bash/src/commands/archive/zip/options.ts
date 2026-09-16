@@ -7,6 +7,7 @@ export class ZipFailure extends Error {
 export const reservedZipShortOptions = new Set(["lf", "TT", "mm"]);
 
 export const zipLongOptions: Readonly<Record<string, string>> = {
+  password: "P", encrypt: "e",
   verbose: "v", version: "version", license: "L", "show-command": "sc", "show-debug": "sd", "show-files": "sf", "show-options": "so",
   "display-bytes": "db", "display-counts": "dc", "display-dots": "dd", "display-globaldots": "dg", "dot-size": "ds", "display-usize": "du", "display-volume": "dv",
   "recurse-paths": "r", quiet: "q", "junk-paths": "j", paths: "p", help: "h", "more-help": "h2", "no-dir-entries": "D",
@@ -21,10 +22,10 @@ export const zipLongOptions: Readonly<Record<string, string>> = {
 // implementation must not make native-ambiguous prefixes uniquely resolvable.
 const reservedOptions = [
   "adjust-sfx", "temp-path",
-  "difference-archive", "encrypt", "fix", "fixfix", "fifo",
+  "difference-archive", "fix", "fixfix", "fifo",
   "grow", "junk-sfx",
   "DOS-names", "logfile-path", "log-append", "log-info",
-  "password", "regex", "split-size", "split-pause",
+  "regex", "split-size", "split-pause",
   "split-verbose", "split-bell", "unzip-command", "show-unicode", "show-just-unicode",
 ];
 
@@ -41,7 +42,7 @@ export function normalizeZipOption(argument: string): string {
   const short = matched === undefined ? undefined : zipLongOptions[matched];
   if (!short) throw new ZipFailure(16, "Invalid command arguments", `unsupported option: --${name}`);
   if (negate && !zipNegatableOptions.has(short)) throw new ZipFailure(16, "Invalid command arguments", `option ${matched} is not negatable`);
-  if (equal >= 0 && short !== "i" && short !== "x" && short !== "n" && short !== "Z" && short !== "t" && short !== "tt" && short !== "O" && short !== "ds") {
+  if (equal >= 0 && short !== "P" && short !== "i" && short !== "x" && short !== "n" && short !== "Z" && short !== "t" && short !== "tt" && short !== "O" && short !== "ds") {
     throw new ZipFailure(16, "Invalid command arguments", `option '${matched}' does not allow a value`);
   }
   if (short === "version") return "--version";

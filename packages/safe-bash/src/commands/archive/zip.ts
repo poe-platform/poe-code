@@ -1,4 +1,5 @@
 import { inspectZipMoveSource, removeZipSources, type ZipMoveSource } from "./zip/move.js";
+import { readZipPassword, ZipHostFailure, type ZipEncryption } from "./zip/crypto.js";
 import { zipToCrlf, zipFromCrlf } from "./zip/line-endings.js";
 import { parseZipDate, zipDateMatches, zipLatestTime } from "./zip/dates.js";
 import { zipEnvironmentArguments } from "./zip/environment.js";
@@ -18,6 +19,9 @@ import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, reservedZipShortOptions, ZipFailure, parseZipDotSize, zipLongOptions, zipNegatableOptions, zipDisplaySize, zipPublicText, zipPasswordArgument } from "./zip/options.js";
 
 interface ZipOptions {
+  password: Uint8Array | undefined;
+  encrypt: boolean;
+  encryption?: ZipEncryption;
   readonly args: readonly string[];
   readonly action: "add" | "delete" | "update" | "freshen" | "copy";
   readonly archive: string;
@@ -67,6 +71,14 @@ const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
 async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions | { information: "help" | "more-help" | "version" | "license" | "options" | "command"; command?: readonly string[]; debug?: boolean }> {
   const context = scope.context;
   const args = zipEnvironmentArguments(context.env, context.args, limits);
+  const rawArguments = context.argumentValues ? getCommandArguments(context) : undefined;
+  const passwordArguments = new Set<number>();
+  const defaultsCount = args.length - context.args.length;
+  const validateArgumentText = (): void => {
+    if (rawArguments) for (const [index, value] of rawArguments.values.entries()) {
+      if (!passwordArguments.has(index)) text(shellValueBytes(value));
+    }
+  };
   if (args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
   let bytes = 0;
   for (const argument of args) {
@@ -82,9 +94,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       if (size > limits.maxArgumentBytes - rawBytes) fail("argument byte limit exceeded");
       rawBytes += size;
     }
-    for (const value of argumentsValue.values) text(shellValueBytes(value));
   }
   let archive: string | undefined;
+  let password: Uint8Array | undefined;
+  let encrypt = false;
   let output: string | undefined;
   let action: ZipOptions["action"] = "add";
   let recursive = false;
@@ -144,14 +157,31 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       commandPaths.push(original);
     } else if (!literal && argument.startsWith("-") && argument !== "-") {
       commandOptions.push(original);
-      if (argument === "--version") return { information: "version" };
+      if (argument === "--version") { validateArgumentText(); return { information: "version" }; }
       for (let offset = 1; offset < argument.length; offset++) {
         if (reservedZipShortOptions.has(argument.slice(offset, offset + 2))) {
           throw new ZipFailure(16, "Invalid command arguments", `unsupported option: -${argument.slice(offset, offset + 2)}`);
         }
         const flag = argument[offset];
         const pair = argument.slice(offset, offset + 2);
-        if (["db", "dc", "dd", "dg", "du", "dv", "ds", "sc", "sd", "sf", "so"].includes(pair)) {
+        if (flag === "P") {
+          let value = argument.slice(offset + 1);
+          const attached = value.length > 0;
+          if (!value) {
+            value = args[++index]!;
+            if (value === undefined) throw new ZipFailure(16, "Invalid command arguments", "password option requires a value");
+          } else if (value.startsWith("=")) value = value.slice(1);
+          const rawIndex = index - defaultsCount;
+          passwordArguments.add(rawIndex);
+          const raw = rawArguments?.bytes(rawIndex);
+          const prefix = attached ? original.startsWith("--") ? original.indexOf("=") + 1 : offset + 1 + (original[offset + 1] === "=" ? 1 : 0) : 0;
+          password = raw ? new Uint8Array(raw.subarray(prefix)) : Buffer.from(value);
+          if (password.includes(0)) fail("ZIP invalid password bytes");
+          if (!password.length) throw new ZipFailure(16, "Invalid command arguments", "zero length password not allowed");
+          encrypt = true;
+          break;
+        } else if (flag === "e") encrypt = true;
+        else if (["db", "dc", "dd", "dg", "du", "dv", "ds", "sc", "sd", "sf", "so"].includes(pair)) {
           offset++;
           const negated = argument[offset + 1] === "-";
           if (negated && !zipNegatableOptions.has(pair)) throw new ZipFailure(16, "Invalid command arguments", `option ${pair} is not negatable`);
@@ -183,8 +213,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         }
         else if (flag === "L" || flag === "v") {
           if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", `option ${flag} is not negatable`);
-          if (flag === "L") return { information: "license" };
-          if (args.length === 1 && original === "-v") return { information: "version" };
+          if (flag === "L") { validateArgumentText(); return { information: "license" }; }
+          if (args.length === 1 && original === "-v") { validateArgumentText(); return { information: "version" }; }
           verbose = true;
           quiet = false;
         }
@@ -192,8 +222,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h is not negatable");
           if (argument[offset + 1] === "2") {
             if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h2 is not negatable");
+            validateArgumentText();
             return { information: "more-help" };
           }
+          validateArgumentText();
           return { information: "help" };
         }
         else if (flag === "r" || flag === "R") {
@@ -332,6 +364,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       commandPaths.push(original);
     }
   }
+  validateArgumentText();
   if (showCommand) return { information: "command", command: [context.command, ...commandOptions, ...commandPaths], debug };
   if (showOptions) return { information: "options", debug };
   if (verbose && !dotsSet && !dotSize) dotSize = 10 * 1024 ** 2;
@@ -373,7 +406,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
   if (filesync && action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  const diagnosticArgs = args.map((value, index) => passwordArguments.has(index - defaultsCount) ? "[redacted]" : zipPublicText(value));
+  return { password, encrypt, args: diagnosticArgs, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, fromCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -824,6 +858,9 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     }
     if (editComment) comment = await readZipComment(commentInput, limits, context.signal);
   }
+  if (parsed.encryption && parsed.action !== "copy" && parsed.action !== "delete") {
+    for (const entry of entries) if (selected.has(entry.name) && !entry.directory) entry.encryption = parsed.encryption;
+  }
   if (!publication) return { kind: "stream" as const, archive: { entries, comment }, progress, finishProgress, moves: [...moves.values()] };
   if (entries.some(entry => entry.source)) return { kind: "staged-stream" as const, publication, archive: { entries, comment }, progress, finishProgress, exitCode, moves: [...moves.values()] };
   let latestWarning: string | undefined;
@@ -845,7 +882,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       if (!tested.entries.length) fail("empty ZIP archive");
       let decoded = 0;
       for (const entry of tested.entries) {
-        for await (const chunk of decodeZipEntry(entry, limits, context.signal)) {
+        for await (const chunk of decodeZipEntry(entry, limits, context.signal, parsed.password)) {
           if (chunk.length > limits.maxTotalBytes - decoded) fail("actual decompressed byte limit exceeded");
           decoded += chunk.length;
         }
@@ -893,11 +930,18 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
         if (parsed.information === "options") {
           await budget.output("available options:\nVirtual implementation; unsupported native options are omitted.\n sh  long                 val  neg\n");
           for (const [name, short] of Object.entries(zipLongOptions)) {
-            const value = ["i", "x"].includes(short) ? "list" : ["n", "Z", "t", "tt", "O", "ds"].includes(short) ? "req" : "";
+            const value = ["i", "x"].includes(short) ? "list" : ["P", "n", "Z", "t", "tt", "O", "ds"].includes(short) ? "req" : "";
             await budget.output(` ${(short === "version" ? "" : short).padEnd(3)} ${name.padEnd(20)} ${value.padEnd(4)} ${zipNegatableOptions.has(short) ? "neg" : ""}\n`);
           }
         } else await budget.output(parsed.information === "more-help" ? zipExtendedHelp : parsed.information === "version" ? zipVersion : parsed.information === "license" ? zipLicense : zipHelp);
         return { exitCode: 0 };
+      }
+      if (parsed.encrypt) {
+        if (parsed.password === undefined) parsed.password = await scope.operation(() => readZipPassword(options.zipHost, limits.maxArgumentBytes, context.signal, true));
+        parsed.encryption = { password: parsed.password, entropy: (length, signal) => scope.operation(() => {
+          if (!options.zipHost?.entropy) throw new ZipHostFailure("entropy");
+          return options.zipHost.entropy(length, signal);
+        }) };
       }
       if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);
       if (parsed.debug) await budget.output("sd: Command line read\nsd: Reading virtual archive and selecting files\n");
@@ -958,11 +1002,16 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     } catch (error) {
       original.signal.throwIfAborted();
       context.signal.throwIfAborted();
+      if (error instanceof ZipHostFailure && (error.code === "password-empty" || error.code === "password-confirm")) {
+        await budget.output(`\nzip error: Invalid command arguments (${error.message})\n`);
+        return { exitCode: 16 };
+      }
       if (error instanceof ZipFailure) {
         await budget.output(`\nzip error: ${error.label} (${zipPublicText(error.message)})\n`);
         return { exitCode: error.status };
       }
-      const message = escapeText(zipPublicText(display(publicDiagnosticMessage(error, context.onInternalError).slice(0, 1024))), "diagnostic");
+      const detail = display(publicDiagnosticMessage(error, context.onInternalError).slice(0, 1024));
+      const message = escapeText(error instanceof ZipHostFailure ? detail : zipPublicText(detail), "diagnostic");
       await writeBytes(context.stderr, Buffer.from(`zip: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), context.signal);
       return { exitCode: 2 };
     } finally {

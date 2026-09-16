@@ -3,6 +3,19 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { runBash } from '../../sdk/bash.js';
 import { registerBashCommand } from './bash.js';
 vi.mock('../../sdk/bash.js', () => ({ runBash: vi.fn(async () => ({ exitCode: 0 })) }));
+
+it('injects fresh cryptographic entropy into the shared archive command without assuming a password prompt', async () => {
+  const program = new Command();
+  registerBashCommand(program);
+  await program.parseAsync(['bash', '-c', ':'], { from: 'user' });
+  const host = vi.mocked(runBash).mock.calls[0]![0].archive?.zipHost;
+  expect(host?.entropy).toBeTypeOf('function');
+  expect(host?.password).toBeUndefined();
+  const signal = new AbortController().signal;
+  const first = await host!.entropy!(11, signal);
+  expect(first.length).toBe(11);
+  expect(await host!.entropy!(11, signal)).not.toEqual(first);
+});
 vi.mock('poe-code/safe-bash', async () => ({
   ...(await import('../../../packages/safe-bash/src/commands/network/authorizer.js')),
   createFetchTransport: () => vi.fn(),

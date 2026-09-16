@@ -2444,3 +2444,267 @@ with zero errors and four warnings. These six files are committed together as
 the automatic ZIP64 improvement; no push or release is authorized or claimed.
 Temporary verification logs used ignored workspace `out/` because filesystem
 root `/out` is read-only; logs are purged after verification.
+
+## Traditional ZipCrypto integration — current main, 2026-09-16
+
+Baseline HEAD: `1afbd97b572cb5ed6aea0a08d598c187a8786623`, branch `main`,
+clean index/worktree at entry. This is qualification of the modified working
+tree, not HEAD-only, remote-main, published-package or release proof.
+
+### Revalidation and failing controls before fixes
+
+The reader explicitly rejected flag 1, and ZIP's options resolver reserved
+password/encrypt as unsupported. `zip/crypto.ts` already provided the traditional
+byte transform with native vectors, but no archive/password integration.
+The initial memory-only `zip -P` command control failed **16 != 0** before the
+implementation. Later focused failures established raw password bytes being
+mistaken for UTF-8 metadata, missing SDK archive-option forwarding, missing CLI
+entropy injection, one-attempt interactive extraction, and wrong-password exit
+status **2 != 82**. Each was reproduced before its correction. Later failing controls established
+that credential-text filtering hid a fixed capability diagnostic, and a mutable
+typed entropy callback error could leak contextual text. Fixed capability errors
+now bypass that filtering and callback errors are rebuilt from fixed codes.
+
+Fresh isolated Apple Info-ZIP 3.0/native UnZip 6.00 and Python 3.9.6 observations
+also established the pinned profile: encrypted STORE uses extraction version 10
+and descriptor flag 8; `-P=foo` supplies `foo`; empty supplied ZIP passwords are
+rejected with status 16; all-wrong extraction returns 82; mixed plain/encrypted
+wrong-password extraction returns 1 and emits the plain neighbor. New memory-only
+controls failed before the version-10, empty-command-password and status fixes.
+Native BZIP2 creation returned status 19, "Compression method bzip2 not enabled";
+this is an unavailable oracle, not a passed bidirectional BZIP2 control.
+
+An independent read-only reviewer reproduced a recursive "Nothing to do"
+suggestion leaking `-P` values. Stored diagnostic argv now redacts the exact
+password positions, including attached/long/default-environment forms. The
+reviewer's fresh reproduction showed `[redacted]`, and canonical controls cover
+recursive suggestions/debug progress. Existing show-command redaction remains.
+
+### Implemented profile and capabilities
+
+New members compress before encryption, with fresh per-member keys. Eleven
+injected cryptographic entropy bytes plus the CRC/time verifier form each
+12-byte encryption header. Live sources use the existing byte pipeline, codecs,
+signals, budgets and writer descriptor/ZIP64 accounting. Buffered inputs retain
+the existing bounded profile. Retained ciphertext preserves descriptor/time
+binding through copy, update and comments. Strong/AES encryption stays refused.
+
+`ArchiveCommandsOptions.zipHost` supplies explicit entropy and no-echo password
+callbacks. Invocation cleanup is enrolled before host work and drains admitted
+cooperative callback work using the existing ZIP/extraction scopes. Callback
+exceptions are converted to fixed public errors without calling internal-error
+diagnostics with password-bearing host errors. Root cancellation retains its
+original reason. Deterministic entropy exists only in fixtures; no product RNG,
+terminal, ambient-host-state or process fallback is introduced in the package.
+
+`zip -P` and long/attached/clustered forms encrypt new non-directory members;
+empty supplied passwords are rejected with status 16 according to native ZIP.
+Empty interactive input and mismatched confirmation also return 16; empty input
+is refused before confirmation. `zip -e` requests
+and confirms a nonempty password through the injected no-echo host. Raw owned
+argv password bytes preserve identity; text passwords use UTF-8. The format API
+also encodes/decodes empty password bytes, separately from native command rules.
+Extraction allows at most three fresh interactive attempts after header-verifier
+rejection and reuses verified passwords. Wrong-password members are skipped;
+all-wrong selection returns 82 and mixed successful selection returns 1.
+
+The verifier is not authentication: final expanded length and CRC must succeed
+before encrypted member publication. File/symlink publication remains owned and
+staged by the existing extraction scope; encrypted `unzip -p` buffers a bounded
+member before writing. Low-level `decodeZipEntry` remains streaming and may yield
+unverified chunks: its caller must require successful EOF before publication.
+`zip -T` validates encrypted serialized entries using the supplied password.
+
+Minimal SDK/CLI wiring carries the same archive options through `runBash`.
+The noninteractive `poe-code bash -c` CLI injects Node cryptographic entropy, so
+supplied-password stdout commands work. Named ZIP publication still requires
+the existing owned atomic staging authority; the real-filesystem adapter refuses
+that path. Shell stdout redirection retains its explicitly weaker output contract.
+It has no no-echo prompt provider: `zip -e` and
+passwordless encrypted extraction fail with the precise diagnostic
+`ZIP no-echo password capability is unavailable`, status 2. SDK callers can
+explicitly supply both capabilities; no SafeJS change is required. The host
+contract and configuration are documented in `packages/safe-bash/src/contracts/zip.md`.
+
+### Revision-bound controls and native proof
+
+The focused memory-only matrix includes STORE/DEFLATE/BZIP2, buffered/live
+sources, descriptor/no-descriptor output, empty/Unicode/raw-byte passwords,
+mixed plain/encrypted members, encrypted empty members, independent member
+passwords, comments, ciphertext-preserving copy/update, `-T`, `-p`, and three
+prompt attempts. Negatives cover wrong passwords, deliberately colliding header
+verifiers, final CRC/length mismatch, truncated headers, EOF, confirmation
+mismatch, absent/malformed/failing capabilities and diagnostic redaction.
+Boundaries cover exact/one-byte-short archive budgets and decoded member limits.
+Cancellation controls cover pre-abort identity, active cipher/input retirement,
+host entropy and no-echo prompt work, and registered cleanup reuse. Existing ZIP,
+ZIP64, codec, ownership and extraction tests supply neighboring regression proof.
+
+Frozen native oracle captures: six STORE/DEFLATE archives for ASCII, Unicode and
+non-UTF8 byte passwords in `tests/commands/fixtures/zip-crypto-infozip.json`.
+These are passive native data; canonical tests use only memory and never spawn
+or write fixture files. Fresh isolated final-source oracle checks passed:
+**6 native-to-virtual** reads, **24 virtual-to-native UnZip** reads and **24
+virtual-to-Python** reads (three passwords, two methods, two descriptor requests,
+buffered/live output); additionally **12 virtual BZIP2-to-Python** reads passed.
+All comparisons used exact 60-byte payloads; random headers came from explicit
+Node cryptographic entropy in the oracle host. Native tools and scratch files
+never entered product fallback paths. The failed native BZIP2 writer probe and
+native empty-password rejection are recorded separately above.
+
+Current source/test SHA-256 identities:
+
+- `src/commands/archive/zip-format.ts`: `9f3c07319189e91d9739a47e8eac96638d529d0e9fb8e0795d10200701b3382b`
+- `src/commands/archive/zip/crypto.ts`: `7f38801815815cd87a76beff5b57fdf91a74b261531f1cdae6108d825074cfcc`
+- `src/commands/archive/zip.ts`: `67020ba74c19ede3941a065a3e8abf87ae774025f92147f8f7fe9c22cf819011`
+- `src/commands/archive/unzip.ts`: `feeb7305e89b6d41f41ab242aa9a0eb588e2fb3c4d1c7e88bd263579ffd365de`
+- `tests/commands/zip-crypto.test.ts`: `87b46fd2f1d637e7db9b11f4909ae78db3c46042aaa9059ce383c5db3171d3c9`
+- native JSON fixture: `d70d2f3edc33af2f72724fe82d257af6332021d38f6fe99ed1bae7573ee69df1`
+
+SDK/CLI source identities:
+
+- `src/sdk/bash.ts`: `75da96b3be93419516c52c7eaff308b87370866f09a67b7ae3ef5d839de531c1`
+- `src/cli/commands/bash.ts`: `3285996b607efefbb092ef60b1d51ca0d0ae68217be003ef21ce6caaeea77d89`
+
+Final-source focused controls passed **92/92**; ZIP/unzip command and plugin
+regressions passed **1,549/1,549**, with zero skips, cancellations or TODOs.
+SDK/CLI focused controls passed **23/23**. Selected maintained workspace build
+passed all six declared dependency-closure builds; final package typechecking
+passed source/tests, all 26 current consumer groups and required negative
+validators. The earlier repository lint route passed ESLint, types and workflows;
+final-source ESLint also passed all 15,493 configured subjects with zero errors
+and four existing warnings.
+
+The full maintained `npm test` reached and passed the complete virtual-bash unit
+stage: **39,680 passed, 823 skipped, zero failures/cancellations/TODOs**, plus
+**522/522** package runner controls. Skips are exclusions, not passed optional
+profiles. The earlier shared repository stage and intervening declared unit
+stages completed successfully. The subsequent SafeJS stage reported two
+5-second timeouts in `src/run.promise-aliases.test.ts`, for the full native
+workflow with pending=false/true. This task's broad run was stopped after those
+failures while other SafeJS files remained queued; it is **failed/incomplete**,
+not a passing repository gate. An isolated retry using the same maintained
+Vitest configuration reproduced both timeouts: **17 passed, 2 failed**, exit 1.
+The initial root-only retry selected no files and is excluded from passing
+proof. SafeJS source was preserved as requested; no timeout increase or source
+repair was applied. Later declared workspace stages are not qualified by this
+interrupted run.
+
+Final-source `npm run screenshot-poe-code` preparation passed **75/75 uncached
+workspace builds** and root bundling. Both screenshots were visually inspected:
+ZIP help renders the password options legibly; the stdout encryption/decryption
+workflow displays the exact `payload`, then the precise missing no-echo
+capability diagnostic. The final shell command's status 2 is intentional negative
+capability evidence; the screenshot wrapper exits 0. The previous named-ZIP
+workflow screenshot only demonstrated staging refusal and is excluded from
+positive workflow evidence. Screenshot SHA-256 identities before purge:
+
+- Help: `afb53d2b910e1c3f4012e74a5b1932908bbf23459dfca415cf134b5926cc36ed`
+- Workflow: `85c4f90476b20af49b31d86f1a7f6771d9fe84a1df35cd883085ae45dab961aa`
+
+`git diff --check` passed. Temporary oracle programs, logs, captures, screenshots
+and CLI scratch files use ignored workspace `out/` because filesystem `/out` is
+read-only; only this task's artifacts are purged after inspection.
+Earlier failing intermediate checks are excluded from passing evidence.
+
+### Exclusions
+
+Isolated native PTY probes confirmed matched input succeeds (status 0),
+mismatched confirmation fails (16), and empty input immediately fails (16)
+without requesting confirmation. Passwords were not echoed and failed cases
+created no archive. Inputs used CR; the initial LF probe timed out and was killed,
+and is excluded from passing evidence. Memory controls reproduce the empty and
+confirmation ordering/status. Full terminal cancellation parity and CLI no-echo
+terminal parity remain excluded. A colliding verifier followed by CRC/decompression failure terminates
+without another interactive attempt; only header-verifier rejection retries.
+No bidirectional native BZIP2 writing proof, empty-password native ZIP archive
+creation, AES/strong encryption, cryptographic authentication, multi-GB artifact,
+RSS measurement or deployed-provider publication is claimed. Source streams
+and ZIP stdout retain the existing nontransactional partial-output cancellation
+profile. Cleanup depends on cooperative injected hosts; opaque uncooperative
+promises cannot be forcibly retired. The scoped proof is not full ZIP native
+equivalence. README, SafeJS source and runtime dependencies remain unchanged.
+No commit, push, remote-main delivery or successful release is claimed.
+
+### September 16, 2026 current-main revalidation
+
+At HEAD `1afbd97b572cb5ed6aea0a08d598c187a8786623` on `main`, the working
+tree already contained the password integration described above. This is dirty
+working-tree proof, not proof that the integration is committed on remote main.
+Revalidation could not reproduce the stated missing integration: `zip -P`
+creates encrypted members and the current tests exercise reader/writer and
+command password workflows. No product change was made in this revalidation;
+existing edits, including SDK/CLI wiring, were preserved.
+
+Fresh checks:
+
+- `node --import tsx --test packages/safe-bash/tests/commands/zip-crypto.test.ts`:
+  92 passed, zero failures, skips, cancellations or TODOs. These include positive,
+  negative, boundary, cancellation and neighboring-member controls.
+- `node --import tsx --test --test-reporter=dot packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts`:
+  exit 0. The dot reporter supplies no aggregate count; no new numerical total
+  is claimed for this regression run.
+- `npx vitest run --config vitest.root.config.ts src/sdk/bash.test.ts src/cli/commands/bash.test.ts`:
+  23 passed across two files, exit 0.
+
+SHA-256 rechecks of `zip/crypto.ts`, `zip-format.ts`, `zip.ts`, `unzip.ts` and
+`zip-crypto.test.ts` exactly match the revision-bound identities above. The
+existing native cross-read captures remain earlier evidence for those bytes;
+native tools were not rerun in this revalidation. No new build, full repository
+gate, screenshot, terminal capability or release proof is claimed. The documented
+CLI no-echo capability failure and all exclusions above remain applicable.
+SafeJS, README and runtime dependencies were untouched.
+
+### Follow-up revalidation — 2026-09-16
+
+Repeated qualification at main HEAD
+`1afbd97b572cb5ed6aea0a08d598c187a8786623`, preserving the integration edits
+already present at entry. The missing-integration claim remains unreproduced;
+no product correction or refactor was justified. Fresh crypto controls passed
+92/92 (zero failures, skips, cancellations or TODOs); SDK/CLI controls passed
+23/23. The fresh concurrency-1 ZIP/unzip command **and plugin** regression run
+using Node's dot reporter exited 0; no aggregate count is inferred from dots.
+`git diff --check` passed. The five source/test hashes rechecked in the preceding
+section still match the recorded revision identities.
+
+Only this evidence addition was authored in this follow-up. Native cross-read
+proof remains the earlier recorded proof for matching bytes; no new native,
+build, repository-wide gate or screenshot qualification is claimed. The no-echo
+CLI capability failure, earlier SafeJS gate timeouts and all stated exclusions
+remain applicable. No README, SafeJS, runtime dependency or product source was
+changed, and no commit, push or release was performed.
+
+### Additional user-workflow edge controls — 2026-09-16
+
+At main HEAD `1afbd97b572cb5ed6aea0a08d598c187a8786623`, preserved all
+preexisting integration edits and added two memory-only command controls:
+
+- Interactive `unzip -p` switches from a verified cached password to a different
+  member password, prompts exactly twice, and emits both encrypted members and
+  their plain neighbor in archive order without password diagnostics.
+- `unzip -l` and `unzip -p archive.zip plain` operate on a mixed archive without
+  acquiring either password or entropy capabilities. Listing exposes no payload.
+
+Fresh crypto run: 94 passed, zero failures, cancellations, skips or TODOs.
+Fresh SDK/CLI run: 23 passed. The concurrency-1 ZIP/unzip command and plugin
+regression run exited 0; its dot reporter does not establish an aggregate count.
+Focused ESLint for `zip-crypto.test.ts` and `git diff --check` both exited 0.
+No product defect was reproduced and no product code was changed. These are
+positive regression additions, not evidence of a failing-then-fixed defect.
+
+Revision-specific SHA-256 identities:
+
+| Input | SHA-256 |
+| --- | --- |
+| `zip/crypto.ts` | `7f38801815815cd87a76beff5b57fdf91a74b261531f1cdae6108d825074cfcc` |
+| `zip-format.ts` | `9f3c07319189e91d9739a47e8eac96638d529d0e9fb8e0795d10200701b3382b` |
+| `zip.ts` | `67020ba74c19ede3941a065a3e8abf87ae774025f92147f8f7fe9c22cf819011` |
+| `unzip.ts` | `feeb7305e89b6d41f41ab242aa9a0eb588e2fb3c4d1c7e88bd263579ffd365de` |
+| `zip-crypto.test.ts` | `7083fdae66454513b2662a2bd47f1ebd9c7e5c061431ed7e52b52cae57b2c0a0` |
+
+Product hashes remain unchanged from the earlier native cross-read evidence;
+native tools were not rerun here. No new screenshot, build, full repository gate,
+terminal no-echo parity, commit, push or release proof is claimed. The existing
+CLI no-echo capability failure and all preceding exclusions remain applicable.
+Only these tests and this evidence section were authored in this pass; SafeJS,
+README and runtime dependencies were untouched.

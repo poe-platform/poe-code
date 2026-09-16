@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { randomBytes } from 'node:crypto';
 import { InvalidArgumentError, Option, type Command } from 'commander';
 import { renderSpinnerFrame, renderSpinnerStopped } from 'toolcraft-design';
 import { runBash } from '../../sdk/bash.js';
@@ -65,6 +66,7 @@ export function registerBashCommand(program: Command): void {
         const network = options.pythonPackageAllowOrigin.length > 0 ? await import('poe-code/safe-bash') : undefined;
         const result = await runBash({
           source: options.command, root: resolve(options.root), cwd: options.cwd, env,
+          archive: { zipHost: { entropy(length, signal) { signal.throwIfAborted(); return randomBytes(length); } } },
           stdin: process.stdin,
           stdout: sink(process.stdout), stderr: sink(process.stderr),
           python: options.pythonRuntime === undefined ? undefined : {

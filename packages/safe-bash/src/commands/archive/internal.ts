@@ -22,6 +22,15 @@ export interface ArchiveLimits {
 export interface ArchiveCommandsOptions {
   readonly replace?: boolean;
   readonly limits?: Partial<ArchiveLimits>;
+  /** Explicit trusted host capabilities; neither capability reads shell stdin. */
+  readonly zipHost?: ZipHost;
+}
+
+export interface ZipHost {
+  /** Supply cryptographically secure, fresh bytes. Product code never substitutes entropy. */
+  readonly entropy?: (length: number, signal: AbortSignal) => Uint8Array | Promise<Uint8Array>;
+  /** Host must suppress terminal echo and return owned password bytes, or undefined on EOF. */
+  readonly password?: (request: Readonly<{ prompt: string; maxBytes: number; signal: AbortSignal }>) => Promise<Uint8Array | undefined>;
 }
 
 export const DEFAULT_ARCHIVE_LIMITS: Readonly<ArchiveLimits> = Object.freeze({

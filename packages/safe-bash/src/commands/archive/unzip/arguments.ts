@@ -5,6 +5,8 @@ import { checkPath, fail, text, type ArchiveLimits } from "../internal.js";
 
 export function parseArguments(context: Pick<CommandContext, "args" | "argumentValues">, limits: ArchiveLimits) {
   const { args } = context;
+  const rawArguments = context.argumentValues ? getCommandArguments(context) : undefined;
+  const passwordArguments = new Set<number>();
   let bytes = 0;
   for (const argument of args) {
     bytes += Buffer.byteLength(argument) + 1;
@@ -19,9 +21,9 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
       if (size > limits.maxArgumentBytes - rawBytes) fail("argument byte limit exceeded");
       rawBytes += size;
     }
-    for (const value of argumentsValue.values) text(shellValueBytes(value));
   }
   let list = false;
+  let password: Uint8Array | undefined;
   let pipe = false;
   let overwrite = false;
   let destination: string | undefined;
@@ -34,7 +36,15 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
     if (!ended && argument.startsWith("-") && argument !== "-") {
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset];
-        if (flag === "l") list = true;
+        if (flag === "P") {
+          const attached = offset + 1 < argument.length;
+          const value = argument.slice(offset + 1) || args[++index];
+          if (value === undefined) fail("password option requires a value");
+          passwordArguments.add(index);
+          const raw = rawArguments?.bytes(index);
+          password = raw ? new Uint8Array(raw.subarray(attached ? offset + 1 : 0)) : Buffer.from(value);
+          break;
+        } else if (flag === "l") list = true;
         else if (flag === "p") pipe = true;
         else if (flag === "o") overwrite = true;
         else if (flag === "d") {
@@ -48,9 +58,12 @@ export function parseArguments(context: Pick<CommandContext, "args" | "argumentV
     } else if (archive === undefined) archive = argument;
     else patterns.push(argument);
   }
+  if (rawArguments) for (const [index, value] of rawArguments.values.entries()) {
+    if (!passwordArguments.has(index)) text(shellValueBytes(value));
+  }
   if (archive === undefined) fail("usage: unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]");
   checkPath(archive, limits);
-  return { list: list && !pipe, pipe, overwrite, destination, archive, patterns };
+  return { password, list: list && !pipe, pipe, overwrite, destination, archive, patterns };
 }
 
 type Token = { kind: "star"; crossDirectories: boolean } | { kind: "any" | "never" } | { kind: "literal"; value: string }

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-const state = vi.hoisted(() => ({ shellOptions: undefined as unknown, execution: undefined as unknown, python: undefined as unknown, disposed: false }));
+const state = vi.hoisted(() => ({ shellOptions: undefined as unknown, execution: undefined as unknown, python: undefined as unknown, agent: undefined as unknown, disposed: false }));
 vi.mock('poe-code/safe-bash', () => ({
   Shell: class { constructor(options: unknown) { state.shellOptions = options; } use() { return this; } async exec(source: string, options: unknown) { state.execution = { source, options }; return { exitCode: 17 }; } async dispose() { state.disposed = true; } },
   RealFileSystem: class { constructor(public options: unknown) {} },
-  agentCommands: () => ({}),
+  agentCommands: (options: unknown) => { state.agent = options; return {}; },
   pythonCommands: (options: unknown) => { state.python = options; return {}; }
 }));
 vi.mock('poe-code/safe-bash/commands/python/node', () => ({ createNodePythonWorker: vi.fn() }));
@@ -24,6 +24,16 @@ describe('runBash SDK', () => {
   it('requires an explicit filesystem or host root', async () => {
     await expect(runBash({ source: ':' })).rejects.toThrow('filesystem or root');
   });
+});
+
+it('forwards explicit archive capabilities without calling them at SDK startup', async () => {
+  const entropy = vi.fn();
+  const password = vi.fn();
+  const archive = { zipHost: { entropy, password } };
+  await runBash({ source: ':', fs: {} as never, archive });
+  expect(state.agent).toEqual({ archive });
+  expect(entropy).not.toHaveBeenCalled();
+  expect(password).not.toHaveBeenCalled();
 });
 
 it('preserves borrowed streams and cancellation with an injected worker factory', async () => {

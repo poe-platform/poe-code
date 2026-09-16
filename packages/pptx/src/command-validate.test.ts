@@ -29,6 +29,26 @@ function invocation(args: string[], invalid = false) {
 }
 const data = (output: { stdout: Uint8Array }) => JSON.parse(new TextDecoder().decode(output.stdout));
 describe("public semantic validation command", () => {
+  it("declares admitted common inspect limits in the public schema", async () => {
+    const output = await createPptxCommandEngine(options).execute(invocation(["schema", "inspect", "--json"]));
+    const schema = data(output).data.operations.inspect;
+    expect(schema.options.properties).toHaveProperty("limit");
+    expect(compileJsonSchema(schema.options).validate({ json: true, limit: { maxNodes: 10 } }).ok).toBe(true);
+    expect(compileJsonSchema(schema.options).validate({ limit: { maxNodes: 0 } }).ok).toBe(false);
+    expect(compileJsonSchema(schema.options).validate({ limit: { unknown: 1 } }).ok).toBe(false);
+  });
+  it("executes inspect with a valid lower common ceiling", async () => {
+    const output = await createPptxCommandEngine(options).execute(invocation(["inspect", "/deck.pptx", "--json", "--limit", "maxNodes=100"]));
+    expect(output.exitCode).toBe(0);
+    expect(data(output)).toMatchObject({ operation: "inspect", ok: true });
+  });
+  it("rejects irrelevant inspect output-count limits before admission", async () => {
+    const request = invocation(["inspect", "/deck.pptx", "--json", "--limit", "maxOutputs=1"]);
+    expect((await createPptxCommandEngine(options).execute(request)).exitCode).toBe(2);
+    expect(request.readInput).not.toHaveBeenCalled();
+    const output = await createPptxCommandEngine(options).execute(invocation(["schema", "inspect", "--json"]));
+    expect(compileJsonSchema(data(output).data.operations.inspect.options).validate({ limit: { maxOutputs: 1 } }).ok).toBe(false);
+  });
   it.each(["image", "table", "metadata", "replace"])("rejects removed spelling %s with the common help usage envelope", async (operation) => {
     const request = invocation([operation, "/deck.pptx", "--json"]);
     const output = await createPptxCommandEngine(options).execute(request);

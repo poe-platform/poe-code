@@ -215,6 +215,25 @@ for (const action of ["list", "get"]) {
   });
 }
 
+const xmlSelection = {
+  limit: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      maxBytes: { type: "integer", minimum: 1 },
+      maxNodes: { type: "integer", minimum: 1 },
+      maxDepth: { type: "integer", minimum: 1 },
+      maxOutputBytes: { type: "integer", minimum: 512 }
+    },
+    description:
+      "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
+  },
+  part: { type: "string", minLength: 1 },
+  select: { type: "string", minLength: 1 },
+  scope: selectionQuerySchema.properties.scope,
+  json: { type: "boolean", default: false }
+} as const;
+
 export const inspectSchema = {
   input: { type: "string", minLength: 1, description: "Explicit VFS path, or - for stdin." },
   options: {
@@ -223,6 +242,7 @@ export const inspectSchema = {
     additionalProperties: false,
     properties: {
       json: { type: "boolean", default: false },
+      limit: xmlSelection.limit,
       slide: {
         type: "integer",
         minimum: 1,
@@ -351,24 +371,6 @@ export const inspectSchema = {
   }
 } as const;
 
-const xmlSelection = {
-  limit: {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      maxBytes: { type: "integer", minimum: 1 },
-      maxNodes: { type: "integer", minimum: 1 },
-      maxDepth: { type: "integer", minimum: 1 },
-      maxOutputBytes: { type: "integer", minimum: 512 }
-    },
-    description:
-      "CLI repeats --limit NAME=VALUE for distinct names; all values must lower explicit trusted ceilings."
-  },
-  part: { type: "string", minLength: 1 },
-  select: { type: "string", minLength: 1 },
-  scope: selectionQuerySchema.properties.scope,
-  json: { type: "boolean", default: false }
-} as const;
 const xmlSelectionRules = [
   { oneOf: [{ required: ["part"] }, { required: ["select"] }] },
   { if: { required: ["select"] }, then: { not: { required: ["scope"] } } }

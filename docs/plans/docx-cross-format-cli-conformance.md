@@ -169,3 +169,10 @@ Missing help/schema/version declarations failed original result-schema cases
 before correction. Declared paths now match public runtime/result schemas; the
 final PPTX suite, lint and selected build pass. Commit the discovery register
 and original schema/removed-spelling regressions independently of inspect limits.
+
+### PPTX inspect-limit delivery
+
+Two inspect schema/runtime cases were red before admitting supported lowered
+limits. An original regression retains irrelevant maxOutputs rejection before
+input. Final maintained PPTX checks pass; commit inspect declaration/parser and
+three original small cases independently of validation/discovery/extraction.

@@ -3810,12 +3810,13 @@ function parse(
     usage("Publication options require xml set.");
   if (
     !xml &&
+    operation !== "inspect" &&
     operation !== "slides.add" &&
     operation !== "slides.import" &&
     !slideMutation &&
     result.limits
   )
-    usage("Limit overrides require XML operations or slides add.");
+    usage("Limit overrides require inspect, XML operations or slides add.");
   if (operation !== "xml.get" && result.pretty) usage("Pretty output requires xml get.");
   if (xml) {
     if (result.slide !== undefined || result.shape || result.all)

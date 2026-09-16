@@ -1,0 +1,221 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts (9 tests | 7 failed) 439ms
+   × resolves an inserted paragraph style by name 61ms
+   × resolves an inserted paragraph style by owner 47ms
+   × inserts no fabricated run for empty text undefined 41ms
+   × inserts no fabricated run for empty text null 39ms
+   × inserts no fabricated run for empty text  38ms
+   × rejects missing before paragraph insertion 38ms
+   ✓ rejects character before paragraph insertion 41ms
+   ✓ rejects foreign before paragraph insertion 95ms
+   × rejects text before paragraph insertion 38ms
+FAIL packages/docx/src/paragraph-insertion-contract.test.ts > resolves an inserted paragraph style by name
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:12:41
+     10|   const retained = document.paragraphs[0]!;
+     11|   const inserted = retained.insert_paragraph_before("潮 🌿\tLine\nEnd",…
+     12|   expect(inserted.style!.equals(style)).toBe(true);
+       |                                         ^
+     13|   expect(new TextDecoder().decode(inserted.element.serialize())).toCon…
+     14|   expect(inserted.text).toBe("潮 🌿\tLine\nEnd");
+
+FAIL packages/docx/src/paragraph-insertion-contract.test.ts > resolves an inserted paragraph style by owner
+TypeError: value is not iterable
+ ❯ xmlValue packages/docx/src/create-content.ts:9:22
+      7| export function xmlValue(value: string): string {
+      8|   let result = "";
+      9|   for (const char of value) {
+       |                      ^
+     10|     const n = char.codePointAt(0)!;
+     11|     if (!(n === 9 || n === 10 || n === 13 || n >= 32 && n <= 0xd7ff ||…
+ ❯ packages/docx/src/block-model.ts:186:82
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ Paragraph.insert_paragraph_before packages/docx/src/block-model.ts:182:16
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:11:29
+
+FAIL packages/docx/src/paragraph-insertion-contract.test.ts > inserts no fabricated run for empty text undefined
+AssertionError: expected [ Run{ …(2) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:27:25
+     25|   const document = await Document(await textFixture("<w:p/>"), textCon…
+     26|   const inserted = document.paragraphs[0]!.insert_paragraph_before(tex…
+     27|   expect(inserted.runs).toHaveLength(0);
+       |                         ^
+     28|   expect(new TextDecoder().decode(inserted.element.serialize())).toBe(…
+     29| });
+
+FAIL packages/docx/src/paragraph-insertion-contract.test.ts > inserts no fabricated run for empty text null
+AssertionError: expected [ Run{ …(2) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:27:25
+     25|   const document = await Document(await textFixture("<w:p/>"), textCon…
+     26|   const inserted = document.paragraphs[0]!.insert_paragraph_before(tex…
+     27|   expect(inserted.runs).toHaveLength(0);
+       |                         ^
+     28|   expect(new TextDecoder().decode(inserted.element.serialize())).toBe(…
+     29| });
+
+FAIL packages/docx/src/paragraph-insertion-contract.test.ts > inserts no fabricated run for empty text
+AssertionError: expected [ Run{ …(2) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:27:25
+     25|   const document = await Document(await textFixture("<w:p/>"), textCon…
+     26|   const inserted = document.paragraphs[0]!.insert_paragraph_before(tex…
+     27|   expect(inserted.runs).toHaveLength(0);
+       |                         ^
+     28|   expect(new TextDecoder().decode(inserted.element.serialize())).toBe(…
+     29| });
+
+FAIL packages/docx/src/paragraph-insertion-contract.test.ts > rejects missing before paragraph insertion
+AssertionError: expected [Function action] to throw an error
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:40:23
+     38|   const action = () => retained.insert_paragraph_before(kind === "text…
+     39|   if (kind === "text") expect(action).toThrow(InputTypeError);
+     40|   else expect(action).toThrow();
+       |                       ^
+     41|   expect(document.element.serialize()).toEqual(before);
+     42|   expect(retained.equals(document.paragraphs[0])).toBe(true);
+
+FAIL packages/docx/src/paragraph-insertion-contract.test.ts > rejects text before paragraph insertion
+AssertionError: expected error to be instance of InputTypeError
+
+- Expected:
+[Function InputTypeError]
+
++ Received:
+TypeError {
+  "message": "text is not iterable",
+}
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:39:39
+     37|   const before = document.element.serialize();
+     38|   const action = () => retained.insert_paragraph_before(kind === "text…
+     39|   if (kind === "text") expect(action).toThrow(InputTypeError);
+       |                                       ^
+     40|   else expect(action).toThrow();
+     41|   expect(document.element.serialize()).toEqual(before);
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/paragraph-insertion-contract.test.ts > resolves an inserted paragraph style by name
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:12:41
+     10|   const retained = document.paragraphs[0]!;
+     11|   const inserted = retained.insert_paragraph_before("潮 🌿\tLine\nEnd",…
+     12|   expect(inserted.style!.equals(style)).toBe(true);
+       |                                         ^
+     13|   expect(new TextDecoder().decode(inserted.element.serialize())).toCon…
+     14|   expect(inserted.text).toBe("潮 🌿\tLine\nEnd");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  packages/docx/src/paragraph-insertion-contract.test.ts > resolves an inserted paragraph style by owner
+TypeError: value is not iterable
+ ❯ xmlValue packages/docx/src/create-content.ts:9:22
+      7| export function xmlValue(value: string): string {
+      8|   let result = "";
+      9|   for (const char of value) {
+       |                      ^
+     10|     const n = char.codePointAt(0)!;
+     11|     if (!(n === 9 || n === 10 || n === 13 || n >= 32 && n <= 0xd7ff ||…
+ ❯ packages/docx/src/block-model.ts:186:82
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ Paragraph.insert_paragraph_before packages/docx/src/block-model.ts:182:16
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:11:29
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  packages/docx/src/paragraph-insertion-contract.test.ts > inserts no fabricated run for empty text undefined
+ FAIL  packages/docx/src/paragraph-insertion-contract.test.ts > inserts no fabricated run for empty text null
+ FAIL  packages/docx/src/paragraph-insertion-contract.test.ts > inserts no fabricated run for empty text
+AssertionError: expected [ Run{ …(2) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:27:25
+     25|   const document = await Document(await textFixture("<w:p/>"), textCon…
+     26|   const inserted = document.paragraphs[0]!.insert_paragraph_before(tex…
+     27|   expect(inserted.runs).toHaveLength(0);
+       |                         ^
+     28|   expect(new TextDecoder().decode(inserted.element.serialize())).toBe(…
+     29| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  packages/docx/src/paragraph-insertion-contract.test.ts > rejects missing before paragraph insertion
+AssertionError: expected [Function action] to throw an error
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:40:23
+     38|   const action = () => retained.insert_paragraph_before(kind === "text…
+     39|   if (kind === "text") expect(action).toThrow(InputTypeError);
+     40|   else expect(action).toThrow();
+       |                       ^
+     41|   expect(document.element.serialize()).toEqual(before);
+     42|   expect(retained.equals(document.paragraphs[0])).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  packages/docx/src/paragraph-insertion-contract.test.ts > rejects text before paragraph insertion
+AssertionError: expected error to be instance of InputTypeError
+
+- Expected:
+[Function InputTypeError]
+
++ Received:
+TypeError {
+  "message": "text is not iterable",
+}
+
+ ❯ packages/docx/src/paragraph-insertion-contract.test.ts:39:39
+     37|   const before = document.element.serialize();
+     38|   const action = () => retained.insert_paragraph_before(kind === "text…
+     39|   if (kind === "text") expect(action).toThrow(InputTypeError);
+       |                                       ^
+     40|   else expect(action).toThrow();
+     41|   expect(document.element.serialize()).toEqual(before);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 2 passed (9)
+   Start at  22:33:13
+   Duration  1.50s (transform 838ms, setup 29ms, import 980ms, tests 439ms, environment 0ms)

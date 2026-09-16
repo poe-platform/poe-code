@@ -1,0 +1,58 @@
+
+> docx@0.0.1 test:schemas
+> cd ../.. && vitest run --config packages/docx/vitest.schema.config.ts
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/tests/schema-interoperability.schema-test.ts (10 tests | 10 skipped) 12ms
+   ↓ validates original docx creation, styles and nested tables
+   ↓ validates original dotx creation, styles and nested tables
+   ↓ validates preserving replacement and retains every unrelated part
+   ↓ rejects an original schema negative control: <w:p><w:unexpected/></w:p>
+   ↓ rejects an original schema negative control: <w:p><w:pPr><w:spacing w:after="not-a-number"/></w:pPr></w:p>
+   ↓ rejects an original schema negative control: <w:p><w:r><w:rPr><w:b w:val="perhaps"/></w:rPr></w:r></w:p>
+   ↓ rejects an original schema negative control: <w:p><w:r></w:p>
+   ↓ keeps dangling-reference assertions authoritative after schema success
+   ↓ classifies required compatibility extensions without stripping input
+   ↓ reports the pinned Strict schema compilation discrepancy separately
+FAIL packages/docx/tests/schema-interoperability.schema-test.ts
+Error: Set DOCX_SCHEMA_ROOT to the absolute pinned test schema directory.
+ ❯ schemaRoot packages/docx/tests/schema-consumer.ts:10:11
+      8|   const root = process.env.DOCX_SCHEMA_ROOT;
+      9|   if (!root || !isAbsolute(root))
+     10|     throw new Error("Set DOCX_SCHEMA_ROOT to the absolute pinned test …
+       |           ^
+     11|   return root;
+     12| }
+ ❯ verifySchemaProfile packages/docx/tests/schema-consumer.ts:19:16
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/tests/schema-interoperability.schema-test.ts [ packages/docx/tests/schema-interoperability.schema-test.ts ]
+Error: Set DOCX_SCHEMA_ROOT to the absolute pinned test schema directory.
+ ❯ schemaRoot packages/docx/tests/schema-consumer.ts:10:11
+      8|   const root = process.env.DOCX_SCHEMA_ROOT;
+      9|   if (!root || !isAbsolute(root))
+     10|     throw new Error("Set DOCX_SCHEMA_ROOT to the absolute pinned test …
+       |           ^
+     11|   return root;
+     12| }
+ ❯ verifySchemaProfile packages/docx/tests/schema-consumer.ts:19:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 skipped (10)
+   Start at  22:35:09
+   Duration  1.39s (transform 1.08s, setup 37ms, import 1.27s, tests 12ms, environment 0ms)
+
+npm error Lifecycle script `test:schemas` failed with error:
+npm error code 1
+npm error path /Users/kjopek/Workspace/poe-setup-scripts/packages/docx
+npm error workspace docx@0.0.1
+npm error location /Users/kjopek/Workspace/poe-setup-scripts/packages/docx
+npm error command failed
+npm error command sh -c cd ../.. && vitest run --config packages/docx/vitest.schema.config.ts

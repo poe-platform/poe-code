@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "task": "adapt-upstream-text-style-document",
+  "status": "partial-acceptance-remains-open",
+  "base": "7d94f691baed0cc9dbae4b98ec0bb1418db9ee25",
+  "counts": {
+    "unitVariants": 1609,
+    "uniqueUnitVariants": 1609,
+    "bddExamples": 650,
+    "publicApiRecords": 920,
+    "uniqueApiRecords": 920
+  },
+  "api": "docx.text.paragraph.Paragraph.insert_paragraph_before",
+  "target": "packages/docx/src/paragraph-insertion-contract.test.ts",
+  "cases": [
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_paragraph.py",
+        "line": 187,
+        "node_id": "tests/text/test_paragraph.py::DescribeParagraph::it_can_insert_a_paragraph_before_itself[insert_before_fixture0]"
+      },
+      "edgeValues": {
+        "insert_before_fixture": {
+          "type": "tuple",
+          "items": [null, null]
+        }
+      },
+      "disposition": "original-observable-insertion-equivalent",
+      "replacement": "Four original null/nonempty text and null/named style pairs assert exact ordered XML, run cardinality, typed returned owner and retained id=42. Private mock call counts are replaced by those outcomes; Unicode, owned styles, ID divergence, memfs publication and rollback supplement them."
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_paragraph.py",
+        "line": 187,
+        "node_id": "tests/text/test_paragraph.py::DescribeParagraph::it_can_insert_a_paragraph_before_itself[insert_before_fixture1]"
+      },
+      "edgeValues": {
+        "insert_before_fixture": {
+          "type": "tuple",
+          "items": ["Foo", null]
+        }
+      },
+      "disposition": "original-observable-insertion-equivalent",
+      "replacement": "Four original null/nonempty text and null/named style pairs assert exact ordered XML, run cardinality, typed returned owner and retained id=42. Private mock call counts are replaced by those outcomes; Unicode, owned styles, ID divergence, memfs publication and rollback supplement them."
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_paragraph.py",
+        "line": 187,
+        "node_id": "tests/text/test_paragraph.py::DescribeParagraph::it_can_insert_a_paragraph_before_itself[insert_before_fixture2]"
+      },
+      "edgeValues": {
+        "insert_before_fixture": {
+          "type": "tuple",
+          "items": [null, "Bar"]
+        }
+      },
+      "disposition": "original-observable-insertion-equivalent",
+      "replacement": "Four original null/nonempty text and null/named style pairs assert exact ordered XML, run cardinality, typed returned owner and retained id=42. Private mock call counts are replaced by those outcomes; Unicode, owned styles, ID divergence, memfs publication and rollback supplement them."
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_paragraph.py",
+        "line": 187,
+        "node_id": "tests/text/test_paragraph.py::DescribeParagraph::it_can_insert_a_paragraph_before_itself[insert_before_fixture3]"
+      },
+      "edgeValues": {
+        "insert_before_fixture": {
+          "type": "tuple",
+          "items": ["Foo", "Bar"]
+        }
+      },
+      "disposition": "original-observable-insertion-equivalent",
+      "replacement": "Four original null/nonempty text and null/named style pairs assert exact ordered XML, run cardinality, typed returned owner and retained id=42. Private mock call counts are replaced by those outcomes; Unicode, owned styles, ID divergence, memfs publication and rollback supplement them."
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/text/test_paragraph.py",
+        "line": 204,
+        "node_id": "tests/text/test_paragraph.py::DescribeParagraph::it_inserts_a_paragraph_before_to_help[_insert_before_fixture0]"
+      },
+      "edgeValues": {
+        "_insert_before_fixture": {
+          "type": "tuple",
+          "items": ["w:body/w:p{id=42}", "w:body/(w:p,w:p{id=42})"]
+        }
+      },
+      "disposition": "original-observable-insertion-equivalent",
+      "replacement": "Four original null/nonempty text and null/named style pairs assert exact ordered XML, run cardinality, typed returned owner and retained id=42. Private mock call counts are replaced by those outcomes; Unicode, owned styles, ID divergence, memfs publication and rollback supplement them."
+    }
+  ],
+  "languageSecurity": {
+    "signature": "insert_paragraph_before(text?: string | null, style?: string | ParagraphStyle | null): Paragraph",
+    "execution": "Synchronous admitted model edit; always-async admission and save with explicit memfs sink",
+    "defaults": "undefined/null text means no run; empty string also creates no run. Absent style leaves no pStyle. Names resolve to owned paragraph style IDs; owned style objects accepted; invalid names/types/foreign owners reject.",
+    "ownership": "Insertion retains receiver and sibling identity; rejected edits roll back lazy styles definition and package part bytes.",
+    "cli": "Existing closed typed model.text.paragraph.Paragraph.insert_paragraph_before.call batch operation invokes the same SDK method. No operation schema expansion or human help change.",
+    "xml": "Exact original XML assertions retain Unicode, tab/br semantics, paragraph ID and document order. Self-contained XML views retain ancestor namespace declarations; text serialization retains xml:space=preserve.",
+    "drift": "The existing public register already permits ParagraphStyle and nullable text. Actual method signature now matches it. No new aliases or underscore-based exclusions."
+  },
+  "evidenceLimits": [
+    "Mapped registers are historical plans; original overlays supersede only specifically verified boundaries. No whole-format or whole-public-API acceptance.",
+    "Pinned reference checkout is unavailable at the recorded temporary path; no reference runtime or binary acquisition/execution.",
+    "Schema route failed before case execution because DOCX_SCHEMA_ROOT is absent. Ten unexecuted cases are not passes.",
+    "No fresh CLI screenshots, application rendering or publisher corpus campaign; existing presentation was not changed."
+  ],
+  "hashes": {
+    "docs/docx/upstream-test-inventory.json": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797",
+    "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "docs/docx/test-case-map.json": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f",
+    "docs/docx/public-api-map.json": "58b2ffe20d1ca756911fac869d0ba5b379a8086438b67b4f9aac4da964b26c65",
+    "docs/docx/style-formatting-case-map.json": "19a8fdb0e05599e3a641d7f828162084b144c518ed988c5dcbbc5d64d3e37e96",
+    "docs/docx/run-break-adaptation.json": "d623480ec445b3e14f5df64417cd8a18ebccdb25e69d8e501ade4d5137cfe778",
+    "packages/docx/src/block-model.ts": "91fb3160ceb0d37e96bd99c7f057fddde158583d78c6e5dff6b8fbb302930336",
+    "packages/docx/src/paragraph-insertion-contract.test.ts": "44c9f39cc57380cb1e97b483b2e5a70d51b83c1017fab656df23c377ad3ceb20",
+    "insertion-red.log": "ca03f5edee369ab7ae3b7fce8c9febe9f8ea444bb68f5291e8d61d57ac735ae6",
+    "rollback-red.log": "f36132cafe93bf7dbcbfd95c073637e328f9dfc34f8e73ae1379ed9bdce0a421",
+    "focused-green.log": "6b500610e000de7bc8057e5273042c9c2e1903c8c405f253028d9724f55002e9",
+    "unit-green.log": "e0c961ee80a5feb334a6aa033282f6371e266c9a6bba1935315b3a0bbc53b752",
+    "build.log": "58c6ef1bcb03dc248818dd29ff4a91d8d4b19438f4095bb3a070faeb3e1885c6",
+    "lint.log": "31dea107353a44757fd9933cb9eb330132edb17c88b43610baf32f2132513aa6",
+    "schemas.log": "7a5a622e5802308fc85f6d6a6ce844f355d02ac774042789f5e78852a165c9c7"
+  },
+  "checks": {
+    "focused": {
+      "files": 3,
+      "passed": 25,
+      "seconds": 2.33
+    },
+    "unit": {
+      "route": "npm test --workspace=docx",
+      "files": 203,
+      "passed": 4019,
+      "skipped": 4,
+      "seconds": 143.68
+    },
+    "lint": {
+      "route": "npm run lint --workspace=docx",
+      "exit": 0,
+      "warnings": 1
+    },
+    "build": {
+      "route": "npm run build:workspaces -- --workspace=docx",
+      "exit": 0,
+      "declaredBuilds": 5
+    },
+    "schemas": {
+      "route": "npm run test:schemas --workspace=docx",
+      "exit": 1,
+      "executedCases": 0,
+      "unexecutedCases": 10,
+      "blocker": "DOCX_SCHEMA_ROOT absent"
+    }
+  },
+  "rawOutputHashes": {
+    "insertion-red.log": "c76132039f9741440b5107c8f6b6b72b28aa34573badb27a28191f9584b1fbdd",
+    "rollback-red.log": "331f6c0ac8ba528203f4d2ddd1166ede3f232ec21dc4145bc46b98889ecbca3d",
+    "focused-green.log": "2ff1dfb4bb81c66a928a2d21603a6c0385376a54658acb31573a2bdb48a4c887",
+    "unit-green.log": "508e04affa403e77f8a1d13c7e4c8235799724aa8165ee595aec363426e1d5b3",
+    "build.log": "58c6ef1bcb03dc248818dd29ff4a91d8d4b19438f4095bb3a070faeb3e1885c6",
+    "lint.log": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619",
+    "schemas.log": "7a5a622e5802308fc85f6d6a6ce844f355d02ac774042789f5e78852a165c9c7"
+  },
+  "outputNormalization": "Retained text transcripts trim trailing whitespace and surplus EOF blank lines. Raw output SHA-256 hashes remain separately recorded; no result or diagnostic content changed."
+}

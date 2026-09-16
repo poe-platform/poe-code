@@ -167,29 +167,37 @@ export class Paragraph {
     this.text = "";
     return this;
   }
-  insert_paragraph_before(text?: string, style?: string): Paragraph {
-    const p = this.store.node(this.ref),
-      xml = this.store.xml(this.ref.part);
-    let parent: XmlElement | undefined;
-    const find = (node: XmlElement) => {
-      if (node.children.includes(p)) parent = node;
-      else for (const child of node.children) find(child);
-    };
-    find(xml.root);
-    if (!parent) throw new UnsupportedEditError("Detached paragraph has no insertion owner.");
-    const parentRef = this.store.ref(this.ref.part, parent),
-      index = parent.children.indexOf(p);
-    this.store.change(this.ref.part, (editor) => {
-      const current = this.store.node(parentRef);
-      editor.insertChildren(
-        current,
-        `<bm:p xmlns:bm="${p.namespace}">${style ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(style)}"/></bm:pPr>` : ""}${paragraphTextRun(p.namespace, text ?? "")}</bm:p>`,
-        this.store.node(this.ref)
+  insert_paragraph_before(text?: string | null, style?: string | ParagraphStyle | null): Paragraph {
+    if (text !== undefined && text !== null && typeof text !== "string")
+      throw new InputTypeError("Expected paragraph text or null.");
+    return this.store.transaction(() => {
+      const styleId =
+        style === undefined || style === null
+          ? null
+          : this.store.styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH);
+      const p = this.store.node(this.ref),
+        xml = this.store.xml(this.ref.part);
+      let parent: XmlElement | undefined;
+      const find = (node: XmlElement) => {
+        if (node.children.includes(p)) parent = node;
+        else for (const child of node.children) find(child);
+      };
+      find(xml.root);
+      if (!parent) throw new UnsupportedEditError("Detached paragraph has no insertion owner.");
+      const parentRef = this.store.ref(this.ref.part, parent),
+        index = parent.children.indexOf(p);
+      this.store.change(this.ref.part, (editor) => {
+        const current = this.store.node(parentRef);
+        editor.insertChildren(
+          current,
+          `<bm:p xmlns:bm="${p.namespace}">${styleId ? `<bm:pPr><bm:pStyle bm:val="${xmlValue(styleId)}"/></bm:pPr>` : ""}${text ? paragraphTextRun(p.namespace, text) : ""}</bm:p>`,
+          this.store.node(this.ref)
+        );
+      });
+      return this.store.paragraph(
+        this.store.ref(this.ref.part, this.store.node(parentRef).children[index]!)
       );
     });
-    return this.store.paragraph(
-      this.store.ref(this.ref.part, this.store.node(parentRef).children[index]!)
-    );
   }
   private owner(): FormattingXmlOwner {
     const store = this.store,

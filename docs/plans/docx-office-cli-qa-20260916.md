@@ -49,3 +49,20 @@ screenshots; both were inspected. Formatting and Git whitespace checks passed.
 
 The [execution receipt](../docx/office-cli-execution-20260916.md) records the
 campaign separately from these maintained verification checks.
+
+## Q15/Q17 semantic usage recovery reduction
+
+Built missing custom-property type and mismatched template bindings returned
+usage 2, null data and no effects, but only `Document operation failed: usage`.
+Two original memfs cases in `semantic-usage-guidance.test.ts` failed before code
+on absent operation-specific help routes; status, envelope and input preservation
+assertions already passed. Append the validated invocation's help path to semantic
+usage diagnostics, using the existing bounded formatter. Never surface raw error
+messages or user/document values. Parsing/schema failures keep their existing
+more specific diagnostics; SDK error categories and semantics are unchanged.
+
+Focused checks passed 15 tests. Maintained DOCX tests passed 224 files and
+4,965 tests; scoped lint passed with the same existing warning. The five-build
+selected closure passed. A fresh built process confirmed usage 2, null data,
+zero effects and the correct property help path without private values. Inspected
+maintained before/after terminal screenshots; formatting and whitespace passed.

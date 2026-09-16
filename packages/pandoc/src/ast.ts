@@ -1,5 +1,8 @@
-import type { Block, Inline, MetaValue, Row } from "./ast-types.js";
+import type { Block, Inline, MetaValue } from "./ast-types.js";
 import type { Document } from "./types.js";
+import { AstError } from "./errors.js";
+import { tableGeometry } from "./tables.js";
+export { AstError } from "./errors.js";
 
 export interface AstLimits {
   readonly depth: number;
@@ -9,15 +12,6 @@ export interface AstLimits {
   readonly tableCells: number;
   readonly references: number;
   readonly resourceBytes: number;
-}
-export class AstError extends Error {
-  constructor(
-    readonly code: "E_AST" | "E_LIMIT",
-    readonly path: string,
-    message: string
-  ) {
-    super(`${path}: ${message}`);
-  }
 }
 type Check = (value: unknown, path: string) => void;
 function fail(path: string, message = "Invalid shape"): never {
@@ -138,35 +132,6 @@ const tableShape = tuple(
   array(tuple(attr, integer, array(row), array(row))),
   head
 );
-function* tableGeometry(v: Extract<Block, { t: "Table" }>["c"], p: string): Generator<void> {
-  const columns = v[2].length;
-  function* section(rows: readonly Row[], path: string): Generator<void> {
-    // Sparse occupancy; never allocate the row-by-column rectangular grid.
-    const occupied = new Map<number, number>();
-    for (const [i, r] of rows.entries()) {
-      let column = 0;
-      for (const [index, cell] of r[1].entries()) {
-        while ((occupied.get(column) ?? 0) > i) column++;
-        const pathCell = `${path}[${i}][1][${index}]`;
-        if (cell[2] > rows.length - i || cell[3] > columns - column)
-          fail(pathCell, "Span exceeds table section");
-        for (let offset = 0; offset < cell[3]; offset++) {
-          if ((occupied.get(column + offset) ?? 0) > i) fail(pathCell, "Overlapping spans");
-          yield;
-          occupied.set(column + offset, i + cell[2]);
-        }
-        column += cell[3];
-      }
-    }
-  }
-  yield* section(v[3][1], `${p}[3][1]`);
-  for (const [i, body] of v[4].entries()) {
-    if (body[1] < 0 || body[1] > columns) fail(`${p}[4][${i}][1]`, "Invalid row head columns");
-    yield* section(body[2], `${p}[4][${i}][2]`);
-    yield* section(body[3], `${p}[4][${i}][3]`);
-  }
-  yield* section(v[5][1], `${p}[5][1]`);
-}
 const block: Check = tagged({
   Plain: inlines,
   Para: inlines,

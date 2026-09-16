@@ -1,5 +1,5 @@
 import type { ModelStore, ModelRef } from "./model-store.js";
-import { InputTypeError } from "./archive.js";
+import { InputTypeError, InvalidValueError } from "./archive.js";
 import { BoundsError } from "./model-errors.js";
 import { numericSequence } from "./numeric-index.js";
 import type { XmlElement } from "./package-xml.js";
@@ -27,6 +27,7 @@ import {
 } from "./formatting-values.js";
 import type { DocxEnumValue, DocxLength, DocxEnumNames } from "./operation-types.js";
 import { twips, xmlValue } from "./create-content.js";
+import { runElementOpen } from "./run-properties.js";
 
 import type { Paragraph } from "./block-model.js";
 import type { TableStyle, ParagraphStyle } from "./styles-model.js";
@@ -87,8 +88,16 @@ function properties(
       old = child(props, tag);
     if (!values && !old) return;
     if (old && values) {
-      for (const [key, value] of Object.entries(values))
-        xml.setQualifiedAttribute(old, { namespace: owner.namespace, localName: key }, value);
+      const prefix = [...old.namespaces].find(([p, namespace]) => p && namespace === owner.namespace)?.[0] ?? "tm";
+      const attributes = old.attributes.map(a =>
+        a.namespace === owner.namespace && Object.hasOwn(values, a.localName) ? { ...a, value: values[a.localName]! } : a
+      );
+      for (const [localName, value] of Object.entries(values))
+        if (!attributes.some(a => a.namespace === owner.namespace && a.localName === localName))
+          attributes.push({ name: `${prefix}:${localName}`, namespace: owner.namespace, localName, value });
+      const namespaces = new Map(old.namespaces);
+      namespaces.set(prefix, owner.namespace);
+      xml.replaceElement(old, runElementOpen({ ...old, attributes, namespaces }) + xml.sourceXml(old, new Map(), true) + `</${old.name}>`);
       return;
     }
     const markup = values ? mark(owner.namespace, tag, values) : "";
@@ -103,11 +112,22 @@ function properties(
         )
       );
     } else
-      xml.insertChildren(owner, mark(owner.namespace, container, {}, markup), owner.children[0]);
+      xml.insertChildren(owner, mark(owner.namespace, container, {}, markup),
+        container === "trPr" && owner.children[0]?.localName === "tblPrEx" ? owner.children[1] : owner.children[0]);
   });
 }
 function storedLength(node: XmlElement | undefined, key = "w"): LengthValue | null {
-  const n = styleInteger(attr(node, key));
+  const raw = attr(node, key);
+  if (raw !== undefined) {
+    const scale = ({ in: 914400, cm: 360000, mm: 36000, pt: 12700, pc: 152400, pi: 152400 } as Record<string, number>)[raw.slice(-2)];
+    if (scale !== undefined) {
+      const magnitude = raw.slice(0, -2);
+      if (!magnitude || [...magnitude].some(c => !"0123456789.+-".includes(c)))
+        throw new InputTypeError("Invalid stored table length.");
+      return Length(Number(magnitude) * scale);
+    }
+  }
+  const n = styleInteger(raw);
   return n === null ? null : Length(n * 635);
 }
 type TableGrid = ReturnType<typeof mergedTableGrid> & { original(node: XmlElement): XmlElement };
@@ -137,6 +157,11 @@ function activeGrid(store: ModelStore, ref: ModelRef): TableGrid {
     (n) => active.get(n) ?? [],
     store.context.budget
   );
+  if (!rows.length) {
+    const columns = child(table, "tblGrid")?.children.filter(n => n.namespace === table.namespace && n.localName === "gridCol") ?? [];
+    store.context.budget.check("tableColumns", columns.length);
+    return { rows: [], columns, owners: [], physical: [], slots: [], original: n => n };
+  }
   const copy = (n: XmlElement): XmlElement => ({
     ...n,
     children: (active.get(n) ?? n.children).map(copy)
@@ -265,6 +290,7 @@ export class Table {
   }
   add_row(): _Row {
     const grid = this.grid();
+    if (!grid.columns.length) throw new InvalidValueError("Adding a row requires declared columns.");
     this.store.change(this.ref.part, (xml) => {
       const table = this.store.node(this.ref),
         cells = grid.columns
@@ -399,6 +425,13 @@ export class _Cell {
     const grid = this.table.grid(),
       a = grid.owners.find((o) => grid.original(o.node) === this.store.node(this.ref))!,
       b = grid.owners.find((o) => grid.original(o.node) === this.store.node(other_cell.ref))!;
+    for (const [start, size] of [["row", "rowSpan"], ["column", "columnSpan"]] as const) {
+      const aStart = a[start], bStart = b[start], aEnd = aStart + a[size], bEnd = bStart + b[size];
+      if ((aStart === bStart && aEnd !== bEnd) ||
+          (aStart < bStart && aEnd > bEnd) ||
+          (bStart < aStart && bEnd > aEnd))
+        throw new InvalidValueError("Merge endpoints do not define a rectangle.");
+    }
     const top = Math.min(a.row, b.row),
       left = Math.min(a.column, b.column),
       bottom = Math.max(a.row + a.rowSpan - 1, b.row + b.rowSpan - 1),
@@ -493,7 +526,9 @@ export class _Row {
     this.table.store.change(this.ref.part, (xml) => {
       const node = child(child(this.table.store.node(this.ref), "trPr"), "trHeight");
       if (node)
-        xml.setQualifiedAttribute(node, { namespace: node.namespace, localName: name }, null);
+        if (!node.attributes.some(a => a.namespace === node.namespace && a.localName !== name) &&
+            !node.content.some(c => c.kind !== "text" || c.text.trim())) xml.replaceElement(node, "");
+        else xml.setQualifiedAttribute(node, { namespace: node.namespace, localName: name }, null);
     });
   }
 }

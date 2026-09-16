@@ -1,0 +1,352 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts (94 tests | 13 failed) 3604ms
+     ✓ 'table alignment boundary 78' 46ms
+     ✓ 'table alignment boundary 79' 40ms
+     ✓ 'table alignment boundary 80' 40ms
+     ✓ 'table alignment boundary 81' 39ms
+     ✓ 'table alignment boundary 82' 39ms
+     ✓ 'table alignment boundary 83' 38ms
+     ✓ 'table alignment boundary 84' 39ms
+     ✓ 'table autofit boundary 85' 38ms
+     ✓ 'table autofit boundary 86' 37ms
+     ✓ 'table autofit boundary 87' 38ms
+     ✓ 'table autofit boundary 88' 38ms
+     ✓ 'table autofit boundary 89' 39ms
+     ✓ 'table autofit boundary 90' 38ms
+     ✓ 'table autofit boundary 91' 39ms
+     ✓ 'table autofit boundary 92' 37ms
+     ✓ 'table table_direction boundary 94' 38ms
+     ✓ 'table table_direction boundary 95' 38ms
+     ✓ 'table table_direction boundary 96' 36ms
+     ✓ 'table table_direction boundary 97' 37ms
+     ✓ 'table table_direction boundary 98' 39ms
+     ✓ 'table table_direction boundary 99' 36ms
+     ✓ 'table table_direction boundary 100' 38ms
+     ✓ 'table table_direction boundary 101' 39ms
+     ✓ 'cell grid_span boundary 112' 39ms
+     ✓ 'cell grid_span boundary 113' 37ms
+     ✓ 'cell grid_span boundary 114' 36ms
+     ✓ 'cell grid_span boundary 115' 39ms
+     ✓ 'cell vertical_alignment boundary 124' 39ms
+     ✓ 'cell vertical_alignment boundary 125' 39ms
+     ✓ 'cell vertical_alignment boundary 126' 39ms
+     ✓ 'cell vertical_alignment boundary 127' 38ms
+     ✓ 'cell vertical_alignment boundary 128' 40ms
+     ✓ 'cell vertical_alignment boundary 129' 40ms
+     ✓ 'cell vertical_alignment boundary 130' 38ms
+     ✓ 'cell vertical_alignment boundary 131' 37ms
+     ✓ 'cell vertical_alignment boundary 132' 37ms
+     ✓ 'cell vertical_alignment boundary 133' 38ms
+     ✓ 'cell width boundary 134' 36ms
+     ✓ 'cell width boundary 135' 38ms
+     ✓ 'cell width boundary 136' 38ms
+     ✓ 'cell width boundary 137' 37ms
+     ✓ 'cell width boundary 138' 38ms
+     × 'cell width boundary 139' 42ms
+     ✓ 'column width boundary 153' 38ms
+     ✓ 'column width boundary 154' 37ms
+     × 'column width boundary 155' 39ms
+     × 'column width boundary 156' 36ms
+     × 'column width boundary 157' 35ms
+     ✓ 'column width boundary 158' 38ms
+     ✓ 'column width boundary 159' 37ms
+     ✓ 'column width boundary 160' 39ms
+     ✓ 'column width boundary 161' 38ms
+     ✓ 'column width boundary 162' 39ms
+     ✓ 'row grid_cols_after boundary 167' 38ms
+     ✓ 'row grid_cols_after boundary 168' 37ms
+     ✓ 'row grid_cols_after boundary 169' 39ms
+     ✓ 'row grid_cols_after boundary 170' 39ms
+     ✓ 'row grid_cols_before boundary 171' 37ms
+     ✓ 'row grid_cols_before boundary 172' 39ms
+     ✓ 'row grid_cols_before boundary 173' 39ms
+     ✓ 'row grid_cols_before boundary 174' 37ms
+     ✓ 'row height boundary 175' 37ms
+     ✓ 'row height boundary 176' 38ms
+     ✓ 'row height boundary 177' 38ms
+     ✓ 'row height boundary 178' 38ms
+     ✓ 'row height boundary 179' 38ms
+     ✓ 'row height boundary 180' 38ms
+     ✓ 'row height boundary 181' 37ms
+     ✓ 'row height boundary 182' 38ms
+     ✓ 'row height boundary 183' 37ms
+     ✓ 'row height boundary 184' 37ms
+     ✓ 'row height boundary 185' 37ms
+     ✓ 'row height boundary 186' 38ms
+     ✓ 'row height boundary 187' 38ms
+     ✓ 'row height_rule boundary 188' 37ms
+     ✓ 'row height_rule boundary 189' 37ms
+     ✓ 'row height_rule boundary 190' 39ms
+     ✓ 'row height_rule boundary 191' 38ms
+     ✓ 'row height_rule boundary 192' 38ms
+     ✓ 'row height_rule boundary 193' 38ms
+     ✓ 'row height_rule boundary 194' 38ms
+     ✓ 'row height_rule boundary 195' 37ms
+     ✓ 'row height_rule boundary 196' 38ms
+     × 'row height_rule boundary 197' 38ms
+     ✓ 'row height_rule boundary 198' 37ms
+     ✓ 'row height_rule boundary 199' 38ms
+     × 'row height_rule boundary 200' 39ms
+     × rejects incomplete endpoint rectangle 1:0,0-1,0 43ms
+     × rejects incomplete endpoint rectangle 1:1,0-0,0 41ms
+     × rejects incomplete endpoint rectangle 2:0,2-0,1 42ms
+     × rejects incomplete endpoint rectangle 5:0,1-1,0 41ms
+     × rejects incomplete endpoint rectangle 5:1,0-2,1 39ms
+     × rejects incomplete endpoint rectangle 6:1,0-0,1 39ms
+     × rejects incomplete endpoint rectangle 6:0,1-1,2 39ms
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'cell width boundary 139'
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:387:5
+ ❯ packages/docx/src/table-behavior-variants.test.ts:722:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-edit' }
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 155'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 156'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 157'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 197'
+AssertionError: expected { Object (enum, name) } to be null // Object.is equality
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:725:25
+    723|     const actual = properties[property];
+    724|     if (typeof expected === "number" && ["width", "height"].includes(p…
+    725|     else expect(actual).toBe(value);
+       |                         ^
+    726|   });
+    727| });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 200'
+AssertionError: expected { Object (enum, name) } to be null // Object.is equality
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:725:25
+    723|     const actual = properties[property];
+    724|     if (typeof expected === "number" && ["width", "height"].includes(p…
+    725|     else expect(actual).toBe(value);
+       |                         ^
+    726|   });
+    727| });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 1:0,0-1,0
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 1:1,0-0,0
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 2:0,2-0,1
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 5:0,1-1,0
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 5:1,0-2,1
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 6:1,0-0,1
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 6:0,1-1,2
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'cell width boundary 139'
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:387:5
+ ❯ packages/docx/src/table-behavior-variants.test.ts:722:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 155'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 156'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 157'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 197'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 200'
+AssertionError: expected { Object (enum, name) } to be null // Object.is equality
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:725:25
+    723|     const actual = properties[property];
+    724|     if (typeof expected === "number" && ["width", "height"].includes(p…
+    725|     else expect(actual).toBe(value);
+       |                         ^
+    726|   });
+    727| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 1:0,0-1,0
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 1:1,0-0,0
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 2:0,2-0,1
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 5:0,1-1,0
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 5:1,0-2,1
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 6:1,0-0,1
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > merge endpoint geometry > rejects incomplete endpoint rectangle 6:0,1-1,2
+AssertionError: expected [Function] to throw an error
+ ❯ packages/docx/src/table-behavior-variants.test.ts:749:100
+    747|     const second = grid.physical[otherRow!]![otherPhysicalColumn!]!.ow…
+    748|     const before = store.xml(store.mainPart).serialize();
+    749|     expect(() => table.cell(first.row, first.column).merge(table.cell(…
+       |                                                                                                    ^
+    750|     expect(store.xml(store.mainPart).serialize()).toEqual(before);
+    751|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  13 failed | 81 passed (94)
+   Start at  22:41:58
+   Duration  4.65s (transform 812ms, setup 28ms, import 952ms, tests 3.60s, environment 0ms)
+

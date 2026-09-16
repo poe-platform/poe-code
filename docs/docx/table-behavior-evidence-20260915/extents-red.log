@@ -1,0 +1,253 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts (119 tests | 10 failed) 4568ms
+     ✓ 'table alignment boundary 78' 41ms
+     ✓ 'table alignment boundary 79' 40ms
+     ✓ 'table alignment boundary 80' 40ms
+     ✓ 'table alignment boundary 81' 38ms
+     ✓ 'table alignment boundary 82' 40ms
+     ✓ 'table alignment boundary 83' 40ms
+     ✓ 'table alignment boundary 84' 37ms
+     ✓ 'table autofit boundary 85' 37ms
+     ✓ 'table autofit boundary 86' 40ms
+     ✓ 'table autofit boundary 87' 38ms
+     ✓ 'table autofit boundary 88' 39ms
+     ✓ 'table autofit boundary 89' 38ms
+     ✓ 'table autofit boundary 90' 37ms
+     ✓ 'table autofit boundary 91' 38ms
+     ✓ 'table autofit boundary 92' 38ms
+     ✓ 'table table_direction boundary 94' 36ms
+     ✓ 'table table_direction boundary 95' 35ms
+     ✓ 'table table_direction boundary 96' 37ms
+     ✓ 'table table_direction boundary 97' 35ms
+     ✓ 'table table_direction boundary 98' 37ms
+     ✓ 'table table_direction boundary 99' 37ms
+     ✓ 'table table_direction boundary 100' 33ms
+     ✓ 'table table_direction boundary 101' 37ms
+     ✓ 'cell grid_span boundary 112' 37ms
+     ✓ 'cell grid_span boundary 113' 37ms
+     ✓ 'cell grid_span boundary 114' 35ms
+     ✓ 'cell grid_span boundary 115' 38ms
+     ✓ 'cell vertical_alignment boundary 124' 36ms
+     ✓ 'cell vertical_alignment boundary 125' 37ms
+     ✓ 'cell vertical_alignment boundary 126' 38ms
+     ✓ 'cell vertical_alignment boundary 127' 39ms
+     ✓ 'cell vertical_alignment boundary 128' 39ms
+     ✓ 'cell vertical_alignment boundary 129' 39ms
+     ✓ 'cell vertical_alignment boundary 130' 39ms
+     ✓ 'cell vertical_alignment boundary 131' 38ms
+     ✓ 'cell vertical_alignment boundary 132' 38ms
+     ✓ 'cell vertical_alignment boundary 133' 37ms
+     ✓ 'cell width boundary 134' 36ms
+     ✓ 'cell width boundary 135' 38ms
+     ✓ 'cell width boundary 136' 37ms
+     ✓ 'cell width boundary 137' 37ms
+     ✓ 'cell width boundary 138' 37ms
+     ✓ 'cell width boundary 139' 38ms
+     ✓ 'column width boundary 153' 35ms
+     ✓ 'column width boundary 154' 38ms
+     ✓ 'column width boundary 155' 37ms
+     ✓ 'column width boundary 156' 38ms
+     ✓ 'column width boundary 157' 38ms
+     ✓ 'column width boundary 158' 38ms
+     ✓ 'column width boundary 159' 36ms
+     ✓ 'column width boundary 160' 38ms
+     ✓ 'column width boundary 161' 38ms
+     ✓ 'column width boundary 162' 37ms
+     ✓ 'row grid_cols_after boundary 167' 38ms
+     ✓ 'row grid_cols_after boundary 168' 38ms
+     ✓ 'row grid_cols_after boundary 169' 38ms
+     ✓ 'row grid_cols_after boundary 170' 37ms
+     ✓ 'row grid_cols_before boundary 171' 38ms
+     ✓ 'row grid_cols_before boundary 172' 38ms
+     ✓ 'row grid_cols_before boundary 173' 38ms
+     ✓ 'row grid_cols_before boundary 174' 38ms
+     ✓ 'row height boundary 175' 38ms
+     ✓ 'row height boundary 176' 38ms
+     ✓ 'row height boundary 177' 37ms
+     ✓ 'row height boundary 178' 38ms
+     ✓ 'row height boundary 179' 36ms
+     ✓ 'row height boundary 180' 38ms
+     ✓ 'row height boundary 181' 38ms
+     ✓ 'row height boundary 182' 38ms
+     ✓ 'row height boundary 183' 39ms
+     ✓ 'row height boundary 184' 38ms
+     ✓ 'row height boundary 185' 37ms
+     ✓ 'row height boundary 186' 37ms
+     ✓ 'row height boundary 187' 38ms
+     ✓ 'row height_rule boundary 188' 38ms
+     ✓ 'row height_rule boundary 189' 38ms
+     ✓ 'row height_rule boundary 190' 38ms
+     ✓ 'row height_rule boundary 191' 36ms
+     ✓ 'row height_rule boundary 192' 36ms
+     ✓ 'row height_rule boundary 193' 39ms
+     ✓ 'row height_rule boundary 194' 36ms
+     ✓ 'row height_rule boundary 195' 38ms
+     ✓ 'row height_rule boundary 196' 38ms
+     ✓ 'row height_rule boundary 197' 37ms
+     ✓ 'row height_rule boundary 198' 38ms
+     ✓ 'row height_rule boundary 199' 38ms
+     ✓ 'row height_rule boundary 200' 38ms
+     ✓ rejects incomplete endpoint rectangle 1:0,0-1,0 40ms
+     ✓ rejects incomplete endpoint rectangle 1:1,0-0,0 38ms
+     ✓ rejects incomplete endpoint rectangle 2:0,2-0,1 40ms
+     ✓ rejects incomplete endpoint rectangle 5:0,1-1,0 39ms
+     ✓ rejects incomplete endpoint rectangle 5:1,0-2,1 40ms
+     ✓ rejects incomplete endpoint rectangle 6:1,0-0,1 38ms
+     ✓ rejects incomplete endpoint rectangle 6:0,1-1,2 40ms
+   ✓ 'physical cell top boundary 1' 39ms
+   ✓ 'physical cell top boundary 2' 39ms
+   ✓ 'physical cell top boundary 3' 37ms
+   ✓ 'physical cell top boundary 4' 39ms
+   ✓ 'physical cell left boundary 5' 39ms
+   ✓ 'physical cell left boundary 6' 36ms
+   ✓ 'physical cell left boundary 7' 39ms
+   ✓ 'physical cell left boundary 8' 38ms
+   ✓ 'physical cell bottom boundary 9' 38ms
+   ✓ 'physical cell bottom boundary 10' 37ms
+   ✓ 'physical cell bottom boundary 11' 39ms
+   ✓ 'physical cell bottom boundary 12' 38ms
+   ✓ 'physical cell right boundary 13' 39ms
+   ✓ 'physical cell right boundary 14' 37ms
+   ✓ 'physical cell right boundary 15' 40ms
+   × 'rectangle endpoint boundary 1' 49ms
+   × 'rectangle endpoint boundary 2' 45ms
+   × 'rectangle endpoint boundary 3' 44ms
+   × 'rectangle endpoint boundary 4' 47ms
+   × 'rectangle endpoint boundary 5' 43ms
+   × 'rectangle endpoint boundary 6' 44ms
+   × 'rectangle endpoint boundary 7' 46ms
+   × 'rectangle endpoint boundary 8' 46ms
+   × 'rectangle endpoint boundary 9' 42ms
+   × 'rectangle endpoint boundary 10' 40ms
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 1'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 2'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 3'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 4'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 5'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 6'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 7'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 8'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 9'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 10'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 1'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 2'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 3'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 4'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 5'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 6'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 7'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 8'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 9'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > 'rectangle endpoint boundary 10'
+AssertionError: expected undefined to be defined
+ ❯ packages/docx/src/table-behavior-variants.test.ts:1043:17
+    1041|   expect([actual.row, actual.column, actual.rowSpan, actual.columnSpan…
+    1042|   expect(merged).toBe(table.cell(expected[0]!, expected[1]!));
+    1043|   expect(after).toBeDefined();
+       |                 ^
+    1044| });
+    1045|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed | 109 passed (119)
+   Start at  22:44:10
+   Duration  5.61s (transform 819ms, setup 27ms, import 958ms, tests 4.57s, environment 0ms)
+

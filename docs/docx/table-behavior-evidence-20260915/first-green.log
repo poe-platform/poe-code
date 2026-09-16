@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/table-model.test.ts (14 tests) 310ms
+ ✓ packages/docx/src/table-behavior-variants.test.ts (94 tests) 3566ms
+
+ Test Files  2 passed (2)
+      Tests  108 passed (108)
+   Start at  22:42:36
+   Duration  4.57s (transform 1.52s, setup 59ms, import 1.83s, tests 3.88s, environment 0ms)
+

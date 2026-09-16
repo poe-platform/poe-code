@@ -1,0 +1,15 @@
+packages/docx/src/model-package-owner-preservation.test.ts(23,8): error TS2540: Cannot assign to 'blob' because it is a read-only property.
+packages/docx/src/review-model.ts(59,232): error TS2345: Argument of type 'string | null' is not assignable to parameter of type 'string'.
+  Type 'null' is not assignable to type 'string'.
+packages/docx/src/workflow-behavior-variants.test.ts(130,22): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(146,22): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(476,23): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(484,23): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(682,21): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1423,29): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1444,28): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1507,34): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1528,28): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1549,29): error TS2339: Property 'emu' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1961,20): error TS2339: Property 'toString' does not exist on type 'never'.
+packages/docx/src/workflow-behavior-variants.test.ts(1969,20): error TS2339: Property 'toString' does not exist on type 'never'.

@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ✓ packages/docx/src/table-behavior-variants.test.ts (177 tests) 6722ms
+
+ Test Files  1 passed (1)
+      Tests  177 passed (177)
+   Start at  22:46:46
+   Duration  7.83s (transform 868ms, setup 29ms, import 1.02s, tests 6.72s, environment 0ms)
+

@@ -1,0 +1,257 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts (87 tests | 6 failed) 3319ms
+     ✓ 'table alignment boundary 78' 47ms
+     ✓ 'table alignment boundary 79' 41ms
+     ✓ 'table alignment boundary 80' 40ms
+     ✓ 'table alignment boundary 81' 40ms
+     ✓ 'table alignment boundary 82' 42ms
+     ✓ 'table alignment boundary 83' 45ms
+     ✓ 'table alignment boundary 84' 44ms
+     ✓ 'table autofit boundary 85' 42ms
+     ✓ 'table autofit boundary 86' 41ms
+     ✓ 'table autofit boundary 87' 37ms
+     ✓ 'table autofit boundary 88' 38ms
+     ✓ 'table autofit boundary 89' 38ms
+     ✓ 'table autofit boundary 90' 38ms
+     ✓ 'table autofit boundary 91' 40ms
+     ✓ 'table autofit boundary 92' 37ms
+     ✓ 'table table_direction boundary 94' 39ms
+     ✓ 'table table_direction boundary 95' 37ms
+     ✓ 'table table_direction boundary 96' 39ms
+     ✓ 'table table_direction boundary 97' 39ms
+     ✓ 'table table_direction boundary 98' 40ms
+     ✓ 'table table_direction boundary 99' 38ms
+     ✓ 'table table_direction boundary 100' 38ms
+     ✓ 'table table_direction boundary 101' 39ms
+     ✓ 'cell grid_span boundary 112' 39ms
+     ✓ 'cell grid_span boundary 113' 39ms
+     ✓ 'cell grid_span boundary 114' 37ms
+     ✓ 'cell grid_span boundary 115' 39ms
+     ✓ 'cell vertical_alignment boundary 124' 38ms
+     ✓ 'cell vertical_alignment boundary 125' 37ms
+     ✓ 'cell vertical_alignment boundary 126' 38ms
+     ✓ 'cell vertical_alignment boundary 127' 38ms
+     ✓ 'cell vertical_alignment boundary 128' 38ms
+     ✓ 'cell vertical_alignment boundary 129' 39ms
+     ✓ 'cell vertical_alignment boundary 130' 40ms
+     ✓ 'cell vertical_alignment boundary 131' 38ms
+     ✓ 'cell vertical_alignment boundary 132' 39ms
+     ✓ 'cell vertical_alignment boundary 133' 38ms
+     ✓ 'cell width boundary 134' 38ms
+     ✓ 'cell width boundary 135' 38ms
+     ✓ 'cell width boundary 136' 37ms
+     ✓ 'cell width boundary 137' 40ms
+     ✓ 'cell width boundary 138' 39ms
+     × 'cell width boundary 139' 42ms
+     ✓ 'column width boundary 153' 38ms
+     ✓ 'column width boundary 154' 36ms
+     × 'column width boundary 155' 37ms
+     × 'column width boundary 156' 36ms
+     × 'column width boundary 157' 38ms
+     ✓ 'column width boundary 158' 37ms
+     ✓ 'column width boundary 159' 37ms
+     ✓ 'column width boundary 160' 37ms
+     ✓ 'column width boundary 161' 38ms
+     ✓ 'column width boundary 162' 36ms
+     ✓ 'row grid_cols_after boundary 167' 37ms
+     ✓ 'row grid_cols_after boundary 168' 37ms
+     ✓ 'row grid_cols_after boundary 169' 36ms
+     ✓ 'row grid_cols_after boundary 170' 36ms
+     ✓ 'row grid_cols_before boundary 171' 37ms
+     ✓ 'row grid_cols_before boundary 172' 37ms
+     ✓ 'row grid_cols_before boundary 173' 36ms
+     ✓ 'row grid_cols_before boundary 174' 37ms
+     ✓ 'row height boundary 175' 38ms
+     ✓ 'row height boundary 176' 38ms
+     ✓ 'row height boundary 177' 37ms
+     ✓ 'row height boundary 178' 36ms
+     ✓ 'row height boundary 179' 36ms
+     ✓ 'row height boundary 180' 37ms
+     ✓ 'row height boundary 181' 38ms
+     ✓ 'row height boundary 182' 37ms
+     ✓ 'row height boundary 183' 38ms
+     ✓ 'row height boundary 184' 37ms
+     ✓ 'row height boundary 185' 38ms
+     ✓ 'row height boundary 186' 38ms
+     ✓ 'row height boundary 187' 36ms
+     ✓ 'row height_rule boundary 188' 36ms
+     ✓ 'row height_rule boundary 189' 36ms
+     ✓ 'row height_rule boundary 190' 38ms
+     ✓ 'row height_rule boundary 191' 36ms
+     ✓ 'row height_rule boundary 192' 35ms
+     ✓ 'row height_rule boundary 193' 38ms
+     ✓ 'row height_rule boundary 194' 38ms
+     ✓ 'row height_rule boundary 195' 37ms
+     ✓ 'row height_rule boundary 196' 38ms
+     × 'row height_rule boundary 197' 37ms
+     ✓ 'row height_rule boundary 198' 38ms
+     ✓ 'row height_rule boundary 199' 39ms
+     × 'row height_rule boundary 200' 37ms
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'cell width boundary 139'
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:387:5
+ ❯ packages/docx/src/table-behavior-variants.test.ts:722:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'unsupported-edit' }
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 155'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 156'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 157'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 197'
+AssertionError: expected { Object (enum, name) } to be null // Object.is equality
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:725:25
+    723|     const actual = properties[property];
+    724|     if (typeof expected === "number" && ["width", "height"].includes(p…
+    725|     else expect(actual).toBe(value);
+       |                         ^
+    726|   });
+    727| });
+
+FAIL packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 200'
+AssertionError: expected { Object (enum, name) } to be null // Object.is equality
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:725:25
+    723|     const actual = properties[property];
+    724|     if (typeof expected === "number" && ["width", "height"].includes(p…
+    725|     else expect(actual).toBe(value);
+       |                         ^
+    726|   });
+    727| });
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'cell width boundary 139'
+Error: The XML edit cannot establish faithful preservation.
+ ❯ unsupported packages/docx/src/xml-write.ts:24:9
+     22|
+     23| function unsupported(): never {
+     24|   throw new UnsupportedEditError("The XML edit cannot establish faithf…
+       |         ^
+     25| }
+     26|
+ ❯ DocumentXmlEditor.#assertOwnedEdit packages/docx/src/xml-write.ts:466:116
+ ❯ DocumentXmlEditor.setQualifiedAttribute packages/docx/src/xml-write.ts:435:10
+ ❯ packages/docx/src/table-model.ts:91:13
+ ❯ ModelStore.change packages/docx/src/model-store.ts:328:7
+ ❯ properties packages/docx/src/table-model.ts:84:9
+ ❯ _Cell.set width [as width] packages/docx/src/table-model.ts:387:5
+ ❯ packages/docx/src/table-behavior-variants.test.ts:722:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 155'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 156'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'column width boundary 157'
+TypeError: Invalid integer style property.
+ ❯ styleInteger packages/docx/src/style-properties.ts:30:122
+     28|   if (raw === undefined) return null;
+     29|   const text = raw.trim(), digits = text[0] === "+" || text[0] === "-"…
+     30|   if (!digits.length || [...digits].some(char => char < "0" || char > …
+       |                                                                                                                          ^
+     31|   return Number(text);
+     32| }
+ ❯ storedLength packages/docx/src/table-model.ts:110:13
+ ❯ _Column.get width [as width] packages/docx/src/table-model.ts:521:12
+ ❯ packages/docx/src/table-behavior-variants.test.ts:723:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 197'
+ FAIL  packages/docx/src/table-behavior-variants.test.ts > table property boundaries > 'row height_rule boundary 200'
+AssertionError: expected { Object (enum, name) } to be null // Object.is equality
+
+- Expected:
+null
+
++ Received:
+{
+  "enum": "WD_ROW_HEIGHT_RULE",
+  "name": "AT_LEAST",
+}
+
+ ❯ packages/docx/src/table-behavior-variants.test.ts:725:25
+    723|     const actual = properties[property];
+    724|     if (typeof expected === "number" && ["width", "height"].includes(p…
+    725|     else expect(actual).toBe(value);
+       |                         ^
+    726|   });
+    727| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 81 passed (87)
+   Start at  22:41:28
+   Duration  4.37s (transform 809ms, setup 30ms, import 958ms, tests 3.32s, environment 0ms)
+

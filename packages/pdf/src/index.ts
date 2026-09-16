@@ -34,6 +34,8 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   }
   if (limits.outputBytes > 0x7fffffff || limits.objects > 1_000_000) throw new PdfError("E_LIMIT", "Invalid PDF serialization budget");
   const box = document.page ?? {width: 595.28, height: 841.89, margin: 48};
+  const lineHeight = document.lineHeight ?? 1.2;
+  if (!Number.isFinite(lineHeight) || lineHeight < 1 || lineHeight > 3) unsupported("Invalid line-height multiplier");
   if (![box.width, box.height].every(positive) || !Number.isFinite(box.margin) || box.margin < 0 || box.width <= box.margin * 2 || box.height <= box.margin * 2) unsupported("Invalid page box");
   if (!document.fonts.length) unsupported("Supply at least one font");
   // Admit all fonts before parsing; never query the filesystem or system fonts.
@@ -124,7 +126,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       for (const g of word) {
         if (used + g.width > width && line.glyphs.length) {result.push(line); line = emptyLine(); used = 0;}
         used += g.width; line.ascent = Math.max(line.ascent, g.ascent); line.descent = Math.max(line.descent, g.descent);
-        line.height = Math.max(line.height, g.size * 1.2, line.ascent + line.descent); line.glyphs.push(g);
+        line.height = Math.max(line.height, g.size * lineHeight, line.ascent + line.descent); line.glyphs.push(g);
       }
       word = []; wordWidth = 0;
     };

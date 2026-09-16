@@ -2,7 +2,7 @@ import { PackURI } from "./pack-uri.js";
 import { isLength, plainLength } from "./formatting-values.js";
 import { Image, type ImageModelContext } from "./image-model.js";
 import { imageBatchActions } from "./image-batch-operations.js";
-import { archiveSettings, type ArchiveContext } from "./archive.js";
+import { modelContext } from "./model-context.js";
 import { UnsupportedProfileError } from "./package-xml.js";
 import { DocxUsageError } from "./argument-json.js";
 import { validateDocxBatch } from "./command.js";
@@ -13,8 +13,8 @@ import { styleModelBatchOperations, styleModelBatchActions, styleModelBatchBoots
 export { styleModelBatchOperations } from "./style-model-batch-operations.js";
 
 /** Executes the admitted style subgraph with document-owned handles and no host authority. */
-export async function applyStyleModelBatch(input: Uint8Array, operations: unknown, context: ArchiveContext & ImageModelContext) {
-  const settings = archiveSettings(context);
+export async function applyStyleModelBatch(input: Uint8Array, operations: unknown, context: ImageModelContext = {}) {
+  const settings = modelContext(context);
   const batch = validateDocxBatch(operations, settings.budget);
   for (const item of batch.operations) if (!styleModelBatchOperations.includes(item.operation)) throw new UnsupportedProfileError("This model operation is not implemented by the style batch executor.");
   const model = await openDocumentStyleModel(input, settings);

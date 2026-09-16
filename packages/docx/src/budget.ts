@@ -2,6 +2,9 @@ import { CancellationError, InvalidValueError, ResourceLimitError } from "./arch
 
 import type { DocumentXml } from "./package-xml.js";
 
+/** Internal reservation identity check; exposes no mutable ledger. */
+export const budgetSharesReservations = Symbol("budget-shares-reservations");
+
 export const documentXmlCache = Symbol("document-xml-cache");
 interface InvocationXmlCache { entries?: Map<string, DocumentXml[]>; admitted?: WeakSet<Uint8Array> }
 
@@ -68,6 +71,8 @@ export class DocumentBudget {
     this.#turn = yieldTurn;
     Object.freeze(this);
   }
+
+  [budgetSharesReservations](other: DocumentBudget): boolean { return other instanceof DocumentBudget && this.#ledger === other.#ledger; }
 
   get [documentXmlCache](): InvocationXmlCache { return this.#xmlCache; }
 

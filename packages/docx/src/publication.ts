@@ -20,7 +20,10 @@ export interface PublicationOptions {
   readonly creation?: boolean;
   readonly json?: boolean;
 }
+/** Internal live-model commit precondition; never supplied through operation JSON. */
+export const publicationGenerationGuard = Symbol("publication-generation-guard");
 export interface PublicationContext extends ArchiveContext {
+  readonly [publicationGenerationGuard]?: () => (() => void);
   readonly filesystem?: FileSystem;
   readonly stdout?: ArchiveSink;
   readonly encoding: ArchiveWriteOptions;
@@ -127,7 +130,7 @@ async function destination(fs: FileSystem, path: string, options: PublicationOpt
   return { path, parent, expected };
 }
 let stagingSequence = 0;
-async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, signal: AbortSignal, published: PublishedFile[]): Promise<void> {
+async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, signal: AbortSignal, published: PublishedFile[], guard?: () => (() => void)): Promise<void> {
   cancelled(signal);
   // Staging acquisition is exclusive; a collision refuses without guessing ownership.
   const directory = `${dirname(target.path) === "/" ? "" : dirname(target.path)}/.docx-stage-${++stagingSequence}`;
@@ -136,7 +139,9 @@ async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, s
   let failed = false;
   try {
     cancelled(signal);
-    await fs.publishStagedFile!(stage, target.path, { parent: target.parent, destination: target.expected, signal });
+    const release = guard?.();
+    try { await fs.publishStagedFile!(stage, target.path, { parent: target.parent, destination: target.expected, signal }); }
+    finally { release?.(); }
     // The adapter receipt wins over cancellation arriving after commit.
     published.push({ path: target.path, bytes: bytes.length });
   } catch (cause) { failed = true; error = cause; }
@@ -213,7 +218,10 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   const settings = archiveSettings(context);
   const { signal, budget, limits } = settings;
   if (settings[documentSession]) {
-    await settings[documentSession].stage(archive);
+    cancelled(signal);
+    const release = context[publicationGenerationGuard]?.();
+    try { await settings[documentSession].stage(archive); cancelled(signal); }
+    finally { release?.(); }
     return { published: [] };
   }
   let original: Uint8Array<ArrayBuffer> | undefined;
@@ -293,14 +301,16 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   const archiveSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map(n => n.toString(16).padStart(2, "0")).join("");
   cancelled(signal);
   if (output === "-") {
+    const release = context[publicationGenerationGuard]?.();
     try { await context.stdout!.write(bytes, signal); }
     catch (error) {
       if (signal.aborted || error instanceof CancellationError) throw new PublicationCancellationError([], true, { cause: error });
       throw new PublicationError("sink-failure", "Binary stdout may contain partial output.", [], true, { cause: error });
     }
+    finally { release?.(); }
     return { published: [{ path: "-", bytes: size }], archiveSha256 };
   }
-  try { await publish(context.filesystem!, target!, bytes, signal, published); }
+  try { await publish(context.filesystem!, target!, bytes, signal, published, context[publicationGenerationGuard]); }
   catch (error) { throw failure(error, published, signal); }
   return { published, archiveSha256 };
 }

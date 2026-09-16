@@ -1,6 +1,6 @@
 import { DocxUsageError } from "./argument-json.js";
-import { archiveSettings } from "./archive.js";
-import type { DocumentLimits } from "./budget.js";
+import { modelContext } from "./model-context.js";
+import { documentLimitDefaults, type DocumentLimits } from "./budget.js";
 import { Image, acquireImageModelInput, type ImageModelContext } from "./image-model.js";
 import type { DocxBinaryInput, DocxVfsPath, DocxLength } from "./operation-types.js";
 
@@ -8,7 +8,7 @@ type Action = (receiver: unknown, args: Readonly<Record<string, unknown>>, conte
 export const imageBatchActions = new Map<string, Action>();
 const prefix = "model.image.image.Image";
 function narrowed(context: ImageModelContext, input: unknown): ImageModelContext {
-  const settings = archiveSettings(context);
+  const settings = modelContext(context, { maxEntryBytes: documentLimitDefaults.embeddedMediaBytes, maxExtraBytes: 0, maxCommentBytes: 0 });
   if (input === undefined) return { ...context, ...settings };
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new DocxUsageError("Expected image context.");
   const record = input as Record<string, unknown>;

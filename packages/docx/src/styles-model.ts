@@ -1,5 +1,8 @@
+import { budgetSharesReservations } from "./budget.js";
+import { modelContext, type DocumentModelContext } from "./model-context.js";
+import { acquireDocumentModelInput, type DocumentModelInput } from "./model-input.js";
 import { MissingKeyError, StaleHandleError } from "./model-errors.js";
-import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
+import { archiveSettings, InputTypeError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
 import type { ArchiveSink } from "./archive-write.js";
 import { createDocumentArchive } from "./create.js";
@@ -14,7 +17,7 @@ import { editLatentStyles, readLatentStyles } from "./latent-styles.js";
 import type { DocxEnumValue } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { DocumentXmlEditor } from "./xml-write.js";
-import { assertDocumentEditable, publishDocumentArchive, type PublicationOptions, type PublicationContext } from "./publication.js";
+import { assertDocumentEditable, publishDocumentArchive, PublicationError, publicationGenerationGuard, type PublicationOptions, type PublicationContext } from "./publication.js";
 
 import { WD_STYLE_TYPE } from "./formatting-values.js";
 export { WD_STYLE_TYPE } from "./formatting-values.js";
@@ -29,6 +32,7 @@ function nullableInteger(value: unknown): asserts value is number | null { if (v
 
 class StyleStore {
   revision = 0;
+  activePublications = 0;
   readonly tokens: number[];
   readonly latentTokens: number[];
   nextLatentToken: number;
@@ -53,6 +57,7 @@ class StyleStore {
     return node;
   }
   change(action: (xml: DocumentXmlEditor) => void): void {
+    if (this.activePublications) throw new PublicationError("conflict", "Model publication is committing.");
     this.writable();
     const xml = this.editor(); try {
       action(xml);
@@ -299,9 +304,9 @@ export class LatentStyle {
 export { LatentStyle as _LatentStyle };
 
 /** Async admission with synchronous live styles and explicit validated publication. */
-export async function openDocumentStyleModel(input: Uint8Array | undefined, context: ArchiveContext) {
-  const settings = archiveSettings(context);
-  const admitted = input === undefined ? await createDocumentArchive({}, settings) : await readDocumentArchive(input, settings);
+export async function openDocumentStyleModel(input?: DocumentModelInput | null, context?: DocumentModelContext) {
+  const settings = modelContext(context);
+  const admitted = input === undefined || input === null ? await createDocumentArchive({ timestamp: settings.timestamp.toISOString(), author: settings.author }, settings) : await readDocumentArchive(await acquireDocumentModelInput(input, settings), settings);
   const edges = admitted.package.relationships("/" + admitted.mainPart).filter(e => e.reltype === `${documentDialects[admitted.dialect].r}/styles`);
   if (edges.length > 1 || edges[0]?.is_external) throw new RangeError("Expected one internal styles part.");
   let archive: DocumentArchive = admitted;
@@ -314,11 +319,25 @@ export async function openDocumentStyleModel(input: Uint8Array | undefined, cont
   const styles = new Styles(store);
   styleModelMutations.set(styles, store);
   const snapshot = (): DocumentArchive => ({ ...archive, members: archive.members.map(m => m.name === stylesPart ? { ...m, bytes: new TextEncoder().encode(store.source) } : m) });
+  const guard = () => {
+    const revision = store.revision;
+    return () => {
+      if (store.revision !== revision) throw new PublicationError("conflict", "Model changed during publication.");
+      store.activePublications++;
+      return () => { store.activePublications--; };
+    };
+  };
   return { styles, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: ArchiveSink): Promise<void> {
+    if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
     assertDocumentEditable(admitted, settings);
-    await publishDocumentArchive(snapshot(), { output: "-" }, { ...settings, stdout: sink, encoding: { order: "input", compression: "store" } });
+    await publishDocumentArchive(snapshot(), { output: "-" }, { ...settings, [publicationGenerationGuard]: guard(), stdout: sink, encoding: { order: "input", compression: "store" } });
   }, async publish(options: PublicationOptions, publication: PublicationContext) {
     assertDocumentEditable(admitted, settings);
-    return publishDocumentArchive(snapshot(), options, { ...publication, ...settings });
+    const caller = archiveSettings(publication);
+    if (publication.budget && !settings.budget[budgetSharesReservations](caller.budget)) throw new PublicationError("unsupported-publication", "Publication must share admitted resource reservations.");
+    const signal = AbortSignal.any([settings.signal, caller.signal]);
+    const limits = Object.fromEntries(Object.entries(settings.limits).map(([key, value]) => [key, Math.min(value, caller.limits[key as keyof typeof caller.limits])])) as unknown as typeof settings.limits;
+    const budget = settings.budget.lower(Object.fromEntries(Object.entries(settings.budget.limits).map(([key, value]) => [key, Math.min(value, caller.budget.limits[key as keyof typeof caller.budget.limits])])), signal);
+    return publishDocumentArchive(snapshot(), options, { ...publication, limits, signal, budget, [publicationGenerationGuard]: guard() });
   } };
 }

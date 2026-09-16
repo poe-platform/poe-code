@@ -12,7 +12,7 @@ import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
-import { zipHelp } from "./zip/help.js";
+import { zipHelp, zipExtendedHelp } from "./zip/help.js";
 import { publishZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 import { normalizeZipOption, ZipFailure } from "./zip/options.js";
@@ -54,7 +54,7 @@ interface ZipOptions {
 
 const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
 
-async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions | { information: "help" }> {
+async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions | { information: "help" | "more-help" }> {
   const context = scope.context;
   const args = zipEnvironmentArguments(context.env, context.args, limits);
   if (args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
@@ -119,7 +119,10 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         const flag = argument[offset];
         if (flag === "h") {
           if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h is not negatable");
-          if (argument[offset + 1] === "2") throw new ZipFailure(16, "Invalid command arguments", "unsupported option: -h2");
+          if (argument[offset + 1] === "2") {
+            if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h2 is not negatable");
+            return { information: "more-help" };
+          }
           return { information: "help" };
         }
         else if (flag === "r" || flag === "R") {
@@ -705,7 +708,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     try {
       const parsed = await parse(scope, limits);
       if ("information" in parsed) {
-        await budget.output(zipHelp);
+        await budget.output(parsed.information === "more-help" ? zipExtendedHelp : zipHelp);
         return { exitCode: 0 };
       }
       if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);

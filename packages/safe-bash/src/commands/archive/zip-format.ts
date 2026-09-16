@@ -1,4 +1,5 @@
 import { zip64Directory, zip64Fields, stripZip64, zip64Extra, writeZip64End } from "./zip/zip64.js";
+import { crcTable } from "./zip/crc.js";
 import { collectBytes, type ByteSource } from "../../contracts/index.js";
 import { yieldTurn } from "../../contracts/yield.js";
 import { codec, CodecReader } from "../bytes/compression/codec.js";
@@ -37,11 +38,6 @@ export interface ZipArchive {
 
 const encoder = new TextEncoder();
 const cp437 = "ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■ ";
-const crcTable = Uint32Array.from({ length: 256 }, (_, index) => {
-  let value = index;
-  for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
-  return value >>> 0;
-});
 
 export function crc32(bytes: Uint8Array, previous = 0): number {
   let value = previous ^ 0xffffffff;

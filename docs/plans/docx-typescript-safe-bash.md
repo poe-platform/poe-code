@@ -1289,8 +1289,8 @@ tasks:
   - id: sdk-live-object-model
     title: Implement live SDK objects and documented setters
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
     prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -1325,8 +1325,8 @@ tasks:
   - id: sdk-collections-values
     title: Implement complete collections units colors and enums
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
     prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -1361,8 +1361,8 @@ tasks:
   - id: sdk-async-capabilities
     title: Implement consistent async I/O and context mappings
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
     prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -1397,8 +1397,8 @@ tasks:
   - id: sdk-xml-package-views
     title: Expose bounded documented XML and package views
     status:
-      implement: done
-      test: done
+      implement: open
+      test: open
     prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
@@ -5122,3 +5122,16 @@ Comments/revisions, Strict and meaningful RTL/CJK behavior remain evidence gaps.
 Execution order puts API mapping and contract reconciliation before product code; bounded ZIP/XML/OPC/publication before SDK and command construction; SDK primitives before feature use; all assigned source cases enter the owning feature's red/green cycle. Later adaptation tasks close any residual variants before adversarial/corpus acceptance. Selector/schema work precedes public consumers and paired QA. The final cross-workspace gate follows whole-API, ergonomic and visual corrections. No later task may begin merely because a worker on the current task is waiting.
 
 A task closes only with owned-file changes, exact applicable case/API/feature mappings, verified checks and atomic local commits during execution. Preserve red/green evidence and distinguish structural assertions, actual SDK/Shell results, renderer evidence and unavailable cases. Deferred public APIs remain blocking gaps. A later product correction invalidates affected earlier evidence and requires scoped requalification before the final gate. README permission remains a separate documentation-delivery constraint; keep complete usage/config/environment drafts under docs/docx.
+
+## Verified teardown reconciliation, 2026-09-15
+
+[The teardown report](../docx/teardown-verification-20260915.md) and its
+[107-task delivery register](../docx/teardown-verification-20260915.json) distinguish
+recorded completion from verified acceptance and atomic owned delivery. Task 87
+has bounded verified local delivery at `16baffa4c20229ef4ad00b64eefe5bf745b48bcd`.
+SDK graph/collections/async/views, rich table-section-review API, complete source
+adaptations, paired conformance, whole API, ergonomic QA and the final cross-workspace
+gate remain open for the concrete gaps recorded there. Completed research/campaign
+records do not certify whole format or object-model conformance. Unrelated earlier
+status edits are preserved without endorsing them or staging them in teardown.
+README permission remains pending. No push or publication is authorized.

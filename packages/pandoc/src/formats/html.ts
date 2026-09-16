@@ -1,5 +1,7 @@
 import type { FormatDescriptor } from "../formats.js";
+import { htmlReader } from "../html.js";
 export default {
+  reader: htmlReader,
   name: "html",
   read: true,
   write: false,

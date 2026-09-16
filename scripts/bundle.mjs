@@ -266,6 +266,26 @@ await publishBundleOutputs(shellBundle, {
 });
 consumerBuilds.push(shellBundle);
 
+// The opt-in converter bundles its private SDK implementation. Its public
+// declaration closure is shipped separately; no private workspace is installed
+// or loaded implicitly by a consumer.
+const converterPackages = packageJsons.filter(({dir}) => dir === "pandoc" || dir === "pdf");
+assert.equal(converterPackages.length, 2, "Missing converter workspaces");
+const converterInlineDependencies = new Set(converterPackages.flatMap(({pkg}) => Object.keys(pkg.dependencies ?? {}))
+  .filter(name => !Object.hasOwn(packageJson.dependencies ?? {}, name) && !Object.hasOwn(packageJson.optionalDependencies ?? {}, name)));
+consumerBuilds.push(await esbuild.build({
+  ...consumerBuildOptions,
+  entryPoints: [path.join(rootDir, "packages/safe-bash/src/commands/pandoc/index.ts")],
+  outfile: path.join(rootDir, "packages/safe-bash/dist/commands/pandoc/index.js"),
+  external: consumerBuildOptions.external.filter(name => !converterInlineDependencies.has(name)),
+  bundle: true,
+  platform: "node",
+  format: "esm",
+  target: "node22",
+  banner: {js: 'import {createRequire as createPandocRequire} from "node:module"; const require = createPandocRequire(import.meta.url);'},
+  sourcemap: true
+}));
+
 consumerBuilds.push(await esbuild.build({
   absWorkingDir: rootDir,
   entryPoints: [path.join(rootDir, "packages/docx/src/index.ts")],

@@ -415,6 +415,10 @@
       },
       "browser": null,
       "import": "./packages/safe-js/dist/safe-fs-bridge.js"
+    },
+    "./safe-bash/commands/pandoc": {
+      "types": "./packages/safe-bash/dist/commands/pandoc/index.d.ts",
+      "import": "./packages/safe-bash/dist/commands/pandoc/index.js"
     }
   },
   "workspaces": [
@@ -594,6 +598,10 @@
     "packages/mcp-oauth/dist",
     "packages/office-package/dist",
     "packages/office-package/LICENSE",
+    "packages/pandoc/dist/**/*.d.ts",
+    "packages/pdf/dist/**/*.d.ts",
+    "packages/pdf/LICENSE",
+    "packages/pdf/OFL.txt",
     "packages/pptx/dist",
     "packages/pptx/LICENSE",
     "packages/pptx/THIRD_PARTY_NOTICES.txt",

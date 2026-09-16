@@ -283,6 +283,10 @@
       "types": "./dist/commands/python/node.d.ts",
       "browser": null,
       "import": "./dist/commands/python/node.js"
+    },
+    "./commands/pandoc": {
+      "types": "./dist/commands/pandoc/index.d.ts",
+      "import": "./dist/commands/pandoc/index.js"
     }
   },
   "files": [
@@ -364,7 +368,8 @@
     "typescript": "5.9",
     "@poe-code/safe-fs": "*",
     "pptx": "*",
-    "@poe-platform/op": "*"
+    "@poe-platform/op": "*",
+    "@poe-code/pandoc": "*"
   },
   "poeCode": {
     "packageLint": {

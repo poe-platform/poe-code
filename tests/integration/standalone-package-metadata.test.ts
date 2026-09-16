@@ -37,6 +37,11 @@ function getUnbundledWorkspaceDeps(pkg: PackageJson): string[] {
 }
 
 describe("standalone package publish metadata", () => {
+  it("ships the declaration closure and bundled-font license for the explicit pandoc plugin", () => {
+    const files = readPackageJson("package.json").files ?? [];
+    for (const path of ["packages/pandoc/dist/**/*.d.ts", "packages/pdf/dist/**/*.d.ts", "packages/pdf/OFL.txt"])
+      expect(files).toContain(path);
+  });
   it.each(["package.json", "packages/poe-agent/package.json"])(
     "%s requires a patched shell-quote consumer floor",
     (relativePath) => {
@@ -209,6 +214,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/node",
       "./safe-bash/commands/node/host",
       "./safe-bash/commands/op",
+      "./safe-bash/commands/pandoc",
       "./safe-bash/commands/pptx",
       "./safe-bash/commands/pr",
       "./safe-bash/commands/python",

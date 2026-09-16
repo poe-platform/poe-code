@@ -57,7 +57,7 @@ tasks:
       never revert others' work, commit ignored files, add co-authors or use --no-verify.
       Do not create empty commits. Report local hashes; do not push or release unless
       a later user instruction authorizes it. Keep incomplete work/status honest.
-    status: open
+    status: done
   - id: map-upstream-corpus
     title: "Build a pinned upstream-test and independent edge-case inventory"
     prompt: |

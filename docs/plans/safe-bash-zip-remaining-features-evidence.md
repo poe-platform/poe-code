@@ -2155,3 +2155,292 @@ focused runtime regression and package compile verification, with repository-wid
 ESLint, rather than a full repository unit/build gate. The incremental ZIP task's
 local commit status is recorded with this atomic commit. No push or release was
 requested; remote-main delivery and publication remain unverified.
+
+### 2026-09-16 ZIP64 sentinel and independent-field promotion
+
+Started on clean current main at `52271eba09d31e9417fc4964646fbe3f6b6122e0`.
+Root and package AGENTS.md were read; SafeJS and unrelated inputs were preserved.
+Incremental input/output, owned slabs, codecs, cooperative cleanup and staged
+publication were already implemented. The previous classic-size caps were
+therefore revalidated against an existing streaming writer before extension.
+
+Two new fast memory-only controls failed before implementation:
+
+- `zip64Extra([-1], ...)` did not reject; numeric encoders could also mutate an
+  end-record destination before discovering an invalid later counter.
+- A live source declaring `0xffffffff` bytes failed expected-size admission
+  before its header, even with sufficient explicitly configured ZIP64 limits.
+
+Further failing controls caught stale disk numbers in a reused end-record buffer
+and an end record whose absolute archive span exceeded safe representability.
+Encoders now validate all counters before mutation/allocation, write disk fields
+explicitly, and admit complete safe spans. Directory parsing uses subtraction
+for bounded span comparisons instead of adding untrusted wide counters.
+
+Expanded size, compressed size and local offset now promote independently at
+`0xffffffff`; ZIP64 extras retain only required fields in specification order.
+Forced ZIP64 and prospective wide descriptors retain the required wide size
+fields. Automatic wide descriptors retain a classic central local-offset field
+while that offset fits. A later member can gain only a wide central offset;
+its local and central extraction versions agree even with a classic descriptor.
+Directory size and start promote independently; exactly 65,535 members now
+cause a ZIP64 end record. Locator offsets identify the actual ZIP64 end record,
+with a single-disk locator. Extra-field growth and newly required end overhead
+are admitted before affected metadata/header publication; STORE admits known
+output/end overhead before owned input copying.
+
+The arbitrary `0xfffffffe` ZIP64 admission caps were removed from the existing
+streaming path and buffered reader. All configured entry, aggregate, archive,
+member, metadata, path, work and output limits remain enforced; defaults are
+unchanged. Classic local headers still refuse a payload requiring wide sizes
+after publication. Unknown sources select wide descriptors prospectively when
+configured input/compressed-output limits permit a sentinel crossing. `-fz-`
+propagates disabled policy through both stdout/staged streaming and buffered
+writing. CLI and public SDK retain the same command/options; no new arguments,
+runtime dependencies or host-process fallback were introduced.
+
+#### Automated controls and scope
+
+Virtual-counter field/end/descriptor encoder controls cover `0xfffffffe`,
+`0xffffffff`, `0x100000000`, safe maximum counters, 65,534/65,535/65,536 counts,
+independent expanded/compressed/offset fields, independent directory fields,
+absolute locator correctness, unsafe/fractional/negative values and disabled
+ZIP64. Signed and unsigned classic/wide descriptor encoders are exercised;
+existing parser fixtures independently validate all four forms and malformed
+descriptors. A tiny virtual-size DEFLATE fixture checks actual local and central
+records with expanded size alone promoted; its payload is deliberately not a
+multi-gigabyte DEFLATE stream and it establishes record encoding, not successful
+expanded-payload extraction. Small unknown-length live STORE output verifies
+automatic widths, classic central offset, exact decoded bytes and producer
+cleanup. Disabled required widths refuse before acquisition, and cancellation
+after the wide local header preserves reason identity without pulling input.
+
+Neighboring gated EOF, slow-sink backpressure, reused producers, exact/one-byte
+budgets, empty-source work, phase cancellation, codec/source/sink failure,
+identity/staging cleanup, mixed members, update/copy and unzip controls remain
+enabled. Pure record encoders are synchronous; cancellation belongs to their
+stream publication controls. A separate agent reviewed the four owned source/test
+files and found no validated blocking defect; it changed no files or gates.
+
+Final source identities (paths relative to packages/safe-bash):
+
+| Input | SHA-256 |
+| --- | --- |
+| src/commands/archive/zip/zip64.ts | `ccd3aab29f630f9d08608e87d370b18df536cca8048ffc9826644df810becb81` |
+| src/commands/archive/zip-format.ts | `da8ad556beb0745b1b93863b9de5db996cdafc5f74386f6ae1d1522bc8aa7b3b` |
+| src/commands/archive/zip.ts | `ddbe5f4880213d0f2d84c7bb55839398989cf0bc4a1225605cee89b9f8910960` |
+| tests/commands/zip-format.test.ts | `5db72559772bda70d2c3db0e281da2ad35db8f15af2e94d123577a19193991c3` |
+
+Executed verification:
+
+- Final uncached UTC/C-locale Node run, concurrency 1, of command `zip*.test.ts`,
+  `unzip.test.ts` and plugin `zip*.test.ts`: **1,483/1,483 passed**, zero failures,
+  cancellations, skips or TODOs; 24,125.29425 ms.
+- `npm run build:workspaces -- --workspace=virtual-bash`: exit **0**, six uncached
+  builds from maintained workspace/dependency declarations, after final edits.
+- `npm run typecheck --workspace=virtual-bash`: exit **0**, final source/tests,
+  all 26 current consumer groups and required negative validators passed;
+  compile-only proof.
+- `npm run lint:eslint`: exit **0**, complete guarded traversal, 15,493/15,493
+  configured subjects, zero errors and four existing warnings (two DOCX and two
+  ZIP review mock parameters). No lint rule, selection or exclusion changed.
+  A direct file-lint invocation was also clean but is not counted as the required
+  guarded gate. Final `git diff --check` exited **0**.
+- Public `runBash` plus memory FS: **2/2** classic/forced ZIP64 stdin archives
+  extracted `stream` through the shared command.
+- Final-source isolated Python zipfile oracle: **6/6 passed**, 65,537-byte archives using
+  777-byte source chunks, STORE/DEFLATE/BZIP2 each classic/forced ZIP64; exact
+  method, descriptor flag and extracted bytes were checked. Disk/native tooling
+  stayed outside canonical unit fixtures and product code.
+- Real CLI screenshot inspected: readable `wide: stream` and `classic: stream`.
+  PNG SHA-256 `fe82143c2be1102295ed450a6b7308a03542d063676b3ab3dcdc43dcba2f2d68`.
+  Screenshot preparation completed 75 workspace builds and the host bundle.
+  An overlapping test run failed with seven module-not-found file tasks while
+  this build recreated SafeJS declarations (1,089 passes); it is excluded from
+  passing proof. The final 1,483-test run followed settled SafeJS build outputs.
+
+#### Separate bounded large-artifact manual QA — planned, not executed
+
+This plan supplies interoperability checks beyond virtual-counter proof. It is
+not a canonical unit fixture, host fallback or an executed multi-GB claim.
+
+1. Use isolated explicit scratch with at least 5 GiB free, a 600-second deadline,
+   one archive at a time and cleanup on success/failure. Run the package's direct
+   streaming writer into an explicitly supplied awaited disk sink in a manual
+   harness. Do not collect the archive or payload. Use a reused 64 KiB source
+   slab, no runtime dependencies, STORE and two live members `large` and `tail`.
+   Set both timestamps to `2026-09-10T01:02:04Z`, no comments/custom extras,
+   regular file mode, expected lengths `0xffffffff` and 1, respectively.
+   Set maxEntryBytes/maxTotalBytes to `0x100000000`, maxArchiveBytes to
+   4,294,968,000 and maxPatternSteps to 200,000; preserve all other defaults.
+2. With automatic ZIP64, inspect records using seeked bounded reads before
+   asking independent readers to stream extraction/CRC verification. Expected:
+   `large` local span 64 bytes, wide signed descriptor 24 bytes, central expanded
+   and compressed fields `0xffffffff`, ZIP64 values both 4,294,967,295 and classic
+   local offset 0. `tail` local offset **4,294,967,383** (`0x100000057`), local
+   header 43 bytes, extraction version 45, classic signed descriptor 16 bytes;
+   its classic size fields are 1 and only its central offset is `0xffffffff`,
+   with a one-value ZIP64 offset extra. Central entry spans are 80 and 71 bytes.
+3. Expected directory start **4,294,967,443** (`0x100000093`), size **151**, count
+   **2**; classic directory size stays 151 and start is `0xffffffff`. ZIP64 end
+   record/locator target **4,294,967,594** (`0x10000012a`); locator disk 0, disk
+   count 1. Total archive span **4,294,967,692** (`0x10000018c`). Compare streaming
+   extraction CRC/digest with independently generated expected data; use at least
+   Python zipfile and an available native ZIP reader, recording exact versions.
+4. Repeat with first length `0xfffffffe` and `0x100000000`, increasing the latter
+   run's maxTotalBytes to `0x100000001` to admit its one-byte tail, deriving spans
+   from actually selected widths; record all central expanded/compressed/offset
+   values. Repeat unknown-length first input and forced ZIP64. Check disabled
+   ZIP64 rejects a required known width before input acquisition. Check a
+   one-byte-short archive budget, cancellation during payload and subsequent
+   reuse, with owned scratch removed and no buffered multi-GB result.
+
+Executed proof excludes multi-GB artifacts, actual dynamic streaming threshold
+crossings, process RSS/isolation, native pipe/device parity and deployed-provider
+publication. Encoder virtual counters establish boundary fields, not runtime
+throughput or large-file reader support. Buffered adaptive compression/update/copy
+and non-streaming VFS fallback retain their existing bounded profiles; streaming
+file publication still requires genuine staging/conditional-write authority.
+Absolute `/out` was unavailable; the documented ignored workspace `out/` fallback
+held task-owned temporary logs, screenshot and oracle files, purged after review. README,
+SafeJS, exports and test selection were preserved. No commit, push, verified
+remote-main delivery or successful release is claimed.
+
+## ZIP64 current-worktree revalidation — 2026-09-16
+
+Baseline HEAD: `52271eba09d31e9417fc4964646fbe3f6b6122e0`, on `main`.
+The ZIP64 source, tests and evidence above were already modified at task entry;
+they were preserved. The four ZIP64 source/test SHA-256 values match the final
+identities recorded above exactly. Archive admission `src/commands/archive/internal.ts`
+is unchanged, SHA-256
+`a1e8c4b8ba9806a762aba474672d365c0096ddf8c29359cee21b031d85fbb69d`.
+Its existing settings accept positive safe-integer configured limits without a
+classic ZIP cap; default and buffered-filesystem limits remain in force.
+
+Revalidation found the requested record encoders and incremental source/output
+path already present. No additional product change was justified by the focused
+controls, so no new failing-test reproduction or product edit is claimed here.
+This is working-tree qualification, not proof that HEAD alone contains ZIP64.
+
+Executed fresh checks, with no overlapping build:
+
+- `TZ=UTC LC_ALL=C node --import tsx --test --test-concurrency=1
+  packages/safe-bash/tests/commands/zip-format.test.ts`: 183 passed, zero failures,
+  cancellations, skips or TODOs; 1,264.51275 ms. Includes independent sentinel
+  neighbors, directory/count/locator records, safe-number rejection, all four
+  descriptor widths/signature forms, live input limits and producer cleanup,
+  mixed members, disabled policy and cancellation controls.
+- `TZ=UTC LC_ALL=C node --import tsx --test --test-reporter=dot
+  --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts
+  packages/safe-bash/tests/commands/unzip.test.ts
+  packages/safe-bash/tests/plugins/zip*.test.ts`: exit 0. This run used the
+  existing maintained fixtures and neighboring command/public-plugin controls;
+  the dot reporter does not supply a summary denominator.
+- Package-required independent read-only review: 21 memory-only assertions
+  passed for independent member widths, sentinel neighbors, descriptor forms
+  including signature-valued CRC, count boundaries and unsafe-value rejection.
+  No confirmed blocking defect; reviewer edited no files and ran no builds.
+- `git diff --check`: exit 0 before this documentation addition.
+
+No build, lint, screenshot, native oracle or multi-GB manual check was rerun in
+this revalidation; the earlier executions remain separate evidence. The bounded
+large-artifact manual QA above remains planned, not executed. Actual multi-GB
+streaming threshold crossings, large-file interoperability, deployed-provider
+publication and runtime memory measurements remain excluded. README, SafeJS,
+dependencies, exports, CLI/SDK surfaces and existing edits were preserved.
+No commit, push, remote-main verification or release was performed.
+
+### Follow-up admission correction on the same revision
+
+The original ZIP64 edits were present at entry and preserved. An independent
+read-only review validated one additional gap: a forced ZIP64 STORE member with
+both extraction versions downgraded to 10 was accepted. A new memory-only test
+failed before the fix (`Missing expected rejection`, exit 1). Admission now
+requires version at least 45 whenever central size, compressed size, offset or
+disk fields, or local size fields, require ZIP64. Existing BZIP2 version 46 and
+classic admission rules remain in force; no dependencies or public APIs changed.
+
+The new control independently exercises central expanded size, compressed size,
+offset and both local sizes: versions 10/20 reject and version 45 accepts each
+otherwise identical fixture. It also checks pre-cancellation reason identity.
+Existing sentinel-neighbor, count, descriptor, mixed-member, limit, cleanup and
+cancellation controls remain the surrounding feature proof. Independent review
+of the fix and the classic descriptor neighbor passed 2/2 selected tests.
+
+Final source identities for this follow-up:
+
+- zip-format.ts: `8ed0d0922630f9defabd2f1481a9234e31a55838f67aee71d659443bb3d90098`
+- zip-format.test.ts: `22cc012c8417bbe484f32c90a524020bde99dda372ef423cdcd62e982aec693b`
+
+Fresh final focused format tests and the uncached UTC/C-locale command
+`zip*.test.ts`, `unzip.test.ts` and plugin `zip*.test.ts` run passed (dot reporter,
+exit 0). The selected maintained workspace build passed, six dependency-closure
+builds. No screenshot was rerun for this binary-format admission-only correction.
+`npm run typecheck --workspace=virtual-bash` passed source/tests, all 26 current
+consumer groups and required negative validators (compile-only). Final
+`git diff --check` passed.
+Final `npm run lint:eslint` passed the guarded repository traversal: 15,493
+configured subjects linted, zero errors and four existing warnings (two DOCX,
+two ZIP review mock parameters), exit 0. No lint selections or rules changed.
+The bounded large-artifact QA remains planned, not executed; actual multi-GB
+threshold crossings and interoperability remain excluded. No commit, push,
+remote-main verification or release was performed for this follow-up.
+
+### User edge-case review — ZIP64 end extraction version, 2026-09-16
+
+Review baseline remains main HEAD `52271eba09d31e9417fc4964646fbe3f6b6122e0`
+with the existing ZIP64 source/tests/plans modified at entry. Those edits were
+preserved; this review adds one narrow reader correction and its tests.
+
+Confirmed gap: the ZIP64 end record admitted only extraction version 45,
+although member admission already supports version 46 (BZIP2). A memory-only
+Info-ZIP fixture with only its end extraction version changed to 46 extracted
+the expected bytes with Python 3.9.6 `zipfile` using `BytesIO`, but the new package
+test failed with `ZIP64 unsupported end-record extraction version` (exit 1).
+The reader now accepts 45/46 and still rejects unsupported end versions.
+The prior version-46 negative mutation now uses unsupported version 47.
+
+New controls admit 45 and 46 with exact decoded-byte verification, reject 44,
+47 and 65535, enforce a one-byte-short archive limit, and preserve pre-abort
+reason identity for every version. Existing classic, four descriptor forms,
+independent sentinel/count/directory fields, mixed members, streaming cleanup,
+budgets and cancellation tests supply neighboring regression controls.
+The final format suite passed **185/185**, zero failures, cancellations, skips
+or TODOs. A separate read-only agent independently passed the same 185 controls
+and found no blocking defect in the narrow version change.
+
+Final source SHA-256 identities:
+
+- `src/commands/archive/zip/zip64.ts`: `9459ebc8b0ab5b2bf53369540e5d5b91f76642bb43869f6d3fa4d960018564ec`
+- `src/commands/archive/zip-format.ts`: `8ed0d0922630f9defabd2f1481a9234e31a55838f67aee71d659443bb3d90098`
+- `tests/commands/zip-format.test.ts`: `b15909942a4c0784fdbce4e0e023689bd0b47fdeea8c340c4f3a172980de04e5`
+
+Fresh uncached UTC/C-locale Node regression run, concurrency 1, of command
+`zip*.test.ts`, `unzip.test.ts` and plugin `zip*.test.ts` passed **1,485/1,485**,
+zero failures, cancellations, skips or TODOs; 39,788.977375 ms. This final run
+followed the settled selected build. The earlier overlapping dot-reporter run
+also exited 0 but is not used for the final denominator.
+The selected maintained workspace build passed (six dependency-closure builds).
+`npm run typecheck --workspace=virtual-bash` passed source/tests, 26 current
+consumer groups and required negative validators (compile-only proof).
+`npm run lint:eslint` completed the guarded traversal with **15,493/15,493**
+configured subjects, zero errors and four existing warnings (two DOCX, two ZIP
+review mock parameters), exit 0. No rules or selection were changed.
+Final `git diff --check` passed.
+This binary-format correction does not change rendered CLI output; no screenshot
+was rerun. No dependencies, host fallback, exports, README or SafeJS edits were
+added. No multi-GB artifact was produced: the bounded manual QA above remains
+planned, and actual threshold-crossing interoperability and memory measurements
+remain exclusions. No commit, push, remote-main delivery or release is claimed.
+
+### Commit verification — 2026-09-16
+
+Fresh uncached UTC/C-locale ZIP/unzip command and plugin regression tests passed
+1,485/1,485 with zero failures, cancellations, skips or TODOs. The selected
+maintained workspace build passed all six dependency-closure builds. Workspace
+typechecking passed source/tests, all 26 current consumer groups and required
+negative validators. Repository ESLint passed all 15,493 configured subjects
+with zero errors and four warnings. These six files are committed together as
+the automatic ZIP64 improvement; no push or release is authorized or claimed.
+Temporary verification logs used ignored workspace `out/` because filesystem
+root `/out` is read-only; logs are purged after verification.

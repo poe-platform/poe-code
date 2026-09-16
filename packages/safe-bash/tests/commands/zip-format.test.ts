@@ -6,7 +6,7 @@ import zip64Oracle from "./fixtures/zip64-infozip.json" with { type: "json" };
 import { collectBytes, isPathWithin, resolvePath } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { DEFAULT_ARCHIVE_LIMITS as limits } from "../../src/commands/archive/internal.js";
-import { zip64Fields, stripZip64 } from "../../src/commands/archive/zip/zip64.js";
+import { zip64Fields, stripZip64, zip64Extra, writeZip64End, zip64Member, zipEnd, zipDescriptor } from "../../src/commands/archive/zip/zip64.js";
 import { crc32, decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras } from "../../src/commands/archive/zip-format.js";
 
 const signal = new AbortController().signal;
@@ -646,7 +646,7 @@ for (const oracle of zip64Oracle.cases.filter(item => item.unzipStatus === 0)) {
     ["short end record", bytes => bytes.writeBigUInt64LE(43n, record + 4)],
     ["long end record", bytes => bytes.writeBigUInt64LE(45n, record + 4)],
     ["unsafe end length", bytes => bytes.writeBigUInt64LE(2n ** 63n, record + 4)],
-    ["end version", bytes => bytes.writeUInt16LE(46, record + 14)],
+    ["end version", bytes => bytes.writeUInt16LE(47, record + 14)],
     ["end disk", bytes => bytes.writeUInt32LE(1, record + 16)],
     ["end central disk", bytes => bytes.writeUInt32LE(1, record + 20)],
     ["disk member count", bytes => bytes.writeBigUInt64LE(2n, record + 24)],
@@ -723,6 +723,25 @@ for (const position of [0, 1, 2]) {
     assert.deepEqual(Buffer.from(stripZip64(Buffer.concat(fields))), expected);
   });
 }
+test("ZIP64 end extraction versions admit supported features and reject unsupported neighbors", async () => {
+  const original = Buffer.from(zip64Oracle.cases[0]!.archive, "base64");
+  const record = Number(original.readBigUInt64LE(original.length - 34));
+  for (const version of [44, 45, 46, 47, 65535]) {
+    const bytes = Buffer.from(original);
+    bytes.writeUInt16LE(version, record + 14);
+    if (version === 45 || version === 46) {
+      const archive = await readZipArchive(bytes, limits, signal);
+      const body = await collectBytes(decodeZipEntry(archive.entries[0]!, limits, signal), collectOptions);
+      assert.deepEqual(Buffer.from(body), Buffer.from(zip64Oracle.cases[0]!.unzipStdout, "base64"));
+      await assert.rejects(readZipArchive(bytes, { ...limits, maxArchiveBytes: bytes.length - 1 }, signal), /limit/);
+    } else await assert.rejects(readZipArchive(bytes, limits, signal), /extraction version/);
+    const controller = new AbortController();
+    const reason = new Error("cancel ZIP64 end version admission");
+    controller.abort(reason);
+    await assert.rejects(readZipArchive(bytes, limits, controller.signal), error => error === reason);
+  }
+});
+
 test("ZIP64 accepts bounded extensible end data and enforces its metadata limit", async () => {
   const original = Buffer.from(zip64Oracle.cases[0]!.archive, "base64");
   const end = original.length - 22;
@@ -882,4 +901,164 @@ test("ZIP stripped-extra update rounds DOS time without retaining a stale UT tim
   const restored = await readZipArchive(bytes, limits, signal);
   assert.equal(restored.entries[0]!.modified.getTime(), new Date("2024-01-02T03:04:06Z").getTime());
   assert.equal(restored.entries[0]!.localExtra!.length, 0);
+});
+
+
+test("ZIP64 numeric encoders reject unsafe counters before mutating records", () => {
+  for (const value of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1, Infinity, NaN]) {
+    assert.throws(() => zip64Extra([value], new Uint8Array()), /invalid|unsafe/);
+    for (let index = 0; index < 4; index++) {
+      const bytes = new Uint8Array(76).fill(0xa5);
+      const counters = [1, 2, 3, 4];
+      counters[index] = value;
+      assert.throws(() => writeZip64End(new DataView(bytes.buffer), 0, counters[0]!, counters[1]!, counters[2]!, counters[3]!), /invalid|unsafe/);
+      assert.ok(bytes.every(byte => byte === 0xa5));
+    }
+  }
+});
+
+test("ZIP64 live expected size accepts the exact classic sentinel without payload allocation", async () => {
+  const wideLimits = { ...limits, maxEntryBytes: 0x100000000, maxTotalBytes: 0x100000000, maxArchiveBytes: 0x100010000 };
+  for (const size of [0xfffffffe, 0xffffffff, 0x100000000]) {
+    const entry = { ...await makeZipEntry("virtual", new Uint8Array(), attributes, limits, signal, 0), expectedSize: size, source: (async function* () { yield new Uint8Array(); })() };
+    const iterator = streamZipArchive({ entries: [entry], comment: new Uint8Array() }, wideLimits, signal)[Symbol.asyncIterator]();
+    try {
+      const header = (await iterator.next()).value!;
+      const view = new DataView(header.buffer, header.byteOffset, header.byteLength);
+      assert.equal(view.getUint32(22, true), size >= 0xffffffff ? 0xffffffff : 0);
+    } finally { await iterator.return?.(); }
+  }
+});
+
+
+test("ZIP64 member promotion is independent at sentinel neighbors and safe maximum", () => {
+  for (const value of [0xfffffffe, 0xffffffff, 0x100000000, Number.MAX_SAFE_INTEGER]) for (let index = 0; index < 3; index++) {
+    const counters = [7, 11, 13];
+    counters[index] = value;
+    const member = zip64Member(counters[0]!, counters[1]!, counters[2]!);
+    const expected = counters.map(item => item >= 0xffffffff ? 0xffffffff : item);
+    assert.deepEqual([member.size, member.compressed, member.offset], expected);
+    assert.deepEqual(member.values, value >= 0xffffffff ? [value] : []);
+    const extra = member.values.length ? zip64Extra(member.values, new Uint8Array()) : undefined;
+    assert.deepEqual(zip64Fields(extra?.subarray(4), expected), counters);
+    if (value >= 0xffffffff) assert.throws(() => zip64Member(counters[0]!, counters[1]!, counters[2]!, false, false), /disabled/);
+  }
+  assert.deepEqual(zip64Member(7, 11, 13, true).values, [7, 11, 13]);
+  assert.deepEqual(zip64Member(7, 11, 13, false, true, true).values, [7, 11]);
+});
+
+test("ZIP64 end records promote counts and directory fields independently with correct locator", () => {
+  for (const count of [65534, 65535, 65536]) for (const size of [0xfffffffe, 0xffffffff, 0x100000000]) for (const start of [0xfffffffe, 0xffffffff, 0x100000000]) {
+    const bytes = zipEnd(count, size, start, text.encode("end"));
+    const view = new DataView(bytes.buffer);
+    const wide = count >= 65535 || size >= 0xffffffff || start >= 0xffffffff;
+    const end = wide ? 76 : 0;
+    assert.equal(bytes.length, end + 25);
+    assert.equal(view.getUint16(end + 10, true), Math.min(count, 65535));
+    assert.equal(view.getUint32(end + 12, true), Math.min(size, 0xffffffff));
+    assert.equal(view.getUint32(end + 16, true), Math.min(start, 0xffffffff));
+    if (wide) {
+      assert.equal(view.getBigUint64(32, true), BigInt(count));
+      assert.equal(view.getBigUint64(40, true), BigInt(size));
+      assert.equal(view.getBigUint64(48, true), BigInt(start));
+      assert.equal(view.getBigUint64(64, true), BigInt(start + size));
+      assert.throws(() => zipEnd(count, size, start, new Uint8Array(), false, false), /disabled/);
+    }
+  }
+  assert.throws(() => zipEnd(1, Number.MAX_SAFE_INTEGER, 1, new Uint8Array()), /unsafe/);
+  assert.throws(() => zipEnd(1, 0, Number.MAX_SAFE_INTEGER, new Uint8Array()), /unsafe/);
+});
+
+for (const wide of [false, true]) for (const signed of [false, true]) {
+  test(`ZIP descriptor encoder virtual boundary counters wide=${wide} signed=${signed}`, () => {
+    for (const value of wide ? [0xfffffffe, 0xffffffff, 0x100000000, Number.MAX_SAFE_INTEGER] : [0, 1, 0xfffffffe]) {
+      const bytes = zipDescriptor(0xffffffff, value, value, wide, signed);
+      const view = new DataView(bytes.buffer);
+      const base = signed ? 4 : 0;
+      assert.equal(bytes.length, base + (wide ? 20 : 12));
+      if (signed) assert.equal(view.getUint32(0, true), 0x08074b50);
+      assert.equal(view.getUint32(base, true), 0xffffffff);
+      assert.equal(wide ? view.getBigUint64(base + 4, true) : BigInt(view.getUint32(base + 4, true)), BigInt(value));
+      assert.equal(wide ? view.getBigUint64(base + 12, true) : BigInt(view.getUint32(base + 8, true)), BigInt(value));
+    }
+    for (const invalid of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => zipDescriptor(1, invalid, 1, wide, signed), /invalid|unsafe/);
+    if (!wide) assert.throws(() => zipDescriptor(1, 0xffffffff, 1, false, signed), /required/);
+  });
+}
+
+test("ZIP64 automatic live widths and disabled policy preserve admission, cleanup and cancellation", async () => {
+  const highLimits = { ...limits, maxEntryBytes: 0x100000000, maxTotalBytes: 0x100000000, maxArchiveBytes: 0x100010000 };
+  let pulls = 0;
+  let closes = 0;
+  const body = text.encode("stream");
+  const entry = { ...await makeZipEntry("live", new Uint8Array(), attributes, limits, signal, 0), source: (async function* () { try { pulls++; yield body; } finally { closes++; } })() };
+  const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, highLimits, signal);
+  assert.equal(new DataView(bytes.buffer).getUint16(4, true), 45);
+  assert.equal(pulls, 1);
+  assert.equal(closes, 1);
+  const decoded = await readZipArchive(bytes, highLimits, signal);
+  assert.deepEqual(await collectBytes(decodeZipEntry(decoded.entries[0]!, highLimits, signal), collectOptions), body);
+  const central = bytes.findIndex((_, index) => index + 4 <= bytes.length && new DataView(bytes.buffer).getUint32(index, true) === 0x02014b50);
+  assert.equal(new DataView(bytes.buffer).getUint32(central + 42, true), 0, "automatic size widths retain classic offset");
+  const forbidden = { ...entry, size: 0, expectedSize: 0xffffffff, source: (async function* () { pulls++; yield body; })() };
+  await assert.rejects(streamZipArchive({ entries: [forbidden], comment: new Uint8Array() }, highLimits, signal, false, false, false)[Symbol.asyncIterator]().next(), /disabled/);
+  assert.equal(pulls, 1);
+  const controller = new AbortController();
+  const reason = new Error("ZIP64 boundary cancelled");
+  const cancelled = streamZipArchive({ entries: [{ ...forbidden, source: (async function* () { pulls++; yield body; })() }], comment: new Uint8Array() }, highLimits, controller.signal)[Symbol.asyncIterator]();
+  await cancelled.next();
+  controller.abort(reason);
+  await assert.rejects(cancelled.next(), error => error === reason);
+  assert.equal(pulls, 1);
+});
+
+
+test("ZIP64 end encoder overwrites disk fields in a reused destination", () => {
+  const bytes = new Uint8Array(76).fill(0xa5);
+  const view = new DataView(bytes.buffer);
+  writeZip64End(view, 0, 1, 2, 3, 5);
+  for (const offset of [16, 20, 60]) assert.equal(view.getUint32(offset, true), 0);
+});
+
+test("ZIP64 member admission requires extraction version 45 for sentinel fields", async () => {
+  const entry = await makeZipEntry("version", text.encode("a"), attributes, limits, signal, 0);
+  const original = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, limits, signal, false, true);
+  const originalView = new DataView(original.buffer);
+  const central = 30 + originalView.getUint16(26, true) + originalView.getUint16(28, true) + entry.data.length;
+  for (const field of [20, 24, 42, 18, 22]) for (const version of [10, 20, 45]) {
+    const bytes = new Uint8Array(original);
+    const view = new DataView(bytes.buffer);
+    view.setUint16(4, version, true);
+    view.setUint16(central + 6, version, true);
+    for (const offset of [18, 22, central + 20, central + 24]) view.setUint32(offset, 1, true);
+    view.setUint32(central + 42, 0, true);
+    view.setUint32(field === 18 || field === 22 ? field : central + field, 0xffffffff, true);
+    const centralExtra = central + 46 + view.getUint16(central + 28, true);
+    view.setBigUint64(centralExtra + 4, field === 42 ? 0n : 1n, true);
+    if (version < 45) await assert.rejects(readZipArchive(bytes, limits, signal), /ZIP64.*version/);
+    else assert.equal((await readZipArchive(bytes, limits, signal)).entries.length, 1);
+  }
+  const controller = new AbortController();
+  const reason = new Error("cancel ZIP64 version admission");
+  controller.abort(reason);
+  await assert.rejects(readZipArchive(original, limits, controller.signal), error => error === reason);
+});
+
+test("ZIP64 buffered record encoding promotes only expanded size at the sentinel", async () => {
+  for (const size of [0xfffffffe, 0xffffffff, 0x100000000]) {
+    const entry = { ...await makeZipEntry("virtual", text.encode("a"), attributes, limits, signal, 6, true), size };
+    const highLimits = { ...limits, maxEntryBytes: 0x100000000, maxTotalBytes: 0x100000000 };
+    const bytes = await writeZipArchive({ entries: [entry], comment: new Uint8Array() }, highLimits, signal);
+    const view = new DataView(bytes.buffer);
+    const localExtraLength = view.getUint16(28, true);
+    const central = 30 + view.getUint16(26, true) + localExtraLength + entry.data.length;
+    assert.equal(view.getUint32(18, true), entry.data.length);
+    assert.equal(view.getUint32(22, true), Math.min(size, 0xffffffff));
+    assert.equal(view.getUint32(central + 20, true), entry.data.length);
+    assert.equal(view.getUint32(central + 24, true), Math.min(size, 0xffffffff));
+    assert.equal(view.getUint32(central + 42, true), 0);
+    const decoded = await readZipArchive(bytes, highLimits, signal);
+    assert.equal(decoded.entries[0]!.size, size);
+    if (size >= 0xffffffff) await assert.rejects(writeZipArchive({ entries: [entry], comment: new Uint8Array() }, highLimits, signal, false, false, false), /disabled/);
+  }
 });

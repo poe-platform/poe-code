@@ -512,6 +512,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       conversionWarnings.set(name, `\tzip warning: ${bytes === originalBytes ? "has binary so -ll ignored" : "-ll used on binary file - corrupted?"}\n`);
     }
     if (parsed.descriptors) entry.descriptors = true;
+    if (parsed.zip64 === false) entry.zip64 = false;
     if (parsed.zip64 === true || parsed.zip64 === undefined && source === "-") entry.zip64 = true;
     const prior = old.get(name);
     if (prior?.comment) entry = { ...entry, comment: prior.comment };
@@ -834,7 +835,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     else publication = { ...publication, mtimeMs };
   }
   const bytes = originalBytes && !changed && !editComment && !editEntries ? originalBytes
-    : await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true);
+    : await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true, parsed.zip64 !== false);
   if (parsed.test && parsed.archive !== "-" && !(parsed.filesync && !changed)) {
     for (const message of progress) await budget.output(message);
     progress.length = 0;
@@ -923,7 +924,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
         for (const message of prepared.progress) await budget.output(message);
       } else if (prepared.kind === "staged-stream") {
         const source = (async function* (): ByteSource {
-          for await (const chunk of streamZipArchive(prepared.archive, limits, context.signal, true, parsed.zip64 === true)) {
+          for await (const chunk of streamZipArchive(prepared.archive, limits, context.signal, true, parsed.zip64 === true, parsed.zip64 !== false)) {
             yield chunk;
             try { await dots(chunk.length); }
             catch (error) { void scope.closeInputs().catch(() => {}); throw error; }
@@ -936,7 +937,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       } else {
         const output = createOutputOperation(context, context.stdout);
         try {
-          for await (const chunk of streamZipArchive(prepared.archive, limits, output.signal, true, parsed.zip64 === true)) {
+          for await (const chunk of streamZipArchive(prepared.archive, limits, output.signal, true, parsed.zip64 === true, parsed.zip64 !== false)) {
             try {
               await writeBytes(output.output, chunk, output.signal);
               await dots(chunk.length);

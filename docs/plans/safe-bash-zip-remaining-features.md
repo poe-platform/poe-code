@@ -60,11 +60,11 @@ tasks:
 
       Extend zip/zip64.ts, zip-format.ts and archive admission only after incremental streaming is present. Promote sizes, compressed sizes, offsets and directory sizes independently when classic sentinel boundaries require ZIP64. Cover exact 0xffffffff and neighboring values, 65535 counts, unknown-length stdin, forced/disabled ZIP64, 32/64-bit signed and unsigned descriptors, mixed classic/ZIP64 members, central offset and locator correctness. Preserve configured limits and reject values beyond safe representability before arithmetic/allocation. Avoid multi-gigabyte unit buffers: test factored record encoders with virtual counters and memory stream fixtures, then document a separate bounded manual large-artifact interoperability check with expected central-directory fields. Raising a constant cap without making input/output streaming is insufficient.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-traditional-encryption
     title: "Integrate traditional password-protected ZIPs"
     prompt: |

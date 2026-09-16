@@ -1,5 +1,15 @@
 # DOCX Public API Documentation Audit
 
+The later [table and expanded-workflow record](../plans/docx-table-bdd-adaptation.md)
+and [exact 870-row verification](table-bdd-case-verification.json) supersede earlier
+pending statements only for the selected table units and expanded BDD workflows.
+Original in-memory SDK and safe-bash tests qualify live table owners, document
+creation, Settings, drawings/pictures and existing numbering owners. Exact JS,
+security, default-template and API drift mappings remain explicit; missing
+numbering construction and unrelated public APIs remain visible obligations.
+Renderer QA is not run; the historical inventories and whole-format limits remain
+unchanged.
+
 Status: Pinned documentation/source reconciliation completed on 2026-09-13;
 mapping status reconciled on 2026-09-14; bounded style/formatting model evidence
 now recorded separately, full document object model remains incomplete.

@@ -1,5 +1,15 @@
 # DOCX Upstream Test Audit
 
+The later [table and expanded-workflow record](../plans/docx-table-bdd-adaptation.md)
+and [exact 870-row verification](table-bdd-case-verification.json) supersede earlier
+pending statements only for the selected table units and expanded BDD workflows.
+Original in-memory SDK and safe-bash tests qualify live table owners, document
+creation, Settings, drawings/pictures and existing numbering owners. Exact JS,
+security, default-template and API drift mappings remain explicit; missing
+numbering construction and unrelated public APIs remain visible obligations.
+Renderer QA is not run; the historical inventories and whole-format limits remain
+unchanged.
+
 Status: Research complete for the pinned baseline; bounded style/formatting
 TypeScript adaptation is recorded in [the scoped audit](style-formatting-audit.md)
 and [case map](style-formatting-case-map.json). Full format adaptation is pending.

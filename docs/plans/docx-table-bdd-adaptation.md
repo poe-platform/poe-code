@@ -1,112 +1,42 @@
 # DOCX table and expanded workflow adaptation
 
-Task: `adapt-upstream-tables-bdd` only. Status: partial; implementation and test
-steps remain open. Do not begin later pipeline tasks, push, publish or edit README.
-The preexisting pipeline plan and specification changes remain outside ownership.
+Task: `adapt-upstream-tables-bdd` only. All 870 selected rows are accounted for; maintained gates pass and owned atomic local commits are recorded in `docs/docx/table-bdd-delivery-20260915.json`. Later tasks remain pending. No README edits, push or release. Unrelated pipeline/equation/discovery plan changes remain outside ownership.
 
-Root owns this plan and `docs/docx/table-bdd-case-verification.json`. Independent
-read-only workers review exact table and BDD selection, source/public-model gaps
-and qualification pointers. The separate atomic active-grid correction and its
-delegated integration ownership are recorded in `docx-table-active-grid.md`.
+## Exact accounting and independent review
 
-## Preparation and case accounting
+The historical inventories retain 1,609 unit variants, 650 expanded BDD rows, 920 API records and 1,337 public-map rows. The selected scope is every 220 table unit variant plus every 650 expanded BDD scenario, selected by exact identities rather than filename prefixes. Each row in `docs/docx/table-bdd-case-verification.json` retains provenance, bound values, observations, drift IDs and its independently passing evidence or justified disposition.
 
-Read `docs/specs/docx.md`, the common office CLI/SDK contracts, root/scoped
-instructions, DOCX test/API inventories and audits, their crosslinked PPTX audits,
-the exact test crosswalk, public API map and prior style and merge supplements.
-The current denominator is 1,609 unit variants plus 650 expanded workflows;
-the API inventory has 920 records and the proposed public map has 1,337 rows.
-Preparation, source passes and broad green utility tests do not close adaptation.
+The table map accounts for 214 original passing adaptations, five tested directional-helper language mappings to public row-major merge content order, and one tested nested destructive-text security rejection. It covers grid-before/after, span aliases, invalid L/T merge endpoints, physical widths, collections, empty rows, property ordering and atomic setters. The 199 original table tests have independent bound-variant pointers; private call-dispatch assertions receive explicit observable replacements rather than private-name exemptions.
 
-The task record independently names all 870 selected rows: every 650 expanded
-workflow across 67 files and every 220 unit variant from both table test files.
-There are 104 BDD rows assigned to table feature owners, including general document
-and break cases; filename-only `tbl-*` selection would omit obligations.
-Each record retains exact source identity, crosswalk pointer, bound parameters,
-required observations, drift rules, current disposition and remaining obligation.
-All six input hashes and row/API pointers were independently checked.
+Every expanded BDD row has its own original SDK observation: 534 workflow tests plus 116 style/tab tests. Separate agents reconciled exact source cases, reviewed trigger equivalence and executed the tests. Independent review caught path fixture admission and default-width trigger substitutions; these were corrected before the final 534-case passing receipt. Initial reds, fixture authoring errors and superseded reports remain retained beside final evidence. Fractional per-axis PNG/BMP density, original templates/style display names and deterministic admitted metadata are explicit per-row language dispositions, not identical source-template claims.
 
-Existing bounded supplements are preserved: 375 BDD style/formatting rows plus
-23 distinct BDD utility-merge/span/omission rows, and 48 table unit utility rows.
-These are 446 existing semantic supplements, with explicit owner/model limits.
-The independent BDD review initially missed the merge supplement, then corrected
-the denominator before delivery. Their union has zero overlapping BDD identities.
-No complete source workflow is newly qualified by this accounting task.
+Real safe-bash tests cover VFS .sh files, command substitution, binary pipelines, stdin, SDK reopen, dry-run, invalid bounds/merge preservation, picture admission, drawing metadata and failed publication. The CLI uses the package SDK and closed batch schemas; ordinary plural-resource operations retain the shared selectors, flags, envelopes and exit statuses.
 
-424 rows remain pending original adaptation: 172 table units and 252 BDD rows.
-Missing tests are not passing semantic dispositions. Private dependency dispatch,
-wrapper allocation and XML descriptor mechanics may be replaced only by an
-individually qualified observable grid/content/error/owner invariant. Public
-methods, setters, collections and inherited members cannot receive that exemption.
-Many-to-one evidence still requires exact bound-case equivalence, not a shared
-generic test title. Historical planned test paths remain obligations, not files.
+## JS/security/API mappings and documentation drift
 
-The local correction commit `acd0e2e85` adds seven failing-before-code compatibility regressions
-and 27 original span/omission combinations, plus six real Shell fixtures. Its
-maintained results and raw evidence are separate from this source-case crosswalk.
-They do not stand in for all other grid, width, row/column collection, nested-content,
-setter, invalid merge-shape or expanded workflow cases.
-
-## Exact JS, security and public API mappings
-
-The research record retains all 52 table API rows and 123 shared helper/enum/
-inherited dependency pointers. The complete 1,337-row public map remains in force,
-including APIs with no upstream tests and public underscore-prefixed owners.
-Existing bounded style, formatting, image and value APIs are not erased; their
-passing domain tests do not establish all owning Document/Paragraph/Run integrations.
-
-| Obligation | Required target behavior and current gap |
+| Obligation | Current target mapping |
 | --- | --- |
-| Document admission and save | Always async bytes/byte streams/explicit capability-scoped VFS and sinks. No ambient paths, network, time, author or fonts. A complete `Document` factory and owning save graph are not exported. |
-| Admitted model access | Synchronous live properties and model-only methods with documented source-neutral spellings. Operation JSON remains camelCase. Utility snapshots cannot qualify missing live owners. |
-| Table/row/column lookup | Zero-based sequence lookup, `.at`, `.length`, `Symbol.iterator` and supported `.slice`; one-based utility ordinals/A1 coordinates. Checked bounds; no numeric/key guessing or coercion. `_Rows`/`_Columns` remain public obligations. |
-| Logical and physical cells | Omitted slots differ from empty cells; horizontal repetition and vertical continuations resolve to one owner/node. Wrapper allocation identity is not required. Live `_Cell`, `_Row` and `_Column` ownership/collection behavior is not exported. |
-| Cell content and growth | Returned `add_paragraph`/`add_table` handles, ordered `iter_inner_content`, required terminal paragraphs, original nested content and cross-owner rejection need live model evidence. Whole-cell text setters are distinct from formatting-preserving text replace. |
-| Merge/edit behavior | Utility ordered corners and explicit rich-content join/distribution policies are deliberate differences. `_Cell.merge` returned owner and synchronous model semantics remain pending. Invalid/nonrectangular/partial overlaps reject before publication. |
-| Properties | Typed widths/heights/enums, nullable resets, false/zero/empty/undefined distinctions, autofit, alignment, row splitting and header flags need exact getter/setter and persistence assertions. `table_direction` remains the model name; utility `direction` does not create a model alias. |
-| Units/enums/helpers | Checked safe integer storage and finite inputs; shared halfway-away-from-zero rounding; typed enum symbols/aliases. All helper/accessor/protocol obligations remain in the complete map, including untested APIs. |
-| Inherited package/XML members | Owner-bound bounded views and validated mutation; no dependency runtime, arbitrary callbacks/evaluation or ambient resource activation. Underscore spelling is not private status. |
-| Removed/cross-document owners | Deterministic stale handles and explicit import requirements. Revision-bound utility location tokens are snapshots, not complete live owner identity. |
-| Errors and publication | Neutral type/value/index/key/owner errors; shared detailed categories, version-1 envelopes, dry-run, input/output alias/force rules and exit statuses. Prepublication errors preserve bytes. No dynamic member dispatch as an API shortcut. |
+| Document/input/save | Async owned bytes, byte streams, explicit VFS capabilities and explicit sinks; no ambient path, clock, author, network or font access. |
+| Live model access | Synchronous admitted properties and neutral snake_case methods; async image admission. Closed operation JSON retains documented field spellings. |
+| Collections | Readonly zero-based `.at`, numeric access, `.length`, `Symbol.iterator`, checked slices; styles keyed by display name; utility coordinates remain one-based/A1. |
+| Grid/content/merge | Omitted slots differ from empty cells; spans and vertical continuations share owner/node identity. Public merge preserves row-major rich content and rejects incomplete rectangular shapes. Nested destructive assignments reject unsupported content atomically. |
+| Default table width | Omitted Document width derives from final section page width minus margins. Missing stored page geometry uses the original neutral Letter/one-inch model defaults, replacing a source missing-value arithmetic failure. Explicit widths remain unchanged. |
+| Settings/images | Live Settings boolean removes false overrides and respects property ordering. Active MCE projection excludes inactive drawings/settings; graphicData URI identifies shape type. Active extent reads work; XML guard rejects writes within alternative content without changing bytes. |
+| Picture input/handles | Primary methods receive explicit bytes/source/path. Closed BinaryInput descriptors normalize through bounded acquisition or canonical explicit paths. Returned shape/drawing/image handles remain owned; iterated run content materializes once for indexing. |
+| Numbering/inherited APIs | Existing DocumentPartView/NumberingPart and public `_NumberingDefinitions.length` retain typed inherited part/XML/package APIs. Missing numbering creation explicitly rejects, matching an unimplemented source construction path; no underscore-private waiver. |
+| Owner lifetime | Unchanged part bytes preserve live model handles during package relationship edits; replaced parts invalidate only their own handles. New metadata binding validates owner, exact bytes and content type. |
+| Values/errors | Typed lengths/enums/aliases, nullable tri-state, checked integer/finite storage, shared rounding, neutral typed errors and atomic publication retain the shared contracts. |
 
-Documentation drift remains explicit in each row’s applicable decision IDs:
-`comment_id`/`timestamp`, not guide id/date aliases; source-neutral table direction;
-destructive paragraph assignment versus formatting-retaining run assignment;
-new breaks versus cached rendered breaks; per-axis image DPI and checked rounding;
-six-digit RGB; explicit UTC time, positive revision writes and Unicode length;
-defined-style false versus latent null; moved tab handles follow their current node.
-`allowEmpty` retains the shared current operation spelling. No source-identity
-strings, copied binary assets or dependency implementation entered product files.
-Existing standalone legal notices remain unchanged; new tests/code are original.
+The complete public-map obligations remain authoritative, including inherited members, enums, helpers, collections and APIs without upstream tests. This task qualifies the selected owning workflows; unrelated unsupported public members remain visible in discovery and research. It does not mark the entire API complete. Exact public spellings use `comment_id`/`timestamp`, `table_direction`, cached versus inserted breaks and six-digit RGB. Original heading style synthesis supplies missing Title/Heading definitions rather than relying on a copied installed template. Standalone legal notices remain retained; product/tests/assets are original and contain no reference branding.
 
-## Remaining qualification procedure
+## Maintained verification and local delivery
 
-1. For each pending row, inspect its exact source witness and bound expectations.
-   Author one small original in-memory fixture or justify exact many-to-one
-   equivalence. Keep source identity only in research, not test names/assets.
-2. Exercise the required public model graph, returned owner, inherited member,
-   collection, enum/helper and error behavior. Add failing original tests before
-   fixing validated code; do not merely invoke a utility with similar formatting.
-3. Exercise the same SDK behavior through direct plural-resource commands or a
-   closed typed batch schema. Verify ordinary flags, selectors, JSON/status,
-   dry-run, byte preservation and safe-bash `.sh`/stdin/pipeline ownership.
-4. Independently review each exact row’s values, order, aliases, error shape,
-   content preservation and deliberate language/security differences. Attach
-   current passing evidence only to assertions that actually ran.
-5. Run maintained checks for the affected package/adapter scope, then commit
-   verified atomic owned improvements with relevant plan updates on main.
-   Preserve unrelated work and historical inventories; never broad-stage, bypass
-   hooks, commit ignored fixtures or start later tasks while waiting.
-
-These steps are pending, not a claim that live owners have been implemented.
-The concrete completion gaps are missing public owner integrations and the 424
-unqualified original cases recorded individually in the task supplement.
+Run `npm test --workspace=docx`, `npm run lint --workspace=docx`, `npm run build:workspaces -- --workspace=docx`, maintained safe-bash registration and focused integration checks, and guarded root `npm run lint:eslint`. Raw receipts remain in `docs/docx/workflow-behavior-evidence-20260915/`; initial failures are retained with fixes and final results. Terminal screenshots qualify actual command output only. Commit each atomic owned improvement locally on main after gates pass; stage named owned files/relevant plans only, preserve unrelated work, never bypass hooks or commit ignored QA inputs. Delivery hashes will be recorded in the final receipt.
 
 ## Renderer-only QA procedure and status
 
 Status: **not run**. Structural assertions and terminal screenshots do not prove
-document pagination or glyph/page fidelity. No downloaded or cloned binary fixture
-has been opened, modified or removed for this task; cleanup count is zero.
+document pagination or glyph/page fidelity. A disposable pinned research checkout supplied source witnesses; original in-memory regressions and exact provenance are retained. Renderer execution remains unavailable: no supported CLI renderer is installed; Pages automation was denied approval.
 
 When an explicitly available independent document renderer can be executed:
 
@@ -125,6 +55,10 @@ When an explicitly available independent document renderer can be executed:
    owned cleanup. Retain input provenance and results; disposable corpus inputs
    never ship or become canonical unit dependencies.
 
-No full office SDK conformance, complete table model, exact source parity, complete
-upstream adaptation, full safe-bash runtime gate, corpus campaign, push or release
-is claimed. The current pipeline task remains open; later tasks remain pending.
+Whole office SDK conformance, rendered source parity, a full safe-bash runtime gate and a corpus campaign are outside this selected task. No push or release. Later pipeline tasks remain pending.
+
+## Completion evidence
+
+The maintained DOCX unit route passed 215 files: 4,904 passes and four unrelated skips. All selected original workflow tests passed without skips. The additional focused paragraph namespace regression passed after that maintained run; final package lint also covers it. Workspace build/lint, guarded root ESLint, safe-bash runner522, registration109, public shell9 and maintained safe-bash typecheck passed. Warning-only lint findings remain visible. The actual Shell transcript screenshot was inspected and retained; this qualifies terminal JSON/diagnostics only.
+
+The verified clean disposable research checkout was removed after original test reduction and independent review (653 files, including disposable binary fixtures and Git metadata). Provenance, original assets/tests and legally required notices remain. No ignored QA files were committed. Local commits do not establish remote delivery or release: no push/release was requested or performed. Later tasks remain pending.

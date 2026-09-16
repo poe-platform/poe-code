@@ -3,6 +3,8 @@ import type { MetaValue } from "./ast-types.js";
 import { createFormatRegistry } from "./formats.js";
 import { ExecutionContext } from "./execution.js";
 import { PandocError } from "./errors.js";
+import { mergeMetadata, mergeJsonMetadata, parseMetadataJson } from "./metadata.js";
+import type { FormatSelection } from "./formats.js";
 export { PandocError } from "./errors.js";
 import type {
   ConversionContext,
@@ -13,10 +15,28 @@ import type {
   InputSource,
   ReadOptions,
   SerializedDocument,
-  WriteOptions
+  WriteOptions,
+  Diagnostic,
+  ReaderCapability
 } from "./types.js";
 
 class Session extends ExecutionContext {
+  sourceLocations: readonly {source: string; line: number}[] = [];
+  sourceLocation(location?: string): string | undefined {
+    if (!this.sourceLocations.length) return location;
+    const parts = location?.split(":") ?? [];
+    const line = Number(parts[0]);
+    const numeric = parts.length === 2 && Number.isSafeInteger(line) && line > 0 && Number.isSafeInteger(Number(parts[1]));
+    let source = this.sourceLocations[0]!;
+    if (numeric) for (const entry of this.sourceLocations) {if (entry.line > line) break; source = entry;}
+    return numeric ? `${source.source}:${line - source.line + 1}:${parts[1]}` : `${source.source}:${location ?? "1:1"}`;
+  }
+  override report(diagnostic: Diagnostic): void {
+    super.report({...diagnostic, operation: this.operation, location: this.sourceLocation(diagnostic.location)});
+  }
+  failIfWarnings = false;
+  metadataJson: WriteOptions["metadataJson"];
+  metadataFiles: WriteOptions["metadataFiles"];
   lossy = false;
   standalone = false;
   rawContent: WriteOptions["rawContent"];
@@ -24,13 +44,24 @@ class Session extends ExecutionContext {
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
+    if (this.operation !== "read") allowed.push("failIfWarnings", "metadataJson", "metadataFiles");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && options.wrap !== "none") this.fail("E_OPTION", "Only wrap none is supported");
     if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
     this.lossy = "lossy" in options && options.lossy === true;
     if ("to" in options) {
-      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "lossy"].includes(key)));
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "lossy", "failIfWarnings", "metadata", "metadataJson", "metadataFiles"].includes(key)));
+      if (options.failIfWarnings !== undefined && typeof options.failIfWarnings !== "boolean") this.fail("E_OPTION", "failIfWarnings must be boolean");
+      this.failIfWarnings = options.failIfWarnings === true;
+      if (options.metadataJson !== undefined && !Array.isArray(options.metadataJson)) this.fail("E_OPTION", "metadataJson must be an array");
+      if (options.metadataFiles !== undefined && !Array.isArray(options.metadataFiles)) this.fail("E_OPTION", "metadataFiles must be an array");
+      for (const file of options.metadataFiles ?? []) {
+        const path = file.source ?? file.base;
+        if (path && !path.endsWith(".json")) this.fail("E_OPTION", "Metadata files must be JSON; YAML is unsupported");
+      }
+      this.metadataJson = options.metadataJson;
+      this.metadataFiles = options.metadataFiles;
       if (options.standalone !== undefined && typeof options.standalone !== "boolean") this.fail("E_OPTION", "standalone must be boolean");
       if (options.rawContent !== undefined && !["reject", "escape", "retain"].includes(options.rawContent)) this.fail("E_OPTION", "Invalid rawContent policy");
       if (options.metadata !== undefined && (options.metadata === null || typeof options.metadata !== "object" || Array.isArray(options.metadata))) this.fail("E_OPTION", "metadata must be a map of MetaValue nodes");
@@ -40,6 +71,24 @@ class Session extends ExecutionContext {
     }
   }
   readonly registry = createFormatRegistry(undefined, this.context, this.operation);
+  async preflightOptions(): Promise<void> {
+    if (this.metadata) this.metadata = (await this.document({blocks: [], metadata: this.metadata, resources: []})).metadata;
+    for (const layer of this.metadataJson ?? []) await mergeJsonMetadata({}, layer, this);
+  }
+  async readOwned(input: Input, selection: FormatSelection & {reader: ReaderCapability | undefined}, locations: readonly {source: string; line: number}[] = []): Promise<Document> {
+    this.sourceLocations = locations;
+    try {
+      return await this.document(await this.call(() => selection.reader!.read(input, this, selection)));
+    } catch (error) {
+      if (error instanceof PandocError && locations.length && error.code !== "E_CANCELLED" && error.code !== "E_IO")
+        throw new PandocError(error.code, this.operation, error.message, error.format, this.sourceLocation(error.location));
+      if (error instanceof PandocError && input.base && error.code === "E_PARSE")
+        throw new PandocError(error.code, this.operation, error.message, error.format, `${input.base}:${error.location ?? "1:1"}`);
+      throw error;
+    } finally {
+      this.sourceLocations = [];
+    }
+  }
   async input(input: InputSource, format: string): Promise<Input> {
     const { descriptor } = this.registry.parse(format, "read");
     const bytes = await this.acquire(
@@ -50,6 +99,7 @@ class Session extends ExecutionContext {
     return {
       bytes,
       ...(input.base === undefined ? {} : { base: input.base }),
+      ...(input.source === undefined ? {} : {source: input.source}),
       ...(text === undefined ? {} : { text })
     };
   }
@@ -85,7 +135,15 @@ class Session extends ExecutionContext {
   }
 
   async writable(document: Document, math?: "source"): Promise<Document> {
-    if (this.metadata) document = await this.document({...document, metadata: {...document.metadata, ...this.metadata}});
+    let metadata = document.metadata;
+    for (const file of this.metadataFiles ?? []) {
+      const input = await this.input(file, "json");
+      const parsed = await parseMetadataJson(input.text!, this, file.source ?? file.base);
+      metadata = await mergeJsonMetadata(metadata, parsed, this);
+    }
+    for (const layer of this.metadataJson ?? []) metadata = await mergeJsonMetadata(metadata, layer, this);
+    if (this.metadata) metadata = await mergeMetadata(metadata, this.metadata, this);
+    if (metadata !== document.metadata) document = await this.document({...document, metadata});
     if (math !== "source") {
       const visit = async (value: unknown, path: string): Promise<void> => {
         await this.cooperate();
@@ -108,6 +166,10 @@ class Session extends ExecutionContext {
   async finish(serialized: SerializedDocument): Promise<ConversionResult> {
     this.checkpoint(0);
     const diagnostics = this.snapshotDiagnostics();
+    if (this.failIfWarnings && diagnostics.length) {
+      const first = diagnostics[0]!;
+      throw new PandocError("E_WARNINGS", this.operation, `Warnings rejected: ${first.code}: ${first.message}`, first.format, first.location);
+    }
     if (serialized.kind === "binary") this.bound("outputBytes", serialized.bytes.byteLength);
     this.charge(
       "retainedBytes",
@@ -177,9 +239,7 @@ export async function readDocument(
     session.options(options);
     const reader = session.registry.resolve(options.from, "read");
     const owned = await session.input(input, options.from);
-    return await session.document(
-      await session.call(() => reader.reader!.read(owned, session, reader))
-    );
+    return await session.readOwned(owned, reader, owned.source ? [{source: owned.source, line: 1}] : []);
   } finally {
     await session.close();
   }
@@ -193,6 +253,7 @@ export async function writeDocument(
   try {
     session.options(options);
     const writer = session.registry.resolve(options.to, "write");
+    await session.preflightOptions();
     const owned = await session.writable(await session.document(document), writer.writer!.math);
     return await session.finish(
       await session.call(() => writer.writer!.write(owned, session, writer))
@@ -211,20 +272,45 @@ export async function convert(
     session.options(options);
     const reader = session.registry.resolve(options.from, "read");
     const writer = session.registry.resolve(options.to, "write");
-    // Account for every input before callbacks, retaining independent reader boundaries.
+    if (inputs.length > 1 && !reader.descriptor.operands) session.fail("E_OPTION", "This reader accepts only one input");
+    if (reader.descriptor.operands === "join" && new Set(inputs.map(input => input.base)).size > 1) session.fail("E_OPTION", "Joined text inputs must share a resource base");
+    await session.preflightOptions();
+    // Account for every operand before invoking readers or writers.
     const ownedInputs: Input[] = [];
     for (const input of inputs) {
       session.charge("references", 1);
       ownedInputs.push(await session.input(input, options.from));
     }
     const blocks: Document["blocks"][number][] = [];
-    const metadata: Record<string, MetaValue> = {};
+    let metadata: Record<string, MetaValue> = {};
     const resources: Document["resources"][number][] = [];
     const settings: { language?: string; direction?: "ltr" | "rtl" | "auto" } = {};
-    for (const [index, input] of ownedInputs.entries()) {
-      const document = await session.document(
-        await session.call(() => reader.reader!.read(input, session, reader))
-      );
+    let readerInputs = ownedInputs;
+    const joinedLocations: {source: string; line: number}[] = [];
+    if (reader.descriptor.operands === "join" && ownedInputs.length) {
+      const parts: string[] = [];
+      let line = 1;
+      for (const input of ownedInputs) {
+        const text = input.text!;
+        joinedLocations.push({source: input.source ?? `input[${parts.length}]`, line});
+        session.charge("retainedBytes", text.length * 2 + 2);
+        const part = text.endsWith("\n") ? text : text + "\n";
+        parts.push(part);
+        for (let offset = 0; offset < part.length; offset++) {
+          session.checkpoint();
+          if (part[offset] === "\n") line++;
+          if (offset % 256 === 0) await session.cooperate(0);
+        }
+      }
+      const text = parts.join("");
+      session.charge("retainedBytes", text.length * 2);
+      session.charge("retainedBytes", text.length * 3);
+      const bytes = new TextEncoder().encode(text);
+      readerInputs = [{text, bytes, ...(ownedInputs[0]!.base === undefined ? {} : {base: ownedInputs[0]!.base})}];
+    }
+    for (const [index, input] of readerInputs.entries()) {
+      const locations = reader.descriptor.operands === "join" && ownedInputs.some(input => input.source !== undefined) ? joinedLocations : input.source ? [{source: input.source, line: 1}] : [];
+      const document = await session.readOwned(input, reader, locations);
       for (const key of ["language", "direction"] as const) {
         if (Object.hasOwn(document, key)) {
           if (Object.hasOwn(settings, key))
@@ -260,12 +346,7 @@ export async function convert(
             location: `input[${index}].metadata.${key}`
           });
         if (!Object.hasOwn(metadata, key)) session.charge("references", 1);
-        Object.defineProperty(metadata, key, {
-          value,
-          enumerable: true,
-          configurable: true,
-          writable: true
-        });
+        metadata = await mergeMetadata(metadata, {[key]: value}, session);
       }
     }
     const document = await session.writable(

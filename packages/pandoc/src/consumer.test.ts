@@ -73,12 +73,13 @@ describe("public conversion seam (original adapters, no format conformance claim
   });
   it("bounds diagnostics before merging metadata conflicts", async () => {
     const ctx = context();
+    ctx.reader = {format: "csv", read: ctx.reader!.read};
     ctx.reader!.read = async () => ({
       ...document,
       metadata: { title: { t: "MetaString", c: "original" } }
     });
     await expect(
-      convert([{ bytes: encode("a") }, { bytes: encode("b") }], options, {
+      convert([{ bytes: encode("a") }, { bytes: encode("b") }], {...options, from: "csv"}, {
         ...ctx,
         limits: { diagnostics: 0 }
       })
@@ -246,15 +247,16 @@ describe("public conversion seam (original adapters, no format conformance claim
     controller.abort();
     expect(result).toEqual({ kind: "text", text: "0\n", diagnostics: [] });
   });
-  it("reads independently in order, merges blocks and writes once", async () => {
+  it("joins text in order, reads once and writes once", async () => {
     const ctx = context();
     const result = await convert(
       [{ bytes: encode("one") }, { bytes: encode("two") }],
       options,
       ctx
     );
-    expect(result).toEqual({ kind: "text", text: "2\n", diagnostics: [] });
-    expect(ctx.reader!.read).toHaveBeenCalledTimes(2);
+    expect(result).toEqual({ kind: "text", text: "1\n", diagnostics: [] });
+    expect(ctx.reader!.read).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(ctx.reader!.read).mock.calls[0]![0].text).toBe("one\ntwo\n");
     expect(ctx.writer!.write).toHaveBeenCalledTimes(1);
   });
   it("shares validation before any input or writer work", async () => {

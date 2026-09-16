@@ -3,6 +3,7 @@ import type { FormatDescriptor } from "../formats.js";
 import { writeMarkdown } from "../markdown-writer.js";
 export default {
   name: "gfm",
+  operands: "join",
   reader: { format: "gfm", read: readCommonMark },
   writer: { format: "gfm", write: writeMarkdown },
   read: true,

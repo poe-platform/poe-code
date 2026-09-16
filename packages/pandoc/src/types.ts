@@ -13,12 +13,14 @@ export interface Document {
   readonly direction?: "ltr" | "rtl" | "auto";
 }
 export interface Input {
+  readonly source?: string;
   readonly bytes: Uint8Array;
   /** Present for UTF-8 formats after per-input BOM/newline normalization. */
   readonly text?: string;
   readonly base?: string;
 }
 export interface StreamingInput {
+  readonly source?: string;
   readonly chunks: AsyncIterable<Uint8Array> | Iterable<Uint8Array>;
   readonly base?: string;
 }
@@ -41,6 +43,7 @@ export type DiagnosticCode =
   | "E_CANCELLED"
   | "E_IO"
   | "E_INTERNAL"
+  | "E_WARNINGS"
   | "W_TABLE_LOSS"
   | "W_RAW_CONTENT"
   | "W_METADATA_CONFLICT";
@@ -91,6 +94,11 @@ export interface ReadOptions {
   readonly from: string;
 }
 export interface WriteOptions {
+  readonly failIfWarnings?: boolean;
+  /** Ordered parsed JSON maps. Later values win; null deletes a key. */
+  readonly metadataJson?: readonly MetadataObject[];
+  /** Explicit JSON inputs only. No ambient files are loaded. */
+  readonly metadataFiles?: readonly InputSource[];
   readonly wrap?: "none";
   readonly to: string;
   readonly standalone?: boolean;
@@ -100,6 +108,8 @@ export interface WriteOptions {
   readonly lossy?: boolean;
 }
 export interface ConversionOptions extends ReadOptions, WriteOptions {}
+export interface MetadataObject { readonly [key: string]: MetadataValue }
+export type MetadataValue = string | number | boolean | null | readonly MetadataValue[] | MetadataObject;
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
   readonly operation?: Operation;

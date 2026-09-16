@@ -496,7 +496,7 @@ export class ExecutionContext implements AdapterContext {
       const output = this.context.output;
       const callbacks = [...this.cleanups];
       this.cleanups.clear();
-      if (output && "write" in output && !this.outputComplete)
+      if (output && "write" in output && !this.outputComplete && (this.outputStarted || this.completingOutput))
         callbacks.push(() =>
           output.abort(this.failure ?? new PandocError("E_IO", this.operation, "Execution closed"))
         );

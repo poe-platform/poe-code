@@ -10,6 +10,8 @@ import { coreFormats } from "./formats/index.js";
 export { coreFormats } from "./formats/index.js";
 export type Direction = "read" | "write";
 export interface FormatDescriptor {
+  /** Defaults to one operand. Explicit document mode merges ASTs in order. */
+  readonly operands?: "join" | "documents";
   readonly name: string;
   readonly aliases?: Partial<Record<Direction, readonly string[]>>;
   readonly read: boolean;

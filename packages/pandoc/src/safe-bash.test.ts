@@ -1,6 +1,7 @@
 import { expect, it, vi } from "vitest";
 import { createPandocCommand } from "./safe-bash.js";
 import { convert } from "./engine.js";
+import { Volume } from "memfs";
 
 const encode = (text: string) => new TextEncoder().encode(text);
 function context(args: readonly string[], input = "a,b\nx,y\n") {
@@ -70,7 +71,7 @@ it("accepts -s, metadata colon syntax, and explicit CLI raw-content policy", asy
   expect(text(ctx.stdout)).toContain("&lt;script&gt;x&lt;/script&gt;");
 });
 it("rejects templates and malformed metadata/options before reading stdin", async () => {
-  for(const extra of [["--template=x"], ["--template", "x"], ["--variable", "x=y"], ["-Vx=y"], ["--css=x"], ["--include-in-header=x"], ["--metadata"], ["-M", "=x"], ["-M", "title=x", "-M", "title=y"], ["--standalone", "-s"], ["--raw-content=wrong"]]) {
+  for(const extra of [["--template=x"], ["--template", "x"], ["--variable", "x=y"], ["-Vx=y"], ["--css=x"], ["--include-in-header=x"], ["--metadata"], ["-M", "=x"], ["--standalone", "-s"], ["--raw-content=wrong"]]) {
     const ctx = context(["-f", "json", "-t", "html", ...extra]);
     const next = vi.fn(async () => ({done: true as const, value: undefined}));
     expect(await createPandocCommand().execute({...ctx, stdin: {[Symbol.asyncIterator]: () => ({next})}})).toEqual({exitCode: 2});
@@ -85,4 +86,42 @@ it("shares Markdown wrap none validation with the SDK", async () => {
     const rejected = context(["-f", "commonmark", "-t", "gfm", `--wrap=${wrap}`], "hi");
     expect(await createPandocCommand().execute(rejected)).toEqual({exitCode: 2}); expect(text(rejected.stdout)).toBe("");
   }
+});
+it("reads explicit JSON metadata files in order, with repeated metadata overriding files", async () => {
+  const fs = Volume.fromJSON({"/one.json": '{"config":{"a":true,"list":[1]},"title":"file"}', "/two.json": '{"config":{"b":false,"list":[],"a":null}}', "/input.md": "hello"});
+  const readFile = vi.fn(async (path: string) => new Uint8Array(fs.readFileSync(path) as Buffer));
+  const ctx = {...context(["-f=commonmark", "-t=json", "--metadata-file=/one.json", "--metadata-file", "/two.json", "-Mtitle=first", "--metadata=title=last", "/input.md"]), readFile};
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(JSON.parse(text(ctx.stdout)).meta).toEqual({config: {t: "MetaMap", c: {b: {t: "MetaBool", c: false}, list: {t: "MetaList", c: []}}}, title: {t: "MetaString", c: "last"}});
+  expect(readFile.mock.calls.map(call => call[0])).toEqual(["/input.md", "/one.json", "/two.json"]);
+});
+it("rejects YAML, unsafe execution and unknown flags before any acquisition", async () => {
+  for (const option of ["--metadata-file=x.yaml", "--filter=x", "--lua-filter=x", "--citeproc", "--pdf-engine=x", "--unknown"]) {
+    const ctx = context(["-f=commonmark", "-t=plain", "/input.md", option]);
+    const readFile = vi.fn(async () => encode(""));
+    expect(await createPandocCommand().execute({...ctx, readFile})).toEqual({exitCode: 2});
+    expect(readFile).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe("");
+  }
+});
+it("publishes files through memfs only after warning preflight and keeps destination failures distinct", async () => {
+  const fs = Volume.fromJSON({"/output.txt": "original"});
+  const writeFile = vi.fn(async (path: string, bytes: Uint8Array) => {fs.writeFileSync(path, bytes);});
+  const args = ["-f=commonmark", "-t=plain", "-o", "/output.txt", "--fail-if-warnings"];
+  const ctx = {...context(args, "hello"), writeFile};
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(fs.readFileSync("/output.txt", "utf8")).toBe("hello\n");
+  expect(text(ctx.stdout)).toBe("");
+  writeFile.mockClear();
+  expect(await createPandocCommand({writer: {format: "plain", write: async (_doc, adapter) => {adapter.report({code: "W_RAW_CONTENT", operation: "convert", message: "loss"}); return {kind: "text", text: "changed"};}}}).execute({...context(args), writeFile})).toEqual({exitCode: 2});
+  expect(writeFile).not.toHaveBeenCalled();
+  expect(fs.readFileSync("/output.txt", "utf8")).toBe("hello\n");
+  writeFile.mockRejectedValue(new Error("destination denied"));
+  const denied = {...context(args, "hello"), writeFile};
+  expect(await createPandocCommand().execute(denied)).toEqual({exitCode: 2});
+  expect(text(denied.stderr)).toContain("E_IO:");
+});
+it("joins file and explicit stdin operands in their supplied order", async () => {
+  const ctx = {...context(["-f=commonmark", "-t=plain", "a.md", "-", "b.md"], "middle"), readFile: vi.fn(async (path: string) => encode(path === "a.md" ? "first" : "last"))};
+  expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+  expect(text(ctx.stdout)).toBe("first\nmiddle\nlast\n");
 });

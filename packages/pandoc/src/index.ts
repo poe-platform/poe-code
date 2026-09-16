@@ -5,6 +5,8 @@ export type {
   AdapterContext,
   ConversionContext,
   ConversionOptions,
+  MetadataObject,
+  MetadataValue,
   ConversionResult,
   Diagnostic,
   DiagnosticCode,
@@ -50,3 +52,5 @@ export type {
 export { inspectFormats } from "./inspection.js";
 export { createFormatInspectionCommand, createPandocCommand } from "./safe-bash.js";
 export type { FormatInspectionContext, PandocCommandContext } from "./safe-bash.js";
+export { parseConversionArgs } from "./cli.js";
+export type { CommandInputs } from "./cli.js";

@@ -101,13 +101,13 @@ describe("original CommonMark inline obligations", () => {
       ]
     });
   });
-  it("keeps reference discovery local to each conversion input and never resolves images", async () => {
+  it("shares reference discovery across joined conversion inputs and never resolves images", async () => {
     const resolve = vi.fn();
     const result = await convert(["[red]\n\n[red]: u", "[red] ![blue](pic)"].map((text) => ({ bytes: new TextEncoder().encode(text) })), { from: "commonmark", to: "json" }, { resources: { resolve } });
     if (result.kind !== "text") throw new Error("expected JSON");
     expect(JSON.parse(result.text).blocks).toEqual([
       { t: "Para", c: [link([s("red")], "u")] },
-      { t: "Para", c: [s("[red]"), sp, link([s("blue")], "pic", "", true)] }
+      { t: "Para", c: [link([s("red")], "u"), sp, link([s("blue")], "pic", "", true)] }
     ]);
     expect(resolve).not.toHaveBeenCalled();
   });

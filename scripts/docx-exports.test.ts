@@ -42,7 +42,11 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect(Object.keys(result.metafile!.inputs).some(name => name.includes("safe-fs/") && name.includes("xml"))).toBe(true);
   const runtime = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(result.outputFiles[0]!.contents).toString("base64")}`);
   expect(runtime.parseDocumentXml(new TextEncoder().encode('<note label="Coastal survey"/>')).root.localName).toBe("note");
-  expect(runtime.Document).toBeUndefined();
+  const modelInput = await textFixture('<w:p><w:r><w:t>Coastal survey</w:t></w:r></w:p>');
+  const modelAdmission = runtime.Document(modelInput, { ...textContext, timestamp: new Date("2025-01-02T03:04:06Z") });
+  expect(modelAdmission).toBeInstanceOf(Promise);
+  expect((await modelAdmission).paragraphs.at(0).text).toBe("Coastal survey");
+  expect(runtime.Document).toBeTypeOf("function");
   expect(runtime.editDocumentRevisions).toBeTypeOf("function");
   expect(runtime.editDocumentRevisionDecisions).toBeTypeOf("function");
   expect(runtime.inspectDocumentControls).toBeTypeOf("function");

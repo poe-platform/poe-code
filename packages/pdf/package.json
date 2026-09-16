@@ -13,7 +13,9 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "OFL.txt"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",

@@ -87,3 +87,11 @@ execution; a Node-only QA harness then executed the actual engine successfully.
 Product browser/worker structural observations remain zero-external-import.
 The resulting readable bounded rejection screenshot was inspected; no screenshot
 test, binary fixture or QA procedure outside docs/plans is introduced.
+
+Independent documentary review verified every row pointer/order/schema array,
+structural totals and unchanged full denominators. It identified a stale numbering
+creation test promise: the current row now specifies unsupported error behavior,
+and retains the proposed creation signature/test contract as explicitly superseded
+history. Current CLI status is unsupported; no denominator narrowing occurred.
+Documentary completion here closes current observations only; whole-public-API
+acceptance remains blocked by unsupported/unqualified behavior listed in evidence.

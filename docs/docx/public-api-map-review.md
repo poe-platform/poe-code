@@ -1,5 +1,14 @@
 # DOCX public API map review
 
+The [current resumption](whole-api-resumption.md) supersedes the earlier
+missing-export observations: all 33 now exist. Each of the 1,337 rows links a
+current structural observation and matching typed schema IDs. Eleven workflow
+rows have finite original model/SDK/CLI evidence; full heading and per-row
+acceptance remain blocked. NumberingPart.new is explicitly unsupported, and
+save/context and paragraph getter/nullable-setter gaps remain visible. Earlier
+acceptance counts below describe their audit-time snapshot, not current runtime
+availability.
+
 The [map](public-api-map.json) is a TypeScript/CLI contract with
 [partial acceptance evidence](whole-api-acceptance.md), not a complete
 implemented SDK. It references the source revision

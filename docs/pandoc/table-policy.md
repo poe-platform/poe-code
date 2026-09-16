@@ -53,6 +53,15 @@ adapter accepts `--lossy`. Absence of this option is strict. Every explicit tabl
 flattening emits W_TABLE_LOSS with a deterministic message, format, operation and
 AST node path. Invalid geometry always fails, regardless of lossy mode.
 
+`createPandocCommand()` is an opt-in safe-bash-compatible command factory exported
+by the package, with AsyncIterable byte stdin and awaited byte sinks. It requires
+`-f`/`--from` and `-t`/`--to` (including equals syntax), permits `--lossy`, and
+retains format inspection flags. It supports stdin conversion only; filenames,
+unknown options and duplicate options fail before acquiring stdin. It opens no
+host files and does not invoke external converters. No new environment variables
+or configuration options are exposed; SDK context limits retain their existing
+finite ceilings. Shell hosts register the factory explicitly.
+
 Lossy GFM prints the first physical head row then the delimiter, later head rows,
 each body's head and rows, then footer rows. An absent head becomes a blank head.
 Spanned cell text is printed exactly once at its anchor; covered slots are empty.

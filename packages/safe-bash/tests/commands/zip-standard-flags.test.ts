@@ -363,9 +363,9 @@ test("zip update skips unchanged payload reads and freshen does not create missi
   await assert.rejects(fs.stat("/work/missing.zip"), { code: "ENOENT" });
 });
 
-for (const flags of ["-uf", "-du", "-df"]) {
+for (const flags of [["-uf"], ["-d", "-u"], ["-df"]]) {
   test(`zip ${flags} rejects conflicting actions`, async () => {
-    const result = await execute("zip", await fixture(), [flags, "sample.zip", "binary"]);
+    const result = await execute("zip", await fixture(), [...flags, "sample.zip", "binary"]);
     assert.equal(result.exitCode, 16);
     assert.match(result.stdout.toString(), /specify just one action/u);
   });

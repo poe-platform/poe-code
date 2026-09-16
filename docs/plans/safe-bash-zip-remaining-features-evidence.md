@@ -848,3 +848,594 @@ symbol and omitted class-qualified symbols; the corrected verifier distinguishes
 both and passes without changing source, pins or candidate names. `git diff
 --check` and new-document whitespace checks produce no diagnostics (new-file
 diff exit 1 is expected). All task-owned scratch artifacts are removed after use.
+
+## Native ZIP CLI displays follow-up (2026-09-16)
+
+This execution uses current `main` base
+`ac9156bba02cd71780599094cf172bd726c7221f` plus the explicitly listed working
+changes below. Historical source pins and results above remain historical.
+The pre-existing edit to `safe-bash-zip-remaining-features.md` is preserved.
+No SafeJS source, README, dependency declarations, root public API or release
+configuration was changed. Runtime dependencies remain empty. Product commands
+use the existing codecs, memory/VFS contracts, signals, limits and ZipScope
+cleanup; no native process or host filesystem fallback was introduced.
+
+### Revalidation and fail-first controls
+
+Before implementing the display options, the expanded existing in-memory
+`zip-help.test.ts` returned **45 tests, 26 passes, 19 failures**, zero skipped or
+TODO cases, 433.150792 ms. These reproduce current rejection of information,
+listing, command/options and operational display options. Existing reserved
+`dc`/`dd` refusal tests were replaced by positive native-option controls; `lf`,
+`TT` and `mm` refusals remain. The existing integration discovery explicitly
+registers both edited test files, so no new discovery exception is needed.
+
+Additional failing controls preceded corrections for short `-version` versus
+long `--version`, debug with deferred information, separate literal password
+values, retained `-dd-` interval and scanned size before LF conversion. The
+independent review required by package AGENTS reproduced debug warnings and
+filesystem errors that exposed URL credentials, plus grouped password-shaped
+literal paths. Its temporary module resolver only allowed investigation while
+root build outputs were unavailable; that workaround is **excluded from the
+final maintained validation**. It changed no files or runtime dependencies.
+The subsequent retained in-memory tests cover these cases.
+
+An old neighboring test asserted grouped `-du` meant delete/update. Native
+`-du` is display-uncompressed-size, and the new implementation correctly
+returned 0. The conflict control now passes separate `-d -u`, preserving the
+actual conflicting-action assertion alongside grouped `-uf` and `-df`.
+An exploratory positive URL-name fixture returned the existing unsafe ZIP-name
+refusal, rather than creation. Its expected status was corrected to 2 without
+weakening name validation; a valid `x?token=private` filename independently
+checks successful progress redaction. An initial fixture assertion called a
+nonexistent memory-FS `exists` method; it was corrected to inspect `readdir`.
+These harness errors do not establish product failures or accepted exceptions.
+
+### Fresh isolated native oracle and argument grammar
+
+Downloaded the same pinned LuaDist archive listed above and verified SHA-256
+`82631795a124b0dff92979286c74095be5e5f45ceb4183935985ed2839f26490` before
+extracting it into task-owned scratch. The exact selected `make ... zip` command
+from the earlier construction section again succeeded. This oracle is Zip 3.0
+on Darwin 24.6.0 arm64, built with the explicit BZIP2/large-file/Unicode flags;
+it is not a Linux or all-build qualification. Current executable SHA-256:
+`f175f1aca8767e1f583dcde7a45e08393b5ed117798d733e437870e6141c4f8d`.
+Native invocations use an absolute executable path, fresh isolated fixture
+directories, stdin EOF, captured streams, a three-second timeout, and
+`PATH=/usr/bin:/bin LC_ALL=C TZ=UTC`. Preliminary Apple `/usr/bin/zip` probes
+are a separate build profile, not substituted for the pinned oracle.
+Native sources/tools are test oracles only; no upstream source or test was
+incorporated into runtime or canonical unit fixtures.
+
+| Spelling / exact native control | Observed grammar, stream and status |
+| --- | --- |
+| `-v` alone | Implementation/version information on stdout, 0; no archive operation. |
+| `--verbose`, `-qv`, `-vv` alone, stdin EOF | Binary stdin-to-stdout ZIP, 0; verbose progress and totals on stderr. |
+| `--version --bad`; `-L --bad` | Immediate information/license exit on stdout, 0; later bad option ignored. An earlier bad option still fails. |
+| `-vq a x`; `-qv a x` | Later quiet/verbose wins: respectively silent and verbose operation, 0. |
+| `-version` | Grouped short argument, not long version; 16 in pinned native build. Product also refuses at 16 without claiming encryption/split support. |
+| `-sc a x -qi x` | Options and consumed list move before operands, terminating list with `@`; processed command and Interrupted diagnostic on stdout, 9. |
+| `-sc a x --include=x` | Attached list value stays attached; no synthetic `@`; stdout, 9. |
+| `-sc a -- -Pprivate` | Literal terminator preserves option-shaped filename, stdout, 9; product additionally redacts credential-shaped paths. |
+| `-sc a x --bad`; `-so --bad` | All arguments validated before deferred display; argument diagnostic on stdout, 16. |
+| `-so`; `-sd -so` | Options table on stdout, 0; debug prefixes deferred table with `sd: Command line read`. |
+| `-sf a x` (100,000-byte x) | `Would Add/Update:\n  x\nTotal 1 entries (100000 bytes)\n`, stdout, 0. |
+| `-qsf a x`; `-sf- a x` | Totals only on stdout, 0; negated show-files still exits without writing an archive. |
+| `-sf missing` | Missing input archive, stdout, 18. |
+| `-sf a` | `Archive contains` plus input member names and original sizes, stdout, 0. |
+| `-sf a -U x`; `-sf a -d x` | Would Copy/Delete selection, original uncompressed sizes, stdout, 0. Copy listing needs no output archive. |
+| `-sf a x -O missing/out` | Listing succeeds at 0 without resolving or creating output parent. |
+| `-sf a -x '*'` | No operands to select from, stdout, 16. |
+| `-sf -FS a x` after an unchanged create | Lists x at 0 even when filesync would otherwise find it current. |
+| `-sf -f a x`; `-sf -u a x` after unchanged create | Zero selected entries, listing at 0. |
+| `-dcdbdudv a x y`, x=100,000 bytes and y=6 bytes | `1>1:   0/  2 [   0/ 97K] updating: x (97K) ...`, then `1>1:   1/  1 [ 97K/   6] ...`, stdout, 0. |
+| `-0ldbduv a x`, x=`a\nb\n` | Byte counter 4 and displayed original size 4; verbose `(in=6) (out=6)` and totals 6 after CRLF conversion, stdout, 0. |
+| `-ds VALUE -h`, `-ds=VALUE -h`, `--dot-size=VALUE -h` | Required value supports separated or attached spelling; empty restores 10 MB; 0 disables dots; digits plus optional case-insensitive kmgt; at most eight characters. Bare values below 1024 imply MB. |
+| Values `1`, `1023`, `32K`, `32768`, `01m`, `1g`, `1t` | Accepted before help at 0. |
+| Values `-1`, `1024`, `31k`, `1kb`, `1.5m`, `1e`, ` 32k`, `100000000` | Refused before help at 16. Native includes numeric warnings for certain malformed values; product suppresses supplied values in size diagnostics to avoid leaking secrets. |
+| `-0 -ddds32k -dd- a x` with 65,536-byte x | Negation retains configured size in this native build and continues per-file dots, 0. |
+| `-0 -ds0 -dd a x`; `-0 -ds0 -dg a x` | Explicit zero remains zero; global mode still terminates its display with a newline. |
+
+Long names remain case-sensitive; exact names or unique abbreviations are
+accepted, ambiguous prefixes such as `--ver`, `--show`, and `--display` fail at
+16. Native-unimplemented names remain in abbreviation resolution (including
+show-Unicode names) so missing capabilities cannot make prefixes falsely unique.
+Long flag options reject attached `=value`/empty `=` and nonnegatable `-` suffixes.
+Fresh pinned native immediate-token controls confirm `-L=`/`-L=value` and
+`-h=` exit at 0 before their remaining token text, whereas `-v=` and `-so=`
+refuse at 16. Pinned native `--version=` terminates with signal 5 (no output);
+that native parser failure is not copied into the virtual host. Product
+`--version=` safely refuses at 16, a precise negative-status restriction.
+Display byte/count/usize/volume/dots/globaldots and show-files are negatable;
+dot-size, command/debug/options/license/verbose/version are not. Two-character
+short options take precedence at every grouped-option offset. Value options
+consume the remaining attached text or the next argument. Options after
+operands are processed; `--` is legal only after archive and makes subsequent
+paths literal. ZIPOPT/ZIP_OPTS continue to supply defaults before explicit
+arguments; the current byte/value admission and parsing contracts are reused.
+
+### Bounded profile and precise exclusions
+
+Information content is deliberately truthful: this private virtual ZIP
+implementation has no injected native compiler identity or independent release
+version metadata. `--version`/lone `-v` identify the implementation and actual
+STORE/DEFLATE/BZIP2, single-volume/ZIP64 facilities; they do not assert an
+Info-ZIP build, ambient environment, encryption or unrestricted large files.
+`-L` prints the repository's MIT license and distinguishes it from the native
+Info-ZIP license. `-so` lists only supported declarative long-option mappings,
+with actual arity and negation, rather than a native build's feature table.
+No capability or unsupported option is counted as implemented by printing it.
+
+`-sf` traverses/filters via existing VFS selection and reads an existing input
+archive when needed. It does not read source payloads, stdin member data,
+symlink target payload, comments, or publish/delete/move/test output. `-@` still
+reads bounded stdin filename lists. Unknown input-stream sizes display zero;
+no host FIFO or TTY probing is performed. Existing bounded ZIP-name, metadata,
+archive-reader, identity/alias and size restrictions remain. Listing totals
+are uncompressed original/scanned sizes; copy/delete byte-progress counters
+use stored sizes. Volume display is truthfully `1>1` in the single-volume
+profile; split archives remain unsupported.
+
+Dot **syntax and bounded byte-interval displays** are implemented, including
+zero, units, quiet global output and order/negation. **Exact native dot counts,
+codec-buffer phase and timed scanning dots are not qualified or claimed.**
+For example, pinned native STORE with `-ddds32k` emits four buffer-driven dots
+for 65,536 bytes; the bounded implementation emits two byte-interval dots.
+Native DEFLATE and BZIP2 emit different counts on the same lengths, and native
+global dots count write-buffer events rather than exact byte intervals.
+Per-file progress remains staged until bounded preparation/publication; global
+file dots precede atomic publication and streamed dots follow awaited output
+writes. These differences are explicit in extended help. Dot native-parity
+rows remain Restricted/Open; tests of the byte-interval profile are not passes
+for those excluded native-buffer/timing requirements. Unsafe-integer multiplied
+dot sizes (for example `9999999t`) refuse at 16; native large integer behavior
+outside Number-safe budgets is not copied or certified.
+
+Command/debug/diagnostic rendering escapes control characters and redacts
+password-shaped short/grouped/literal arguments and their separated values,
+credential assignments, and URL userinfo/query/fragment. Debug step messages
+contain no user paths or ambient information. Provider errors and ordinary
+progress/warnings also apply redaction; actual argv, VFS names and ZIP member
+bytes are not rewritten. Malformed URL-shaped diagnostics are redacted as a
+whole. Native's password echo in `-sc` is intentionally not reproduced;
+encryption/password operations and logging remain unsupported. Arbitrary
+secret bytes in unannotated ordinary text cannot be inferred; archive comments
+are user-requested comment output, not a claim of secret-content detection.
+
+### Acceptance controls and manual QA plan
+
+| Feature | Positive / negative / boundary / cancellation / neighbor controls |
+| --- | --- |
+| Information/license | Denied FS and stdin; truthful output/status/streams; bad prior and ignored later args; abbreviations, negation/value refusal, grouped/lone/long -v, ZIPOPT; abort first output write and fresh create; full ZIP neighbors. |
+| Command/options/debug | Processed list order/attached values; later unknown rejection; table only implemented options; escaped names and separate/grouped credentials; abort output and source pulls with exact reason; debug filesystem diagnostics and binary create/cross-read controls. |
+| Show-files | Names/totals and archive-only/delete/copy/filter/filesync modes; missing archive and selector errors; quiet/negative/literal/output-parent/comments/move/test controls; abort output with fresh invocation; archive/source/namespace preservation and denied payload writes. |
+| Counters | Selected counts/scanned sizes, archive ordering, copy/delete stored sizes and LF-conversion original sizes; invalid values and negation; two entries and filtering; abort output/input; original binary extraction and neighboring operations. |
+| Byte-interval dots (restricted native parity) | Independent STORE boundary lengths 32 KB ±1 and 64 KB, serialized global sizes, exact byte extraction; invalid/unsafe sizes; zero/default/units/grouping/ZIPOPT/order/quiet; abort output/input; streaming binary stdout untouched. Native buffer/timed dots remain excluded above. |
+
+Execute visible QA through the existing renderers; these are manual steps,
+not a checked-in QA script or screenshot test:
+
+1. Run `npm run screenshot-poe-code -- -o TASK_SCRATCH/poe-help.png --help`.
+   Inspect actual poe-code help for available surface commands and readable
+   layout. Do not invent a host ZIP subcommand; this command proves host CLI
+   inventory only, not virtual ZIP execution.
+2. Run `npm run screenshot-poe-code -- --no-header -o
+   TASK_SCRATCH/zip-displays.png bash --root TASK_SCRATCH/visible --cwd / -c
+   SOURCE`. The inline shell source creates its fixtures via virtual printf,
+   then executes `zip --version`, `zip -dcdbdudv - binary > out.zip`, `zip -sf
+   out.zip`, `zip -sc out.zip binary`, a debug password-option refusal, quiet
+   global STORE dots via `zip -0qdgds32k - large > dots.zip` and `unzip -p out.zip binary | xxd -p`. Print section
+   markers/statuses to make each result identifiable. The explicitly scoped
+   real VFS adapter is a manual visible-path fixture, not a host-command fallback
+   or a disk-writing unit fixture.
+3. Visually inspect complete information text, counter alignment, listing
+   totals, command status 9, diagnostic redaction, quiet dots and the extracted
+   hex bytes `00ff800d0a41`. Separately use public Shell/SDK command factories
+   with the memory fixture to assert byte equality and dispose Shell in finally.
+   No renderer screenshot alone proves binary equality or CLI/SDK parity.
+4. Record final source/test hashes, command results and screenshot hashes below,
+   then purge exclusively task-owned scratch. Absolute `/out` is currently
+   read-only (mkdir returned errno 30), so ignored `out/zip-cli-options/` is the
+   task-owned fallback, consistent with the earlier recorded environment.
+
+### Final revision-bound proof and executed visual QA
+
+Final product/test inputs (working tree on the base above):
+
+| Input under `packages/safe-bash/` | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip.ts` | `0c35df0ee26acb855c6c5fee7a7dda4a5f43601970b9ca44623cdf8c5d759f8a` |
+| `src/commands/archive/zip/options.ts` | `e5fd3fbca0a588f470211f0c4ef763907c9f4b02fb3b85dc2ac6597cb6f8a32b` |
+| `src/commands/archive/zip/help.ts` | `52e3faf8b632c7c0e0b3dd00e7793ddd35ee93454a7834a44ab226485b45a25e` |
+| `tests/commands/zip-help.test.ts` | `5a5666e0227bcf28aeef02711e217b6f42dcfcf83f78879fcf7e2556ca198fbc` |
+| `tests/commands/zip-standard-flags.test.ts` | `74abcd7d0361d26214fdefd55e4e1dab666cc756392c679aa2735b510e4bc448` |
+
+All new unit fixtures remain memory-backed and perform no host file writes.
+Owned-byte argv are positively accepted for `-v`; non-UTF8 byte filenames
+refuse at 2 before any filesystem access for all inspected information/display
+paths, preserving the existing UTF-8 pathname restriction even before help.
+These negative controls are not claims of native arbitrary-byte filename parity.
+
+Executed uncached final checks on Node v22.22.2 / Darwin 24.6.0 arm64:
+
+| Command / profile | Final observed result |
+| --- | --- |
+| `node --import tsx --test packages/safe-bash/tests/commands/zip-help.test.ts` | **112/112**, zero failures/cancellations/skips/TODOs; 760.474292 ms. |
+| Earlier exact ZIP-wide command, `TZ=UTC LC_ALL=C` | **961/961**, zero failures/cancellations/skips/TODOs; 17,835.759333 ms. |
+| Same ZIP-wide command, `TZ=America/Chicago LC_ALL=en_US.UTF-8` | **961/961**, zero failures/cancellations/skips/TODOs; 17,865.739 ms. |
+| `npm run test:runner --workspace=virtual-bash` | **522/522**, zero failures/cancellations/skips/TODOs; 34,447.411583 ms; current exact discovery assertions retained. |
+| `npm run build:workspaces -- --workspace=virtual-bash` | **0**, final selected declared workspace closure: six observed builds, guarded source capture/compile and compression asset stages. |
+| `npm run typecheck --workspace=virtual-bash` | **0**, source/tests and 26 current consumer groups, with maintained negative validators; zero runtime executions reported by typecheck. |
+| `npm run lint:eslint` | **0**, complete guarded traversal, 15,493 configured/linted subjects, zero errors and two unchanged docx warnings; no rules/exclusions altered. |
+| Inline public `runBash` SDK execution with injected memory FS | Create/counter, archive listing, command status 9, version, and extraction all passed; extracted bytes exactly `00ff800d0a41`; runBash disposes each owned Shell. |
+| Independent final normal-import leak probes | Seven validated credential controls passed without a resolver; debug ordinary creation/extraction also preserved all six source bytes and readable progress. |
+
+The two final ZIP profiles ran beside compile-only typechecking after all build
+mutations finished. Durations therefore include cohost load and are not
+comparative performance claims. These are scoped ZIP regressions plus maintained
+build/type/lint/discovery checks, not a full repository `npm test`, all exported
+runtime consumer gate, native upstream suite or successful release.
+
+Visual QA completed through **actual `screenshot-poe-code` paths**, not just an
+SDK render. Inspected all three generated PNGs before purge:
+
+| Image | Inspection / restriction | SHA-256 |
+| --- | --- | --- |
+| `poe-help.png` | Host help is readable and exposes `bash` with an explicitly scoped FS. This supersedes the earlier follow-up's claim that only an SDK rendering path was available. | `e559722fdece2bfda8e61837b7e7e56945f49530eede55714b1b0cc29dab11d4` |
+| `zip-displays.png` | Version, command status 9 and redacted password refusal 16 are readable. Direct file publication failed with the **existing** real-adapter lack of atomic owned staging; subsequent archive-only listing correctly failed at 18. Global dots preceded that refusal. This is a negative capability control, not a passing archive create/extract. | `495658e91f8159e22394d4a5c43e0e1ab7237a3994309e8ebc18acbd2728723d` |
+| `zip-stream-displays.png` | Positive native stdout workflow uses `zip -dcdbdudv - binary > out.zip` and `zip -0qdgds32k - large > dots.zip`. Counters align, archive listing shows one six-byte binary member, command returns 9, unsupported password returns 16 with redaction, two quiet byte-interval dots appear, and extraction displays exact `00ff800d0a41` via virtual xxd. | `709e850fb1301dc1ea750e7cc8ba60808cfcd689e26e4a8dd44d016b2d978541` |
+
+No stronger real-filesystem publication capability, native host zip fallback,
+root integration fix, or source-byte rewrite was added to make a screenshot
+pass. The stdout archive and shell redirection are explicit existing public
+features; they do not promote that real adapter to atomic ZIP publication.
+The successful initial host-help and direct visible screenshot preparations
+rebuilt the existing broad predev closure uncached. The unchanged positive
+stream screenshot reused its existing Turbo cache; it is a visual workflow
+check, **excluded as an uncached build gate**. The final selected workspace build
+above ran separately and uncached.
+
+Preliminary verification failures remain disclosed: running a selected build
+beside screenshot predev briefly caused dependent declarations to disappear;
+a later predev compile capture correctly refused a source-size change while
+edits were still in flight. A ZIP run overlapping that build had two import
+failures for unavailable SafeFS bundle outputs. These runs were discarded as
+qualification and rerun after stable source/build inputs. The initial lint
+reported eight repeated-space-regex style errors in new tests; these were
+corrected explicitly (no --fix, no test weakening), and final lint passes.
+The first typecheck included the nonexistent `exists` fixture call described
+above; final typecheck was rerun after its correction and final rebuild.
+
+Final acceptance remains **the implemented bounded CLI profile**. Exact native
+buffer/timed-dot parity, arbitrary-byte names, native build identity, full large
+integer/native/platform profiles, logging/encryption/splits, and the historical
+remaining-format restrictions above remain excluded/open; this work does not
+close those matrix rows as native-parity completion. Task-owned scratch was
+purged after checks and hash/visual recording. Delivery: **no local commit; no
+push requested/performed; no verified remote-main delivery or release claimed**.
+
+### Current-main revalidation: password abbreviation display boundaries
+
+Revalidated on 2026-09-16, `main` at
+`ac9156bba02cd71780599094cf172bd726c7221f`, with the existing uncommitted ZIP
+implementation and evidence preserved. The initial focused suite passed
+112/112 (638.253375 ms); the requested information, listing, counter and dot
+grammar was already present in those working-tree inputs. This follow-up does
+not attribute those existing edits to this execution or replace earlier proof.
+
+A new memory-backed failing test reproduced disclosure of `private` in
+`zip -qsc out.zip -- --pas private binary`: native password abbreviations were
+not recognized by display redaction. An attached short password value ending
+in `P` also incorrectly suppressed the following unrelated path. Shared
+password-argument classification now recognizes `--pas` through `--password`,
+attached `=` values, and the first grouped short `P` value boundary. It serves
+both public argument text and show-command's next-value redaction, without
+changing parsing, argv, VFS paths, ZIP names, codecs, budgets or cleanup.
+
+The retained test covers all seven inspected long/short spellings, separated
+values, attached values, empty attached values, quiet show-command, literal
+terminators, visible neighboring paths and unchanged namespace. Empty literal
+paths retain the existing refusal at 2; password options outside `--` remain
+unsupported at 16. Cancellation on display output rejects with the exact
+reason, preserves namespace and permits a subsequent successful archive create.
+The first post-fix test included an empty literal pathname and incorrectly
+expected 9; that fixture was corrected to assert the existing status 2 and
+exercise empty attached values separately. No pathname restriction was relaxed.
+
+Additional oracle checks used Apple `/usr/bin/zip`, SHA-256
+`493a7f270b2cb3ea4f5cf153f735939bdce8b1bad48dce56d6ba89b495064271`,
+Zip 3.0 with Apple modifications on Darwin arm64. Native `-sc` prints literal
+abbreviated/separated and grouped/attached password-shaped arguments on stdout
+and exits 9; its encryption option is supported, unlike the virtual profile.
+The probes used stdin EOF, a three-second timeout and only
+`PATH=/usr/bin:/bin LC_ALL=C TZ=UTC`; repeated controls ran inside task-owned
+empty oracle scratch. These corroborate argument boundaries and deliberate
+redaction, not pinned-oracle/platform/encryption parity. Earlier native-build
+qualification and exclusions remain unchanged; no oracle enters runtime.
+
+Revision-specific SHA-256 inputs, relative to `packages/safe-bash/`:
+
+| Input | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip.ts` | `f05c61b2bbbd6b3c02fa1a727ffb20e111b232909780d6992a5d70c873e0b949` |
+| `src/commands/archive/zip/options.ts` | `54e285a37d66549e93b80b3a8b26a96dcbeaa09b4e6f1b809cda03294bbd47b4` |
+| `src/commands/archive/zip/help.ts` | `52e3faf8b632c7c0e0b3dd00e7793ddd35ee93454a7834a44ab226485b45a25e` |
+| `tests/commands/zip-help.test.ts` | `44fa1e0ff9dc64d6fc6f145542220fa17c1a4b378da5bfcbb392dfdda901ac14` |
+| `tests/commands/zip-standard-flags.test.ts` | `74abcd7d0361d26214fdefd55e4e1dab666cc756392c679aa2735b510e4bc448` |
+
+Executed checks on Node v22.22.2 / Darwin arm64:
+
+- Focused `zip-help.test.ts`: **113/113**, no failures/skips/TODOs,
+  692.72375 ms. The new focused test failed before the product fix.
+- Exact ZIP-wide command printed earlier, `TZ=UTC LC_ALL=C`: **962/962**,
+  no failures/skips/TODOs, 15,752.75525 ms, after dependency build completion.
+  An earlier overlapping run failed on missing generated SafeJS/SafeFS imports
+  during screenshot predev rebuild; it is excluded from qualification. Source
+  changes to those packages were neither needed nor made.
+- `npm run typecheck --workspace=virtual-bash`: **0**; 26 consumer groups and
+  maintained negative validators; compile-only, not runtime acceptance.
+- `npm run build:workspaces -- --workspace=virtual-bash`: **0**, six declared
+  workspace builds executed uncached through the maintained dependency closure.
+- Public `runBash` with injected memory FS: show-command status 9, abbreviated
+  and grouped credential redaction, visible neighboring paths, archive creation
+  with counters, six-byte listing and extraction `00ff800d0a41` all passed.
+  This uses normal public imports and existing SDK-owned Shell disposal.
+
+Manual QA executed via `npm run screenshot-poe-code -- --no-header -o IMAGE
+bash --root out/zip-cli-revalidation/visible --cwd / -c SOURCE`:
+
+1. Inspected `displays.png`; its full options table clipped earlier sections
+   from the viewport. It is excluded as proof of those invisible sections.
+2. Captured and inspected `command.png`: complete truthful version text,
+   `zip -qsc archive -- --pass private -qPprivateP binary --paths visible`,
+   redacted credentials, preserved neighboring names, status 9, debug refusal
+   16 and the first 17 lines of the supported option table. SHA-256:
+   `d168b9ca2e5165b684e51218927662493334357fdce7974e91420291f49bfb03`.
+3. Captured and inspected `counters.png`: virtual printf creates the six-byte
+   binary fixture; `zip -dcdbdudv - binary > archive.zip` succeeds with aligned
+   counts/bytes/usize/single-volume display; listing and hex extraction preserve
+   all bytes. Virtual `printf '%65536s' x` creates the dot fixture;
+   `zip -0qdgds32k - large > dots.zip` shows two quiet byte-interval dots at 0.
+   Quiet and negated listing show totals only. SHA-256:
+   `f25f7c186ae4d42eaeac38d1e3476fb7d21b61bf3128376963d30d34bc320786`.
+
+The initial screenshot predev closure ran uncached (75 observed build tasks,
+all successful) and bundled the actual host CLI. Later unchanged screenshots
+reused its cache and are visual checks, not uncached build gates. The explicit
+real VFS root is only a manual fixture; positive archives use existing stdout
+streaming and shell redirection, without claiming atomic real-FS ZIP publishing.
+Absolute `/out` remains read-only; this execution uses ignored task-owned
+`out/zip-cli-revalidation/` as the previously documented fallback.
+
+Exact native codec-buffer/timed dots remain **Restricted/Open**, not complete
+native parity. Native identity, unsupported encryption/logging/splits and all
+earlier format/name/budget/platform exclusions remain in force. No README,
+runtime dependencies, root APIs or SafeJS source files were edited. This
+follow-up has no local commit, requested push, remote-main delivery or release.
+
+### Final quiet-dot budget control
+
+A final audit reproduced a second missing quiet-mode behavior with a fast
+failing memory-backed test: `zip -0qddds32k quiet.zip large`, with 65,536 STORE
+bytes and `maxTextBytes: 1`, returned 2 despite having no visible output.
+Suppressed per-entry progress still calculated and admitted its dots. The
+progress append now exits before rendering when quiet; global dots remain
+visible and continue using the existing text budget. An isolated Apple native
+control with the same source length and switches returned 0 with zero stdout
+and stderr bytes. Native oracle fixture files are separate from unit fixtures.
+
+The retained test positively verifies quiet creation, zero display bytes and
+all 65,536 stored bytes; nonquiet per-entry and quiet global displays refuse at
+2 under the one-byte text budget and leave no output archive. It also aborts a
+quiet streaming source with exact-reason rejection and runs a successful fresh
+binary creation. No text budget or publication contract was loosened.
+
+Final product/test SHA-256 changes relative to the immediately preceding table:
+
+| Input under `packages/safe-bash/` | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip.ts` | `2bafa3c1235b7d15c631db7be5ab7f758d4a11fb9b1ef5f757a1416ff8f88ef8` |
+| `tests/commands/zip-help.test.ts` | `df278de9c45f183742c5938380d3207a67f2d51fc318fb3a1f547bade71ea53d` |
+
+Options/help/neighbor-test hashes remain as in the preceding table. The
+preceding 113/962-test results describe the earlier redaction revision, not
+this final quiet-dot revision. Final focused result: **114/114**, no
+failures/cancellations/skips/TODOs, 1117.892958 ms (alongside build/lint load).
+The selected maintained workspace build was rerun after the quiet change:
+**0**, six uncached declared dependency-closure builds.
+
+Final ZIP-wide command (`TZ=UTC LC_ALL=C`, exact command above): **963/963**,
+no failures/cancellations/skips/TODOs, 17,542.006833 ms, after all screenshot
+dependency builds settled. Final public `runBash` memory SDK controls also
+passed quiet per-entry output suppression and abbreviated/grouped credential
+redaction with preserved neighboring names.
+
+Executed and inspected a fourth short screenshot through the same actual
+`screenshot-poe-code` bash path: `quiet-final.png`, SHA-256
+`fe0ee56778073db136e15b1e56ead876481d18830cce0d138290481af2d8fba6`.
+Virtual printf produces 65,536 bytes; quiet per-entry dots emit nothing and
+return 0, quiet global dots visibly emit two byte-interval dots and return 0,
+quiet listing reports the correct total, and show-command remains redacted at
+9 with both neighboring names visible. This final screenshot predev closure
+also rebuilt uncached (75 successful observed tasks) and bundled the CLI;
+the separately selected maintained workspace build remains the scoped build
+gate. Earlier dot parity restrictions remain unchanged.
+
+Final `npm run typecheck --workspace=virtual-bash`: **0**, all 26 maintained
+consumer groups and negative validators checked after final rebuild; no runtime
+execution is claimed by this compile-only result.
+
+Final `npm run lint:eslint`: **0**, complete guarded traversal of 15,493
+configured subjects, zero errors and two existing warnings outside this change.
+The initial lint also passed but was rerun to bind this result to the final
+quiet-dot source/test revision. No lint rules or exclusions were changed.
+Final `git diff --check`: **0**. Task-owned screenshot/oracle/log scratch was
+purged after inspection and recording; unrelated edits remain preserved.
+Delivery remains local working-tree changes only: no commit, push, verified
+remote-main delivery or release was performed or claimed.
+
+### Preserved-working-tree audit of the requested CLI profile
+
+Reexecuted on 2026-09-16, main at
+`ac9156bba02cd71780599094cf172bd726c7221f`, Node v22.22.2 / Darwin arm64.
+The requested options, information exits, displays and their retained tests
+were already present in the initial dirty working tree. No additional missing
+behavior was reproduced in this audit; no product or test code was changed.
+Earlier uncommitted edits and all earlier evidence are preserved. This section
+records fresh execution, not authorship of that implementation or a new fix.
+
+The four source/test SHA-256 values match the final quiet-dot revision above:
+zip.ts `2bafa3c1235b7d15c631db7be5ab7f758d4a11fb9b1ef5f757a1416ff8f88ef8`,
+options.ts `54e285a37d66549e93b80b3a8b26a96dcbeaa09b4e6f1b809cda03294bbd47b4`,
+help.ts `52e3faf8b632c7c0e0b3dd00e7793ddd35ee93454a7834a44ab226485b45a25e`,
+zip-help.test.ts `df278de9c45f183742c5938380d3207a67f2d51fc318fb3a1f547bade71ea53d`.
+
+Fresh checks:
+
+- `node --import tsx --test packages/safe-bash/tests/commands/zip-help.test.ts`:
+  **114/114**, zero failures/cancellations/skips/TODOs, 670.659791 ms.
+- The exact ZIP-wide command above with `TZ=UTC LC_ALL=C`: **963/963**,
+  zero failures/cancellations/skips/TODOs, 13,380.587875 ms. Completed before
+  screenshot preparation to avoid changing build outputs during tests.
+- `git diff --check`: **0**. No new build/type/lint gate is claimed; the previous
+  final revision's checks remain separately recorded above.
+
+Manual QA executed and inspected, using the actual host CLI:
+
+1. Created a task-owned, explicitly scoped real-VFS fixture root under ignored
+   `out/zip-display-audit-20260916/visible`. Absolute `/out` creation failed with
+   a read-only filesystem; the existing documented workspace fallback was used.
+2. Ran `npm run screenshot-poe-code -- --no-header -o
+   out/zip-display-audit-20260916/displays.png bash --root
+   out/zip-display-audit-20260916/visible --cwd / -c SOURCE`, with these virtual
+   shell steps: `zip --version`; `zip -qsc archive -- --pas private binary` and
+   status; virtual printf of bytes `00ff800d0a41`; `zip -dcdbdudv - binary >
+   archive.zip` and status; `zip -sf archive.zip`; `unzip -p archive.zip binary
+   | xxd -p`; virtual printf of 65,536 STORE bytes; `zip -0qddds32k - large >
+   quiet.zip` and status; `zip -0qdgds32k - large > dots.zip` and status.
+3. Inspected the generated PNG. All output is visible and readable: truthful
+   version text, both password-shaped arguments redacted with neighboring
+   `binary` preserved, command status 9, aligned entry/byte/size/volume counters,
+   creation status 0, one six-byte member, exact extraction hex, silent quiet
+   per-entry dots at 0, and two visible quiet global dots at 0. SHA-256:
+   `410ee280183164e3735870737418addbe15a53a64b520f75955c881872b306fe`.
+4. Screenshot preparation succeeded with 75 cached build tasks and a fresh
+   host bundle. This is visual QA, explicitly excluded as an uncached build
+   gate. Purged only this audit's task-owned fixture and PNG after inspection.
+
+The earlier positive, negative, boundary, cancellation and neighboring controls
+remain in the executed suite. Native codec-buffer/timed dots, arbitrary-byte
+filenames, native build identity, encryption/logging/splits and earlier format,
+budget and platform exclusions remain Restricted/Open. No new native oracle
+qualification, exhaustive compatibility completion or atomic real-FS archive
+publication is claimed. Positive visual archives use existing stdout streaming
+and shell redirection. No README, dependencies, root APIs or SafeJS edits.
+Delivery: no local commit, push, remote-main verification or release performed.
+
+### Independent user-path stress review: credential URLs without authority slashes
+
+Executed on 2026-09-16, current `main`
+`ac9156bba02cd71780599094cf172bd726c7221f`, Node v22.22.2 / Darwin arm64,
+preserving all initial uncommitted ZIP work. A different agent performed the
+package-required independent stress review. It reproduced a new disclosure in
+memory: `zip -sc out.zip -- https:user:private-value@example.test/path` returned
+9 and printed the password. Debug and listing warnings also disclosed it.
+These are valid credential-bearing URLs according to the existing URL parser;
+the display guard previously only recognized authority slashes and HTTP slash
+markers. No native behavior is used as authority to permit credential disclosure.
+
+A fast memory-backed test failed before the fix (HTTP with no authority
+slashes, status 9). The existing public-text codec now admits HTTP, HTTPS, FTP,
+WS and WSS scheme markers to URL sanitization, refusing noncanonical authority
+forms as `[redacted URL]`. No pathname, argv, archive-name or payload mutation
+was introduced. The retained test covers all five schemes with zero, one and
+two slashes in command, debug and listing displays; malformed credential URLs;
+visible neighboring `binary` and `notes:ordinary` paths; quiet show-command;
+exact-reason cancellation; unchanged namespace; and successful subsequent
+binary creation/extraction. No runtime dependency, host fallback, README,
+SafeJS or root API change was made.
+
+Revision-specific SHA-256 changes from the preserved audit above:
+
+| Input under `packages/safe-bash/` | SHA-256 |
+| --- | --- |
+| `src/commands/archive/zip/options.ts` | `9dd6470f08d7527d8d596d922925525796426a6ec2692c96bf7035752b5abdaa` |
+| `tests/commands/zip-help.test.ts` | `bfab555252dcc79efa1eec36ded3b8d60e288553bc7e67dd31be21ae472e0787` |
+
+zip.ts and help.ts retain the preserved audit hashes. Fresh baseline ZIP-wide
+execution passed **963/963**, 12,994.69975 ms. Post-fix focused execution passed
+**115/115**, 661.219667 ms; that focused run preceded adding listing assertions
+to the same test. Final exact ZIP-wide command printed above, `TZ=UTC LC_ALL=C`,
+passed **964/964**, 15,600.761792 ms, with zero failures/cancellations/skips/TODOs,
+including the final listing assertions. The maintained selected workspace build
+completed uncached at 0 with six declared closure builds. Public `runBash`
+normal-import memory SDK controls passed malformed display grammar, ZIPOPT
+immediate version, redacted command paths, counters/listing, exact extracted
+`00ff800d0a41`, and final command/debug/listing URL redaction. These are scoped
+checks, not a full repository unit or consumer-runtime gate.
+
+Manual QA steps executed through the actual visible host CLI:
+
+1. Absolute `/out` refused creation as read-only; used the previously documented
+   ignored fallback `out/zip-user-edge-20260916/visible` as explicit VFS root.
+2. Ran `npm run screenshot-poe-code -- --no-header -o
+   out/zip-user-edge-20260916/edges.png bash --root
+   out/zip-user-edge-20260916/visible --cwd / -c SOURCE`. SOURCE exercised
+   `--ver` ambiguity at 16, `--verbose=` at 16, ZIPOPT quiet plus immediate
+   `--versi` at 0, abbreviated-password literal redaction at 9, six-byte stdout
+   archive creation with counters, quiet listing, exact binary hex extraction,
+   silent quiet entry dots and visible quiet global dots at 0.
+3. Inspected the complete PNG: all those outputs were visible and readable,
+   counters aligned and no credentials printed. SHA-256:
+   `80bb73155ba11165763413e3e6c9216f62cc3fdb31c07778d49e2e5d6982e9d4`.
+   This initial screenshot preceded the new URL fix; its 75 cached preparation
+   builds and fresh host bundle are visual QA, not an uncached build gate.
+4. After the fix, captured and inspected `redaction.png` through the same
+   screenshot command/root with SOURCE running zero-slash HTTPS show-command,
+   zero-slash HTTPS debug warning, one-slash FTP listing warning, quiet archive
+   listing and hex extraction. All outputs are visible: `[redacted URL]` in
+   each display, neighboring paths preserved, statuses 9/12/0, correct six-byte
+   total and exact extraction. SHA-256:
+   `6ff72eb18ad2c250b5ce6375e982f3b8c75973d93d4fa757975107daa1c97612`.
+   Final screenshot preparation ran 75 successful uncached existing build tasks
+   plus the host bundle. The selected six-build workspace route above remains
+   the focused maintained build gate; no competing build ran during ZIP tests.
+
+Final `npm run typecheck --workspace=virtual-bash`: **0**, all 26 maintained
+consumer groups and required negative validators; compile-only, no runtime
+acceptance implied. Final screenshot/typecheck/lint execution shared cohost load;
+test/build durations are not comparative performance claims.
+The initial lint run returned 2 with zero code errors and two existing docx
+warnings; it is **not a passing gate**. Its guarded traversal reported SafeJS
+ancestor-directory identity drift (size 544 to 576) during screenshot rebuild
+preparation. No SafeJS source changes or lint exclusions were made. Lint was
+rerun after all build tasks finished to obtain stable filesystem inputs.
+Final stable `npm run lint:eslint`: **0**, complete traversal of 15,493
+configured/linted subjects, zero errors, two existing docx warnings, zero gaps.
+No lint policies/exclusions were changed. Final `git diff --check`: **0**.
+Purged only this execution's task-owned screenshots, fixture root and logs
+after visual inspection and recording. All initial unrelated edits remain
+preserved; no local commit, push or release was performed.
+
+Native buffer/timed-dot parity, native build identity, arbitrary-byte filenames,
+encryption/logging/splits and earlier format/budget/platform restrictions remain
+open. Positive visible archives use existing stdout streaming and shell
+redirection, without claiming atomic real-adapter archive publication. No local
+commit, push, verified remote-main delivery or release is claimed.
+
+## Commit validation — 2026-09-16
+
+Fresh validation of the seven-file ZIP CLI parity change before its atomic
+local commit on main:
+
+- `TZ=UTC LC_ALL=C node --import tsx --test --test-concurrency=1 packages/safe-bash/tests/commands/zip*.test.ts packages/safe-bash/tests/commands/unzip.test.ts packages/safe-bash/tests/plugins/zip*.test.ts`: 964 passed, zero failures/cancellations/skips/TODOs.
+- `npm run build:workspaces -- --workspace=virtual-bash`: exit 0, six uncached declared closure builds.
+- `npm run typecheck --workspace=virtual-bash`: exit 0, all 26 maintained consumer groups and required negative validators.
+- `npm run lint:eslint`: exit 0, complete traversal of 15,493 configured subjects, zero errors, two existing docx warnings, zero gaps.
+- `git diff --check`: exit 0.
+
+The prior recorded screenshot QA covers the unchanged product source. No new
+product code was changed during commit validation. Absolute `/out` remained
+read-only; task-owned logs used ignored `out/zip-commit-check` and were purged
+after inspection. These are focused ZIP checks, not a full repository unit run.
+The requested delivery is a local commit; no push or release is claimed.

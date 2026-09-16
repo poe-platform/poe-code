@@ -16,7 +16,7 @@ tasks:
       reproduce: done
       implement: done
       test: done
-      commit: open
+      commit: done
   - id: zip-cli-parity
     title: "Complete informational options and option parsing"
     prompt: |
@@ -24,11 +24,11 @@ tasks:
 
       Implement validated missing native Unix CLI behavior in zip/options.ts, zip/help.ts and zip.ts: -v/--version/--verbose distinctions, -L/license, show-files/show-options/show-command/debug, display counters/dots and their grammar. Determine exact native spellings, argument arity, grouped short options, abbreviations, negation, ZIPOPT precedence, immediate exits, stdout/stderr and exit codes from the compatibility matrix. Do not print secrets in command/debug/log output. Preserve byte budgets and early no-I/O help behavior. Cover unknown/ambiguous options, empty/attached values, options after operands, -- paths, binary names and quiet-mode interactions. If capability-dependent content cannot be truthful, document the precise restriction instead of claiming a native build identity. Inspect screenshots using npm run screenshot-poe-code -- for actual visible CLI paths; record manual QA in Markdown.
     status:
-      reproduce: open
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      reproduce: done
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: zip-reverse-newlines
     title: "Implement native reverse newline conversion"
     prompt: |

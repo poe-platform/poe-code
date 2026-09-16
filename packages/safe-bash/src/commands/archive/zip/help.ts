@@ -26,6 +26,17 @@ Usage: zip [options] archive [file ...]
   -X          strip optional metadata
   -fz / -fz-  force / disable ZIP64 output
   -fd         force data descriptors
+  -v          verbose operation (a lone -v shows implementation information)
+  --version   show implementation information and exit
+  -L          show this implementation's license
+  -sf / -sf-  list selected files / totals only, without creating an archive
+  -sc         show processed arguments and exit with status 9
+  -so         show implemented options and exit
+  -sd         show virtual archive processing steps
+  -db / -dc   display byte / entry counters
+  -du / -dv   display entry size / single-volume numbers
+  -dd / -dg   display dots per entry / globally for output bytes
+  -ds SIZE    dot interval (kmgt units; default MB; 0 disables dots)
   -h          show this help
 
 Use -- after the archive name to pass filenames beginning with '-'.
@@ -84,4 +95,52 @@ Arguments and ZIPOPT
   ZIPOPT supplies default arguments before the command arguments. Double quotes
   group words inside ZIPOPT; shell expansion is not performed on these defaults.
   -h and -h2 print basic and extended help as soon as they are encountered.
+  --version and -L also exit immediately. Only a lone short -v shows information;
+  --verbose and grouped -v perform an archive operation. Later -q or -v wins.
+  -sc and -so validate all arguments before exiting; -sc returns status 9.
+
+Displays
+  -sf lists selected names and totals without reading source payloads or writing
+  archives. -sf- and -q suppress names; totals remain visible. With no file
+  operands, -sf lists the input archive. -sd reports only virtual processing steps.
+  Command and diagnostic displays redact credential-shaped arguments and URLs.
+  Display counters accept a trailing '-' to negate them. -ds accepts up to eight
+  characters: digits with an optional k, m, g or t suffix (case-insensitive).
+  Values below 1024 imply MB; nonzero intervals from 1 KB to below 32 KB fail.
+  Empty -ds values restore 10 MB; 0 disables dots. Sizes must be safe integers.
+  Dots use byte intervals, so counts can differ from native codec buffer dots.
+  Per-entry progress appears after bounded preparation; global output dots stay
+  visible with -q. Timed scanning dots and split-volume displays are unavailable.
+`;
+
+export const zipVersion = `safe-bash zip (virtual-bash)
+Bounded virtual ZIP implementation; not an Info-ZIP native build.
+Compression: store, deflate, bzip2. Single-volume ZIP and ZIP64 output.
+Filesystem, signals and byte limits are supplied by the host.
+Native compiler identity, ambient environment and encryption are not reported.
+`;
+
+export const zipLicense = `safe-bash zip (virtual-bash)
+MIT License
+Copyright (c) 2026 Poe Platform
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+This is the virtual implementation license, not the native Info-ZIP license.
 `;

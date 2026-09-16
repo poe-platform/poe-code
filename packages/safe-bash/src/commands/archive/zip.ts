@@ -12,10 +12,10 @@ import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
 import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, streamZipArchive, updateZipExtras, setZipEntryComment, type ZipArchive, type ZipEntry } from "./zip-format.js";
-import { zipHelp, zipExtendedHelp } from "./zip/help.js";
+import { zipHelp, zipExtendedHelp, zipVersion, zipLicense } from "./zip/help.js";
 import { publishZip, ZipScope, type ZipPublication } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
-import { normalizeZipOption, reservedZipShortOptions, ZipFailure } from "./zip/options.js";
+import { normalizeZipOption, reservedZipShortOptions, ZipFailure, parseZipDotSize, zipLongOptions, zipNegatableOptions, zipDisplaySize, zipPublicText, zipPasswordArgument } from "./zip/options.js";
 
 interface ZipOptions {
   readonly args: readonly string[];
@@ -27,6 +27,15 @@ interface ZipOptions {
   readonly noWild: boolean;
   readonly stopAtDirectories: boolean;
   readonly quiet: boolean;
+  readonly verbose: boolean;
+  readonly showFiles: boolean | undefined;
+  readonly debug: boolean;
+  readonly displayBytes: boolean;
+  readonly displayCounts: boolean;
+  readonly displayUsize: boolean;
+  readonly displayVolume: boolean;
+  readonly dotSize: number;
+  readonly globalDots: boolean;
   readonly junkPaths: boolean;
   readonly omitDirectories: boolean;
   readonly storeLinks: boolean;
@@ -54,7 +63,7 @@ interface ZipOptions {
 
 const defaultStoreSuffixes = [".Z", ".zip", ".zoo", ".arc", ".lzh", ".arj"];
 
-async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions | { information: "help" | "more-help" }> {
+async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions | { information: "help" | "more-help" | "version" | "license" | "options" | "command"; command?: readonly string[]; debug?: boolean }> {
   const context = scope.context;
   const args = zipEnvironmentArguments(context.env, context.args, limits);
   if (args.length > limits.maxArgumentBytes) fail("argument count limit exceeded");
@@ -82,6 +91,20 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let noWild = false;
   let stopAtDirectories = false;
   let quiet = false;
+  let verbose = false;
+  let showFiles: boolean | undefined;
+  let showCommand = false;
+  let showOptions = false;
+  let debug = false;
+  let displayBytes = false;
+  let displayCounts = false;
+  let displayUsize = false;
+  let displayVolume = false;
+  let dotSize = 0;
+  let dotsSet = false;
+  let globalDots = false;
+  const commandOptions: string[] = [];
+  const commandPaths: string[] = [];
   let junkPaths = false;
   let omitDirectories = false;
   let storeLinks = false;
@@ -108,19 +131,62 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   const includes: string[] = [];
   const excludes: string[] = [];
   for (let index = 0; index < args.length; index++) {
+    const startIndex = index;
+    let listOption = false;
     const original = args[index]!;
     checkPath(original, limits);
     const argument = literal ? original : normalizeZipOption(original);
     if (!literal && argument === "--") {
       if (archive === undefined) throw new ZipFailure(16, "Invalid command arguments", "can't use -- before archive name");
       literal = true;
+      commandPaths.push(original);
     } else if (!literal && argument.startsWith("-") && argument !== "-") {
+      commandOptions.push(original);
+      if (argument === "--version") return { information: "version" };
       for (let offset = 1; offset < argument.length; offset++) {
         if (reservedZipShortOptions.has(argument.slice(offset, offset + 2))) {
-          throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
+          throw new ZipFailure(16, "Invalid command arguments", `unsupported option: -${argument.slice(offset, offset + 2)}`);
         }
         const flag = argument[offset];
-        if (flag === "h") {
+        const pair = argument.slice(offset, offset + 2);
+        if (["db", "dc", "dd", "dg", "du", "dv", "ds", "sc", "sd", "sf", "so"].includes(pair)) {
+          offset++;
+          const negated = argument[offset + 1] === "-";
+          if (negated && !zipNegatableOptions.has(pair)) throw new ZipFailure(16, "Invalid command arguments", `option ${pair} is not negatable`);
+          if (negated) offset++;
+          if (pair === "ds") {
+            let value = argument.slice(offset + 1) || args[++index];
+            if (value === undefined) throw new ZipFailure(16, "Invalid command arguments", "option ds requires a value");
+            if (value.startsWith("=")) value = value.slice(1);
+            dotSize = parseZipDotSize(value);
+            dotsSet = true;
+            break;
+          }
+          if (pair === "db") displayBytes = !negated;
+          else if (pair === "dc") displayCounts = !negated;
+          else if (pair === "du") displayUsize = !negated;
+          else if (pair === "dv") displayVolume = !negated;
+          else if (pair === "sf") showFiles = !negated;
+          else if (pair === "sc") showCommand = true;
+          else if (pair === "sd") debug = true;
+          else if (pair === "so") showOptions = true;
+          else if (pair === "dd") {
+            globalDots = false;
+            if (negated) dotsSet = false;
+            else { if (!dotsSet) dotSize = 10 * 1024 ** 2; dotsSet = true; }
+          } else if (pair === "dg") {
+            globalDots = !negated;
+            if (!negated) { if (!dotsSet) dotSize = 10 * 1024 ** 2; dotsSet = true; }
+          }
+        }
+        else if (flag === "L" || flag === "v") {
+          if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", `option ${flag} is not negatable`);
+          if (flag === "L") return { information: "license" };
+          if (args.length === 1 && original === "-v") return { information: "version" };
+          verbose = true;
+          quiet = false;
+        }
+        else if (flag === "h") {
           if (argument[offset + 1] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h is not negatable");
           if (argument[offset + 1] === "2") {
             if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option h2 is not negatable");
@@ -168,7 +234,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "c") entryComments = true;
         else if (flag === "o") latestTime = true;
         else if (flag === "l") {
-          if (argument[offset + 1] === "l") throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
+          if (argument[offset + 1] === "l") throw new ZipFailure(16, "Invalid command arguments", "unsupported option: -ll");
           toCrlf = true;
         }
         else if (flag === "m") move = true;
@@ -228,6 +294,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           break;
         }
         else if (flag === "i" || flag === "x") {
+          listOption = offset + 1 === argument.length;
           const patterns = flag === "i" ? includes : excludes;
           const before = patterns.length;
           const append = (pattern: string) => {
@@ -250,15 +317,21 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           if (patterns.length === before) throw new ZipFailure(16, "Invalid command arguments", `option '${flag}' requires a value`);
           break;
         }
-        else throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
+        else throw new ZipFailure(16, "Invalid command arguments", `unsupported option: -${flag}`);
       }
-    } else if (archive === undefined) archive = argument;
+      commandOptions.push(...args.slice(startIndex + 1, index + 1));
+      if (listOption && args[index] !== "@") commandOptions.push("@");
+    } else if (archive === undefined) { archive = argument; commandPaths.push(original); }
     else {
       if (operands.length >= limits.maxMembers) fail("operand limit exceeded");
       if (firstOperand < 0) firstOperand = index;
       operands.push(argument);
+      commandPaths.push(original);
     }
   }
+  if (showCommand) return { information: "command", command: [context.command, ...commandOptions, ...commandPaths], debug };
+  if (showOptions) return { information: "options", debug };
+  if (verbose && !dotsSet && !dotSize) dotSize = 10 * 1024 ** 2;
   if (archive === undefined) {
     if (includes.length || excludes.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
     if (action !== "add") throw new ZipFailure(16, "Invalid command arguments", "expected archive name");
@@ -272,7 +345,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     checkPath(output, limits);
     if (action === "add" && archive !== "-" && !operands.length && !stdinNames) action = "copy";
   }
-  if (action === "copy" && output === undefined) throw new ZipFailure(16, "Invalid command arguments", "-U (--copy) requires -O (--out)");
+  if (showFiles !== undefined && !operands.length && !stdinNames && (includes.length || excludes.length)) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
+  if (action === "copy" && output === undefined && showFiles === undefined) throw new ZipFailure(16, "Invalid command arguments", "-U (--copy) requires -O (--out)");
   const names: string[] = [];
   if (stdinNames) {
     const input = await collectBytes(scope.stdin, { maxBytes: limits.maxFilesFromBytes, signal: context.signal });
@@ -296,7 +370,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
   if (filesync && action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, verbose, showFiles, debug, displayBytes, displayCounts, displayUsize, displayVolume, dotSize, globalDots, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, entryComments, latestTime, toCrlf, move, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -347,7 +421,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const limits = budget.limits;
   if (parsed.archive === "-" && parsed.action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g on stdout\n");
   let publication: Omit<ZipPublication, "bytes"> | undefined;
-  if (parsed.archive !== "-") {
+  if (parsed.archive !== "-" && parsed.showFiles === undefined) {
     const outputName = vfsPath(context.cwd, parsed.output ?? parsed.archive);
     const parentName = dirname(outputName);
     const parent = await scope.operation(() => context.fs.realpath(parentName, { signal: context.signal }));
@@ -357,10 +431,14 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const existing = await scope.stat(output);
     publication = { output, parentName, parent, parentStat, existing };
   }
-  const output = publication?.output;
+  const output = publication?.output ?? (parsed.output === undefined ? undefined : vfsPath(context.cwd, parsed.output));
   let input = publication?.output;
   let existing = publication?.existing;
-  if (parsed.output !== undefined) {
+  if (parsed.showFiles !== undefined && parsed.archive !== "-") {
+    input = vfsPath(context.cwd, parsed.archive);
+    existing = await scope.stat(input);
+  }
+  if (parsed.output !== undefined && parsed.showFiles === undefined) {
     if (parsed.archive === "-") { input = undefined; existing = undefined; }
     else {
       const name = vfsPath(context.cwd, parsed.archive);
@@ -376,7 +454,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       if (input === output || existing && publication?.existing && sameIdentity(existing, publication.existing)) throw new ZipFailure(16, "Invalid command arguments", `--out path must be different than in path: ${parsed.archive}`);
     }
   }
-  if ((parsed.action === "copy" || parsed.output !== undefined && parsed.archive !== "-") && !existing) throw new ZipFailure(18, "File not found or no read permission", parsed.archive);
+  if ((parsed.action === "copy" || parsed.showFiles !== undefined && !parsed.operands.length || parsed.output !== undefined && parsed.archive !== "-") && !existing) throw new ZipFailure(18, "File not found or no read permission", parsed.archive);
   if (publication?.existing && (publication.existing.type !== "file" || !hasIdentity(publication.existing) || publication.existing.nlink !== 1)) fail("output archive requires a regular, single-link file with known backing identity");
   if (parsed.archive === "-" && parsed.test && !parsed.quiet) await budget.output("\tzip warning: can't use -T on stdout, -T ignored\n");
   if (existing && (existing.type !== "file" || !hasIdentity(existing) || existing.nlink !== 1)) fail("updating archive requires a regular, single-link file with known backing identity; archive aliases are unsupported");
@@ -392,8 +470,9 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (!current || !unchanged(existing, current)) fail("archive changed while reading");
   }
   const old = new Map(archive.entries.map(entry => [entry.name, entry]));
-  if (!archive.entries.length && !parsed.quiet && (parsed.action === "update" || parsed.action === "freshen")) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
-  const selected = new Map<string, { entry: ZipEntry; source: string }>();
+  if (!archive.entries.length && !parsed.quiet && (parsed.action === "update" || parsed.action === "freshen")) await budget.output(`\tzip warning: ${zipPublicText(parsed.archive)} not found or empty\n`);
+  const selected = new Map<string, { entry: ZipEntry; source: string; sourceSize: number }>();
+  const listed = new Map<string, { name: string; size: number; source: string }>();
   const moves = new Map<string, ZipMoveSource>();
   const deleted = new Set<string>();
   const synchronized = new Map<string, string>();
@@ -405,6 +484,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   let work = 0;
   let compressedBytes = 0;
   const encodeSelected = async (source: string, name: string, bytes: Uint8Array, attributes: Pick<ZipEntry, "modified" | "mode" | "directory" | "symlink">) => {
+    const sourceSize = bytes.length;
     const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
     if (!store && parsed.level === 0 && bytes.length && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
     if (parsed.toCrlf && !attributes.directory && !attributes.symlink) {
@@ -421,7 +501,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (parsed.metadata !== "default") entry = updateZipExtras(entry, prior, parsed.metadata, limits);
     if (entry.data.length > limits.maxArchiveBytes - compressedBytes) fail("archive byte limit exceeded");
     compressedBytes += entry.data.length;
-    selected.set(name, { entry, source });
+    selected.set(name, { entry, source, sourceSize });
     if (parsed.entryComments) commentNames.add(name);
   };
   const visit = async (source: string, name: string, depth: number, storedName = false): Promise<void> => {
@@ -431,7 +511,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (visits % 128 === 0) await yieldTurn(context.signal);
     if (depth > limits.maxDepth) fail("archive recursion depth limit exceeded");
     if (source === "-") {
-      const previous = selected.get(name);
+      const previous = selected.get(name) ?? listed.get(name);
       if (previous && previous.source !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
       if (previous || !await filterName(name, selection, parsed.includes.length)) return;
       const prior = old.get(name);
@@ -443,6 +523,11 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
         synchronized.set(name, source);
       }
       if (parsed.action === "freshen" && !prior || prior && (parsed.action === "update" || parsed.action === "freshen") && Math.floor(modified.getTime() / 1000) <= Math.floor(prior.modified.getTime() / 1000)) return;
+      if (parsed.showFiles !== undefined) {
+        await budget.member(0);
+        listed.set(name, { name, size: 0, source });
+        return;
+      }
       const bytes = await collectBytes(scope.stdin, { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes), signal: context.signal });
       await budget.member(bytes.length);
       await encodeSelected(source, name, bytes, { modified, mode: 0o010660, directory: false, symlink: false });
@@ -473,17 +558,17 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       }
       if (parsed.entryComments && old.has(name) && await filterName(name, selection, parsed.includes.length)) commentNames.add(name);
       if (parsed.mustMatch && !storedName) {
-        if (!parsed.quiet) await budget.output(`\tzip warning: name not matched: ${source}\n`);
+        if (!parsed.quiet) await budget.output(`\tzip warning: name not matched: ${zipPublicText(source)}\n`);
         throw new ZipFailure(18, "File not found or no read permission", source);
       }
-      if (!parsed.quiet && !storedName) await budget.output(`\tzip warning: name not matched: ${source}\n`);
+      if (!parsed.quiet && !storedName) await budget.output(`\tzip warning: name not matched: ${zipPublicText(source)}\n`);
       return;
     }
     checkPath(canonical, limits);
     if (canonical === output || canonical === input || (existing && sameIdentity(existing, stat)) || (publication?.existing && sameIdentity(publication.existing, stat))) return;
     const symlink = parsed.storeLinks && stat.type === "symlink";
     if (stat.type !== "file" && stat.type !== "directory" && !symlink) {
-      if (!parsed.quiet) await budget.output(`\tzip warning: ignoring special file: ${source}\n`);
+      if (!parsed.quiet) await budget.output(`\tzip warning: ignoring special file: ${zipPublicText(source)}\n`);
       return;
     }
     if ((existing || publication?.existing) && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
@@ -500,41 +585,45 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       if (synchronized.has(name) && synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
       synchronized.set(name, source);
     }
-    if (parsed.move && name && included && !(directory && parsed.omitDirectories) && (prior || parsed.action !== "freshen")) {
+    if (parsed.showFiles === undefined && parsed.move && name && included && !(directory && parsed.omitDirectories) && (prior || parsed.action !== "freshen")) {
       if (!moves.has(path)) moves.set(path, await inspectZipMoveSource(scope, path, source));
     }
     const current = parsed.filesync && prior && prior.size === (directory ? 0 : stat.size)
       && Math.ceil(Math.floor(stat.mtimeMs / 1000) / 2) === Math.ceil(Math.floor(prior.modified.getTime() / 1000) / 2);
     const eligible = parsed.action !== "update" && parsed.action !== "freshen"
       || (prior ? Math.floor(stat.mtimeMs / 1000) > Math.floor(prior.modified.getTime() / 1000) : parsed.action === "update");
-    if (name && included && eligible && !current && !(directory && parsed.omitDirectories)) {
+    if (name && included && eligible && (!current || parsed.showFiles !== undefined) && !(directory && parsed.omitDirectories)) {
       checkPath(name, limits);
-      const previous = selected.get(name);
+      const previous = selected.get(name) ?? listed.get(name);
       if (previous && previous.source !== source) {
-        if (!parsed.quiet) await budget.output(`\tzip warning:   first full name: ${previous.source}\n                      second full name: ${source}\n                     name in zip file repeated: ${name}\n`);
+        if (!parsed.quiet) await budget.output(`\tzip warning:   first full name: ${zipPublicText(previous.source)}\n                      second full name: ${zipPublicText(source)}\n                     name in zip file repeated: ${zipPublicText(name)}\n`);
         throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
       }
       if (!previous) {
         await budget.member(directory ? 0 : stat.size);
-        let bytes: Uint8Array;
-        if (directory) bytes = new Uint8Array();
-        else if (symlink) {
-          if (!context.fs.readlink) fail("filesystem does not support reading symbolic links");
-          const target = await scope.operation(() => context.fs.readlink!(path, { signal: context.signal }));
-          if (Buffer.byteLength(target) > stat.size) fail(`source changed while reading: ${source}`);
-          bytes = Buffer.from(target);
+        if (parsed.showFiles !== undefined) {
+          listed.set(name, { name, size: directory ? 0 : stat.size, source });
         } else {
-          try { bytes = await collectBytes(scope.input(path), { maxBytes: stat.size, signal: context.signal }); }
-          catch (error) {
-            context.signal.throwIfAborted();
-            if (parsed.mustMatch && typeof error === "object" && error !== null && "code" in error && (error.code === "ENOENT" || error.code === "EACCES")) throw new ZipFailure(18, "File not found or no read permission", `was zipping ${source}`);
-            throw error;
+          let bytes: Uint8Array;
+          if (directory) bytes = new Uint8Array();
+          else if (symlink) {
+            if (!context.fs.readlink) fail("filesystem does not support reading symbolic links");
+            const target = await scope.operation(() => context.fs.readlink!(path, { signal: context.signal }));
+            if (Buffer.byteLength(target) > stat.size) fail(`source changed while reading: ${source}`);
+            bytes = Buffer.from(target);
+          } else {
+            try { bytes = await collectBytes(scope.input(path), { maxBytes: stat.size, signal: context.signal }); }
+            catch (error) {
+              context.signal.throwIfAborted();
+              if (parsed.mustMatch && typeof error === "object" && error !== null && "code" in error && (error.code === "ENOENT" || error.code === "EACCES")) throw new ZipFailure(18, "File not found or no read permission", `was zipping ${source}`);
+              throw error;
+            }
           }
+          if (!directory && bytes.length !== stat.size) fail(`source changed while reading: ${source}`);
+          const current = await inspectSource(scope, path, parsed.storeLinks);
+          if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
+          await encodeSelected(source, name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink });
         }
-        if (!directory && bytes.length !== stat.size) fail(`source changed while reading: ${source}`);
-        const current = await inspectSource(scope, path, parsed.storeLinks);
-        if (current.canonical !== canonical || !unchanged(stat, current.stat)) fail(`source changed while reading: ${source}`);
-        await encodeSelected(source, name, bytes, { modified: new Date(stat.mtimeMs), mode: stat.mode, directory, symlink });
       }
     }
     if (directory && !storedName && (parsed.recursive || parsed.recursivePatterns)) {
@@ -559,12 +648,12 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     for (const entry of archive.entries) {
       if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length) && zipDateMatches(entry.modified, parsed.fromDate, parsed.beforeDate)) {
         await budget.member(entry.size);
-        selected.set(entry.name, { entry, source: entry.name });
+        selected.set(entry.name, { entry, source: entry.name, sourceSize: entry.size });
       }
     }
   } else if (parsed.action === "delete") {
     if (!parsed.quiet && (parsed.recursive || parsed.archiveComment || parsed.entryComments || parsed.move)) await budget.output("\tzip warning: invalid option(s) used with -d; ignored.\n");
-    if (!parsed.quiet && !archive.entries.length) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
+    if (!parsed.quiet && !archive.entries.length) await budget.output(`\tzip warning: ${zipPublicText(parsed.archive)} not found or empty\n`);
     const operands = new Selection(parsed.recursivePatterns ? [] : parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
     if (parsed.operands.length && !parsed.recursivePatterns) {
       for (const entry of archive.entries) {
@@ -578,13 +667,24 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     }
     if (!parsed.quiet) {
       for (const [index, operand] of parsed.operands.entries()) {
-        if (!operands.matched.has(index)) await budget.output(`\tzip warning: name not matched: ${operand}\n`);
+        if (!operands.matched.has(index)) await budget.output(`\tzip warning: name not matched: ${zipPublicText(operand)}\n`);
       }
     }
   } else {
-    const operands = parsed.operands.length || parsed.action === "add" ? parsed.operands : archive.entries.map(entry => entry.name);
+    const operands = parsed.showFiles !== undefined && !parsed.operands.length ? [] : parsed.operands.length || parsed.action === "add" ? parsed.operands : archive.entries.map(entry => entry.name);
     if (parsed.recursivePatterns) await visit(".", "", 0);
     else for (const operand of operands) await visit(operand, memberName(operand, limits), 0);
+  }
+  if (parsed.showFiles !== undefined) {
+    const contains = !parsed.operands.length && !parsed.includes.length && !parsed.excludes.length;
+    const listing = contains ? archive.entries : parsed.action === "delete" ? archive.entries.filter(entry => deleted.has(entry.name)) : parsed.action === "copy" ? [...selected.values()].map(item => item.entry) : [...listed.values()];
+    const title = contains ? "Archive contains" : parsed.action === "delete" ? "Would Delete" : parsed.action === "freshen" ? "Would Freshen" : parsed.action === "copy" ? "Would Copy" : "Would Add/Update";
+    if (!parsed.quiet && parsed.showFiles) {
+      await budget.output(`${title}:\n`);
+      for (const entry of listing) await budget.output(`  ${escapeText(zipPublicText(entry.name), "display")}\n`);
+    }
+    await budget.output(`Total ${listing.length} entries (${listing.reduce((total, entry) => total + entry.size, 0)} bytes)\n`);
+    return { kind: "current" as const, exitCode: 0, moves: [] };
   }
   if (parsed.filesync) {
     if (!synchronized.size) throw new ZipFailure(12, "Nothing to do!", parsed.archive);
@@ -617,22 +717,48 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     progressBytes += size;
     progress.push(message);
   };
+  const counted = parsed.action === "delete" ? archive.entries.filter(entry => deleted.has(entry.name)) : [...selected.values()].map(item => item.entry);
+  let remainingBytes = counted.reduce((total, entry) => total + (parsed.action === "delete" || parsed.action === "copy" ? entry.data.length : selected.get(entry.name)?.sourceSize ?? entry.size), 0);
+  let doneBytes = 0;
+  let done = 0;
+  const stats = (entry: ZipEntry) => {
+    let prefix = parsed.displayVolume ? "1>1: " : "";
+    if (parsed.displayCounts) prefix += `${String(done).padStart(3)}/${String(counted.length - done).padStart(3)} `;
+    if (parsed.displayBytes) prefix += `[${zipDisplaySize(doneBytes).padStart(4)}/${zipDisplaySize(remainingBytes).padStart(4)}] `;
+    const size = parsed.action === "delete" || parsed.action === "copy" ? entry.data.length : selected.get(entry.name)?.sourceSize ?? entry.size;
+    done++;
+    doneBytes += size;
+    remainingBytes -= size;
+    return prefix;
+  };
   const append = (entry: ZipEntry, update: boolean) => {
+    if (parsed.quiet) return;
     const percentage = entry.size ? Math.trunc((Math.trunc(200 * (entry.size - entry.data.length) / entry.size) + 1) / 2) : 0;
-    queue(`${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${entry.name} (${entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
+    const prefix = stats(entry);
+    const usize = parsed.displayUsize ? ` (${zipDisplaySize(selected.get(entry.name)?.sourceSize ?? entry.size)})` : "";
+    const verbose = parsed.verbose ? `${entry.method === 0 ? "" : " "}\t(in=${entry.size}) (out=${entry.data.length})` : "";
+    const dotCount = !parsed.globalDots && parsed.dotSize ? Math.floor(entry.size / parsed.dotSize) : 0;
+    if (dotCount > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
+    const dots = ".".repeat(dotCount);
+    queue(`${prefix}${update ? parsed.action === "freshen" ? "freshening:" : "updating:" : "  adding:"} ${escapeText(zipPublicText(entry.name), "display")}${usize}${verbose} ${dots ? `${dots} ` : ""}(${entry.method === 12 ? `bzipped ${percentage}%` : entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
   };
   for (const entry of archive.entries) {
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");
-    if (deleted.has(entry.name)) { queue(`deleting: ${entry.name}\n`); continue; }
+    if (deleted.has(entry.name)) { queue(`${stats(entry)}deleting: ${escapeText(zipPublicText(entry.name), "display")}\n`); continue; }
     const replacement = selected.get(entry.name);
     if (parsed.action === "copy") {
-      if (replacement) { entries.push(replacement.entry); queue(` copying: ${entry.name}\n`); selected.delete(entry.name); }
+      if (replacement) { entries.push(replacement.entry); queue(`${stats(entry)} copying: ${escapeText(zipPublicText(entry.name), "display")}\n`); selected.delete(entry.name); }
       continue;
     }
     if (replacement) { entries.push(replacement.entry); append(replacement.entry, true); selected.delete(entry.name); }
     else { await budget.member(entry.size); entries.push(entry); }
   }
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
+  if (parsed.verbose && !parsed.quiet) {
+    const size = entries.reduce((total, entry) => total + entry.size, 0);
+    const compressed = entries.reduce((total, entry) => total + entry.data.length, 0);
+    queue(`total bytes=${size}, compressed=${compressed} -> ${size ? Math.round(100 * (size - compressed) / size) : 0}% savings\n`);
+  }
   if (!entries.length) queue("\tzip warning: zip file empty\n");
   let comment = archive.comment;
   if (editComment || editEntries && commentNames.size) {
@@ -644,7 +770,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       for (let index = 0; index < entries.length; index++) {
         const entry = entries[index]!;
         if (!commentNames.has(entry.name)) continue;
-        if (!parsed.quiet) await budget.output(`Enter comment for ${entry.name}:\n`);
+        if (!parsed.quiet) await budget.output(`Enter comment for ${zipPublicText(entry.name)}:\n`);
         const line = await commentInput.readLine();
         if (line !== undefined) entries[index] = setZipEntryComment(entry, line.at(-1) === 10 ? line.subarray(0, -1) : line, limits);
       }
@@ -686,11 +812,11 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       }
     } catch {
       context.signal.throwIfAborted();
-      if (!parsed.quiet) await budget.output(`test of ${parsed.archive} FAILED\n`);
+      if (!parsed.quiet) await budget.output(`test of ${zipPublicText(parsed.archive)} FAILED\n`);
       throw new ZipFailure(8, "Zip file invalid, could not spawn unzip, or wrong unzip", "original files unmodified");
     }
     if (!parsed.quiet) {
-      queue(`test of ${parsed.archive} OK\n`);
+      queue(`test of ${zipPublicText(parsed.archive)} OK\n`);
     }
   }
   if (latestWarning !== undefined) queue(latestWarning);
@@ -711,19 +837,49 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
     try {
       const parsed = await parse(scope, limits);
       if ("information" in parsed) {
-        await budget.output(parsed.information === "more-help" ? zipExtendedHelp : zipHelp);
+        if (parsed.debug) await budget.output("sd: Command line read\n");
+        if (parsed.information === "command") {
+          await budget.output("command line:\n");
+          let redactNext = false;
+          for (const argument of parsed.command ?? []) {
+            const value = zipPublicText(redactNext ? "[redacted]" : argument);
+            redactNext = zipPasswordArgument(argument) === "separate";
+            const escaped = escapeText(value, "display", size => { if (size > limits.maxTextBytes - budget.textBytes) fail("text output limit exceeded"); }).split("'").join("'\\''");
+            await budget.output(`'${escaped}'  `);
+          }
+          await budget.output("\n\nzip error: Interrupted (show command line)\n");
+          return { exitCode: 9 };
+        }
+        if (parsed.information === "options") {
+          await budget.output("available options:\nVirtual implementation; unsupported native options are omitted.\n sh  long                 val  neg\n");
+          for (const [name, short] of Object.entries(zipLongOptions)) {
+            const value = ["i", "x"].includes(short) ? "list" : ["n", "Z", "t", "tt", "O", "ds"].includes(short) ? "req" : "";
+            await budget.output(` ${(short === "version" ? "" : short).padEnd(3)} ${name.padEnd(20)} ${value.padEnd(4)} ${zipNegatableOptions.has(short) ? "neg" : ""}\n`);
+          }
+        } else await budget.output(parsed.information === "more-help" ? zipExtendedHelp : parsed.information === "version" ? zipVersion : parsed.information === "license" ? zipLicense : zipHelp);
         return { exitCode: 0 };
       }
       if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);
+      if (parsed.debug) await budget.output("sd: Command line read\nsd: Reading virtual archive and selecting files\n");
       const prepared = await prepare(scope, parsed, budget);
       if (!prepared) return { exitCode: 12 };
       if (prepared.kind === "current") {
         await removeZipSources(scope, prepared.moves, budget, parsed.quiet);
         return { exitCode: prepared.exitCode };
       }
+      if (parsed.debug) await budget.output("sd: Writing virtual archive\n");
+      let globalBytes = 0;
+      const dots = async (size: number) => {
+        if (!parsed.globalDots || !parsed.dotSize) return;
+        if (!globalBytes) await budget.output(" ");
+        const count = Math.floor((globalBytes + size) / parsed.dotSize) - Math.floor(globalBytes / parsed.dotSize);
+        globalBytes += size;
+        for (let index = 0; index < count; index++) await budget.output(".");
+      };
       if (prepared.kind === "file") {
         const publication = prepared.publication;
         if (!publication) fail("ZIP missing file publication");
+        await dots(prepared.bytes.length);
         await writeFileOutput(context, prepared.bytes, () => scope.operation(() => publishZip(scope, { ...publication, bytes: prepared.bytes })));
         for (const message of prepared.progress) await budget.output(message);
       } else {
@@ -732,19 +888,22 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
         try {
           for await (const chunk of streamZipArchive(prepared.archive, limits, output.signal, true, parsed.zip64 === true)) {
             await writeBytes(output.output, chunk, output.signal);
+            await dots(chunk.length);
           }
         } finally { await output.close(); }
       }
+      if (parsed.globalDots) await budget.output("\n");
+      if (parsed.debug) await budget.output("sd: Virtual archive complete\n");
       await removeZipSources(scope, prepared.moves, budget, parsed.quiet);
       return { exitCode: prepared.kind === "file" ? prepared.exitCode : 0 };
     } catch (error) {
       original.signal.throwIfAborted();
       context.signal.throwIfAborted();
       if (error instanceof ZipFailure) {
-        await budget.output(`\nzip error: ${error.label} (${error.message})\n`);
+        await budget.output(`\nzip error: ${error.label} (${zipPublicText(error.message)})\n`);
         return { exitCode: error.status };
       }
-      const message = escapeText(display(publicDiagnosticMessage(error, context.onInternalError).slice(0, 1024)), "diagnostic");
+      const message = escapeText(zipPublicText(display(publicDiagnosticMessage(error, context.onInternalError).slice(0, 1024))), "diagnostic");
       await writeBytes(context.stderr, Buffer.from(`zip: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), context.signal);
       return { exitCode: 2 };
     } finally {

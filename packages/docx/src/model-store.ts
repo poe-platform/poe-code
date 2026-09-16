@@ -33,6 +33,7 @@ import {
 import { WD_STYLE_TYPE } from "./formatting-values.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import type { Length } from "./formatting-values.js";
+import { activeModelChildren } from "./model-active-children.js";
 
 export interface ModelRef {
   readonly part: string;
@@ -480,7 +481,7 @@ export class ModelStore {
   }
   *blocks(ref: ModelRef): IterableIterator<Paragraph | Table> {
     const node = this.node(ref);
-    for (const child of node.children) {
+    for (const child of activeModelChildren(this, ref.part)(node)) {
       this.context.budget.charge("work", 1);
       if (child.namespace !== node.namespace) continue;
       if (child.localName === "p") yield this.paragraph(this.ref(ref.part, child));

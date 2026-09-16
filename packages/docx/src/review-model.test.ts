@@ -12,6 +12,7 @@ import {
 import type { ModelStore, ModelRef } from "./model-store.js";
 import { w, textContext, textFixture } from "../tests/fixtures/text.js";
 import { Document } from "./document-model.js";
+import { DocumentBudget } from "./budget.js";
 
 function admitted(markup: string) {
   const volume = Volume.fromJSON({ "/part": markup });
@@ -37,7 +38,7 @@ function admitted(markup: string) {
     return { part: "/part", id };
   };
   const store = {
-    context: { timestamp: new Date("2025-02-03T04:05:06Z") },
+    context: { timestamp: new Date("2025-02-03T04:05:06Z"), budget: new DocumentBudget() },
     xml: (_part: string) => xml(),
     node,
     ref,

@@ -1,4 +1,5 @@
 import { InputTypeError, InvalidValueError } from "./archive.js";
+import { activeModelChildren } from "./model-active-children.js";
 import type { ModelStore, ModelRef } from "./model-store.js";
 import { sectionAttribute as commentAttribute } from "./section-properties.js";
 import { xmlValue } from "./create-content.js";
@@ -26,7 +27,8 @@ export class Comments implements Iterable<Comment> {
   ) {}
   private get nodes(): readonly XmlElement[] {
     const node = this.store.node(this.ref);
-    return node.children.filter((n) => n.namespace === node.namespace && n.localName === "comment");
+    return activeModelChildren(this.store, this.ref.part)(node)
+      .filter((n) => n.namespace === node.namespace && n.localName === "comment");
   }
   get length(): number {
     return this.nodes.length;
@@ -116,13 +118,13 @@ export class Comment {
   }
   get paragraphs() {
     const node = this.store.node(this.ref);
-    return node.children
+    return activeModelChildren(this.store, this.ref.part)(node)
       .filter((n) => n.namespace === node.namespace && n.localName === "p")
       .map((n) => this.store.paragraph(this.store.ref(this.ref.part, n)));
   }
   get tables() {
     const node = this.store.node(this.ref);
-    return node.children
+    return activeModelChildren(this.store, this.ref.part)(node)
       .filter((n) => n.namespace === node.namespace && n.localName === "tbl")
       .map((n) => this.store.table(this.store.ref(this.ref.part, n)));
   }
@@ -173,7 +175,7 @@ export class Hyperlink {
   }
   get runs() {
     const node = this.store.node(this.ref);
-    return node.children
+    return activeModelChildren(this.store, this.ref.part)(node)
       .filter((n) => n.namespace === node.namespace && n.localName === "r")
       .map((n) => this.store.run(this.store.ref(this.ref.part, n)));
   }

@@ -14,9 +14,10 @@ import { insertModelImage, Drawing } from "./inline-shape-model.js";
 import type { ImageModelInput } from "./image-model-input.js";
 import { Image } from "./image-model.js";
 import type { Length } from "./formatting-values.js";
+import { activeModelChildren } from "./model-active-children.js";
 
 /** Stored text only; drawings and field instructions never execute. */
-export function modelText(node: XmlElement): string {
+export function modelText(node: XmlElement, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): string {
   let text = "";
   const visit = (current: XmlElement) => {
     if (current.namespace !== node.namespace) return;
@@ -34,7 +35,7 @@ export function modelText(node: XmlElement): string {
     )
       text += "\n";
     else if (["p", "hyperlink", "r"].includes(name))
-      for (const child of current.children) visit(child);
+      for (const child of children(current)) visit(child);
   };
   visit(node);
   return text;
@@ -61,7 +62,7 @@ export class Paragraph {
     return this.store.part(this.ref.part);
   }
   get text(): string {
-    return modelText(this.store.node(this.ref));
+    return modelText(this.store.node(this.ref), activeModelChildren(this.store, this.ref.part));
   }
   set text(value: string) {
     if (typeof value !== "string") throw new InputTypeError("Expected paragraph text.");
@@ -78,19 +79,19 @@ export class Paragraph {
   }
   get runs(): readonly Run[] {
     const p = this.store.node(this.ref);
-    return p.children
+    return activeModelChildren(this.store, this.ref.part)(p)
       .filter((child) => child.namespace === p.namespace && child.localName === "r")
       .map((child) => this.store.run(this.store.ref(this.ref.part, child)));
   }
   get hyperlinks(): readonly Hyperlink[] {
     const p = this.store.node(this.ref);
-    return p.children
+    return activeModelChildren(this.store, this.ref.part)(p)
       .filter((child) => child.namespace === p.namespace && child.localName === "hyperlink")
       .map((child) => new Hyperlink(this.store, this.store.ref(this.ref.part, child)));
   }
   *iter_inner_content(): IterableIterator<Run | Hyperlink> {
     const p = this.store.node(this.ref);
-    for (const child of p.children) {
+    for (const child of activeModelChildren(this.store, this.ref.part)(p)) {
       this.store.context.budget.charge("work", 1);
       if (child.namespace !== p.namespace) continue;
       if (child.localName === "r") yield this.store.run(this.store.ref(this.ref.part, child));
@@ -243,7 +244,7 @@ export class Run {
     return this.store.part(this.ref.part);
   }
   get text(): string {
-    return modelText(this.store.node(this.ref));
+    return modelText(this.store.node(this.ref), activeModelChildren(this.store, this.ref.part));
   }
   set text(value: string) {
     if (typeof value !== "string") throw new InputTypeError("Expected run text.");
@@ -400,7 +401,7 @@ export class Run {
     };
     const paragraph = findParagraph(this.store.xml(this.ref.part).root);
     let text = "";
-    for (const child of run.children) {
+    for (const child of activeModelChildren(this.store, this.ref.part)(run)) {
       this.store.context.budget.charge("work", 1);
       if (child.namespace !== run.namespace) continue;
       if (child.localName === "lastRenderedPageBreak") {
@@ -410,7 +411,7 @@ export class Run {
         if (text) { yield text; text = ""; }
         yield new Drawing(this.store, this.store.ref(this.ref.part, child));
       } else if (["t", "tab", "ptab", "noBreakHyphen", "br", "cr"].includes(child.localName)) {
-        text += modelText({ ...run, children: [child] });
+        text += modelText(child);
       }
     }
     if (text) yield text;

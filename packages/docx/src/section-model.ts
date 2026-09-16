@@ -24,12 +24,13 @@ import {
 } from "./formatting-values.js";
 import type { DocxEnumValue } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
+import { activeModelChildren } from "./model-active-children.js";
 
 function refs(store: ModelStore): ModelRef[] {
   const xml = store.xml(store.mainPart),
     body = sectionChild(xml.root, "body")!;
   const nodes: XmlElement[] = [];
-  for (const child of body.children) {
+  for (const child of activeModelChildren(store, store.mainPart)(body)) {
     if (child.namespace !== body.namespace) continue;
     if (child.localName === "p") {
       const section = sectionChild(sectionChild(child, "pPr"), "sectPr");
@@ -269,7 +270,7 @@ export class Section {
       position = sections.findIndex((ref) => ref.id === this.ref.id);
     this.store.node(this.ref);
     let current = 0;
-    for (const block of body.children) {
+    for (const block of activeModelChildren(this.store, this.ref.part)(body)) {
       if (block.namespace !== body.namespace || !["p", "tbl"].includes(block.localName)) continue;
       if (current === position)
         yield block.localName === "p"

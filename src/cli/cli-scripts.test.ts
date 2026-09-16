@@ -16,6 +16,7 @@ import { createPromptRunner } from "./prompt-runner.js";
 import { AuthenticationError, OperationCancelledError, ValidationError } from "./errors.js";
 import { createServiceRegistry, type ProviderService } from "./service-registry.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
+import { saveConfiguredService } from "../services/config.js";
 
 // ---------------------------------------------------------------------------
 // build-comment-prompt-script
@@ -1055,6 +1056,12 @@ describe("ensureIsolatedConfigForService", () => {
     });
 
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-new");
+    await saveConfiguredService({
+      fs: isolatedFs,
+      filePath: container.env.configPath,
+      service: "codex",
+      metadata: { files: [], provider: "poe" }
+    });
     vi.spyOn(container.options, "resolveModel").mockImplementation(
       async ({ defaultValue }) => defaultValue
     );

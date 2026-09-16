@@ -1,0 +1,15 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-5
+
+ ✓ scripts/docx-exports.test.ts (2 tests) 1824ms
+   ✓ closes the document runtime over portable ZIP and XML implementations  1820ms
+ ✓ packages/docx/src/document-model.test.ts (7 tests) 829ms
+ ✓ packages/docx/src/notes.test.ts (25 tests) 3781ms
+   ✓ inserts footnotes and endnotes with independent reserved IDs (false)  344ms
+   ✓ removes one shared reference without deleting its body then removes the last  306ms
+   ✓ keeps note images and relationships through scoped edits and deletion  329ms
+
+ Test Files  3 passed (3)
+      Tests  34 passed (34)
+   Start at  18:01:53
+   Duration  5.37s (transform 2.55s, setup 103ms, import 3.19s, tests 6.43s, environment 0ms)

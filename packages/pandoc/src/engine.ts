@@ -18,13 +18,25 @@ import type {
 
 class Session extends ExecutionContext {
   lossy = false;
+  standalone = false;
+  rawContent: WriteOptions["rawContent"];
+  metadata: WriteOptions["metadata"];
   options(options: ReadOptions | WriteOptions | ConversionOptions): void {
     const allowed =
-      this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "lossy"] : ["from", "to", "lossy"];
+      this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "lossy", "standalone", "metadata", "rawContent"];
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
     this.lossy = "lossy" in options && options.lossy === true;
+    if ("to" in options) {
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "lossy"].includes(key)));
+      if (options.standalone !== undefined && typeof options.standalone !== "boolean") this.fail("E_OPTION", "standalone must be boolean");
+      if (options.rawContent !== undefined && !["reject", "escape", "retain"].includes(options.rawContent)) this.fail("E_OPTION", "Invalid rawContent policy");
+      if (options.metadata !== undefined && (options.metadata === null || typeof options.metadata !== "object" || Array.isArray(options.metadata))) this.fail("E_OPTION", "metadata must be a map of MetaValue nodes");
+      this.standalone = options.standalone === true;
+      this.rawContent = options.rawContent;
+      this.metadata = options.metadata;
+    }
   }
   readonly registry = createFormatRegistry(undefined, this.context, this.operation);
   async input(input: InputSource, format: string): Promise<Input> {
@@ -72,6 +84,7 @@ class Session extends ExecutionContext {
   }
 
   async writable(document: Document, math?: "source"): Promise<Document> {
+    if (this.metadata) document = await this.document({...document, metadata: {...document.metadata, ...this.metadata}});
     if (math !== "source") {
       const visit = async (value: unknown, path: string): Promise<void> => {
         await this.cooperate();

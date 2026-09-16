@@ -1,10 +1,9 @@
-import type { Alignment, Attr, Block, Caption, ColSpec, Inline, Row } from "./ast-types.js";
+import type { Alignment, Attr, Block, Inline, Row } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import type { FormatSelection } from "./formats.js";
 import { PandocError } from "./errors.js";
 import { placeRows, type Table } from "./tables.js";
 
-const alignments: Record<Alignment, string> = {AlignLeft: "left", AlignRight: "right", AlignCenter: "center", AlignDefault: ""};
 const delimiters: Record<Alignment, string> = {AlignLeft: ":---", AlignRight: "---:", AlignCenter: ":---:", AlignDefault: "---"};
 
 /** Every retained fragment is reserved before concatenation or array growth. */
@@ -123,61 +122,8 @@ function inline(nodes: readonly Inline[], out: Projection, path: string, html: b
     }
   }
 }
-function caption(c: Caption, out: Projection, path: string, html: boolean): void {
-  if (c[0]?.length && c[1].length) out.loss(`${path}[0]`, "Flattened alternative short caption");
-  if (c[1].length) blocks(c[1], out, `${path}[1]`, html);
-  else if (c[0]) inline(c[0], out, `${path}[0]`, html);
-}
 function simpleCell(blocks: readonly Block[]): boolean {
   return blocks.length === 0 || (blocks.length === 1 && (blocks[0]?.t === "Plain" || blocks[0]?.t === "Para"));
-}
-async function htmlRows(rows: readonly Row[], out: Projection, colspecs: readonly ColSpec[], path: string, header: boolean, rowHeads = 0): Promise<void> {
-  let current = -1;
-  for (const placed of placeRows(rows, colspecs.length, path, rowHeads)) {
-    await out.context.cooperate();
-    if (!placed) continue;
-    while (current < placed.row) {
-      if (current >= 0) out.add("</tr>\n");
-      current++; out.add("<tr"); out.attrs(rows[current]![0]); out.add(">");
-    }
-    const cell = placed.cell;
-    const isHead = header || placed.column < rowHeads;
-    const tag = isHead ? "th" : "td";
-    out.add(`<${tag}`); out.attrs(cell[0]);
-    if(isHead) out.add(` scope="${header ? "col" : "row"}"`);
-    if(cell[2] !== 1) out.add(` rowspan="${cell[2]}"`);
-    if(cell[3] !== 1) out.add(` colspan="${cell[3]}"`);
-    const alignment = cell[1] === "AlignDefault" ? (colspecs[placed.column]?.[0] ?? "AlignDefault") : cell[1];
-    if(alignments[alignment]) out.add(` style="text-align:${alignments[alignment]}"`);
-    out.add(">"); blocks(cell[4], out, `${placed.path}[4]`, true); out.add(`</${tag}>`);
-  }
-  while (current < rows.length - 1) {
-    if(current >= 0) out.add("</tr>\n");
-    current++; out.add("<tr"); out.attrs(rows[current]![0]); out.add(">");
-  }
-  if(current >= 0) out.add("</tr>\n");
-}
-async function htmlTable(t: Table, out: Projection, p: string): Promise<void> {
-  out.add("<table"); out.attrs(t.c[0]); out.add(">\n");
-  if(t.c[1][1].length || t.c[1][0]?.length) {out.add("<caption>"); caption(t.c[1], out, `${p}.c[1]`, true); out.add("</caption>\n");}
-  out.add("<colgroup>");
-  for (const [align, width] of t.c[2]) {
-    out.add("<col");
-    const style = [width.t === "ColWidth" ? `width:${width.c * 100}%` : "", alignments[align] ? `text-align:${alignments[align]}` : ""].filter(Boolean).join(";");
-    if(style) out.add(` style="${style}"`);
-    out.add(">");
-  }
-  out.add("</colgroup>\n");
-  if (t.c[3][1].length) {
-    out.add("<thead"); out.attrs(t.c[3][0]); out.add(">\n"); await htmlRows(t.c[3][1], out, t.c[2], `${p}.c[3][1]`, true); out.add("</thead>\n");
-  }
-  for(const [i, body] of t.c[4].entries()) {
-    out.add("<tbody"); out.attrs(body[0]); out.add(">\n");
-    await htmlRows(body[2], out, t.c[2], `${p}.c[4][${i}][2]`, true);
-    await htmlRows(body[3], out, t.c[2], `${p}.c[4][${i}][3]`, false, body[1]); out.add("</tbody>\n");
-  }
-  if(t.c[5][1].length) {out.add("<tfoot"); out.attrs(t.c[5][0]); out.add(">\n"); await htmlRows(t.c[5][1], out, t.c[2], `${p}.c[5][1]`, false); out.add("</tfoot>\n");}
-  out.add("</table>\n");
 }
 function blocks(nodes: readonly Block[], out: Projection, path: string, html: boolean, start = 0): void {
   for(const [i, node] of nodes.entries()) {
@@ -282,15 +228,6 @@ function checkPlainNotes(value: unknown, path: string, out: Projection): void {
   if("t" in value && value.t === "Note") {out.loss(path, "Flattened complex cell note"); return;}
   if(Array.isArray(value)) for(const [i, child] of value.entries()) checkPlainNotes(child, `${path}[${i}]`, out);
   else for(const [key, child] of Object.entries(value)) checkPlainNotes(child, `${path}.${key}`, out);
-}
-export async function writeHtml5(document: Document, context: AdapterContext): Promise<SerializedDocument> {
-  const out = new Projection(context, "html5");
-  for(const [i, node] of document.blocks.entries()) {
-    await context.cooperate();
-    if(node.t === "Table") await htmlTable(node, out, `$.blocks[${i}]`);
-    else blocks([node], out, "$.blocks", true, i);
-  }
-  return out.finish();
 }
 export async function writeGfm(document: Document, context: AdapterContext, selection?: FormatSelection): Promise<SerializedDocument> {
   const out = new Projection(context, "gfm");

@@ -1,8 +1,8 @@
 import type { FormatDescriptor } from "../formats.js";
-import { writeHtml5 } from "../table-writers.js";
+import { writeHtml5 } from "../html-writer.js";
 export default {
   name: "html5",
-  writer: { format: "html5", write: writeHtml5 },
+  writer: { format: "html5", math: "source", write: writeHtml5 },
   read: false,
   write: true,
   media: "text",
@@ -11,7 +11,7 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["standalone"]
+    write: ["standalone", "metadata", "rawContent"]
   },
   aliases: {
     write: ["html"]

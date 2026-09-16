@@ -42,6 +42,7 @@ export type DiagnosticCode =
   | "E_IO"
   | "E_INTERNAL"
   | "W_TABLE_LOSS"
+  | "W_RAW_CONTENT"
   | "W_METADATA_CONFLICT";
 export interface Diagnostic {
   readonly code: DiagnosticCode;
@@ -91,6 +92,9 @@ export interface ReadOptions {
 }
 export interface WriteOptions {
   readonly to: string;
+  readonly standalone?: boolean;
+  readonly metadata?: Readonly<Record<string, MetaValue>>;
+  readonly rawContent?: "reject" | "escape" | "retain";
   /** Strict by default; explicitly permit diagnosed table text projections. */
   readonly lossy?: boolean;
 }
@@ -99,6 +103,8 @@ export interface ConversionOptions extends ReadOptions, WriteOptions {}
 export interface AdapterContext {
   readonly operation?: Operation;
   readonly lossy?: boolean;
+  readonly standalone?: boolean;
+  readonly rawContent?: "reject" | "escape" | "retain" | undefined;
   readonly signal: AbortSignal | undefined;
   readonly limits: Limits;
   readonly resources: ResourceCapability | undefined;

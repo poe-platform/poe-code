@@ -10,7 +10,7 @@ import { resolveBundleGraph, resolveConsumerGraph } from "./bundle-graph.mjs";
 import { mergeRuntimeBundleOutputs, resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { copyNativeAssets, nativeImportMapping, readNativeRegistry } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { collectCanonicalNativeAssets, readBoundedNativeBytes } from "../packages/package-lint/dist/native-assets.js";
-import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild, resolvePandocBuild } from "./bundle-safe-bash.mjs";
 import {
   canonicalFs,
   collectCanonicalDeclarations,
@@ -265,6 +265,15 @@ await publishBundleOutputs(shellBundle, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(shellBundle);
+
+const pandocOptions = resolvePandocBuild(rootDir);
+const pandocBundle = await esbuild.build(pandocOptions);
+await publishBundleOutputs(pandocBundle, {
+  outdir: pandocOptions.outdir,
+  entryPoints: Object.values(pandocOptions.entryPoints),
+  workingDirectory: rootDir
+});
+consumerBuilds.push(pandocBundle);
 
 // The opt-in converter bundles its private SDK implementation. Its public
 // declaration closure is shipped separately; no private workspace is installed

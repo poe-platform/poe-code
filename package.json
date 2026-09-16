@@ -418,7 +418,11 @@
     },
     "./safe-bash/commands/pandoc": {
       "types": "./packages/safe-bash/dist/commands/pandoc/index.d.ts",
-      "import": "./packages/safe-bash/dist/commands/pandoc/index.js"
+      "import": "./packages/pandoc/dist/public/command.js"
+    },
+    "./pandoc": {
+      "types": "./packages/pandoc/dist/index.d.ts",
+      "import": "./packages/pandoc/dist/public/sdk.js"
     }
   },
   "workspaces": [
@@ -599,6 +603,7 @@
     "packages/office-package/dist",
     "packages/office-package/LICENSE",
     "packages/pandoc/dist/**/*.d.ts",
+    "packages/pandoc/dist/public",
     "packages/pdf/dist/**/*.d.ts",
     "packages/pdf/LICENSE",
     "packages/pdf/OFL.txt",

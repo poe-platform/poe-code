@@ -1,5 +1,18 @@
 import path from "node:path";
 
+export function resolvePandocBuild(rootDir) {
+  const portable = resolveBrowserShellBuild(rootDir);
+  return {
+    ...portable,
+    entryPoints: {
+      sdk: path.join(rootDir, "packages/pandoc/src/index.ts"),
+      command: path.join(rootDir, "packages/safe-bash/src/commands/pandoc/index.ts")
+    },
+    outdir: path.join(rootDir, "packages/pandoc/dist/public"),
+    external: ["poe-code/safe-fs/core"]
+  };
+}
+
 export function resolveBrowserOpBuild(rootDir) {
   const options = resolveBrowserShellBuild(rootDir);
   return {

@@ -116,7 +116,7 @@ it.each([
       name: "docx", exports: { ".": { import: "./dist/index.js" } }
     }));
     for (const name of ["pandoc", "pdf"]) {
-      volume.mkdirSync(path.join(root, `packages/${name}`), {recursive: true});
+      volume.mkdirSync(path.join(root, `packages/${name}/dist`), {recursive: true});
       volume.writeFileSync(path.join(root, `packages/${name}/package.json`), JSON.stringify({
         name: `@poe-code/${name}`, dependencies: {pako: "3.0.1"}
       }));
@@ -190,6 +190,9 @@ it.each([
       expect(volume.existsSync(path.join(root, "dist/metafile.json"))).toBe(false);
     } else {
       await import("./bundle.mjs");
+      for (const entry of ["sdk", "command"]) {
+        expect(volume.existsSync(path.join(root, `packages/pandoc/dist/public/${entry}.js`))).toBe(true);
+      }
       expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/codec.js"), "utf8"))
         .toBe('export { crc } from "../../office-package/dist/zip.js";');
       expect(volume.readFileSync(path.join(root, "packages/pptx/dist/index.js"), "utf8"))

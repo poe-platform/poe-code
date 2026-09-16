@@ -76,6 +76,13 @@ part/package/relationship, core-property and image-resource views over the
 existing domain. Public underscore-prefixed returns and absent full owner
 bindings remain explicit; historical whole-format counts are unchanged.
 
+The later [live table/section/review integration](live-model-integration.md)
+qualifies those scoped owner APIs, inherited rich containers, collections,
+comment range metadata, hyperlinks and cached break fragments over the existing
+engine. Earlier pending statements describe utility-era milestones; exact new
+scoped overlays supersede those dispositions only for this task. Historical
+inventories and whole-format coverage remain unchanged; later tasks are pending.
+
 ## Sources and baseline
 
 The [selective sanitization record](../plans/docx-explicit-sanitization.md)

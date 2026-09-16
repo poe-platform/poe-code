@@ -33,7 +33,8 @@ it("escapes directional controls in human namespace reports while retaining JSON
 it("accounts for every declaration in root schemas, including unsupported public receivers", () => {
   const data = getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data as DocxSchemaData;
   expect(data.operations.map(item => item.id)).toEqual(Object.keys(docxOperationSchemas));
-  expect(data.operations.find(item => item.id === "model.table._Cell.merge.call")).toMatchObject({ path: ["batch"], support: "reject" });
+  expect(data.operations.find(item => item.id === "model.table._Cell.merge.call")).toMatchObject({ path: ["batch"], support: "edit" });
+  expect(data.operations.find(item => item.id === "model.document.Document.add_section.call")).toMatchObject({ path: ["batch"], support: "reject" });
   expect(data.operations.find(item => item.id === "model.image.image.Image.sha1.get")).toMatchObject({ support: "read" });
 });
 it("classifies every format requirement without promoting preservation to editing", () => {

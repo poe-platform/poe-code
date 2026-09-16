@@ -8,6 +8,13 @@ The [bounded XML/package record](xml-package-views.md) links original memfs
 assertions and retained source-case pointers separately. It does not count
 source/native-runtime cases as new passes or promote whole-format parity.
 
+The later [live table/section/review integration](live-model-integration.md)
+qualifies those scoped owner APIs, inherited rich containers, collections,
+comment range metadata, hyperlinks and cached break fragments over the existing
+engine. Earlier pending statements describe utility-era milestones; exact new
+scoped overlays supersede those dispositions only for this task. Historical
+inventories and whole-format coverage remain unchanged; later tasks are pending.
+
 ## Pinned source
 
 - Repository: [https://github.com/python-openxml/python-docx](https://github.com/python-openxml/python-docx)

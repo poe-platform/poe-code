@@ -187,3 +187,9 @@ export { type PackageInventoryV1, type PackageEntry } from "./pack-inventory.js"
 
 export type { DocumentModelContext, DocumentFontMetrics } from "./model-context.js";
 export type { DocumentModelInput } from "./model-input.js";
+
+export { Document, DocumentView } from "./document-model.js";
+export { Paragraph, Run } from "./block-model.js";
+export { Table, _Cell, _Row, _Column, _Rows, _Columns } from "./table-model.js";
+export { Section, Sections, _Header, _Footer } from "./section-model.js";
+export { Comment, Comments, Hyperlink, RenderedPageBreak } from "./review-model.js";

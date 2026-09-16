@@ -71,7 +71,7 @@ class StyleStore {
     this.latentTokens = (readLatentStyles(this.editor().root)?.entries ?? []).map((_, index) => index);
     this.nextLatentToken = this.latentTokens.length;
   }
-  editor(): DocumentXmlEditor { if (!this.cachedEditor) { const settings = archiveSettings(this.context); this.cachedEditor = new DocumentXmlEditor(new TextEncoder().encode(this.source), {}, undefined, settings.budget); } return this.cachedEditor; }
+  editor(): DocumentXmlEditor { const source = this.source; if (!this.cachedEditor) { const settings = archiveSettings(this.context); this.cachedEditor = new DocumentXmlEditor(new TextEncoder().encode(source), {}, undefined, settings.budget); } return this.cachedEditor; }
   nodes(xml: DocumentXmlEditor): XmlElement[] { return xml.root.children.filter(n => n.namespace === xml.root.namespace && n.localName === "style"); }
   node(xml: DocumentXmlEditor, token: number): XmlElement {
     const index = this.tokens.indexOf(token), node = this.nodes(xml)[index];
@@ -88,6 +88,10 @@ class StyleStore {
       this.source = source;
     } finally { this.cachedEditor = undefined; }
   }
+  checkpoint(): () => void {
+    const tokens = this.tokens.slice(), latentTokens = this.latentTokens.slice(), revision = this.revision, warningCount = this.warnings.length;
+    return () => { this.tokens.splice(0, this.tokens.length, ...tokens); this.latentTokens.splice(0, this.latentTokens.length, ...latentTokens); this.revision = revision; this.warnings.length = warningCount; this.cachedEditor = undefined; };
+  }
   add(markup: string): number {
     this.change(xml => xml.insertChildren(xml.root, markup));
     const token = this.nextToken++; this.tokens.push(token); return token;
@@ -99,6 +103,7 @@ class StyleStore {
 }
 
 /** Internal mutation state for batch accounting; not part of the public barrel. */
+export const styleOwnerCheckpoints = new WeakMap<Styles, () => () => void>();
 export const styleModelMutations = new WeakMap<Styles, { readonly revision: number }>();
 
 /** Read-only part metadata with owned byte snapshots; edits use the live model. */
@@ -390,4 +395,24 @@ export async function openDocumentStyleModel(input?: DocumentModelInput | null, 
   } };
   await packageView[packageAdmitImages]();
   return model;
+}
+
+/** Internal binding for format owners sharing one admitted package state. */
+export function bindDocumentStyles(owner: {
+  readonly context: ArchiveContext;
+  readonly package: PackageView;
+  readonly partname: string;
+  read(): Uint8Array;
+  write(bytes: Uint8Array): void;
+  writable(): void;
+}): Styles {
+  const store = new StyleStore(new TextDecoder().decode(owner.read()), owner.context, () => owner.writable(), owner.partname, owner.package);
+  Object.defineProperty(store, "source", {
+    get: () => new TextDecoder().decode(owner.read()),
+    set: (source: string) => owner.write(new TextEncoder().encode(source))
+  });
+  const styles = store.part.styles;
+  styleModelMutations.set(styles, store);
+  styleOwnerCheckpoints.set(styles, () => store.checkpoint());
+  return styles;
 }

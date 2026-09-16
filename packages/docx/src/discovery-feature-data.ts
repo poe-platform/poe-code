@@ -36,6 +36,7 @@ export const declaredOperationFeatures: Readonly<Record<string, readonly string[
   "model.document.Document.part.get": ["F06", "F11"],
   "model.document.Document.save.call": ["F06", "F11"],
   "model.document.Document.sections.get": ["F06", "F11"],
+  "model.document.Document.styles.get": ["F12", "F13", "F14"],
   "model.document.Document.settings.get": ["F06", "F11"],
   "model.document.Document.tables.get": ["F06", "F11"],
   "model.opc.coreprops.CoreProperties.author.get": ["F30"],

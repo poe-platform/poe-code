@@ -1,6 +1,8 @@
 import { docxOperationSchemas, splitDocxType } from "./operation-schema.js";
 import { docxValueSchema, type DocxJsonSchema } from "./operation-json-schema.js";
-import { styleModelBatchOperations } from "./style-model-batch-operations.js";
+import { styleModelBatchOperations as styleOperations } from "./style-model-batch-operations.js";
+import { structureModelBatchActions } from "./structure-model-batch-operations.js";
+const styleModelBatchOperations = [...styleOperations, ...structureModelBatchActions.keys()];
 const object = (properties: Record<string, DocxJsonSchema>): DocxJsonSchema => ({ type: "object", properties, required: Object.keys(properties), additionalProperties: false });
 const string: DocxJsonSchema = { type: "string" };
 const integer: DocxJsonSchema = { type: "integer", minimum: 0 };

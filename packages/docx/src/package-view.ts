@@ -40,6 +40,8 @@ const packageImage = Symbol("image");
 const packageImages = Symbol("images");
 /** Internal admission hook; never a batch callback or public barrel export. */
 export const packageAdmitImages = Symbol("admit-images");
+/** Internal transaction checkpoint; preserves package and retained part identities. */
+export const packageOwnerCheckpoint = Symbol("owner-checkpoint");
 const packageLoadImage = Symbol("load-image");
 const partNames = new WeakMap<PartView, string>();
 
@@ -77,6 +79,18 @@ export class PackageView {
     return model.package;
   }
   get revision(): number { return this.#revision; }
+  [packageOwnerCheckpoint](): () => void {
+    const parts = new Map(this.#parts), relationships = new Map(this.#relationships), images = new Map(this.#images), revision = this.#revision;
+    const names = new Map([...parts.values()].map(part => [part, partNames.get(part)!]));
+    return () => {
+      for (const part of this.#parts.values()) if (!names.has(part)) partNames.delete(part);
+      this.#parts.clear(); for (const [key, part] of parts) this.#parts.set(key, part);
+      for (const [part, name] of names) partNames.set(part, name);
+      this.#relationships.clear(); for (const [key, value] of relationships) this.#relationships.set(key, value);
+      this.#images.clear(); for (const [key, image] of images) this.#images.set(key, image);
+      this.#revision = revision; this.#cached = undefined;
+    };
+  }
   private current(): { archive: DocumentArchive; graph: DocumentPackage } {
     const settings = archiveSettings(this.#binding.context);
     settings.budget.check("work", 0);
@@ -357,7 +371,7 @@ export class PartView {
     return owner[packageAdmitPart](partname, content_type, blob);
   }
   get package(): PackageView { return this.#package; }
-  get partname(): PackURI { return new PackURI(partNames.get(this)!); }
+  get partname(): PackURI { const name = partNames.get(this); if (!name) throw new StaleHandleError("The part owner is detached."); return new PackURI(name); }
   set partname(value: string | PackURI) { this.#package[packageRename](this, value); }
   get content_type(): string { return this.#package[packageMetadata](this).content_type; }
   get blob(): Uint8Array { const bytes = this.#package[packageMetadata](this).bytes; return new Uint8Array(bytes); }

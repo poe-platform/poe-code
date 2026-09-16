@@ -16,6 +16,8 @@ export async function executeStyleModelCommand(invocation: DocxInvocation, bytes
     return { ...item, arguments: { ...item.arguments, imageDescriptor: { ...descriptor, path: resolvePath(request.cwd, descriptor.path as string) } } };
   });
   const model = await applyStyleModelBatch(bytes, { version: options.version, operations }, { ...context,
+    ...(options.timestamp === undefined ? {} : { timestamp: new Date(options.timestamp as string) }),
+    ...(options.author === undefined ? {} : { author: options.author as string }),
     ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}),
     binaryResolver: { capability: "command", async *open(path, { signal, maxBytes }) {
       const readStream = request.filesystem.readStream;

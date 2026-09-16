@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import metadata from "../package.json" with { type: "json" };
-import { type DocxHelpData, getDocxDiscovery, type DocxCapabilitiesData } from "./discovery.js";
+import { type DocxHelpData, getDocxDiscovery, type DocxCapabilitiesData, type DocxSchemaData } from "./discovery.js";
 import { parseDocxArguments } from "./command.js";
 import { DocumentBudget } from "./budget.js";
 import { CancellationError, ResourceLimitError } from "./archive.js";
@@ -114,12 +114,22 @@ describe("document discovery", () => {
   });
 
   it("includes private-looking public model declarations without claiming implementation", () => {
-    const id = Object.keys(docxOperationSchemas).find(id => id.includes("._") && docxOperationSchemas[id]!.transport === "typed-batch")!;
+    const schema = discover("schema")!.data as DocxSchemaData;
+    const id = schema.operations.find(item => item.id.includes("._") && item.support === "reject")!.id;
     expect(id).toBeTruthy();
     const result = discover("help", "batch", "--operation", id)!;
     expect(result.human).toContain(id);
     expect(result.human).toContain("not implemented");
     expect(discover("schema", "batch", "--operation", id)!.data).toMatchObject({ operations: [{ id, path: ["batch"], support: "reject" }] });
+  });
+
+  it("reports declared format features for implemented live model operations", () => {
+    expect(discover("schema", "batch", "--operation", "model.table._Cell.text.get")!.data).toMatchObject({ operations: [{ support: "read", featureIds: ["F19", "F20"] }] });
+    expect(discover("schema", "batch", "--operation", "model.section._Header.add_paragraph.call")!.data).toMatchObject({ operations: [{ support: "edit", featureIds: ["F16", "F17"] }] });
+  });
+  it("keeps utility help consistent with implemented table and hyperlink models", () => {
+    expect(discover("help", "tables", "merge")!.human).not.toContain("Live table model operations remain pending");
+    expect(discover("help", "links", "list")!.human).not.toContain("live hyperlink model remain pending");
   });
 
   it("reports conservative host support and effective limits without document claims", () => {

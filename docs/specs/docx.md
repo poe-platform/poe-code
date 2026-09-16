@@ -13,6 +13,11 @@ package, part and resource views over the existing style/formatting domain. Full
 document owner bindings and whole-public-API coverage remain pending; the full
 proposed contract below is retained.
 
+The later [live table/section/review record](../docx/live-model-integration.md)
+qualifies shared document owner bindings for that scoped graph. Earlier utility
+milestone pending statements are historical; whole-public-API coverage and
+neighboring model tasks remain pending under the shared office contracts.
+
 Purpose: Define the intended document-format coverage and observable behavior of the original `docx` utility and its TypeScript SDK.
 
 This remains the full proposed contract. Scoped package-engine evidence is in

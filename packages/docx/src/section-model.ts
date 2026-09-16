@@ -28,12 +28,13 @@ import { activeModelChildren } from "./model-active-children.js";
 
 function refs(store: ModelStore): ModelRef[] {
   const xml = store.xml(store.mainPart),
-    body = sectionChild(xml.root, "body")!;
+    children = activeModelChildren(store, store.mainPart),
+    body = sectionChild(xml.root, "body", children)!;
   const nodes: XmlElement[] = [];
-  for (const child of activeModelChildren(store, store.mainPart)(body)) {
+  for (const child of children(body)) {
     if (child.namespace !== body.namespace) continue;
     if (child.localName === "p") {
-      const section = sectionChild(sectionChild(child, "pPr"), "sectPr");
+      const section = sectionChild(sectionChild(child, "pPr", children), "sectPr", children);
       if (section) nodes.push(section);
     } else if (child.localName === "sectPr") nodes.push(child);
   }
@@ -114,7 +115,7 @@ export class Section {
     );
   }
   private length(tag: string, attr: string): Length | null {
-    const value = sectionAttribute(sectionChild(this.store.node(this.ref), tag), attr);
+    const value = sectionAttribute(sectionChild(this.store.node(this.ref), tag, activeModelChildren(this.store, this.ref.part)), attr);
     if (value === undefined) return null;
     if (!Number.isSafeInteger(Number(value)))
       throw new InvalidValueError("Invalid section length storage.");
@@ -193,7 +194,7 @@ export class Section {
     this.setLength("pgMar", "footer", v);
   }
   get orientation(): DocxEnumValue<"WD_ORIENTATION"> {
-    return sectionAttribute(sectionChild(this.store.node(this.ref), "pgSz"), "orient") ===
+    return sectionAttribute(sectionChild(this.store.node(this.ref), "pgSz", activeModelChildren(this.store, this.ref.part)), "orient") ===
       "landscape"
       ? WD_ORIENT.LANDSCAPE
       : WD_ORIENT.PORTRAIT;
@@ -205,7 +206,7 @@ export class Section {
   }
   get start_type(): DocxEnumValue<"WD_SECTION_START"> {
     const value =
-      sectionAttribute(sectionChild(this.store.node(this.ref), "type"), "val") ?? "nextPage";
+      sectionAttribute(sectionChild(this.store.node(this.ref), "type", activeModelChildren(this.store, this.ref.part)), "val") ?? "nextPage";
     const name = Object.entries(sectionStarts).find(([, stored]) => value === stored)?.[0] as
       | keyof typeof sectionStarts
       | undefined;
@@ -228,7 +229,7 @@ export class Section {
     });
   }
   get different_first_page_header_footer(): boolean {
-    return sectionBoolean(sectionChild(this.store.node(this.ref), "titlePg"));
+    return sectionBoolean(sectionChild(this.store.node(this.ref), "titlePg", activeModelChildren(this.store, this.ref.part)));
   }
   set different_first_page_header_footer(value: boolean) {
     if (typeof value !== "boolean")
@@ -265,18 +266,19 @@ export class Section {
     return new _Footer(this, "even");
   }
   *iter_inner_content() {
-    const body = sectionChild(this.store.xml(this.ref.part).root, "body")!,
+    const children = activeModelChildren(this.store, this.ref.part),
+      body = sectionChild(this.store.xml(this.ref.part).root, "body", children)!,
       sections = refs(this.store),
       position = sections.findIndex((ref) => ref.id === this.ref.id);
     this.store.node(this.ref);
     let current = 0;
-    for (const block of activeModelChildren(this.store, this.ref.part)(body)) {
+    for (const block of children(body)) {
       if (block.namespace !== body.namespace || !["p", "tbl"].includes(block.localName)) continue;
       if (current === position)
         yield block.localName === "p"
           ? this.store.paragraph(this.store.ref(this.ref.part, block))
           : this.store.table(this.store.ref(this.ref.part, block));
-      if (sectionChild(sectionChild(block, "pPr"), "sectPr")) current++;
+      if (sectionChild(sectionChild(block, "pPr", children), "sectPr", children)) current++;
     }
   }
 }
@@ -289,7 +291,7 @@ class HeaderFooter {
   ) {}
   private local() {
     const node = this.section.store.node(this.section.ref);
-    return node.children.find(
+    return activeModelChildren(this.section.store, this.section.ref.part)(node).find(
       (child) =>
         child.namespace === node.namespace &&
         child.localName === this.kind + "Reference" &&
@@ -315,18 +317,13 @@ class HeaderFooter {
     const graph = new DocumentPackage(store.snapshot(), store.context.limits, store.context.budget);
     const edge = graph.relationships(store.mainPart).find((edge) => edge.rId === id);
     if (!edge || edge.is_external) throw new InvalidValueError("Invalid story binding.");
-    const shared = refs(store).some((ref) =>
-      store
-        .node(ref)
-        .children.some(
-          (child) =>
-            child !== local &&
-            ["headerReference", "footerReference"].includes(child.localName) &&
-            child.attributes.some(
-              (attr) => attr.namespace === r && attr.localName === "id" && attr.value === id
-            )
-        )
-    );
+    // Inactive alternatives still own their stored relationship references.
+    const referenced = (node: XmlElement): boolean => {
+      store.context.budget.charge("work", 1 + node.attributes.length);
+      return node !== local && node.attributes.some(attr => attr.namespace === r && attr.value === id)
+        || node.children.some(referenced);
+    };
+    const shared = referenced(store.xml(this.section.ref.part).root);
     const owners = [
       "/",
       ...graph.parts.filter((part) => !part.partname.endsWith(".rels")).map((part) => part.partname)

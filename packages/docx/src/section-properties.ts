@@ -11,8 +11,8 @@ export const sectionStarts = { CONTINUOUS: "continuous", NEW_COLUMN: "nextColumn
 export function sectionAttribute(node: XmlElement | undefined, key: string): string | undefined {
   return node?.attributes.find(a => a.namespace === node.namespace && a.localName === key)?.value;
 }
-export function sectionChild(node: XmlElement | undefined, key: string): XmlElement | undefined {
-  const matches = node?.children.filter(c => c.namespace === node.namespace && c.localName === key) ?? [];
+export function sectionChild(node: XmlElement | undefined, key: string, children: (node: XmlElement) => readonly XmlElement[] = node => node.children): XmlElement | undefined {
+  const matches = node ? children(node).filter(c => c.namespace === node.namespace && c.localName === key) : [];
   if (matches.length > 1) throw new UnsupportedEditError("Duplicate section properties cannot be interpreted.");
   return matches[0];
 }
@@ -28,19 +28,19 @@ export function sectionBoolean(node: XmlElement | undefined, attribute = "val", 
   if (value !== undefined && !["0", "1", "true", "false", "on", "off"].includes(value)) throw new UnsupportedEditError("Invalid section policy value.");
   return node === undefined ? absent : value === undefined ? attribute === "val" || absent : ["1", "true", "on"].includes(value);
 }
-export function readSectionProperties(node: XmlElement | undefined) {
-  const size = sectionChild(node, "pgSz"), margin = sectionChild(node, "pgMar"), columns = sectionChild(node, "cols"), numbers = sectionChild(node, "pgNumType");
+export function readSectionProperties(node: XmlElement | undefined, children: (node: XmlElement) => readonly XmlElement[] = node => node.children) {
+  const size = sectionChild(node, "pgSz", children), margin = sectionChild(node, "pgMar", children), columns = sectionChild(node, "cols", children), numbers = sectionChild(node, "pgNumType", children);
   const equalWidth = sectionBoolean(columns, "equalWidth", true);
   return {
     equalWidth,
     pageWidth: integer(size, "w"), pageHeight: integer(size, "h"), orientation: sectionAttribute(size, "orient") ?? "portrait",
     topMargin: integer(margin, "top"), bottomMargin: integer(margin, "bottom"), leftMargin: integer(margin, "left"), rightMargin: integer(margin, "right"),
     gutter: integer(margin, "gutter", 0), headerDistance: integer(margin, "header"), footerDistance: integer(margin, "footer"),
-    startType: sectionAttribute(sectionChild(node, "type"), "val") ?? "nextPage",
-    columns: equalWidth ? integer(columns, "num", 1) : columns!.children.filter(c => c.namespace === columns!.namespace && c.localName === "col").length,
+    startType: sectionAttribute(sectionChild(node, "type", children), "val") ?? "nextPage",
+    columns: equalWidth ? integer(columns, "num", 1) : children(columns!).filter(c => c.namespace === columns!.namespace && c.localName === "col").length,
     columnGap: equalWidth ? integer(columns, "space", 720) : null, columnSeparator: sectionBoolean(columns, "sep"),
     pageNumberStart: integer(numbers, "start"), pageNumberFormat: sectionAttribute(numbers, "fmt") ?? "decimal",
-    differentFirstPage: sectionBoolean(sectionChild(node, "titlePg"))
+    differentFirstPage: sectionBoolean(sectionChild(node, "titlePg", children))
   };
 }
 export type SectionDirectProperties = ReturnType<typeof readSectionProperties>;

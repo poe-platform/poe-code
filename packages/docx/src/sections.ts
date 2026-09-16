@@ -14,6 +14,7 @@ import { formatSectionProperties, readSectionProperties, sectionAttribute, secti
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 import type { DocumentBudget } from "./budget.js";
 import type { XmlElement } from "./package-xml.js";
+import type { CompatibilityContent } from "./compatibility.js";
 
 export interface SectionBinding { readonly linkedToPrevious: boolean; readonly sourceSection: number | null; readonly part: string | null }
 export interface SectionInfo {
@@ -33,27 +34,36 @@ export interface SectionEditData {
   readonly dryRun: boolean;
 }
 interface Owner { node: XmlElement | undefined; path: readonly number[]; owner: "body" | "paragraph" }
-function sectionOwners(body: XmlElement, bodyPath: readonly number[], budget: DocumentBudget): Owner[] {
+function sectionOwners(body: XmlElement, bodyPath: readonly number[], budget: DocumentBudget, children: (node: XmlElement) => readonly XmlElement[]): Owner[] {
   const result: Owner[] = [];
   const w = body.namespace;
+  const paths = new Map<XmlElement, readonly number[]>();
+  const locate = (node: XmlElement, path: readonly number[]) => {
+    budget.charge("work", 1);
+    budget.charge("retainedBytes", 64 + path.length * 8);
+    paths.set(node, path);
+    node.children.forEach((child, index) => locate(child, [...path, index]));
+  };
+  locate(body, bodyPath);
+  const blocks = children(body);
   let final: XmlElement | undefined;
-  body.children.forEach((child, i) => {
+  blocks.forEach((child, i) => {
     if (child.namespace !== w) return;
     if (child.localName === "sectPr") {
-      if (final || i !== body.children.length - 1) throw new UnsupportedEditError("Final section properties must remain last in the body.");
+      if (final || i !== blocks.length - 1) throw new UnsupportedEditError("Final section properties must remain last in the body.");
       final = child;
     }
     if (child.localName === "p") {
-      const props = sectionChild(child, "pPr"), section = sectionChild(props, "sectPr");
-      if (section) result.push({ node: section, path: [...bodyPath, i, child.children.indexOf(props!), props!.children.indexOf(section)], owner: "paragraph" });
+      const props = sectionChild(child, "pPr", children), section = sectionChild(props, "sectPr", children);
+      if (section) result.push({ node: section, path: paths.get(section)!, owner: "paragraph" });
     }
   });
-  result.push({ node: final, path: final ? [...bodyPath, body.children.indexOf(final)] : bodyPath, owner: "body" });
+  result.push({ node: final, path: final ? paths.get(final)! : bodyPath, owner: "body" });
   const admitted = new Set(result.map(o => o.node));
   const visit = (node: XmlElement) => {
     budget.charge("work", 1);
     if (node.namespace === w && node.localName === "sectPr" && !admitted.has(node)) throw new UnsupportedEditError("Section properties inside revisions or unsupported containers cannot be edited.");
-    for (const child of node.children) visit(child);
+    for (const child of children(node)) visit(child);
   };
   visit(body);
   return result;
@@ -63,8 +73,21 @@ export function sectionState(document: DocumentLocations, archive: DocumentArchi
   const main = bodyLocation.value.part.slice(1);
   const editor = new DocumentArchiveEditor(archive, {}, undefined, settings.budget);
   const xml = editor.xml(main);
-  const body = xml.root.children.find(c => c.namespace === xml.root.namespace && c.localName === "body")!;
-  const owners = sectionOwners(body, bodyLocation.value.path, settings.budget);
+  const active = new Map<XmlElement, readonly XmlElement[]>();
+  const collect = (content: readonly CompatibilityContent[]) => {
+    for (const item of content) if ("source" in item) {
+      settings.budget.charge("retainedBytes", 96 + item.content.length * 8);
+      active.set(item.source, item.content.filter(child => "source" in child).map(child => child.source));
+      collect(item.content);
+    }
+  };
+  collect(xml.compatibility.content);
+  const children = (node: XmlElement) => {
+    settings.budget.charge("work", 1);
+    return active.get(node) ?? [];
+  };
+  const body = sectionChild(xml.root, "body", children)!;
+  const owners = sectionOwners(body, bodyLocation.value.path, settings.budget, children);
   const graph = new DocumentPackage(archive, settings.limits, settings.budget);
   const dialect = dialectForNamespace(xml.root.namespace)!;
   const r = documentDialects[dialect].r;
@@ -74,7 +97,8 @@ export function sectionState(document: DocumentLocations, archive: DocumentArchi
   if (settingEdges.length > 1 || settingEdges[0]?.is_external) throw new UnsupportedEditError("Settings require one internal relationship.");
   const settingEdge = settingEdges[0];
   const settingXml = settingEdge ? editor.xml(settingEdge.target_part.name) : undefined;
-  const evenAndOddHeaders = sectionBoolean(sectionChild(settingXml?.root, "evenAndOddHeaders"));
+  if (settingXml) collect(settingXml.compatibility.content);
+  const evenAndOddHeaders = sectionBoolean(sectionChild(settingXml?.root, "evenAndOddHeaders", children));
   const inherited = { headers: new Map<string, SectionBinding>(), footers: new Map<string, SectionBinding>() };
   const items: SectionInfo[] = owners.map((owner, i) => {
     settings.budget.charge("work", 1);
@@ -84,7 +108,7 @@ export function sectionState(document: DocumentLocations, archive: DocumentArchi
     settings.budget.charge("retainedBytes", location.token.length * 4);
     const bindings = (kind: "headers" | "footers") => Object.fromEntries((["default", "first", "even"] as const).map(variant => {
       const name = kind === "headers" ? "header" : "footer";
-      const refs = owner.node?.children.filter(n => n.namespace === xml.root.namespace && n.localName === name + "Reference" && sectionAttribute(n, "type") === variant) ?? [];
+      const refs = owner.node ? children(owner.node).filter(n => n.namespace === xml.root.namespace && n.localName === name + "Reference" && sectionAttribute(n, "type") === variant) : [];
       if (refs.length > 1) throw new UnsupportedEditError("Duplicate section story bindings cannot be interpreted.");
       let binding = inherited[kind].get(variant);
       if (refs[0]) {
@@ -96,7 +120,7 @@ export function sectionState(document: DocumentLocations, archive: DocumentArchi
       }
       return [variant, { linkedToPrevious: !refs.length, sourceSection: binding?.sourceSection ?? null, part: binding?.part ?? null }];
     })) as unknown as SectionInfo["headers"];
-    return { position: i + 1, owner: owner.owner, location, direct: readSectionProperties(owner.node), headers: bindings("headers"), footers: bindings("footers") };
+    return { position: i + 1, owner: owner.owner, location, direct: readSectionProperties(owner.node, children), headers: bindings("headers"), footers: bindings("footers") };
   });
   return { editor, xml, body, main, owners, items, evenAndOddHeaders, graph, dialect, settingXml, settingEdge };
 }

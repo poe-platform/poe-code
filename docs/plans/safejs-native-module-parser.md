@@ -34,6 +34,13 @@ do not include unrelated workspace changes.
   top-level-await detection.
 - Source-module execution through Node, core and Workerd source entry points
   succeeds with Acorn resolution explicitly blocked.
+- The rebased candidate passes the maintained workspace build. Ad hoc CLI
+  screenshots verify rooted imports with top-level await and positioned parse
+  diagnostics. Source modules compile once, including one-shot result hashing.
+- Repository qualification exposed stale provider-selection and archived-document
+  fixtures. Focused tests reproduce those failures; corrected fixtures use
+  explicit provider metadata, empty environments and mocked command execution.
+  All 172 tests across the affected files pass.
 - The working checkout has unrelated committed history and a substantially newer
   remote main. Rebase only the native-parser and necessary module-integration
   commits onto current remote main in a detached validation worktree; preserve

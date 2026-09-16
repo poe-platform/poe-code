@@ -1245,6 +1245,8 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
     manifest.dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
+    // This synthetic S3 fixture has no Playwright sources or public peer entries.
+    delete manifest.devDependencies["@poe-code/safe-playwright"];
     const root = { name: "poe-code", version: "0.0.0-synthetic", type: "module", private: true, workspaces: ["packages/*"], devDependencies: { "virtual-bash": "*", "poe-code": "file:." }, exports: Object.fromEntries(Object.entries(manifest.exports).map(([path, conditions]) => [path === "." ? "./safe-bash" : `./safe-bash${path.slice(1)}`, distChecks.mirrorArchiveExportTargets(conditions)])) };
     root.exports["./safe-fs"] = { types: "./packages/safe-fs/dist/index.d.ts", import: "./packages/safe-js/dist/safe-fs.js" };
     const marker = join(directory, "unexpected-lifecycle");

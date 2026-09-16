@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "task": "adapt-upstream-opc-xml-images",
-  "status": "in-progress-not-complete",
+  "status": "complete-selected-families-not-whole-format",
   "crosswalk": {
     "path": "test-case-map.json",
     "sha256": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f"
   },
   "counts": {
     "rows": 369,
-    "passing": 239,
-    "pending": 130
+    "passing": 369,
+    "pending": 0
   },
-  "scope_note": "369 selected rows; 239 pass dedicated original tests and 130 remain pending. Whole public API/format/rendering parity is not claimed; later tasks remain pending.",
+  "scope_note": "All 369 selected package/URI/content-type/serializer/XML/image characterization rows have unique passing original memfs targets. Whole public API/format/pixel/rendering coverage is not claimed; historical inventories and later tasks remain pending.",
   "plan": "../plans/docx-opc-xml-image-adaptation.md",
   "legal_notice": "upstream-license-notice.txt",
   "checks": {
@@ -3339,10 +3339,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Default::it_provides_read_access_to_xml_values"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Default declarations expose extension and media type"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Default declarations expose extension and media type",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3352,10 +3362,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Default::it_can_construct_a_new_default_element"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Default declarations survive XML serialization"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Default declarations survive XML serialization",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3365,10 +3385,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Override::it_provides_read_access_to_xml_values"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Override declarations expose exact owned part names"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Override declarations expose exact owned part names",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3378,10 +3408,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Override::it_can_construct_a_new_override_element"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Override declarations survive original archive serialization"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Override declarations survive original archive serialization",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3391,10 +3431,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_provides_read_access_to_xml_values"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship XML values retain their owner-local metadata"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship XML values retain their owner-local metadata",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3404,10 +3454,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_can_construct_from_attribute_values"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship XML distinguishes absent internal and external target modes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship XML distinguishes absent internal and external target modes",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3417,10 +3477,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_construct_a_new_relationships_element"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "New owner relationship collection serializes an empty root"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "New owner relationship collection serializes an empty root",
+        "status": "passed"
+      },
+      "equivalence": "Native declaration/prefix/empty-element spelling maps to valid explicit UTF-8 relationship XML; preserved untouched bytes retain their exact spelling."
     },
     {
       "source": {
@@ -3430,10 +3500,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_build_rels_element_incrementally"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship additions serialize internal and external edges in insertion order"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship additions serialize internal and external edges in insertion order",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3443,10 +3523,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_generate_rels_file_xml"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Empty relationship XML serializes as explicit UTF-8 bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Empty relationship XML serializes as explicit UTF-8 bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native declaration/prefix/empty-element spelling maps to valid explicit UTF-8 relationship XML; preserved untouched bytes retain their exact spelling."
     },
     {
       "source": {
@@ -3456,10 +3546,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_default_child_elements"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content type XML exposes two independent default declarations"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content type XML exposes two independent default declarations",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3469,10 +3569,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_override_child_elements"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content type XML exposes three independent override declarations"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content type XML exposes three independent override declarations",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3482,10 +3592,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_should_have_empty_list_on_no_matching_elements"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Missing content type children return empty query lists"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Missing content type children return empty query lists",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3495,10 +3615,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_construct_a_new_types_element"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Empty content type element remains a valid XML value"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Empty content type element remains a valid XML value",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3508,10 +3638,20 @@
         "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_build_types_element_incrementally"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declarations retain mixed default and override media types"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declarations retain mixed default and override media types",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3521,10 +3661,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_open_a_pkg_file"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Package factory asynchronously admits an explicit original byte source"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Package factory asynchronously admits an explicit original byte source",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3534,10 +3684,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_initializes_its_rels_collection_on_first_reference"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Owner-local relationship access retains collection identity"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Owner-local relationship access retains collection identity",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3547,10 +3707,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_add_a_relationship_to_a_part"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Root relationship loading records explicit owned targets"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Root relationship loading records explicit owned targets",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3560,10 +3730,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_establish_a_relationship_to_another_part"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Root relationship establishment returns a stable owner-local identifier"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Root relationship establishment returns a stable owner-local identifier",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3573,10 +3753,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_provide_a_list_of_the_parts_it_contains"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Package parts list equals the deterministic reachable traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Package parts list equals the deterministic reachable traversal",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3586,10 +3776,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_parts_by_walking_rels_graph"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Cyclic traversal visits owned parts once and skips external targets"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Cyclic traversal visits owned parts once and skips external targets",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3599,10 +3799,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture0]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part allocation fills gap 1 among no occupied numbers"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part allocation fills gap 1 among no occupied numbers",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3612,10 +3822,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture1]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part allocation fills gap 2 among 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part allocation fills gap 2 among 1",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3625,10 +3845,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture2]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part allocation fills gap 3 among 1, 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part allocation fills gap 3 among 1, 2",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3638,10 +3868,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture3]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part allocation fills gap 1 among 2, 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part allocation fills gap 1 among 2, 3",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3651,10 +3891,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture4]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part allocation fills gap 2 among 1, 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part allocation fills gap 2 among 1, 3",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3664,10 +3914,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_a_part_related_by_reltype"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Root relationship type lookup returns the original target owner"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Root relationship type lookup returns the original target owner",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3677,10 +3937,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_save_to_a_pkg_file"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Package output reopens with reachable owned parts and unchanged payloads"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Package output reopens with reachable owned parts and unchanged payloads",
+        "status": "passed"
+      },
+      "equivalence": "Native save call order/subclass callbacks map to final validated package output and exact part bytes; there is no arbitrary dynamic callback dispatch."
     },
     {
       "source": {
@@ -3690,10 +3960,20 @@
         "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_creates_a_default_core_props_part_if_none_present"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Absent core properties create one owned resource with deterministic defaults"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Absent core properties create one owned resource with deterministic defaults",
+        "status": "passed"
+      },
+      "equivalence": "Native default author/template/clock values map to original neutral defaults and explicit supplied timestamps; no ambient time/identity discovery."
     },
     {
       "source": {
@@ -3703,10 +3983,20 @@
         "node_id": "tests/opc/test_package.py::DescribeUnmarshaller::it_can_unmarshal_from_a_pkg_reader"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Package finalization preserves admitted owner identity and valid traversal"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Package finalization preserves admitted owner identity and valid traversal",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3716,10 +4006,20 @@
         "node_id": "tests/opc/test_package.py::DescribeUnmarshaller::it_can_unmarshal_parts"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Admission restores exact part bytes with subtype ownership"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Admission restores exact part bytes with subtype ownership",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3729,10 +4029,20 @@
         "node_id": "tests/opc/test_package.py::DescribeUnmarshaller::it_can_unmarshal_relationships"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Admission resolves root and child relationships to their original owners"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Admission resolves root and child relationships to their original owners",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3753,8 +4063,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > constructs an owner-relative sibling URI",
+        "status": "passed"
       }
     },
     {
@@ -3776,8 +4087,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > rejects a URI without a leading slash",
+        "status": "passed"
       }
     },
     {
@@ -3799,8 +4111,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > calculates root and nested base directories",
+        "status": "passed"
       }
     },
     {
@@ -3822,8 +4135,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > calculates empty and XML extensions",
+        "status": "passed"
       }
     },
     {
@@ -3845,8 +4159,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > calculates root and nested filenames",
+        "status": "passed"
       }
     },
     {
@@ -3868,8 +4183,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > distinguishes absent filename numbers from one",
+        "status": "passed"
       }
     },
     {
@@ -3891,8 +4207,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > calculates ZIP member names without a leading slash",
+        "status": "passed"
       }
     },
     {
@@ -3914,8 +4231,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > calculates relative references from root same and sibling directories",
+        "status": "passed"
       }
     },
     {
@@ -3937,8 +4255,9 @@
         "baseline": "bfc1adc9822439d1035558380320959d964157bf"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-completion-receipt.json",
+        "test": "package URI values > calculates package and nested relationship part URIs",
+        "status": "passed"
       }
     },
     {
@@ -3949,10 +4268,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_can_be_constructed_by_PartFactory"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part factory returns an admitted inert owner"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part factory returns an admitted inert owner",
+        "status": "passed"
+      },
+      "equivalence": "Native arbitrary selector/registered-class factory maps to deterministic content-type subtype selection; no user callback/class registration or detached part transport."
     },
     {
       "source": {
@@ -3962,10 +4291,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_knows_its_partname"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part name is an immutable validated URI value"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part name is an immutable validated URI value",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3975,10 +4314,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_can_change_its_partname"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part rename updates owner identity and incoming references"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part rename updates owner identity and incoming references",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -3988,10 +4337,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_knows_its_content_type"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part content type remains the admitted declaration"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part content type remains the admitted declaration",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4001,10 +4360,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_knows_the_package_it_belongs_to"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part package points to the original admitted owner"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part package points to the original admitted owner",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4014,10 +4383,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_can_be_notified_after_unmarshalling_is_complete"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part admission hook validates ownership without replacing handles"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part admission hook validates ownership without replacing handles",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4027,10 +4406,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_can_be_notified_before_marshalling_is_started"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part publication hook validates the maintained package graph"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part publication hook validates the maintained package graph",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4040,10 +4429,20 @@
         "node_id": "tests/opc/test_part.py::DescribePart::it_uses_the_load_blob_as_its_blob"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Loaded inert part retains exact independent bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Loaded inert part retains exact independent bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4053,10 +4452,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_provides_access_to_its_relationships"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part relationship access retains one owner-local collection"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part relationship access retains one owner-local collection",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4066,10 +4475,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_load_a_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part relationship loading honors explicit IDs"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part relationship loading honors explicit IDs",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4079,10 +4498,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_establish_a_relationship_to_another_part"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part relationship establishment deduplicates owner and type"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part relationship establishment deduplicates owner and type",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4092,10 +4521,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_establish_an_external_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part external relationship establishment stores an inert target"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part external relationship establishment stores an inert target",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4105,10 +4544,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_drop_a_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part deletion removes an unreferenced owned edge"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part deletion removes an unreferenced owned edge",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4118,10 +4567,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_find_a_related_part_by_reltype"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part relationship-type lookup returns the original part"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part relationship-type lookup returns the original part",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4131,10 +4590,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_find_a_related_part_by_rId"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part related-part snapshot resolves owner-local IDs"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part related-part snapshot resolves owner-local IDs",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4144,10 +4613,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_find_the_uri_of_an_external_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Part target lookup retains exact external spelling"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Part target lookup retains exact external spelling",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4157,10 +4636,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartFactory::it_constructs_part_from_selector_if_defined"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Factory subtype follows admitted image MIME"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Factory subtype follows admitted image MIME",
+        "status": "passed"
+      },
+      "equivalence": "Native arbitrary selector/registered-class factory maps to deterministic content-type subtype selection; no user callback/class registration or detached part transport."
     },
     {
       "source": {
@@ -4170,10 +4659,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartFactory::it_constructs_custom_part_type_for_registered_content_types"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Factory subtype follows admitted XML MIME"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Factory subtype follows admitted XML MIME",
+        "status": "passed"
+      },
+      "equivalence": "Native arbitrary selector/registered-class factory maps to deterministic content-type subtype selection; no user callback/class registration or detached part transport."
     },
     {
       "source": {
@@ -4183,10 +4682,20 @@
         "node_id": "tests/opc/test_part.py::DescribePartFactory::it_constructs_part_using_default_class_when_no_custom_registered"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Factory default preserves generic inert bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Factory default preserves generic inert bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native arbitrary selector/registered-class factory maps to deterministic content-type subtype selection; no user callback/class registration or detached part transport."
     },
     {
       "source": {
@@ -4196,10 +4705,20 @@
         "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_can_be_constructed_by_PartFactory"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "XML factory returns an admitted XML owner"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "XML factory returns an admitted XML owner",
+        "status": "passed"
+      },
+      "equivalence": "Native arbitrary selector/registered-class factory maps to deterministic content-type subtype selection; no user callback/class registration or detached part transport."
     },
     {
       "source": {
@@ -4209,10 +4728,20 @@
         "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_can_serialize_to_xml"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "XML part changes serialize through the original admitted owner"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "XML part changes serialize through the original admitted owner",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4222,10 +4751,20 @@
         "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_knows_its_the_part_for_its_child_objects"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "XML part children retain the original part owner"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "XML part children retain the original part owner",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4235,10 +4774,20 @@
         "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_only_drops_a_relationship_with_zero_reference_count[w:p-True]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship deletion checks 0 remaining XML references"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship deletion checks 0 remaining XML references",
+        "status": "passed"
+      },
+      "equivalence": "Native private reference-count threshold superseded by maintained graph integrity: zero references permits removal; one or two retained references reject dangling edits transactionally. Public drop_rel remains in scope."
     },
     {
       "source": {
@@ -4248,10 +4797,20 @@
         "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_only_drops_a_relationship_with_zero_reference_count[w:p/r:a{r:id=rId42}-True]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship deletion checks 1 remaining XML references"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship deletion checks 1 remaining XML references",
+        "status": "passed"
+      },
+      "equivalence": "Native private reference-count threshold superseded by maintained graph integrity: zero references permits removal; one or two retained references reject dangling edits transactionally. Public drop_rel remains in scope."
     },
     {
       "source": {
@@ -4261,10 +4820,20 @@
         "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_only_drops_a_relationship_with_zero_reference_count[w:p/r:a{r:id=rId42}/r:b{r:id=rId42}-False]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship deletion checks 2 remaining XML references"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship deletion checks 2 remaining XML references",
+        "status": "passed"
+      },
+      "equivalence": "Native private reference-count threshold superseded by maintained graph integrity: zero references permits removal; one or two retained references reject dangling edits transactionally. Public drop_rel remains in scope."
     },
     {
       "source": {
@@ -4274,10 +4843,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_is_used_by_PhysPkgReader_when_pkg_is_a_dir"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit tree inventory produces bounded original archive members"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit tree inventory produces bounded original archive members",
+        "status": "passed"
+      },
+      "equivalence": "Native directory/ZIP class selection and mocked constructor calls map to explicit owned memfs member inventory and bounded ZIP read/write. Ambient paths and native directory constructors are not public transport overloads; authenticated utility packing remains separately tested."
     },
     {
       "source": {
@@ -4287,10 +4866,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_doesnt_mind_being_closed_even_though_it_doesnt_need_it"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit tree cleanup is idempotent and preserves unrelated memory entries"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit tree cleanup is idempotent and preserves unrelated memory entries",
+        "status": "passed"
+      },
+      "equivalence": "Native close/destructor calls map to explicit cooperative idempotent cleanup and unchanged owned/unrelated memfs data; no ambient directory scanning or guessed deletion."
     },
     {
       "source": {
@@ -4300,10 +4889,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_can_retrieve_the_blob_for_a_pack_uri"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit tree retrieves a member by its validated package URI"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit tree retrieves a member by its validated package URI",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4313,10 +4912,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_can_get_the_content_types_xml"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit tree reads exact content declaration bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit tree reads exact content declaration bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4326,10 +4935,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_can_retrieve_the_rels_xml_for_a_source_uri"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit tree retrieves root relationship bytes exactly"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit tree retrieves root relationship bytes exactly",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4339,10 +4958,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_returns_none_when_part_has_no_rels_xml"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit tree missing part relationships remain an empty collection"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit tree missing part relationships remain an empty collection",
+        "status": "passed"
+      },
+      "equivalence": "Native optional relationship XML null maps to a noncreating empty relationship collection; no file manufactured on read."
     },
     {
       "source": {
@@ -4352,10 +4981,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribePhysPkgReader::it_raises_when_pkg_path_is_not_a_package"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Invalid package bytes reject without ambient path access"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Invalid package bytes reject without ambient path access",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4365,10 +5004,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_is_used_by_PhysPkgReader_when_pkg_is_a_zip"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "ZIP source transport produces bounded original archive members"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "ZIP source transport produces bounded original archive members",
+        "status": "passed"
+      },
+      "equivalence": "Native directory/ZIP class selection and mocked constructor calls map to explicit owned memfs member inventory and bounded ZIP read/write. Ambient paths and native directory constructors are not public transport overloads; authenticated utility packing remains separately tested."
     },
     {
       "source": {
@@ -4378,10 +5027,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_is_used_by_PhysPkgReader_when_pkg_is_a_stream"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit archive source snapshots fragments and closes after admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit archive source snapshots fragments and closes after admission",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4391,10 +5050,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_opens_pkg_file_zip_on_construction"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Archive input initialization produces bounded original archive members"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Archive input initialization produces bounded original archive members",
+        "status": "passed"
+      },
+      "equivalence": "Native directory/ZIP class selection and mocked constructor calls map to explicit owned memfs member inventory and bounded ZIP read/write. Ambient paths and native directory constructors are not public transport overloads; authenticated utility packing remains separately tested."
     },
     {
       "source": {
@@ -4404,10 +5073,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_can_be_closed"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Archive input cleanup is idempotent and preserves unrelated memory entries"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Archive input cleanup is idempotent and preserves unrelated memory entries",
+        "status": "passed"
+      },
+      "equivalence": "Native close/destructor calls map to explicit cooperative idempotent cleanup and unchanged owned/unrelated memfs data; no ambient directory scanning or guessed deletion."
     },
     {
       "source": {
@@ -4417,10 +5096,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_can_retrieve_the_blob_for_a_pack_uri"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "ZIP source retrieves a member by its validated package URI"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "ZIP source retrieves a member by its validated package URI",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4430,10 +5119,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_has_the_content_types_xml"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "ZIP source reads exact content declaration bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "ZIP source reads exact content declaration bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4443,10 +5142,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_can_retrieve_rels_xml_for_source_uri"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "ZIP source retrieves root relationship bytes exactly"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "ZIP source retrieves root relationship bytes exactly",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4456,10 +5165,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_returns_none_when_part_has_no_rels_xml"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "ZIP source missing part relationships remain an empty collection"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "ZIP source missing part relationships remain an empty collection",
+        "status": "passed"
+      },
+      "equivalence": "Native optional relationship XML null maps to a noncreating empty relationship collection; no file manufactured on read."
     },
     {
       "source": {
@@ -4469,10 +5188,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_is_used_by_PhysPkgWriter_unconditionally"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Explicit output transport produces bounded original archive members"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Explicit output transport produces bounded original archive members",
+        "status": "passed"
+      },
+      "equivalence": "Native directory/ZIP class selection and mocked constructor calls map to explicit owned memfs member inventory and bounded ZIP read/write. Ambient paths and native directory constructors are not public transport overloads; authenticated utility packing remains separately tested."
     },
     {
       "source": {
@@ -4482,10 +5211,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_opens_pkg_file_zip_on_construction"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Archive output initialization produces bounded original archive members"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Archive output initialization produces bounded original archive members",
+        "status": "passed"
+      },
+      "equivalence": "Native directory/ZIP class selection and mocked constructor calls map to explicit owned memfs member inventory and bounded ZIP read/write. Ambient paths and native directory constructors are not public transport overloads; authenticated utility packing remains separately tested."
     },
     {
       "source": {
@@ -4495,10 +5234,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_can_be_closed"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Archive output cleanup is idempotent and preserves unrelated memory entries"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Archive output cleanup is idempotent and preserves unrelated memory entries",
+        "status": "passed"
+      },
+      "equivalence": "Native close/destructor calls map to explicit cooperative idempotent cleanup and unchanged owned/unrelated memfs data; no ambient directory scanning or guessed deletion."
     },
     {
       "source": {
@@ -4508,10 +5257,20 @@
         "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_can_write_a_blob"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Archive writer preserves an original member payload exactly"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Archive writer preserves an original member payload exactly",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4521,10 +5280,20 @@
         "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_construct_from_pkg_file"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Reader construction admits a complete owned archive"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Reader construction admits a complete owned archive",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4534,10 +5303,20 @@
         "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_iterate_over_the_serialized_parts"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Reader enumerates exact serialized part records"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Reader enumerates exact serialized part records",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4547,10 +5326,20 @@
         "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_iterate_over_all_the_srels"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship reader retains root and child owner separation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship reader retains root and child owner separation",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4560,10 +5349,20 @@
         "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_load_serialized_parts"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Reader loads exact content type and serialized bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Reader loads exact content type and serialized bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4573,10 +5372,20 @@
         "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_walk_phys_pkg_parts"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Package reader traverses cycles shared targets and external edges once"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Package reader traverses cycles shared targets and external edges once",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4586,10 +5395,20 @@
         "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_retrieve_srels_for_a_source_uri"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship reader returns owner-relative targets without creating missing members"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship reader returns owner-relative targets without creating missing members",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4599,10 +5418,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_can_construct_from_ct_item_xml"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content map admission distinguishes defaults and overrides"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content map admission distinguishes defaults and overrides",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4612,10 +5441,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[match_override_fixture0]"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Override lookup preserves case-insensitive variant 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Override lookup preserves case-insensitive variant 1",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4625,10 +5464,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[match_override_fixture1]"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Override lookup preserves case-insensitive variant 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Override lookup preserves case-insensitive variant 2",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4638,10 +5487,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[match_override_fixture2]"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Override lookup preserves case-insensitive variant 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Override lookup preserves case-insensitive variant 3",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4651,10 +5510,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[match_default_fixture0]"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Default lookup preserves extension case variant 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Default lookup preserves extension case variant 1",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4664,10 +5533,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[match_default_fixture1]"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Default lookup preserves extension case variant 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Default lookup preserves extension case variant 2",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4677,10 +5556,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[match_default_fixture2]"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Default lookup preserves extension case variant 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Default lookup preserves extension case variant 3",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4690,10 +5579,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_should_raise_on_partname_not_found"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Missing content type mapping fails before graph acceptance"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Missing content type mapping fails before graph acceptance",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4703,10 +5602,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_should_raise_on_key_not_instance_of_PackURI"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content lookup requires an explicit validated string URI"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content lookup requires an explicit validated string URI",
+        "status": "passed"
+      },
+      "equivalence": "Native PackURI-only dictionary keys map to an explicit validated primitive URI in DocumentPackage.getPart; immutable PackURI values use toString. Wrong types reject without coercion."
     },
     {
       "source": {
@@ -4716,10 +5625,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedPart::it_remembers_construction_values"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Serialized part metadata retain original bytes and owner-relative relationships"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Serialized part metadata retain original bytes and owner-relative relationships",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4729,10 +5648,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_remembers_construction_values"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Serialized edge metadata retain ID type target and mode"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Serialized edge metadata retain ID type target and mode",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4742,10 +5671,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_knows_when_it_is_external"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Serialized target modes distinguish internal external and invalid values"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Serialized target modes distinguish internal external and invalid values",
+        "status": "passed"
+      },
+      "equivalence": "Invalid native mock TargetMode fallback is superseded by exact maintained OPC admission; unrecognized encoded modes reject rather than becoming internal."
     },
     {
       "source": {
@@ -4755,10 +5694,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_can_calculate_its_target_partname"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Serialized internal targets resolve root nested and parent-relative owners"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Serialized internal targets resolve root nested and parent-relative owners",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4768,10 +5717,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_raises_on_target_partname_when_external"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Serialized external targets cannot dereference owned parts"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Serialized external targets cannot dereference owned parts",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4781,10 +5740,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationships::it_can_load_from_xml"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Serialized XML admission retains independent relationship rows"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Serialized XML admission retains independent relationship rows",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4794,10 +5763,20 @@
         "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationships::it_should_be_iterable"
       },
       "owning_task": "shared-zip-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Serialized edge collection has deterministic empty iteration"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Serialized edge collection has deterministic empty iteration",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4807,10 +5786,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_package"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Writer finalizes a complete original package with validated relationships"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Writer finalizes a complete original package with validated relationships",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4820,10 +5809,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_content_types_stream"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Writer retains exact content declaration stream bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Writer retains exact content declaration stream bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4833,10 +5832,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_pkg_rels_item"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Writer retains exact package relationship stream bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Writer retains exact package relationship stream bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4846,10 +5855,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_list_of_parts"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Writer emits part and nonempty relationship members without inventing empty owners"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Writer emits part and nonempty relationship members without inventing empty owners",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4859,10 +5878,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture0]"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declaration serialization variant 1 retains default semantics"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declaration serialization variant 1 retains default semantics",
+        "status": "passed"
+      },
+      "equivalence": "Original declarations preserve applicable default/override semantics and exact MIME/extension case. Native optimizer ordering is not a full lexical XML equivalence claim; maintained untouched declarations retain their bytes."
     },
     {
       "source": {
@@ -4872,10 +5901,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture1]"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declaration serialization variant 2 retains default semantics"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declaration serialization variant 2 retains default semantics",
+        "status": "passed"
+      },
+      "equivalence": "Original declarations preserve applicable default/override semantics and exact MIME/extension case. Native optimizer ordering is not a full lexical XML equivalence claim; maintained untouched declarations retain their bytes."
     },
     {
       "source": {
@@ -4885,10 +5924,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture2]"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declaration serialization variant 3 retains default semantics"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declaration serialization variant 3 retains default semantics",
+        "status": "passed"
+      },
+      "equivalence": "Original declarations preserve applicable default/override semantics and exact MIME/extension case. Native optimizer ordering is not a full lexical XML equivalence claim; maintained untouched declarations retain their bytes."
     },
     {
       "source": {
@@ -4898,10 +5947,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture3]"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declaration serialization variant 4 retains default semantics"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declaration serialization variant 4 retains default semantics",
+        "status": "passed"
+      },
+      "equivalence": "Original declarations preserve applicable default/override semantics and exact MIME/extension case. Native optimizer ordering is not a full lexical XML equivalence claim; maintained untouched declarations retain their bytes."
     },
     {
       "source": {
@@ -4911,10 +5970,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture4]"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declaration serialization variant 5 retains override semantics"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declaration serialization variant 5 retains override semantics",
+        "status": "passed"
+      },
+      "equivalence": "Original declarations preserve applicable default/override semantics and exact MIME/extension case. Native optimizer ordering is not a full lexical XML equivalence claim; maintained untouched declarations retain their bytes."
     },
     {
       "source": {
@@ -4924,10 +5993,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture5]"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declaration serialization variant 6 retains override semantics"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declaration serialization variant 6 retains override semantics",
+        "status": "passed"
+      },
+      "equivalence": "Original declarations preserve applicable default/override semantics and exact MIME/extension case. Native optimizer ordering is not a full lexical XML equivalence claim; maintained untouched declarations retain their bytes."
     },
     {
       "source": {
@@ -4937,10 +6016,20 @@
         "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture6]"
       },
       "owning_task": "shared-zip-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Content declaration serialization variant 7 retains override semantics"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Content declaration serialization variant 7 retains override semantics",
+        "status": "passed"
+      },
+      "equivalence": "Original declarations preserve applicable default/override semantics and exact MIME/extension case. Native optimizer ordering is not a full lexical XML equivalence claim; maintained untouched declarations retain their bytes."
     },
     {
       "source": {
@@ -4950,10 +6039,20 @@
         "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_remembers_construction_values"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship creation retains ID type and owned target"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship creation retains ID type and owned target",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4963,10 +6062,20 @@
         "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_should_raise_on_target_part_access_on_external_rel"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "External relationship part access rejects without acquisition"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "External relationship part access rejects without acquisition",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4976,10 +6085,20 @@
         "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_should_have_target_ref_for_external_rel"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "External relationship reference preserves the inert target"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "External relationship reference preserves the inert target",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -4989,10 +6108,20 @@
         "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_should_have_relative_ref_for_internal_rel"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Internal relationship references rebase across sibling directories"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Internal relationship references rebase across sibling directories",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5002,10 +6131,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_add_a_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship collection adds an explicitly owned internal edge"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship collection adds an explicitly owned internal edge",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5015,10 +6154,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_add_an_external_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship collection adds a new inert external edge"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship collection adds a new inert external edge",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5028,10 +6177,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_a_relationship_by_rId"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship ID lookup returns the original owned entry"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship ID lookup returns the original owned entry",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5041,10 +6200,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_or_add_a_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Internal relationship matching reuses an entry and distinguishes a new type"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Internal relationship matching reuses an entry and distinguishes a new type",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5054,10 +6223,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_or_add_an_external_relationship"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Equal external type and target reuse an existing explicit ID"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Equal external type and target reuse an existing explicit ID",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5067,10 +6246,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_a_related_part_by_rId"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Related-part map excludes external edges and retains target identity"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Related-part map excludes external edges and retains target identity",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5080,10 +6269,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_raises_on_related_part_not_found"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Missing keyed relationship lookup distinguishes null from a typed failure"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Missing keyed relationship lookup distinguishes null from a typed failure",
+        "status": "passed"
+      },
+      "equivalence": "Native dict KeyError maps to JS snapshot Map.get undefined and checked Relationships.at MissingKeyError; no global ID lookup or guessed index."
     },
     {
       "source": {
@@ -5093,10 +6292,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_a_related_part_by_reltype"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship type lookup resolves the original internal target"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship type lookup resolves the original internal target",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5106,10 +6315,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_compose_rels_xml"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship XML serializes internal rebase and external target mode"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship XML serializes internal rebase and external target mode",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -5119,10 +6338,20 @@
         "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_knows_the_next_available_rId_to_help"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Relationship ID allocation fills the first owner-local gap"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Relationship ID allocation fills the first owner-local gap",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7248,10 +8477,20 @@
         "node_id": "tests/test_package.py::DescribePackage::it_can_get_or_add_an_image_part_containing_a_specified_image"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Package image admission reuses equal bytes without another resource"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Package image admission reuses equal bytes without another resource",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7261,10 +8500,20 @@
         "node_id": "tests/test_package.py::DescribePackage::it_gathers_package_image_parts_after_unmarshalling"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Image collection discovers unreferenced admitted resources after reopening"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Image collection discovers unreferenced admitted resources after reopening",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7274,10 +8523,20 @@
         "node_id": "tests/test_package.py::DescribeImageParts::it_can_get_a_matching_image_part"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Image byte equality returns the original admitted part"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Image byte equality returns the original admitted part",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7287,10 +8546,20 @@
         "node_id": "tests/test_package.py::DescribeImageParts::but_it_adds_a_new_image_part_when_match_fails"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Different image bytes produce distinct owned parts"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Different image bytes produce distinct owned parts",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7300,10 +8569,20 @@
         "node_id": "tests/test_package.py::DescribeImageParts::it_knows_the_next_available_image_partname[existing_partname_numbers0-1]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Image allocation fills gap 1 among 2, 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Image allocation fills gap 1 among 2, 3",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7313,10 +8592,20 @@
         "node_id": "tests/test_package.py::DescribeImageParts::it_knows_the_next_available_image_partname[existing_partname_numbers1-2]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Image allocation fills gap 2 among 1, 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Image allocation fills gap 2 among 1, 3",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7326,10 +8615,20 @@
         "node_id": "tests/test_package.py::DescribeImageParts::it_knows_the_next_available_image_partname[existing_partname_numbers2-3]"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "Image allocation fills gap 3 among 1, 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "Image allocation fills gap 3 among 1, 2",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     },
     {
       "source": {
@@ -7339,10 +8638,20 @@
         "node_id": "tests/test_package.py::DescribeImageParts::it_can_add_a_new_image_part"
       },
       "owning_task": "opc-package-graph",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/package-behavior-variants.test.ts",
+        "title": "New image admission joins the original owned collection"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-package-receipt.json",
+        "test": "New image admission joins the original owned collection",
+        "status": "passed"
+      },
+      "equivalence": "Native detached wrappers and mocked call dispatch map to admitted owned package state, exact bytes, deterministic relationships and graph validation; explicit async capabilities replace ambient paths."
     }
   ],
   "original_helper_apis": [
@@ -7358,13 +8667,19 @@
     "packages/docx/src/pack-uri.test.ts": "ac31c48b03619fa0e5ea708397deb51a795a86e5691ae4afaf2718709fbd37fe",
     "packages/docx/src/pack-uri-batch-operations.ts": "2eb4c1150e6286315ef3ff47616abdf651001053fd070d77bd3c77e4bf7bf7bf",
     "packages/docx/src/pack-uri-batch.test.ts": "068067a8b2eb725937f4e1ea6f2c79b1f72abb21931671e6a335094fe12ce7ea",
-    "packages/docx/src/style-model-batch-operations.ts": "5fcf5464f75a9bfdc9cc7026dc1e38bfaa73f471d52fa2db7cc0ecb6822c697f",
-    "packages/docx/src/style-model-batch.ts": "cdffb58fc8df0e85e9797dcb8006e5c2933b5e08de1918972c9b35b97bcc2f4b",
-    "packages/docx/src/operation-schema-data.ts": "0a6050ab305e29cfdb3460c1b296e8d001668e28c2bd7b702380d0ca736f4608",
-    "packages/docx/src/style-model-result-schema.ts": "7e139ac1830fd1668ff01ac42fe1f01d6da6dcec3ebe0102715b6e3d97838653",
+    "packages/docx/src/style-model-batch-operations.ts": "2b65e47561cdf06e31532ad0041c01e491036376afb0c720ed3242685fc67dc0",
+    "packages/docx/src/style-model-batch.ts": "cd6225f04468fd5cc8ffa0c249f25aa50dee06e6a96efc0da58c3c07918c9e0d",
+    "packages/docx/src/operation-schema-data.ts": "ddbd7e5e86d312021f89c733c5e769f30bbf4b76411749255699719bd0f87cf7",
+    "packages/docx/src/style-model-result-schema.ts": "531f6418dd10edb2367a81ee736fc06300c9f22ffd30a6834358be6716c2c48e",
     "packages/docx/src/xml-sequence-cases.test.ts": "b3ca73d7788428bfe2c17a16e3133683a9394b0b21c0aba339fb7b500a41b6dd",
     "packages/docx/src/image-characterization-variants.test.ts": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f",
-    "packages/docx/src/xml-behavior-variants.test.ts": "49286f158b0990d0a0eea9d1ff26e3e1972ff6f8965e5447e3a03132a6c8d101"
+    "packages/docx/src/xml-behavior-variants.test.ts": "49286f158b0990d0a0eea9d1ff26e3e1972ff6f8965e5447e3a03132a6c8d101",
+    "packages/docx/src/package-behavior-variants.test.ts": "b44188d3b529f4fb085da6b02cb213cfe7b498536383bfa98b5048176ea1bd35",
+    "packages/docx/src/package-view.ts": "d9a8332559b635e85afda335170126a4149d73455fc383d7cffb58f4e5ad5c41",
+    "packages/docx/src/numeric-property-schema-contract.test.ts": "220984a4d37092137e1fe3693f47147a09bb6d2381fae7b3758b186133004bf7",
+    "packages/docx/src/numeric-property-command.test.ts": "e66a5b2a78aed046d9526eff381bbfdd2fd04893529c2dee5214a2d9792540fa",
+    "packages/docx/src/relationship-deletion-references.test.ts": "30b19002d8540e07a48db106f5178a93e7f3d24f3a2870ce3000aa4b2ea9eded",
+    "packages/docx/src/relationship-deletion-command.test.ts": "c2461677122e373bb9a931b172cc3f9c00d585781c3af9a317d8f8faabc681a7"
   },
   "batch_tdd": [
     {
@@ -7409,6 +8724,42 @@
       "hash": "549d639ae",
       "scope": "checked URI value API, fixed typed batch CLI/schema/capability routes and 9 source URI rows",
       "delivery": "local main only; no push or release"
+    },
+    {
+      "hash": "77656740a",
+      "scope": "numeric setter schema correction with 8 schema and 5 paired tests",
+      "delivery": "local main only; no push or release"
+    },
+    {
+      "hash": "2f6d6add7",
+      "scope": "relationship deletion integrity with 10 regressions and 2 paired tests",
+      "delivery": "local main only; no push or release"
+    },
+    {
+      "hash": "b2b5a8821",
+      "scope": "138 image characterization variants",
+      "delivery": "local main only; no push or release"
+    },
+    {
+      "hash": "691ffb467",
+      "scope": "70 XML variants and corrected 22 historical sequence links",
+      "delivery": "local main only; no push or release"
     }
-  ]
+  ],
+  "completion_evidence": "opc-xml-image-completion-receipt.json",
+  "language_security_mapping": "opc-xml-image-adaptation.md",
+  "historical_owned_source_sha256": {
+    "packages/docx/src/pack-uri.ts": "c017f5edc2211050db38265f0eea80427ab377d9719939760b209273df30ef36",
+    "packages/docx/src/pack-uri.test.ts": "ac31c48b03619fa0e5ea708397deb51a795a86e5691ae4afaf2718709fbd37fe",
+    "packages/docx/src/pack-uri-batch-operations.ts": "2eb4c1150e6286315ef3ff47616abdf651001053fd070d77bd3c77e4bf7bf7bf",
+    "packages/docx/src/pack-uri-batch.test.ts": "068067a8b2eb725937f4e1ea6f2c79b1f72abb21931671e6a335094fe12ce7ea",
+    "packages/docx/src/style-model-batch-operations.ts": "5fcf5464f75a9bfdc9cc7026dc1e38bfaa73f471d52fa2db7cc0ecb6822c697f",
+    "packages/docx/src/style-model-batch.ts": "cdffb58fc8df0e85e9797dcb8006e5c2933b5e08de1918972c9b35b97bcc2f4b",
+    "packages/docx/src/operation-schema-data.ts": "0a6050ab305e29cfdb3460c1b296e8d001668e28c2bd7b702380d0ca736f4608",
+    "packages/docx/src/style-model-result-schema.ts": "7e139ac1830fd1668ff01ac42fe1f01d6da6dcec3ebe0102715b6e3d97838653",
+    "packages/docx/src/xml-sequence-cases.test.ts": "b3ca73d7788428bfe2c17a16e3133683a9394b0b21c0aba339fb7b500a41b6dd",
+    "packages/docx/src/image-characterization-variants.test.ts": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f",
+    "packages/docx/src/xml-behavior-variants.test.ts": "49286f158b0990d0a0eea9d1ff26e3e1972ff6f8965e5447e3a03132a6c8d101",
+    "packages/docx/src/package-behavior-variants.test.ts": "b44188d3b529f4fb085da6b02cb213cfe7b498536383bfa98b5048176ea1bd35"
+  }
 }

@@ -1,6 +1,8 @@
 # OPC, XML and image behavioral adaptation
 
-Task: `adapt-upstream-opc-xml-images`. Status: in progress; later tasks pending.
+Task: `adapt-upstream-opc-xml-images`. Status: complete selected 369-row scope;
+later tasks pending. Historical milestone statements below are superseded by
+the completion results and receipts.
 
 ## Ownership
 
@@ -207,6 +209,33 @@ The 23 sequence tests also pass; the first removal maps to retaining middle/last
 and all 22 historical links now include the exact runner-expanded parameter titles.
 The 70 new plus 22 mapped sequence rows pass with the maintained completion gates;
 receipt: `docs/docx/opc-xml-image-xml-receipt.json`. Ledger: 239 passing, 130 pending.
+
+### Package adaptation and final reconciliation
+
+All 130 remaining package/content-type/relationship/serializer/image-collection
+rows pass independent original memfs tests. Root/part ownership, lifecycle,
+cyclic/shared/external traversal, case variants, allocation gaps, default/override
+serialization and all zero/one/two deletion variants are separately linked.
+The selected file families contain 371 crosswalk identities; two core-property
+accessor rows belong to `typed-document-properties` and remain in that separate
+task's accounting. The completion overlay retains its established 369 denominator.
+All 369 selected source identities and targets are unique and pass; missing,
+duplicate, orphan and nonpassing-link negative controls all reject.
+
+Final focused execution: 422 passes, nine files, zero failures/skips. Maintained
+DOCX execution: 3,987 passes, 201 files, four existing pending PPTX skips, zero
+failures, 167.66 seconds. Scoped lint and declared build closure pass. Both
+actual built-engine transcript screenshots were inspected. The initial schema
+screenshot attempt failed from concurrent root predev cleanup; the sequential
+maintained retry passes and is the qualified receipt. No rendered-document or
+pixel-decoding result is claimed. No downloaded/cloned fixture was needed.
+
+Exact family receipt: `docs/docx/opc-xml-image-package-receipt.json`.
+Final reconciliation, actual named executions, authority hashes and exclusions:
+`docs/docx/opc-xml-image-completion-receipt.json`. Exact JS/security/precision and
+eight declaration drift resolutions: `docs/docx/opc-xml-image-adaptation.md`.
+The main pipeline plan has unrelated existing edits and is intentionally not
+staged. Completion is recorded in this owned plan and evidence. No push/release.
 
 `549d639ae` adds checked URI values with typed batch CLI/schema/discovery parity.
 The next atomic test commit delivers the 22 original XML sequence variants and

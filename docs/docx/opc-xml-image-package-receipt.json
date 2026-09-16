@@ -1,0 +1,565 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-opc-xml-images",
+  "family": "package",
+  "source_catalogs": [
+    {
+      "path": "test-case-map.json",
+      "sha256": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f"
+    },
+    {
+      "path": "test-case-source-evidence.json",
+      "sha256": "ca5a8e0028fc76b9c0437a26da58dfd7e1399ec2ac5571e655e634721a52b9a7"
+    }
+  ],
+  "test_file": "packages/docx/src/package-behavior-variants.test.ts",
+  "test_file_sha256": "b44188d3b529f4fb085da6b02cb213cfe7b498536383bfa98b5048176ea1bd35",
+  "count": 130,
+  "assertions": [
+    {
+      "title": "Default declarations expose extension and media type",
+      "status": "passed"
+    },
+    {
+      "title": "Default declarations survive XML serialization",
+      "status": "passed"
+    },
+    {
+      "title": "Override declarations expose exact owned part names",
+      "status": "passed"
+    },
+    {
+      "title": "Override declarations survive original archive serialization",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship XML values retain their owner-local metadata",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship XML distinguishes absent internal and external target modes",
+      "status": "passed"
+    },
+    {
+      "title": "New owner relationship collection serializes an empty root",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship additions serialize internal and external edges in insertion order",
+      "status": "passed"
+    },
+    {
+      "title": "Empty relationship XML serializes as explicit UTF-8 bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Content type XML exposes two independent default declarations",
+      "status": "passed"
+    },
+    {
+      "title": "Content type XML exposes three independent override declarations",
+      "status": "passed"
+    },
+    {
+      "title": "Missing content type children return empty query lists",
+      "status": "passed"
+    },
+    {
+      "title": "Empty content type element remains a valid XML value",
+      "status": "passed"
+    },
+    {
+      "title": "Content declarations retain mixed default and override media types",
+      "status": "passed"
+    },
+    {
+      "title": "Package factory asynchronously admits an explicit original byte source",
+      "status": "passed"
+    },
+    {
+      "title": "Owner-local relationship access retains collection identity",
+      "status": "passed"
+    },
+    {
+      "title": "Root relationship loading records explicit owned targets",
+      "status": "passed"
+    },
+    {
+      "title": "Root relationship establishment returns a stable owner-local identifier",
+      "status": "passed"
+    },
+    {
+      "title": "Package parts list equals the deterministic reachable traversal",
+      "status": "passed"
+    },
+    {
+      "title": "Cyclic traversal visits owned parts once and skips external targets",
+      "status": "passed"
+    },
+    {
+      "title": "Part allocation fills gap 1 among no occupied numbers",
+      "status": "passed"
+    },
+    {
+      "title": "Part allocation fills gap 2 among 1",
+      "status": "passed"
+    },
+    {
+      "title": "Part allocation fills gap 3 among 1, 2",
+      "status": "passed"
+    },
+    {
+      "title": "Part allocation fills gap 1 among 2, 3",
+      "status": "passed"
+    },
+    {
+      "title": "Part allocation fills gap 2 among 1, 3",
+      "status": "passed"
+    },
+    {
+      "title": "Root relationship type lookup returns the original target owner",
+      "status": "passed"
+    },
+    {
+      "title": "Package output reopens with reachable owned parts and unchanged payloads",
+      "status": "passed"
+    },
+    {
+      "title": "Absent core properties create one owned resource with deterministic defaults",
+      "status": "passed"
+    },
+    {
+      "title": "Package finalization preserves admitted owner identity and valid traversal",
+      "status": "passed"
+    },
+    {
+      "title": "Admission restores exact part bytes with subtype ownership",
+      "status": "passed"
+    },
+    {
+      "title": "Admission resolves root and child relationships to their original owners",
+      "status": "passed"
+    },
+    {
+      "title": "Part factory returns an admitted inert owner",
+      "status": "passed"
+    },
+    {
+      "title": "Part name is an immutable validated URI value",
+      "status": "passed"
+    },
+    {
+      "title": "Part rename updates owner identity and incoming references",
+      "status": "passed"
+    },
+    {
+      "title": "Part content type remains the admitted declaration",
+      "status": "passed"
+    },
+    {
+      "title": "Part package points to the original admitted owner",
+      "status": "passed"
+    },
+    {
+      "title": "Part admission hook validates ownership without replacing handles",
+      "status": "passed"
+    },
+    {
+      "title": "Part publication hook validates the maintained package graph",
+      "status": "passed"
+    },
+    {
+      "title": "Loaded inert part retains exact independent bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Part relationship access retains one owner-local collection",
+      "status": "passed"
+    },
+    {
+      "title": "Part relationship loading honors explicit IDs",
+      "status": "passed"
+    },
+    {
+      "title": "Part relationship establishment deduplicates owner and type",
+      "status": "passed"
+    },
+    {
+      "title": "Part external relationship establishment stores an inert target",
+      "status": "passed"
+    },
+    {
+      "title": "Part deletion removes an unreferenced owned edge",
+      "status": "passed"
+    },
+    {
+      "title": "Part relationship-type lookup returns the original part",
+      "status": "passed"
+    },
+    {
+      "title": "Part related-part snapshot resolves owner-local IDs",
+      "status": "passed"
+    },
+    {
+      "title": "Part target lookup retains exact external spelling",
+      "status": "passed"
+    },
+    {
+      "title": "Factory subtype follows admitted image MIME",
+      "status": "passed"
+    },
+    {
+      "title": "Factory subtype follows admitted XML MIME",
+      "status": "passed"
+    },
+    {
+      "title": "Factory default preserves generic inert bytes",
+      "status": "passed"
+    },
+    {
+      "title": "XML factory returns an admitted XML owner",
+      "status": "passed"
+    },
+    {
+      "title": "XML part changes serialize through the original admitted owner",
+      "status": "passed"
+    },
+    {
+      "title": "XML part children retain the original part owner",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship deletion checks 0 remaining XML references",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship deletion checks 1 remaining XML references",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship deletion checks 2 remaining XML references",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit tree inventory produces bounded original archive members",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit tree cleanup is idempotent and preserves unrelated memory entries",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit tree retrieves a member by its validated package URI",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit tree reads exact content declaration bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit tree retrieves root relationship bytes exactly",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit tree missing part relationships remain an empty collection",
+      "status": "passed"
+    },
+    {
+      "title": "Invalid package bytes reject without ambient path access",
+      "status": "passed"
+    },
+    {
+      "title": "ZIP source transport produces bounded original archive members",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit archive source snapshots fragments and closes after admission",
+      "status": "passed"
+    },
+    {
+      "title": "Archive input initialization produces bounded original archive members",
+      "status": "passed"
+    },
+    {
+      "title": "Archive input cleanup is idempotent and preserves unrelated memory entries",
+      "status": "passed"
+    },
+    {
+      "title": "ZIP source retrieves a member by its validated package URI",
+      "status": "passed"
+    },
+    {
+      "title": "ZIP source reads exact content declaration bytes",
+      "status": "passed"
+    },
+    {
+      "title": "ZIP source retrieves root relationship bytes exactly",
+      "status": "passed"
+    },
+    {
+      "title": "ZIP source missing part relationships remain an empty collection",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit output transport produces bounded original archive members",
+      "status": "passed"
+    },
+    {
+      "title": "Archive output initialization produces bounded original archive members",
+      "status": "passed"
+    },
+    {
+      "title": "Archive output cleanup is idempotent and preserves unrelated memory entries",
+      "status": "passed"
+    },
+    {
+      "title": "Archive writer preserves an original member payload exactly",
+      "status": "passed"
+    },
+    {
+      "title": "Reader construction admits a complete owned archive",
+      "status": "passed"
+    },
+    {
+      "title": "Reader enumerates exact serialized part records",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship reader retains root and child owner separation",
+      "status": "passed"
+    },
+    {
+      "title": "Reader loads exact content type and serialized bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Package reader traverses cycles shared targets and external edges once",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship reader returns owner-relative targets without creating missing members",
+      "status": "passed"
+    },
+    {
+      "title": "Content map admission distinguishes defaults and overrides",
+      "status": "passed"
+    },
+    {
+      "title": "Override lookup preserves case-insensitive variant 1",
+      "status": "passed"
+    },
+    {
+      "title": "Override lookup preserves case-insensitive variant 2",
+      "status": "passed"
+    },
+    {
+      "title": "Override lookup preserves case-insensitive variant 3",
+      "status": "passed"
+    },
+    {
+      "title": "Default lookup preserves extension case variant 1",
+      "status": "passed"
+    },
+    {
+      "title": "Default lookup preserves extension case variant 2",
+      "status": "passed"
+    },
+    {
+      "title": "Default lookup preserves extension case variant 3",
+      "status": "passed"
+    },
+    {
+      "title": "Missing content type mapping fails before graph acceptance",
+      "status": "passed"
+    },
+    {
+      "title": "Content lookup requires an explicit validated string URI",
+      "status": "passed"
+    },
+    {
+      "title": "Serialized part metadata retain original bytes and owner-relative relationships",
+      "status": "passed"
+    },
+    {
+      "title": "Serialized edge metadata retain ID type target and mode",
+      "status": "passed"
+    },
+    {
+      "title": "Serialized target modes distinguish internal external and invalid values",
+      "status": "passed"
+    },
+    {
+      "title": "Serialized internal targets resolve root nested and parent-relative owners",
+      "status": "passed"
+    },
+    {
+      "title": "Serialized external targets cannot dereference owned parts",
+      "status": "passed"
+    },
+    {
+      "title": "Serialized XML admission retains independent relationship rows",
+      "status": "passed"
+    },
+    {
+      "title": "Serialized edge collection has deterministic empty iteration",
+      "status": "passed"
+    },
+    {
+      "title": "Writer finalizes a complete original package with validated relationships",
+      "status": "passed"
+    },
+    {
+      "title": "Writer retains exact content declaration stream bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Writer retains exact package relationship stream bytes",
+      "status": "passed"
+    },
+    {
+      "title": "Writer emits part and nonempty relationship members without inventing empty owners",
+      "status": "passed"
+    },
+    {
+      "title": "Content declaration serialization variant 1 retains default semantics",
+      "status": "passed"
+    },
+    {
+      "title": "Content declaration serialization variant 2 retains default semantics",
+      "status": "passed"
+    },
+    {
+      "title": "Content declaration serialization variant 3 retains default semantics",
+      "status": "passed"
+    },
+    {
+      "title": "Content declaration serialization variant 4 retains default semantics",
+      "status": "passed"
+    },
+    {
+      "title": "Content declaration serialization variant 5 retains override semantics",
+      "status": "passed"
+    },
+    {
+      "title": "Content declaration serialization variant 6 retains override semantics",
+      "status": "passed"
+    },
+    {
+      "title": "Content declaration serialization variant 7 retains override semantics",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship creation retains ID type and owned target",
+      "status": "passed"
+    },
+    {
+      "title": "External relationship part access rejects without acquisition",
+      "status": "passed"
+    },
+    {
+      "title": "External relationship reference preserves the inert target",
+      "status": "passed"
+    },
+    {
+      "title": "Internal relationship references rebase across sibling directories",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship collection adds an explicitly owned internal edge",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship collection adds a new inert external edge",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship ID lookup returns the original owned entry",
+      "status": "passed"
+    },
+    {
+      "title": "Internal relationship matching reuses an entry and distinguishes a new type",
+      "status": "passed"
+    },
+    {
+      "title": "Equal external type and target reuse an existing explicit ID",
+      "status": "passed"
+    },
+    {
+      "title": "Related-part map excludes external edges and retains target identity",
+      "status": "passed"
+    },
+    {
+      "title": "Missing keyed relationship lookup distinguishes null from a typed failure",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship type lookup resolves the original internal target",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship XML serializes internal rebase and external target mode",
+      "status": "passed"
+    },
+    {
+      "title": "Relationship ID allocation fills the first owner-local gap",
+      "status": "passed"
+    },
+    {
+      "title": "Package image admission reuses equal bytes without another resource",
+      "status": "passed"
+    },
+    {
+      "title": "Image collection discovers unreferenced admitted resources after reopening",
+      "status": "passed"
+    },
+    {
+      "title": "Image byte equality returns the original admitted part",
+      "status": "passed"
+    },
+    {
+      "title": "Different image bytes produce distinct owned parts",
+      "status": "passed"
+    },
+    {
+      "title": "Image allocation fills gap 1 among 2, 3",
+      "status": "passed"
+    },
+    {
+      "title": "Image allocation fills gap 2 among 1, 3",
+      "status": "passed"
+    },
+    {
+      "title": "Image allocation fills gap 3 among 1, 2",
+      "status": "passed"
+    },
+    {
+      "title": "New image admission joins the original owned collection",
+      "status": "passed"
+    }
+  ],
+  "checks": {
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "passed": 3987,
+      "skipped": 4,
+      "files": 201,
+      "duration_seconds": 167.66,
+      "log_sha256": "b3df74f83100a581cb88bc27d501415898821b23594b7de969026427188334d4",
+      "skips": "Existing cross-format PPTX pending paths; not counted as passes."
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 1,
+      "warning": "Existing operation-types.test.ts unused type-only variable.",
+      "log_sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit_code": 0,
+      "log_sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+    }
+  },
+  "mapping": "Independent original memfs observations; source identifiers exist only in the research ledger. No native mock call-order, private descriptor implementation, arbitrary seek API or pixel decoding parity is claimed."
+}

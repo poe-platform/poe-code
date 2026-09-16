@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: table model growth and formatting publish through a virtual script and binary pipe
+ok 1 - table model growth and formatting publish through a virtual script and binary pipe
+  ---
+  duration_ms: 206.389792
+  type: 'test'
+  ...
+# Subtest: table model rectangle merges preserve ordered content and dry runs publish no bytes
+ok 2 - table model rectangle merges preserve ordered content and dry runs publish no bytes
+  ---
+  duration_ms: 154.437417
+  type: 'test'
+  ...
+# Subtest: table model slices use checked zero based bounds through binary stdin
+ok 3 - table model slices use checked zero based bounds through binary stdin
+  ---
+  duration_ms: 42.533459
+  type: 'test'
+  ...
+# Subtest: invalid table model bounds fail before publication and retain existing destinations
+ok 4 - invalid table model bounds fail before publication and retain existing destinations
+  ---
+  duration_ms: 86.594083
+  type: 'test'
+  ...
+# Subtest: partial overlap table model merges reject without publishing earlier edits
+ok 5 - partial overlap table model merges reject without publishing earlier edits
+  ---
+  duration_ms: 44.143
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1160.569708

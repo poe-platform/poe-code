@@ -1,0 +1,22 @@
+{
+  "task": "adapt-upstream-tables-bdd",
+  "scope": "Five original supplementary public SDK-backed virtual shell acceptance tests; no source-case completion claim",
+  "test_file": "../../../packages/safe-bash/tests/commands/docx/table-model.test.ts",
+  "procedure": "../../plans/docx-table-model-shell.md",
+  "results": {
+    "shell": { "passed": 5, "failed": 0, "log": "shell-green.log" },
+    "registration": { "passed": 109, "failed": 0, "log": "registration-green.log" },
+    "formatting": "passed for the new TypeScript test and plan",
+    "registration_presence_before_change": "failed; registration-red.log",
+    "renderer_qa": "not-run",
+    "workspace_gates": "root integration owner runs relevant maintained checks"
+  },
+  "boundaries": [
+    "Original XML and ZIP bytes, no cloned or downloaded binary fixture dependency",
+    "In-memory filesystem only, no native process or host filesystem access in tests",
+    "Actual virtual script, command substitution, binary pipeline and binary stdin",
+    "Public SDK reopen validates published table content and formatting",
+    "JSON envelopes and zero affected count for failures are checked on stdout",
+    "No product modifications, Git operation, README edit, push or release"
+  ]
+}

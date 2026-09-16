@@ -95,3 +95,18 @@ All 15,764 public schema/help links and staged source/input hashes verified.
 Only task 88 status is marked done in the owned pipeline blob; packing delivery
 and every later task remain untouched. No corpus campaign or disposable binary
 cleanup was needed. Remove only the invocation-owned detached check snapshot.
+
+## Verified specification receipt correction, 2026-09-15
+
+Teardown found the proposed `CapabilitiesData` example omitted the implemented
+nullable `input` summary. The committed SDK declaration and handler agree on
+signed/protected booleans and unsupported namespace/operation arrays; no-input
+capabilities returns null. Integrate only that six-line specification hunk and
+this task record in a separate atomic documentation commit. No code, historical
+case disposition, task completion or Implemented Through change follows.
+
+Fresh maintained DOCX unit tests passed 3,438 with four pending paired cases
+skipped; package lint passed both typecheck phases with one existing warning.
+Selected DOCX build and strict public declaration consumer passed. The bundled
+capabilities inspection and specification checker passed. These are scoped
+checks, not full model/format acceptance. No README, push or publication.

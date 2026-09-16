@@ -2893,6 +2893,12 @@ type FeatureSupport = {
   detected: boolean | null;
 };
 type CapabilitiesData = {
+  input: null | {
+    signed: boolean;
+    protected: boolean;
+    unsupportedNamespaces: string[];
+    unsupportedOperations: string[];
+  };
   features: FeatureSupport[];
   host: { read: boolean; atomicReplace: boolean; transactions: boolean; binaryStdout: boolean };
   limits: { name: string; ceiling: number }[];

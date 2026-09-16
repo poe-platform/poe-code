@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "profile": "docs/pandoc/latex-reader.md",
+  "testFiles": [
+    "packages/pandoc/src/latex.test.ts",
+    "packages/pandoc/src/safe-bash.test.ts"
+  ],
+  "provenance": "Original local test text and implementation. Behavioral inspiration only from Tests.Readers.LaTeX labels in docs/pandoc/upstream-cases.json; no upstream bodies, fixtures or executables imported.",
+  "policyColumns": {
+    "strict": "default conversion",
+    "preservedRaw": "rawContent retain or escape, using JSON as the source-preserving writer",
+    "lossy": "--lossy, using JSON as the source-preserving writer; destination writers retain separate policy gates"
+  },
+  "coverageClaim": "Executed original profile cases, not upstream corpus equivalence. Outcomes for invariant parser/resource/security failures apply independently of loss policy. No broad upstream inventory status promoted.",
+  "cases": [
+    {
+      "id": "pandoc.latex.tokens-groups-comments",
+      "originalTest": "parses escaped braces, comments, whitespace and nested emphasis groups",
+      "strict": "typed AST",
+      "preservedRaw": "typed AST",
+      "lossy": "typed AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.argument-boundaries",
+      "originalTest": "supports nested optional argument groups and escaped math dollars",
+      "strict": "typed AST",
+      "preservedRaw": "typed AST",
+      "lossy": "typed AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.group-whitespace",
+      "originalTest": "preserves significant whitespace inside nested groups",
+      "strict": "typed AST",
+      "preservedRaw": "typed AST",
+      "lossy": "typed AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.structure-labels",
+      "originalTest": "maps document metadata, starred sections, optional titles, labels and forward references",
+      "strict": "typed AST",
+      "preservedRaw": "typed AST",
+      "lossy": "typed AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.lists-quotes-verbatim",
+      "originalTest": "maps nested lists, quotes, links and exact verbatim terminators",
+      "strict": "typed AST",
+      "preservedRaw": "typed AST",
+      "lossy": "typed AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.math-source",
+      "originalTest": "retains typed inline and display math source and escaped dollars",
+      "strict": "typed Math source",
+      "preservedRaw": "typed Math source",
+      "lossy": "typed Math source",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.figures-tables",
+      "originalTest": "maps figures and multicolumn tables with alignment and caption",
+      "strict": "typed AST",
+      "preservedRaw": "typed AST",
+      "lossy": "typed AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.table-source-attributes",
+      "originalTest": "retains table column/rule source attributes inside a float",
+      "strict": "typed attributes",
+      "preservedRaw": "typed attributes",
+      "lossy": "typed attributes",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.unicode-and-macros",
+      "originalTest": "expands bounded simple macros, optional defaults and Unicode commands",
+      "strict": "expanded AST",
+      "preservedRaw": "expanded AST",
+      "lossy": "expanded AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.macro-scope",
+      "originalTest": "keeps group-local macro definitions local and supports renewal/provision",
+      "strict": "expanded AST / reserved redefinition fails",
+      "preservedRaw": "same",
+      "lossy": "same",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.macro-comment-parameters",
+      "originalTest": "does not treat comment parameter markers as macro parameters",
+      "strict": "expanded AST",
+      "preservedRaw": "expanded AST",
+      "lossy": "expanded AST",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.macro-recursion",
+      "originalTest": "rejects recursion, undefined macros and excessive expansion",
+      "strict": "E_LIMIT recursion; E_CAPABILITY undefined",
+      "preservedRaw": "E_LIMIT recursion; raw undefined",
+      "lossy": "E_LIMIT recursion; raw undefined",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.unknown-command",
+      "originalTest": "preserves the complete unknown command and arguments under explicit loss policy",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "RawInline + W_RAW_CONTENT",
+      "lossy": "RawInline + W_RAW_CONTENT",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.starred-unknown-command",
+      "originalTest": "preserves argument-adjacent comments and starred unknown commands whole",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "complete RawInline + W_RAW_CONTENT",
+      "lossy": "complete RawInline + W_RAW_CONTENT",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.unknown-environment",
+      "originalTest": "preserves unknown environments whole, including command arguments and comments",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "complete RawBlock + W_RAW_CONTENT",
+      "lossy": "complete RawBlock + W_RAW_CONTENT",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.literal-targets",
+      "originalTest": "decodes escaped characters in braced link targets",
+      "strict": "typed Link target",
+      "preservedRaw": "typed Link target",
+      "lossy": "typed Link target",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.missing-and-invalid-includes",
+      "originalTest": "resolves nested includes only through injected memfs resources before output",
+      "strict": "AST; missing E_IO; no capability E_CAPABILITY",
+      "preservedRaw": "same; no output on failure",
+      "lossy": "same; no output on failure",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.include-cycles-limits",
+      "originalTest": "rejects include cycles, traversal, depth and byte excess before publication",
+      "strict": "E_LIMIT / E_CAPABILITY",
+      "preservedRaw": "same",
+      "lossy": "same",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.aggregate-limits",
+      "originalTest": "bounds nested groups, expansion bytes and exact aggregate include bytes",
+      "strict": "bounded AST / E_LIMIT",
+      "preservedRaw": "same",
+      "lossy": "same",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.malformed-eof-delimiters",
+      "originalTest": "malformed and forbidden input",
+      "strict": "E_PARSE",
+      "preservedRaw": "E_PARSE",
+      "lossy": "E_PARSE",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.forbidden-primitives",
+      "originalTest": "malformed and forbidden input",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "E_CAPABILITY",
+      "lossy": "E_CAPABILITY",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.invalid-table-labels",
+      "originalTest": "rejects invalid table geometry and unresolved/duplicate labels",
+      "strict": "E_PARSE geometry/duplicates; E_CAPABILITY unresolved",
+      "preservedRaw": "same",
+      "lossy": "same",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.repeated-caption",
+      "originalTest": "rejects repeated captions instead of deleting their arguments",
+      "strict": "E_PARSE",
+      "preservedRaw": "E_PARSE",
+      "lossy": "E_PARSE",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.cyclic-reference-title",
+      "originalTest": "rejects cyclic reference titles without constructing a cyclic AST",
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "E_CAPABILITY",
+      "lossy": "E_CAPABILITY",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.empty-table-and-nested-primitives",
+      "originalTest": "rejects empty tabular and forbidden commands inside math and macro bodies",
+      "strict": "E_PARSE empty; E_CAPABILITY primitive",
+      "preservedRaw": "same",
+      "lossy": "same",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.command-vfs",
+      "originalTest": "injects LaTeX include resources from memfs for file and stdin conversion",
+      "strict": "converted bytes / missing fail before output",
+      "preservedRaw": "same resource rules",
+      "lossy": "same resource rules",
+      "status": "passing-original-profile"
+    },
+    {
+      "id": "pandoc.latex.include-depth-cancellation",
+      "originalTest": "bounds include depth and propagates cancellation before publication",
+      "strict": "E_LIMIT depth; E_CANCELLED cancellation; no publication",
+      "preservedRaw": "same",
+      "lossy": "same",
+      "status": "passing-original-profile"
+    }
+  ],
+  "unsupportedProfiles": {
+    "fixed-width-custom-multirow-tables": {
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "E_CAPABILITY",
+      "lossy": "E_CAPABILITY"
+    },
+    "packages-catcodes-primitives": {
+      "strict": "E_CAPABILITY",
+      "preservedRaw": "E_CAPABILITY",
+      "lossy": "E_CAPABILITY"
+    },
+    "unbraced-include-and-macro-arguments": {
+      "strict": "E_PARSE",
+      "preservedRaw": "E_PARSE",
+      "lossy": "E_PARSE"
+    },
+    "full-TeX-numbering-rendering-and-aux-files": "not implemented; no compatibility claim"
+  },
+  "inspirationLocators": [
+    {
+      "originalLocalTestId": "pandoc.original.1088f72981cad513",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 49,
+        "caseLocator": "named case: simple"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.5be1623a3a021b27",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 51,
+        "caseLocator": "named case: space"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.4f009963ef3adcd6",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 53,
+        "caseLocator": "named case: emphasized"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.d8aff4abd74c9f66",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 64,
+        "caseLocator": "named case: emph"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.f8bc860c343164a4",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 67,
+        "caseLocator": "named case: link"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.b5a97d375ed53e60",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 73,
+        "caseLocator": "named case: escaped $"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.b918e34375e3404e",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 82,
+        "caseLocator": "named case: comment in paragraph"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.2daaf6bde5534cff",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 88,
+        "caseLocator": "named case: identifier"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.65ac7f31e1f7d2b8",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 98,
+        "caseLocator": "named case: Multi cell table"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.4b0005fb6d6f1257",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 126,
+        "caseLocator": "named case: Table with multicolumn item"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.5d0a254cebe2900e",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 218,
+        "caseLocator": "named case: Basic image"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.7e17b9aefcc0bc0d",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 246,
+        "caseLocator": "named case: Two-character escapes"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    },
+    {
+      "originalLocalTestId": "pandoc.original.688a123c7232c568",
+      "source": {
+        "commit": "c9a9a5eed7185783b69043e019c067370dc09615",
+        "path": "test/Tests/Readers/LaTeX.hs",
+        "line": 249,
+        "caseLocator": "named case: One-character escapes"
+      },
+      "relation": "behavioral inspiration only; upstream equivalence and inventory status not promoted"
+    }
+  ],
+  "verification": {
+    "packageTests": 676,
+    "latexTests": 47,
+    "newCommandTests": 1,
+    "evidence": "docs/pandoc/latex-reader-evidence.md"
+  }
+}

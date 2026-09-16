@@ -173,3 +173,21 @@ it("does not accept resource providers through untyped command configuration", a
   expect(await createPandocCommand(injected).execute(ctx)).toEqual({exitCode: 2});
   expect(lstat).not.toHaveBeenCalled(); expect(resolve).not.toHaveBeenCalled();
 });
+it("injects LaTeX include resources from memfs for file and stdin conversion", async () => {
+  const volume = Volume.fromJSON({"/book/main.tex": "\\input{chapter}", "/book/chapter.tex": "\\input{sub/part}", "/book/sub/part.tex": "Original"});
+  const fs = {
+    readFile: vi.fn(async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer)),
+    lstat: async (path: string) => ({type: volume.lstatSync(path).isFile() ? "file" : "directory"}),
+    mkdir: async (path: string) => {volume.mkdirSync(path, {recursive: true});},
+    writeFile: async (path: string, data: Uint8Array) => {volume.writeFileSync(path, data);}
+  };
+  for (const operand of [["main.tex"], []]) {
+    const ctx = {...context(["-f", "latex", "-t", "plain", ...operand], "\\input{chapter}"), fs, cwd: "/book"};
+    expect(await createPandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(text(ctx.stdout)).toBe("Original\n");
+  }
+  const missing = {...context(["-f", "latex", "-t", "plain", "-o", "result.txt"], "\\input{missing}"), fs, cwd: "/book"};
+  expect(await createPandocCommand().execute(missing)).toEqual({exitCode: 2});
+  expect(text(missing.stdout)).toBe("");
+  expect(volume.existsSync("/book/result.txt")).toBe(false);
+});

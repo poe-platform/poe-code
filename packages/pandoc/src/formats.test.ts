@@ -37,7 +37,7 @@ describe("declarative format registry", () => {
     const registry = createFormatRegistry([...coreFormats].reverse(), {
       reader: { format: "docx", read }
     });
-    expect(registry.list("read")).toEqual(["commonmark", "csv", "docx", "gfm", "html", "json", "tsv"]);
+    expect(registry.list("read")).toEqual(["commonmark", "csv", "docx", "gfm", "html", "json", "latex", "tsv"]);
     expect(registry.list("write")).toEqual(["commonmark", "gfm", "html", "html5", "json", "plain"]);
     expect(registry.infer("file.md", "read")).toBe("commonmark");
     expect(registry.infer("file.html", "write")).toBe("html5");

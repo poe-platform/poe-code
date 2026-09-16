@@ -12,6 +12,6 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: []
+    write: ["rawContent"]
   }
 } satisfies FormatDescriptor;

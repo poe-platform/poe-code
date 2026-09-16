@@ -40,8 +40,8 @@ export function createPandocCommand(capabilities: Omit<ConversionContext, "outpu
             writeFile: (path, bytes, signal) => context.fs!.writeFile(path.startsWith("/") ? path : `${context.cwd ?? "/"}/${path}`, bytes, {signal})
           } : context;
           const {options, operands, destination} = parseConversionArgs(context.args, files, context.signal);
-          const result = await convert(operands ?? [{chunks: context.stdin}], options, {...configured, signal: context.signal,
-            ...(context.fs === undefined ? {} : {resourceFiles: context.fs}),
+          const result = await convert((operands ?? [{chunks: context.stdin}]).map(input => ({...input, ...(input.base === undefined && context.cwd !== undefined ? {base: context.cwd} : {})})), options, {...configured, signal: context.signal,
+            ...(context.fs === undefined ? {} : {resourceFiles: context.fs, resources: {resolve: async (id, base, signal) => context.fs!.readFile(`${base ?? context.cwd ?? "/"}/${id}`, {...(signal === undefined ? {} : {signal})})}}),
             ...(context.cwd === undefined ? {} : {resourceCwd: context.cwd}),
             ...(destination === undefined ? {} : {output: {publish: async (bytes: Uint8Array, signal: AbortSignal | undefined) => files.writeFile!(destination, bytes, signal!)}})});
           for(const diagnostic of result.diagnostics) {

@@ -1,5 +1,7 @@
 import type { FormatDescriptor } from "../formats.js";
+import { latexReader } from "../latex.js";
 export default {
+  reader: latexReader,
   name: "latex",
   read: true,
   write: true,

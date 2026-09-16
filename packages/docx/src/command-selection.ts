@@ -36,7 +36,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (["headers", "footers"].includes(resource) && ["get", "set", "remove"].includes(action) && !has("section") && !token)
     reject("Header and footer access requires a section.");
   if (target && ["get", "set", "remove", "replace", "accept", "reject", "repeat", "bind", "merge", "split"].includes(action) &&
-    !has(target) && !token && !all) reject("A resource selection is required.");
+    !has(target) && !token && !all) reject(`A resource selection is required. Use --select TOKEN or --${target} N; see docx help ${pieces.join(" ")} for owner selectors.`);
   if (resource === "tables" && pieces.length === 3 && !has("table") && !token)
     reject("Row and column operations require a table.");
   if (operation === "tables.split" && !has("cell") && !token) reject("Table split requires a cell.");

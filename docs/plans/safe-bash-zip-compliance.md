@@ -766,3 +766,11 @@ arguments, 12-byte header checks, encrypted STORE size accounting, descriptor
 check bytes, secure header generation and copy/update behavior remain open.
 Delivery session 46504 has passed source and 26 consumer typecheck groups and
 is still executing the full maintained unit gate on its earlier checkout.
+
+## Release gate readonly capability correction
+
+Full maintained unit gate passed the shared workspaces but rejected one readonly
+capability expected object missing atomicEntryRemoval: false. The adapter
+correctly disables the new move prerequisite; updated the explicit conservative
+expected list. Final main integrates remote 4f6988bed and all ZIP local commits;
+full verification and GitHub publication remain required before delivery claims.

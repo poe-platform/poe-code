@@ -208,7 +208,12 @@ async function parse(text: string, ctx: AdapterContext): Promise<H.Document> {
 export const htmlReader: ReaderCapability = {
   format: "html",
   async read(input, ctx) {
-    const tree = await parse(input.text ?? (await ctx.decodeUtf8([input.bytes])), ctx);
+    return htmlTreeDocument(await parse(input.text ?? (await ctx.decodeUtf8([input.bytes])), ctx), ctx);
+  }
+};
+
+/** Map an already parsed tree without invoking HTML tokenization or recovery. */
+export async function htmlTreeDocument(tree: H.Document, ctx: AdapterContext) {
     async function literal(node: H.Node): Promise<string> {
       await ctx.cooperate();
       if (node.nodeName === "#text") return (node as H.TextNode).value;
@@ -444,5 +449,4 @@ export const htmlReader: ReaderCapability = {
       ...(language ? { language } : {}),
       ...(["ltr", "rtl", "auto"].includes(dir) ? { direction: dir as "ltr" | "rtl" | "auto" } : {})
     };
-  }
-};
+}

@@ -1,5 +1,7 @@
 import type { FormatDescriptor } from "../formats.js";
+import { epubReader } from "../epub.js";
 export default {
+  reader: epubReader,
   name: "epub",
   read: true,
   write: true,

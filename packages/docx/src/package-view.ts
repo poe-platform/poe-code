@@ -8,7 +8,7 @@ import { bindXmlElementView, type XmlElementView } from "./xml-element-view.js";
 import { PackURI } from "./pack-uri.js";
 import { asciiKey, normalizePartName, relativePartTarget } from "./part-uri.js";
 import { xmlValue } from "./create-content.js";
-import type { ArchiveSink } from "./archive-write.js";
+import type { DocumentOutput, DocumentSaveOptions } from "./model-output.js";
 import { corePropertyKeys, corePropertyNamespace, readPropertyNodes, serializePropertyScalar, normalizePropertyDate } from "./property-values.js";
 import { createPropertyPart } from "./property-part.js";
 import { documentDialects, type DocumentDialect } from "./dialect.js";
@@ -16,7 +16,8 @@ import { validateDocxValue } from "./operation-schema.js";
 import type { DocumentBudget } from "./budget.js";
 import { parseDocumentXml } from "./package-xml.js";
 import { Image, type ImageModelInput, type ImageModelContext } from "./image-model.js";
-import { acquireDocumentModelInput, type DocumentModelInput } from "./model-input.js";
+import type { DocumentModelInput } from "./model-input.js";
+import { admitDocumentModel } from "./model-admission.js";
 import { modelContext, type DocumentModelContext } from "./model-context.js";
 import type { Length } from "./formatting-values.js";
 
@@ -55,7 +56,7 @@ export interface PackageViewBinding {
   stage(archive: DocumentArchive, rename?: { from: string; to: string }): void;
   version(): number;
   writable(): void;
-  save(sink: ArchiveSink): Promise<void>;
+  save(output: DocumentOutput, options?: DocumentSaveOptions): Promise<void>;
 }
 
 function relationshipName(owner: string): string {
@@ -77,10 +78,11 @@ export class PackageView {
   constructor(binding: PackageViewBinding) { this.#binding = binding; }
   static async open(input: DocumentModelInput, context?: DocumentModelContext): Promise<PackageView> {
     const settings = modelContext(context);
+    if (input == null) throw new InputTypeError("Expected explicit package input.");
     if (settings.template !== undefined) throw new InputTypeError("A context template conflicts with package input.");
-    const bytes = await acquireDocumentModelInput(input, settings);
-    const { openDocumentStyleModel } = await import("./styles-model.js");
-    const model = await openDocumentStyleModel(bytes, settings);
+    const admitted = await admitDocumentModel(input, settings);
+    const { bindDocumentStyleModel } = await import("./styles-model.js");
+    const model = await bindDocumentStyleModel(admitted);
     model.package.after_unmarshal();
     return model.package;
   }
@@ -443,11 +445,10 @@ export class PackageView {
     const report = validateDocumentArchive(this.#binding.snapshot(), {}, archiveSettings(this.#binding.context).budget);
     if (!report.valid) throw new SemanticValidationError(report.diagnostics);
   }
-  async save(sink: ArchiveSink): Promise<void> {
-    if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
+  async save(output: DocumentOutput, options?: DocumentSaveOptions): Promise<void> {
     this.#binding.writable();
     this[packageValidate]();
-    await this.#binding.save(sink);
+    await this.#binding.save(output, options);
   }
 }
 

@@ -9,12 +9,11 @@ import type { DocumentByteSource } from "./io.js";
 import { UnsupportedEditError } from "./xml-write.js";
 
 /** One canonical virtual path grammar for document, template and image reads. */
-export function modelVfsSource(
+export function modelVfsResolver(
   path: unknown,
   capability: unknown,
-  context: AdmittedModelContext,
-  maxBytes: number
-): DocumentByteSource {
+  context: AdmittedModelContext
+) {
   if (
     typeof path !== "string" ||
     capability === undefined ||
@@ -52,12 +51,17 @@ export function modelVfsSource(
         : undefined;
   if (!resolver)
     throw new UnsupportedEditError("Virtual paths require a matching explicit capability.");
+  return resolver;
+}
+
+export function modelVfsSource(path: unknown, capability: unknown, context: AdmittedModelContext, maxBytes: number): DocumentByteSource {
+  const resolver = modelVfsResolver(path, capability, context);
   return {
     open(signal) {
       return {
         async *[Symbol.asyncIterator]() {
           context.budget.check("work", 0);
-          const source = await resolver.open(path, Object.freeze({ signal, maxBytes }));
+          const source = await resolver.open(path as string, Object.freeze({ signal, maxBytes }));
           context.budget.check("work", 0);
           if (signal.aborted) throw new CancellationError("Virtual input admission cancelled.");
           if (!source || typeof source[Symbol.asyncIterator] !== "function")

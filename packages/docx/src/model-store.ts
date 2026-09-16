@@ -16,7 +16,7 @@ import {
   publishDocumentArchive,
   publicationGenerationGuard
 } from "./publication.js";
-import type { ArchiveSink } from "./archive-write.js";
+import { modelOutput, type DocumentOutput, type DocumentSaveOptions, type ModelPublicationSource } from "./model-output.js";
 import { paragraphTextRun, replaceParagraphContent } from "./paragraph-content.js";
 import { renderContent, xmlValue } from "./create-content.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
@@ -62,7 +62,8 @@ export class ModelStore {
   constructor(
     archive: DocumentArchive,
     readonly context: AdmittedModelContext,
-    mainPart: string
+    mainPart: string,
+    private readonly source?: ModelPublicationSource
   ) {
     this.archive = archive;
     this.mainPart = mainPart.startsWith("/") ? mainPart : "/" + mainPart;
@@ -97,7 +98,7 @@ export class ModelStore {
           if (!unchanged.has(handle.ref.part)) handle.node = null;
         this.revision++;
       },
-      save: (sink) => this.save(sink)
+      save: (output, options) => this.save(output, options)
     });
     const dialect = dialectForNamespace(this.xml(this.mainPart).root.namespace)!;
     const stylePart = new DocumentPackage(this.snapshot(), context.limits, context.budget)
@@ -702,7 +703,7 @@ export class ModelStore {
       budget,
       encoding: { order: "input", compression: "store" },
       [publicationGenerationGuard]: () => {
-        if (revision !== this.revision)
+        if (this.publishing || revision !== this.revision)
           throw new PublicationError("conflict", "Model changed before publication.");
         this.publishing = true;
         return () => {
@@ -711,19 +712,18 @@ export class ModelStore {
       }
     });
   }
-  async save(sink: ArchiveSink): Promise<void> {
-    if (!sink || typeof sink.write !== "function")
-      throw new InputTypeError("Expected an explicit byte sink.");
+  async save(output: DocumentOutput, options: DocumentSaveOptions = {}): Promise<void> {
+    const target = modelOutput(output, options, this.context, this.source);
     const revision = this.revision;
     await publishDocumentArchive(
       this.snapshot(),
-      { output: "-" },
+      target.options,
       {
         ...this.context,
-        stdout: sink,
+        ...target,
         encoding: { order: "input", compression: "store" },
         [publicationGenerationGuard]: () => {
-          if (revision !== this.revision)
+          if (this.publishing || revision !== this.revision)
             throw new PublicationError("conflict", "Model changed before publication.");
           this.publishing = true;
           return () => {

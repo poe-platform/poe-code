@@ -30,7 +30,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const batch = validateDocxBatch(operations, settings.budget);
   for (const item of batch.operations) if (!styleModelBatchOperations.includes(item.operation) && !structureModelBatchActions.has(item.operation)) throw new UnsupportedProfileError("This model operation is not implemented by the style batch executor.");
   const document = batch.operations.some(item => structureModelBatchActions.has(item.operation) && item.operation !== styleModelBatchBootstrap) ? await Document(input, settings) : null;
-  const model = document ? { get styles() { return document.styles; }, package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (sink: import("./archive-write.js").ArchiveSink) => document.save(sink), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) } : await openDocumentStyleModel(input, settings);
+  const model = document ? { get styles() { return document.styles; }, package: document.store.package, warnings: [] as readonly { readonly code: string }[], save: (output: import("./model-output.js").DocumentOutput, options?: import("./model-output.js").DocumentSaveOptions) => document.save(output, options), publish: (options: import("./publication.js").PublicationOptions, context: import("./publication.js").PublicationContext) => document.store.publish(options, context) } : await openDocumentStyleModel(input, settings);
   const named = new Map<string, unknown>();
   const objectIds = new Map<object, string>();
   const results: { operation: string; value: unknown }[] = [];

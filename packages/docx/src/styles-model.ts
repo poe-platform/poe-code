@@ -6,7 +6,7 @@ import { type DocumentModelContext } from "./model-context.js";
 import { type DocumentModelInput } from "./model-input.js";
 import { MissingKeyError, StaleHandleError } from "./model-errors.js";
 import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
-import type { ArchiveSink } from "./archive-write.js";
+import { modelOutput, type DocumentOutput, type DocumentSaveOptions } from "./model-output.js";
 import { documentDialects } from "./dialect.js";
 import { runElementOpen } from "./run-properties.js";
 import { xmlValue } from "./create-content.js";
@@ -342,7 +342,11 @@ export { LatentStyle as _LatentStyle };
 
 /** Async admission with synchronous live styles and explicit validated publication. */
 export async function openDocumentStyleModel(input?: DocumentModelInput | null, context?: DocumentModelContext) {
-  const { archive: admitted, settings } = await admitDocumentModel(input, context);
+  return bindDocumentStyleModel(await admitDocumentModel(input, context));
+}
+
+/** Internal binding preserves the admitted source identity without reopening input. */
+export async function bindDocumentStyleModel({ archive: admitted, settings, source }: Awaited<ReturnType<typeof admitDocumentModel>>) {
   const edges = admitted.package.relationships("/" + admitted.mainPart).filter(e => e.reltype === `${documentDialects[admitted.dialect].r}/styles`);
   if (edges.length > 1 || edges[0]?.is_external) throw new RangeError("Expected one internal styles part.");
   let archive: DocumentArchive = admitted;
@@ -354,7 +358,7 @@ export async function openDocumentStyleModel(input?: DocumentModelInput | null, 
     version: () => store?.revision ?? 0,
     writable: () => { if (store.activePublications) throw new PublicationError("conflict", "Model publication is committing."); assertDocumentEditable(admitted, settings); },
     stage: (candidate, rename) => { archive = candidate; if (rename?.from === "/" + stylesPart) stylesPart = rename.to.slice(1); },
-    save: async sink => { await model.save(sink); }
+    save: async (output, options) => { await model.save(output, options); }
   });
   const store: StyleStore = new StyleStore(new TextDecoder().decode(archive.members.find(m => m.name === stylesPart)!.bytes), settings, () => assertDocumentEditable(admitted, settings), "/" + stylesPart, packageView);
   store.revision = createdStylesPart ? 1 : 0;
@@ -378,10 +382,10 @@ export async function openDocumentStyleModel(input?: DocumentModelInput | null, 
       return () => { store.activePublications--; };
     };
   };
-  const model = { styles, package: packageView, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(sink: ArchiveSink): Promise<void> {
-    if (!sink || typeof sink.write !== "function") throw new InputTypeError("Expected a document byte sink.");
+  const model = { styles, package: packageView, get warnings(): readonly { readonly code: string }[] { return store.warnings.slice(); }, async save(output: DocumentOutput, options: DocumentSaveOptions = {}): Promise<void> {
+    const target = modelOutput(output, options, settings, source);
     assertDocumentEditable(admitted, settings);
-    await publishDocumentArchive(snapshot(), { output: "-" }, { ...settings, [publicationGenerationGuard]: guard(), stdout: sink, encoding: { order: "input", compression: "store" } });
+    await publishDocumentArchive(snapshot(), target.options, { ...settings, ...target, [publicationGenerationGuard]: guard(), encoding: { order: "input", compression: "store" } });
   }, async publish(options: PublicationOptions, publication: PublicationContext) {
     assertDocumentEditable(admitted, settings);
     const caller = archiveSettings(publication);

@@ -5,7 +5,7 @@ import { ModelStore, type ModelRef } from "./model-store.js";
 import { Sections } from "./section-model.js";
 import { Comments, bindCommentRange } from "./review-model.js";
 import type { Length } from "./formatting-values.js";
-import type { ArchiveSink } from "./archive-write.js";
+import type { DocumentOutput, DocumentSaveOptions } from "./model-output.js";
 import { InputTypeError, InvalidValueError } from "./archive.js";
 import { WD_STYLE_TYPE, WD_BREAK, WD_SECTION_START, Emu, Inches } from "./formatting-values.js";
 import type { DocxEnumValue } from "./operation-types.js";
@@ -156,8 +156,8 @@ export class DocumentView {
     }
     return this.store.addTable(this.ref, rows, cols, width);
   }
-  async save(sink: ArchiveSink): Promise<void> {
-    await this.store.save(sink);
+  async save(output: DocumentOutput, options?: DocumentSaveOptions): Promise<void> {
+    await this.store.save(output, options);
   }
 }
 
@@ -165,8 +165,8 @@ export async function Document(
   input?: DocumentModelInput | null,
   context?: DocumentModelContext
 ): Promise<DocumentView> {
-  const { archive, settings } = await admitDocumentModel(input, context);
-  const store = new ModelStore(archive, settings, archive.mainPart);
+  const { archive, settings, source } = await admitDocumentModel(input, context);
+  const store = new ModelStore(archive, settings, archive.mainPart, source);
   await store.package[packageAdmitImages]();
   return new DocumentView(store);
 }

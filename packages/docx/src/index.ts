@@ -68,6 +68,8 @@ export {
   type PublicationInput, type PublicationOptions, type PublicationContext,
   type PublicationResult, type PublishedFile, type PublicationFile, type ExtractionPublicationOptions
 } from "./publication.js";
+export type { ByteSink, StagedByteSink } from "./publication.js";
+export type { DocumentOutput, DocumentSaveOptions, VfsPath } from "./model-output.js";
 
 export {
   encodeLocation, decodeLocation, SelectionError,

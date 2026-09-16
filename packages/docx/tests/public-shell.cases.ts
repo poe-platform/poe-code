@@ -53,6 +53,53 @@ test("built workspace SDK and plugin use their declared subpaths", () => {
   }
 });
 
+test("built public output types save and reopen staged bytes and scoped VFS paths", async () => {
+  const { fs, volume, shell } = fixture();
+  const filesystem: FileSystem = { ...fs,
+    capabilities: { ...fs.capabilities, atomicFileStaging: true },
+    async lstat(path, options) { return { ...await fs.lstat!(path, options), revision: 0 }; },
+    async createStagedFile(directory, name, content, options) {
+      assert.equal(options.parent.identityScope, volume);
+      assert.equal(content.type, "file");
+      if (content.type !== "file") throw new Error("Expected file");
+      volume.mkdirSync(directory);
+      volume.writeFileSync(`${directory}/${name}`, content.data);
+      return { parent: { path: "/work", stat: options.parent }, directory: { path: directory, stat: await filesystem.lstat!(directory) }, file: { path: `${directory}/${name}`, stat: await filesystem.lstat!(`${directory}/${name}`) } };
+    },
+    async publishStagedFile(stage, path, options) {
+      assert.equal(options.destination, null);
+      assert.equal(volume.existsSync(path), false);
+      volume.renameSync(stage.file.path, path);
+    },
+    async removeStagedFile(stage) { volume.rmSync(stage.directory.path, { recursive: true }); }
+  };
+  const capability: sdk.DocumentVfsCapability = { filesystem, open(path) { return { async *[Symbol.asyncIterator]() { yield new Uint8Array(volume.readFileSync(path) as Uint8Array); } }; } };
+  const stage: sdk.StagedByteSink = {
+    async write(chunk) { volume.appendFileSync("/work/staged", chunk); },
+    async close() { assert.ok(volume.statSync("/work/staged").size > 0); },
+    async commit() { volume.renameSync("/work/staged", "/work/bytes.docx"); },
+    async abort() { volume.rmSync("/work/staged", { force: true }); }
+  };
+  const sink: sdk.ByteSink = { async stage(signal) { signal?.throwIfAborted(); volume.writeFileSync("/work/staged", ""); return stage; } };
+  const path: sdk.VfsPath = { path: "/work/path.docx", capability };
+  const options: sdk.DocumentSaveOptions = { force: false };
+  const outputs: readonly sdk.DocumentOutput[] = [sink, path];
+  try {
+    const document = await sdk.Document(undefined, { ...context(), vfs: capability });
+    document.paragraphs[0]!.text = "Public output consumer";
+    for (const output of outputs) await document.save(output, options);
+    const reopened = await rootSdk.Document(path, { ...context(), vfs: capability });
+    assert.equal(reopened.paragraphs[0]!.text, "Public output consumer");
+    assert.deepEqual(volume.readFileSync("/work/path.docx"), volume.readFileSync("/work/bytes.docx"));
+    assert.equal(sdk.validateDocumentArchive(await sdk.readDocumentArchive(new Uint8Array(volume.readFileSync("/work/bytes.docx") as Uint8Array), context())).valid, true);
+    const applied = await sdk.applyStyleModelBatch(new Uint8Array(volume.readFileSync("/work/bytes.docx") as Uint8Array), {
+      version: 1, operations: [{ operation: "model.document.Document.add_paragraph.call", receiver: { resultHandle: "document" }, arguments: { text: "Typed batch save" } }]
+    }, { ...context(), vfs: capability });
+    await applied.save({ path: "/work/batch.docx", capability });
+    assert.equal((await sdk.Document({ path: "/work/batch.docx", capability }, { ...context(), vfs: capability })).paragraphs.at(-1)!.text, "Typed batch save");
+  } finally { await shell.dispose(); }
+});
+
 test("built shell creates from JSON stdin and retains binary bytes through pipes and redirection", async () => {
   const { shell, volume } = fixture();
   try {

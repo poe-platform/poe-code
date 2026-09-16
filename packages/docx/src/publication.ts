@@ -10,6 +10,43 @@ import { writeDocumentArchive } from "./document-write.js";
 import { readDocumentArchive } from "./admission.js";
 import { SemanticValidationError, validateDocumentArchive } from "./validation.js";
 
+/** Caller-granted transactional output. Only the acquired stage is owned by save. */
+export interface ByteSink {
+  stage(signal?: AbortSignal): Promise<StagedByteSink>;
+}
+export interface StagedByteSink {
+  write(chunk: Uint8Array): Promise<void>;
+  /** Optional final flush before commit; failure must leave the destination unchanged. */
+  close?(): Promise<void>;
+  /** Atomically publishes and releases the stage. Rejection must not publish. */
+  commit(): Promise<void>;
+  /** Releases only acquired staging; never removes the destination. */
+  abort(): Promise<void>;
+}
+
+function captureSink(sink: ByteSink | ArchiveSink): ByteSink | ArchiveSink {
+  const stage = sinkMethod<ByteSink["stage"]>(sink, "stage"), write = sinkMethod<ArchiveSink["write"]>(sink, "write");
+  if (stage && !write) return { stage };
+  if (write && !stage) return { write };
+  throw new InputTypeError("Expected one explicit staged or borrowed byte sink.");
+}
+
+/** Preserve class capabilities while capturing data methods without running accessors. */
+function sinkMethod<T>(sink: object, key: string): T | undefined {
+  if (!sink || (typeof sink !== "object" && typeof sink !== "function"))
+    throw new InputTypeError("Expected an explicit byte sink capability.");
+  let owner: object | null = sink;
+  for (let depth = 0; owner !== null && depth < 64; depth++, owner = Object.getPrototypeOf(owner)) {
+    const descriptor = Object.getOwnPropertyDescriptor(owner, key);
+    if (!descriptor) continue;
+    if (!("value" in descriptor) || (descriptor.value !== undefined && typeof descriptor.value !== "function"))
+      throw new InputTypeError("Expected byte sink data methods.");
+    return descriptor.value?.bind(sink) as T | undefined;
+  }
+  if (owner !== null) throw new InputTypeError("Byte sink prototype depth exceeded.");
+  return undefined;
+}
+
 export interface PublicationInput { readonly path: string; readonly stat: FileStat }
 export interface PublicationOptions {
   readonly input?: PublicationInput;
@@ -25,12 +62,14 @@ export const publicationGenerationGuard = Symbol("publication-generation-guard")
 export interface PublicationContext extends ArchiveContext {
   readonly [publicationGenerationGuard]?: () => (() => void);
   readonly filesystem?: FileSystem;
-  readonly stdout?: ArchiveSink;
+  readonly stdout?: ArchiveSink | ByteSink;
   readonly encoding: ArchiveWriteOptions;
 }
 export interface PublishedFile { readonly path: string; readonly bytes: number }
 export interface PublicationResult { readonly published: readonly PublishedFile[]; readonly archiveSha256?: string }
 export class PublicationError extends Error {
+  /** Secondary owned-resource cleanup failure; never replaces the primary cause. */
+  cleanupError?: unknown;
   constructor(
     readonly code: "conflict" | "permission" | "unsupported-publication" | "sink-failure",
     message: string,
@@ -40,6 +79,7 @@ export class PublicationError extends Error {
   ) { super(message, options); }
 }
 class PublicationCancellationError extends CancellationError {
+  cleanupError?: unknown;
   constructor(readonly published: readonly PublishedFile[], readonly stdoutMayBePartial: boolean, options: ErrorOptions) {
     super("Document publication cancelled.", options);
   }
@@ -80,12 +120,17 @@ function cancelled(signal: AbortSignal): void {
 }
 function failure(error: unknown, published: readonly PublishedFile[], signal: AbortSignal): PublicationError | PublicationCancellationError {
   const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
-  if (signal.aborted || code === "cancelled") return new PublicationCancellationError([...published], false, { cause: error });
+  const previous = error instanceof PublicationError || error instanceof PublicationCancellationError ? error : undefined;
   const category = code === "EAGAIN" || code === "EEXIST" || code === "conflict" ? "conflict"
     : code === "ENOTSUP" || code === "unsupported-publication" ? "unsupported-publication"
     : code === "EACCES" || code === "EPERM" || code === "EROFS" || code === "permission" ? "permission"
     : "sink-failure";
-  return new PublicationError(category, "Document publication did not complete.", [...published], false, { cause: error });
+  const options = { cause: previous?.cause ?? error };
+  const result = signal.aborted || code === "cancelled"
+    ? new PublicationCancellationError([...published], false, options)
+    : new PublicationError(category, "Document publication did not complete.", [...published], false, options);
+  if (previous?.cleanupError !== undefined) result.cleanupError = previous.cleanupError;
+  return result;
 }
 interface Destination { path: string; parent: FileStat; expected: FileStat | null }
 async function destination(fs: FileSystem, path: string, options: PublicationOptions, signal: AbortSignal): Promise<Destination> {
@@ -146,7 +191,14 @@ async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, s
     published.push({ path: target.path, bytes: bytes.length });
   } catch (cause) { failed = true; error = cause; }
   try { await fs.removeStagedFile!(stage); }
-  catch (cause) { if (!failed) { failed = true; error = cause; } }
+  catch (cause) {
+    if (failed) {
+      const result = failure(error, published, signal);
+      result.cleanupError = cause;
+      throw result;
+    }
+    failed = true; error = cause;
+  }
   if (failed) throw error;
 }
 
@@ -215,6 +267,7 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
 export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext, controlSource?: DocumentArchive, originalInput?: Uint8Array): Promise<PublicationResult> {
   options = ownedOptions(options, ["input", "output", "inPlace", "force", "dryRun", "creation", "json"]);
   context = { ...context, encoding: { ...context.encoding } };
+  if (context.stdout !== undefined) context = { ...context, stdout: captureSink(context.stdout) };
   const settings = archiveSettings(context);
   const { signal, budget, limits } = settings;
   if (settings[documentSession]) {
@@ -302,8 +355,40 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   cancelled(signal);
   if (output === "-") {
     const release = context[publicationGenerationGuard]?.();
-    try { await context.stdout!.write(bytes, signal); }
+    try {
+      const sink = context.stdout!;
+      if ("stage" in sink) {
+        let abort: StagedByteSink["abort"] | undefined;
+        try {
+          cancelled(signal);
+          budget.charge("retainedBytes", bytes.length);
+          const stage = await sink.stage(signal);
+          // Capture cleanup independently so malformed acquired stages can still settle.
+          abort = sinkMethod<StagedByteSink["abort"]>(stage, "abort");
+          const write = sinkMethod<StagedByteSink["write"]>(stage, "write"), commit = sinkMethod<StagedByteSink["commit"]>(stage, "commit"), close = sinkMethod<StagedByteSink["close"]>(stage, "close");
+          if (!abort || !write || !commit)
+            throw new InputTypeError("Expected an owned staged byte sink.");
+          const chunkSize = Math.min(limits.chunkSize, 65536);
+          for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+            cancelled(signal);
+            await write(new Uint8Array(bytes.subarray(offset, offset + chunkSize)));
+          }
+          cancelled(signal);
+          await close?.();
+          cancelled(signal);
+          await commit();
+          // A fulfilled commit is authoritative, including cancellation during commit.
+          return { published: [{ path: "-", bytes: size }], archiveSha256 };
+        } catch (error) {
+          const result = failure(error, [], signal);
+          if (abort) try { await abort(); } catch (cleanup) { result.cleanupError = cleanup; }
+          throw result;
+        }
+      }
+      await sink.write(bytes, signal);
+    }
     catch (error) {
+      if ("stage" in context.stdout!) throw error;
       if (signal.aborted || error instanceof CancellationError) throw new PublicationCancellationError([], true, { cause: error });
       throw new PublicationError("sink-failure", "Binary stdout may contain partial output.", [], true, { cause: error });
     }

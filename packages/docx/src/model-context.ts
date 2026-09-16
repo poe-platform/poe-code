@@ -1,4 +1,5 @@
 import type { ByteSource } from "@poe-code/office-package";
+import type { FileSystem } from "@poe-code/safe-fs/core";
 import { documentByteView } from "./byte-input.js";
 import {
   archiveSettings,
@@ -17,6 +18,8 @@ export interface DocumentFontMetrics {
 
 /** A caller-granted virtual read capability. Object identity is its authority. */
 export interface DocumentVfsCapability {
+  /** Optional, explicit conditional publication authority for this read namespace. */
+  readonly filesystem?: FileSystem;
   open(
     path: string,
     options: { readonly signal: AbortSignal; readonly maxBytes: number }
@@ -78,10 +81,12 @@ export function matchesModelVfs(capability: unknown, context: AdmittedModelConte
 }
 
 function captureVfs(value: DocumentVfsCapability): DocumentVfsCapability {
-  contextData(value, ["open"]);
+  contextData(value, ["open", "filesystem"]);
   if (typeof value.open !== "function")
     throw new InputTypeError("Expected an explicit virtual read capability.");
-  const result = Object.freeze({ open: value.open.bind(value) });
+  if (value.filesystem !== undefined && (!value.filesystem || typeof value.filesystem.lstat !== "function"))
+    throw new InputTypeError("Expected an explicit publication filesystem.");
+  const result = Object.freeze({ open: value.open.bind(value), ...(value.filesystem ? { filesystem: value.filesystem } : {}) });
   vfsOrigins.set(result, vfsOrigins.get(value) ?? value);
   return result;
 }
@@ -182,7 +187,7 @@ export function modelContext(
   let binaryResolver: DocumentModelContext["binaryResolver"],
     fontResolver: DocumentModelContext["fontResolver"];
   if (context.binaryResolver !== undefined) {
-    contextData(context.binaryResolver, ["capability", "open"]);
+    contextData(context.binaryResolver, ["capability", "open", "filesystem"]);
     if (
       typeof context.binaryResolver.capability !== "string" ||
       !context.binaryResolver.capability ||
@@ -191,7 +196,7 @@ export function modelContext(
       throw new InputTypeError("Expected an explicit binary resolver capability.");
     binaryResolver = Object.freeze({
       capability: context.binaryResolver.capability,
-      open: context.binaryResolver.open.bind(context.binaryResolver)
+      ...captureVfs({ open: context.binaryResolver.open.bind(context.binaryResolver), ...(context.binaryResolver.filesystem ? { filesystem: context.binaryResolver.filesystem } : {}) })
     });
   }
   if (context.fontResolver !== undefined) {

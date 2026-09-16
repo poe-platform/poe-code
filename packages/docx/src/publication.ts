@@ -157,8 +157,16 @@ async function destination(fs: FileSystem, path: string, options: PublicationOpt
     // A proven absent final entry is exclusively created; existing entries need adapter alias evidence.
     if (path === options.input.path) throw new PublicationError("conflict", "Input replacement requires in-place intent.");
     if (expected) {
+      // The input pathname may now name another file; retain the admitted identity too.
+      const admitted = options.input.stat;
+      if (admitted.type === "file" && admitted.identityScope === expected.identityScope
+        && admitted.ino === expected.ino && admitted.dev === expected.dev)
+        throw new PublicationError("conflict", "Input replacement requires in-place intent.");
       const comparison = await fs.compareEntry?.(path, fs, options.input.path, { signal }) ?? "unknown";
       if (comparison === "same") throw new PublicationError("conflict", "Input replacement requires in-place intent.");
+      if (admitted.type !== "file")
+        throw new PublicationError("unsupported-publication", "Input alias checks require an admitted regular file identity.");
+      identity(admitted, false);
       if (comparison !== "distinct") throw new PublicationError("unsupported-publication", "Input alias identity is unknown.");
     }
   }

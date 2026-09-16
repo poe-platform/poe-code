@@ -67,5 +67,12 @@ owned paths and their evidence/plans are staged; unrelated work and later tasks
 remain pending. Delivery is local main only, without push or release.
 
 Final maintained `npm run test:unit --workspace=docx`: 194 files passed,
-3,620 tests passed, four existing schema-prerequisite cases skipped (3,624 total),
+3,620 tests passed, four existing cross-format CLI cases skipped (3,624 total),
 138.60 seconds. No new skips or failed cases. Local commit delivery only.
+
+Verification correction, 2026-09-15: the skips are PPTX validate and DOCX tables
+list, unscoped diff and public-engine cancellation in cross-format-cli.test.ts.
+Independent schema QA is a separate maintained route with pinned schema/native
+validator requirements; the four skips do not represent that route. See
+[the task verification](table-section-review-verification-20260915.md) for current
+checks, original new red/green evidence and remaining gaps.

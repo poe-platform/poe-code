@@ -49,3 +49,15 @@ mapping before their corrections. No unsupported public API was hidden.
 Focused model/owner tests and discovery/registry tests pass. Maintained selected
 build closure passes. Final maintained suite, lint, screenshot inspection and
 local commit receipts are recorded in [integration evidence](../docx/live-model-integration.md).
+
+## Verification evidence correction, 2026-09-15
+
+Inspect cross-format-cli.test.ts and the actual maintained suite output before
+classifying skipped checks. The four existing skips concern PPTX validate and
+DOCX tables list, unscoped diff and public-engine cancellation. Correct the
+integration record's schema-prerequisite label; do not count these as passes or
+run the separate native schema route under the no-native-runtime restriction.
+Current task verification and retained screenshot/hash inspection are recorded
+in [verification evidence](../docx/table-section-review-verification-20260915.md).
+This documentation correction is separate from the original memfs-backed table
+sequence correction. Preserve the unrelated pipeline plan and all other work.

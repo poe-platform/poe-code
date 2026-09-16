@@ -1,6 +1,9 @@
 # Paired Office CLI agent QA
 
-Status: Bounded DOCX execution on 2026-09-15 is recorded in its
+Status: Fresh bounded DOCX execution on 2026-09-16, original usability reductions
+and remaining variants are recorded in the [current receipt](../docx/office-cli-execution-20260916.md)
+and [owned procedure](docx-office-cli-qa-20260916.md). No PPTX counterpart ran.
+Bounded DOCX execution on 2026-09-15 is recorded in its
 [receipt](../docx/office-cli-execution-20260915.md). PPTX was partially executed
 on 2026-09-13; no PPTX counterpart ran in the DOCX task. See the historical
 [execution receipt](../pptx/office-cli-execution-20260913.md) for exact scope,

@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { createFsFromVolume, Volume } from "memfs";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { getMarkdownDemo } from "../src/terminal-markdown/demo-content.js";
@@ -16,6 +17,15 @@ import {
   renderTextDocument,
   sections
 } from "./generate-docs.js";
+
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs")>();
+  return {
+    ...actual,
+    existsSync: vi.fn(actual.existsSync),
+    readFileSync: vi.fn(actual.readFileSync)
+  };
+});
 
 const repoRoot = path.resolve(import.meta.dirname, "../../..");
 const packageRoot = path.resolve(import.meta.dirname, "..");
@@ -77,10 +87,16 @@ describe("design-system demo script", () => {
     });
   });
 
-  it("can render frontmatter from repo markdown files when requested", () => {
+  it("can render frontmatter from markdown files when requested", () => {
+    const fixturePath = "docs/plans/example.md";
+    const memoryFs = createFsFromVolume(Volume.fromJSON({
+      [path.join(repoRoot, fixturePath)]: "---\nstatus: draft\n---\n# Example plan\n"
+    }));
+    vi.mocked(existsSync).mockImplementationOnce(memoryFs.existsSync);
+    vi.mocked(readFileSync).mockImplementationOnce(memoryFs.readFileSync as typeof readFileSync);
     const { positional, renderOptions } = parseMarkdownDemoArgs([
       "--show-frontmatter",
-      "docs/plans/archive/cli-aliasing.md"
+      fixturePath
     ]);
     const markdown = loadMarkdownDemoDocument(
       { kind: "file", filePath: positional.join(" ") },

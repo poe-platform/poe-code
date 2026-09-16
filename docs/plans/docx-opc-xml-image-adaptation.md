@@ -196,6 +196,18 @@ bytes and typed rejection. No pixel decoding/rendering parity is claimed.
 The 138-test family and all maintained completion checks pass; receipt:
 `docs/docx/opc-xml-image-image-receipt.json`. Ledger: 169 passing, 200 pending.
 
+### XML behavior adaptation
+
+The remaining 70 XML rows now have independent original memfs tests. Exact
+expanded-name/ordered-content observations replace test-only lexical comparison
+and descriptor injection; optional/repeated/exclusive child variants, namespace
+bindings and numeric attribute values remain separately observed. Missing required
+relationship Target is rejected by admission of the actual malformed memfs XML.
+The 23 sequence tests also pass; the first removal maps to retaining middle/last,
+and all 22 historical links now include the exact runner-expanded parameter titles.
+The 70 new plus 22 mapped sequence rows pass with the maintained completion gates;
+receipt: `docs/docx/opc-xml-image-xml-receipt.json`. Ledger: 239 passing, 130 pending.
+
 `549d639ae` adds checked URI values with typed batch CLI/schema/discovery parity.
 The next atomic test commit delivers the 22 original XML sequence variants and
 their passing row reconciliations. Both use the final maintained checks above.

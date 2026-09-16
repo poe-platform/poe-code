@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-opc-xml-images",
+  "family": "xml",
+  "source_catalogs": [
+    {
+      "path": "test-case-map.json",
+      "sha256": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f"
+    },
+    {
+      "path": "test-case-source-evidence.json",
+      "sha256": "ca5a8e0028fc76b9c0437a26da58dfd7e1399ec2ac5571e655e634721a52b9a7"
+    }
+  ],
+  "test_file": "packages/docx/src/xml-behavior-variants.test.ts",
+  "test_file_sha256": "49286f158b0990d0a0eea9d1ff26e3e1972ff6f8965e5447e3a03132a6c8d101",
+  "count": 70,
+  "assertions": [
+    {
+      "title": "Parsed XML returns an owned expanded-name element",
+      "status": "passed"
+    },
+    {
+      "title": "Element attributes retain original names and values",
+      "status": "passed"
+    },
+    {
+      "title": "Additional namespace declarations retain separate bindings",
+      "status": "passed"
+    },
+    {
+      "title": "Interelement whitespace survives owned parse and publication",
+      "status": "passed"
+    },
+    {
+      "title": "UTF-8 input retains original Unicode scalar text",
+      "status": "passed"
+    },
+    {
+      "title": "Explicit UTF-8 encoding handles Unicode declaration variants",
+      "status": "passed"
+    },
+    {
+      "title": "Known element binding exposes original owned style values",
+      "status": "passed"
+    },
+    {
+      "title": "Element behavior follows its admitted owner rather than a mutable class registry",
+      "status": "passed"
+    },
+    {
+      "title": "Namespace qualified string spelling remains explicit",
+      "status": "passed"
+    },
+    {
+      "title": "Namespace expanded name identity remains explicit",
+      "status": "passed"
+    },
+    {
+      "title": "Namespace expanded-name construction remains explicit",
+      "status": "passed"
+    },
+    {
+      "title": "Namespace local-name component remains explicit",
+      "status": "passed"
+    },
+    {
+      "title": "Namespace namespace snapshot remains explicit",
+      "status": "passed"
+    },
+    {
+      "title": "Namespace prefix spelling remains explicit",
+      "status": "passed"
+    },
+    {
+      "title": "Namespace namespace URI component remains explicit",
+      "status": "passed"
+    },
+    {
+      "title": "Display XML indents element-only content and retains Unicode text",
+      "status": "passed"
+    },
+    {
+      "title": "Display XML returns a bounded JavaScript string",
+      "status": "passed"
+    },
+    {
+      "title": "XML complete parse observation 1",
+      "status": "passed"
+    },
+    {
+      "title": "XML complete parse observation 2",
+      "status": "passed"
+    },
+    {
+      "title": "XML complete parse observation 3",
+      "status": "passed"
+    },
+    {
+      "title": "XML complete parse observation 4",
+      "status": "passed"
+    },
+    {
+      "title": "XML complete parse observation 5",
+      "status": "passed"
+    },
+    {
+      "title": "XML comparison observes simple elm",
+      "status": "passed"
+    },
+    {
+      "title": "XML comparison observes nsp tagname",
+      "status": "passed"
+    },
+    {
+      "title": "XML comparison observes indent",
+      "status": "passed"
+    },
+    {
+      "title": "XML comparison observes attrs",
+      "status": "passed"
+    },
+    {
+      "title": "XML comparison observes nsdecl order",
+      "status": "passed"
+    },
+    {
+      "title": "XML comparison observes closing elm",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive leaf present observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive absence observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive creation returns independently admitted bytes",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive inserts before declared successors",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive owned addition preserves existing siblings",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive transition from alternate child",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive transition from absent child",
+      "status": "passed"
+    },
+    {
+      "title": "XML exclusive transition from same child",
+      "status": "passed"
+    },
+    {
+      "title": "XML required single leaf present observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML required repeated leaf present observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML required repeated creation returns independently admitted bytes",
+      "status": "passed"
+    },
+    {
+      "title": "XML required repeated inserts before declared successors",
+      "status": "passed"
+    },
+    {
+      "title": "XML required repeated owned addition preserves existing siblings",
+      "status": "passed"
+    },
+    {
+      "title": "XML required repeated public addition preserves existing siblings",
+      "status": "passed"
+    },
+    {
+      "title": "Optional numeric reads retain their edge value",
+      "status": "passed"
+    },
+    {
+      "title": "Optional numeric assignment stores 36",
+      "status": "passed"
+    },
+    {
+      "title": "Optional numeric assignment stores null",
+      "status": "passed"
+    },
+    {
+      "title": "Nullable attribute metadata is declared in discovery",
+      "status": "passed"
+    },
+    {
+      "title": "Required numeric reads retain their edge value",
+      "status": "passed"
+    },
+    {
+      "title": "Required numeric assignment stores 24",
+      "status": "passed"
+    },
+    {
+      "title": "Required attribute metadata is declared in discovery",
+      "status": "passed"
+    },
+    {
+      "title": "Missing required relationship attributes fail package admission",
+      "status": "passed"
+    },
+    {
+      "title": "Required numeric assignment rejects null",
+      "status": "passed"
+    },
+    {
+      "title": "Required numeric assignment rejects -4",
+      "status": "passed"
+    },
+    {
+      "title": "Required numeric assignment rejects \"2\"",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional repeated leaf present observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional repeated creation returns independently admitted bytes",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional repeated inserts before declared successors",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional repeated owned addition preserves existing siblings",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional repeated public addition preserves existing siblings",
+      "status": "passed"
+    },
+    {
+      "title": "Repeated-child declaration has no competing singular accessor",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single leaf present observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single absence observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single owned addition preserves existing siblings",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single inserts before declared successors",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single ensures a child when present",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single ensures a child when absent",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single removal when present",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional single removal when absent",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional exclusive absence observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional exclusive leaf present observation",
+      "status": "passed"
+    },
+    {
+      "title": "XML optional exclusive branch present observation",
+      "status": "passed"
+    }
+  ],
+  "checks": {
+    "unit": {
+      "command": "npm test --workspace=docx",
+      "passed": 3987,
+      "skipped": 4,
+      "files": 201,
+      "duration_seconds": 167.66,
+      "log_sha256": "b3df74f83100a581cb88bc27d501415898821b23594b7de969026427188334d4",
+      "skips": "Existing cross-format PPTX pending paths; not counted as passes."
+    },
+    "lint": {
+      "command": "npm run lint --workspace=docx",
+      "exit_code": 0,
+      "errors": 0,
+      "warnings": 1,
+      "warning": "Existing operation-types.test.ts unused type-only variable.",
+      "log_sha256": "84c1834281fa8da3f8c09b0303161b9df2250ed57bcf81ada9496816a62a8619"
+    },
+    "build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "exit_code": 0,
+      "log_sha256": "fc1bf5d0a2e72b95835347ff2f0dcb493f71933967ee91eb771cb9ce9450fbb4"
+    }
+  },
+  "mapping": "Independent original memfs observations; source identifiers exist only in the research ledger. No native mock call-order, private descriptor implementation, arbitrary seek API or pixel decoding parity is claimed.",
+  "sequence": {
+    "path": "packages/docx/src/xml-sequence-cases.test.ts",
+    "sha256": "b3ca73d7788428bfe2c17a16e3133683a9394b0b21c0aba339fb7b500a41b6dd",
+    "count": 23,
+    "assertions": [
+      {
+        "title": "ordered XML child observations > observes the first selected child for 'middle match'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > observes the first selected child for 'last match'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > observes the first selected child for 'missing last'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > observes the first selected child for 'missing alternatives'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > observes the first selected child for 'first among all'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > observes the first selected child for 'empty sequence'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > inserts an owned child for 'two successors'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > inserts an owned child for 'last successor'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > inserts an owned child for 'empty parent'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > inserts an owned child for 'middle insertion'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > inserts an owned child for 'append'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'retain middle and last'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'remove all once'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'retain last'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'remove repeated middle'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'remove middle'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'retain middle'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'no names'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'remove last'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'remove reversed names'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'retain repeated last'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'absent name'",
+        "status": "passed"
+      },
+      {
+        "title": "ordered XML child observations > removes selected children for 'empty children'",
+        "status": "passed"
+      }
+    ],
+    "correction": "Removal variant zero removes first only; retains middle and last. Exact parameterized result titles include the runner-added quotes."
+  }
+}

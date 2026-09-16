@@ -46,6 +46,7 @@ describe("ordered XML child observations", () => {
     expect(new Uint8Array(state.fs.readFileSync("/part.xml") as Uint8Array)).toEqual(state.bytes);
   });
   it.each([
+    { label: "retain middle and last", sequence: [0, 1, 2], removed: [0], expected: [1, 2] },
     { label: "remove all once", sequence: [0, 1, 2], removed: [0, 1, 2], expected: [] },
     { label: "retain last", sequence: [0, 1, 2], removed: [0, 1], expected: [2] },
     { label: "remove repeated middle", sequence: [0, 0, 1, 1, 2, 2], removed: [1], expected: [0, 0, 2, 2] },

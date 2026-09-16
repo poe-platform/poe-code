@@ -8,10 +8,10 @@
   },
   "counts": {
     "rows": 369,
-    "passing": 169,
-    "pending": 200
+    "passing": 239,
+    "pending": 130
   },
-  "scope_note": "369 selected rows; 169 pass dedicated original tests and 200 remain pending. Whole public API/format/rendering parity is not claimed; later tasks remain pending.",
+  "scope_note": "369 selected rows; 239 pass dedicated original tests and 130 remain pending. Whole public API/format/rendering parity is not claimed; later tasks remain pending.",
   "plan": "../plans/docx-opc-xml-image-adaptation.md",
   "legal_notice": "upstream-license-notice.txt",
   "checks": {
@@ -5132,10 +5132,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeOxmlElement::it_returns_an_lxml_element_with_matching_tag_name"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Parsed XML returns an owned expanded-name element"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Parsed XML returns an owned expanded-name element",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5145,10 +5155,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeOxmlElement::it_adds_supplied_attributes"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Element attributes retain original names and values"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Element attributes retain original names and values",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5158,10 +5178,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeOxmlElement::it_adds_additional_namespace_declarations_when_supplied"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Additional namespace declarations retain separate bindings"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Additional namespace declarations retain separate bindings",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5171,10 +5201,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeOxmlParser::it_strips_whitespace_between_elements"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Interelement whitespace survives owned parse and publication"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Interelement whitespace survives owned parse and publication",
+        "status": "passed"
+      },
+      "equivalence": "The maintained preservation contract supersedes native strip-blank-text behavior; interelement whitespace is retained rather than discarded."
     },
     {
       "source": {
@@ -5184,10 +5224,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeParseXml::it_accepts_bytes_and_assumes_utf8_encoding"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "UTF-8 input retains original Unicode scalar text"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "UTF-8 input retains original Unicode scalar text",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5197,10 +5247,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeParseXml::it_accepts_unicode_providing_there_is_no_encoding_declaration"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Explicit UTF-8 encoding handles Unicode declaration variants"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Explicit UTF-8 encoding handles Unicode declaration variants",
+        "status": "passed"
+      },
+      "equivalence": "JS strings are explicitly encoded to owned UTF-8 bytes before admission; a matching declaration is valid, unlike the native Unicode-string transport restriction."
     },
     {
       "source": {
@@ -5210,10 +5270,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeParseXml::it_uses_registered_element_classes"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Known element binding exposes original owned style values"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Known element binding exposes original owned style values",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5223,10 +5293,20 @@
         "node_id": "tests/oxml/test__init__.py::DescribeRegisterElementCls::it_determines_class_used_for_elements_with_matching_tagname"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Element behavior follows its admitted owner rather than a mutable class registry"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Element behavior follows its admitted owner rather than a mutable class registry",
+        "status": "passed"
+      },
+      "equivalence": "Native global element registration is replaced by deterministic owner-bound model behavior; no arbitrary host class/plugin callbacks."
     },
     {
       "source": {
@@ -5236,10 +5316,20 @@
         "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_behaves_like_a_string_when_you_want_it_to"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Namespace qualified string spelling remains explicit"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Namespace qualified string spelling remains explicit",
+        "status": "passed"
+      },
+      "equivalence": "Native prefixed-string helper maps to explicit parsed expanded-name and lexical-name fields; prefixes are spelling, not semantic identity."
     },
     {
       "source": {
@@ -5249,10 +5339,20 @@
         "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_clark_name"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Namespace expanded name identity remains explicit"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Namespace expanded name identity remains explicit",
+        "status": "passed"
+      },
+      "equivalence": "Native prefixed-string helper maps to explicit parsed expanded-name and lexical-name fields; prefixes are spelling, not semantic identity."
     },
     {
       "source": {
@@ -5262,10 +5362,20 @@
         "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_can_construct_from_a_clark_name"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Namespace expanded-name construction remains explicit"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Namespace expanded-name construction remains explicit",
+        "status": "passed"
+      },
+      "equivalence": "Native prefixed-string helper maps to explicit parsed expanded-name and lexical-name fields; prefixes are spelling, not semantic identity."
     },
     {
       "source": {
@@ -5275,10 +5385,20 @@
         "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_local_part"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Namespace local-name component remains explicit"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Namespace local-name component remains explicit",
+        "status": "passed"
+      },
+      "equivalence": "Native prefixed-string helper maps to explicit parsed expanded-name and lexical-name fields; prefixes are spelling, not semantic identity."
     },
     {
       "source": {
@@ -5288,10 +5408,20 @@
         "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_can_compose_a_single_entry_nsmap_for_itself"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Namespace namespace snapshot remains explicit"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Namespace namespace snapshot remains explicit",
+        "status": "passed"
+      },
+      "equivalence": "Native prefixed-string helper maps to explicit parsed expanded-name and lexical-name fields; prefixes are spelling, not semantic identity."
     },
     {
       "source": {
@@ -5301,10 +5431,20 @@
         "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_namespace_prefix"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Namespace prefix spelling remains explicit"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Namespace prefix spelling remains explicit",
+        "status": "passed"
+      },
+      "equivalence": "Native prefixed-string helper maps to explicit parsed expanded-name and lexical-name fields; prefixes are spelling, not semantic identity."
     },
     {
       "source": {
@@ -5314,10 +5454,20 @@
         "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_namespace_uri"
       },
       "owning_task": "namespace-xml-read",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Namespace namespace URI component remains explicit"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Namespace namespace URI component remains explicit",
+        "status": "passed"
+      },
+      "equivalence": "Native prefixed-string helper maps to explicit parsed expanded-name and lexical-name fields; prefixes are spelling, not semantic identity."
     },
     {
       "source": {
@@ -5330,14 +5480,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > observes the first selected child for middle match"
+        "title": "ordered XML child observations > observes the first selected child for 'middle match'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > observes the first selected child for 'middle match'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5352,14 +5503,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > observes the first selected child for last match"
+        "title": "ordered XML child observations > observes the first selected child for 'last match'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > observes the first selected child for 'last match'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5374,14 +5526,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > observes the first selected child for missing last"
+        "title": "ordered XML child observations > observes the first selected child for 'missing last'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > observes the first selected child for 'missing last'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5396,14 +5549,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > observes the first selected child for missing alternatives"
+        "title": "ordered XML child observations > observes the first selected child for 'missing alternatives'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > observes the first selected child for 'missing alternatives'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5418,14 +5572,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > observes the first selected child for first among all"
+        "title": "ordered XML child observations > observes the first selected child for 'first among all'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > observes the first selected child for 'first among all'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5440,14 +5595,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > observes the first selected child for empty sequence"
+        "title": "ordered XML child observations > observes the first selected child for 'empty sequence'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > observes the first selected child for 'empty sequence'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5462,14 +5618,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > inserts an owned child for two successors"
+        "title": "ordered XML child observations > inserts an owned child for 'two successors'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > inserts an owned child for 'two successors'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5484,14 +5641,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > inserts an owned child for last successor"
+        "title": "ordered XML child observations > inserts an owned child for 'last successor'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > inserts an owned child for 'last successor'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5506,14 +5664,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > inserts an owned child for empty parent"
+        "title": "ordered XML child observations > inserts an owned child for 'empty parent'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > inserts an owned child for 'empty parent'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5528,14 +5687,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > inserts an owned child for middle insertion"
+        "title": "ordered XML child observations > inserts an owned child for 'middle insertion'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > inserts an owned child for 'middle insertion'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5550,14 +5710,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > inserts an owned child for append"
+        "title": "ordered XML child observations > inserts an owned child for 'append'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > inserts an owned child for 'append'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5572,16 +5733,17 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for remove all once"
+        "title": "ordered XML child observations > removes selected children for 'retain middle and last'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'retain middle and last'",
+        "status": "passed"
       },
-      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
+      "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children. Corrected historical first-removal link; removing only the first child retains the middle and last."
     },
     {
       "source": {
@@ -5594,14 +5756,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for retain last"
+        "title": "ordered XML child observations > removes selected children for 'retain last'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'retain last'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5616,14 +5779,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for remove repeated middle"
+        "title": "ordered XML child observations > removes selected children for 'remove repeated middle'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'remove repeated middle'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5638,14 +5802,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for remove middle"
+        "title": "ordered XML child observations > removes selected children for 'remove middle'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'remove middle'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5660,14 +5825,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for retain middle"
+        "title": "ordered XML child observations > removes selected children for 'retain middle'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'retain middle'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5682,14 +5848,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for no names"
+        "title": "ordered XML child observations > removes selected children for 'no names'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'no names'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5704,14 +5871,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for remove last"
+        "title": "ordered XML child observations > removes selected children for 'remove last'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'remove last'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5726,14 +5894,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for remove reversed names"
+        "title": "ordered XML child observations > removes selected children for 'remove reversed names'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'remove reversed names'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5748,14 +5917,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for retain repeated last"
+        "title": "ordered XML child observations > removes selected children for 'retain repeated last'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'retain repeated last'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5770,14 +5940,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for absent name"
+        "title": "ordered XML child observations > removes selected children for 'absent name'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'absent name'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5792,14 +5963,15 @@
       "status": "passing-original-observable-test",
       "target": {
         "path": "packages/docx/src/xml-sequence-cases.test.ts",
-        "title": "ordered XML child observations > removes selected children for empty children"
+        "title": "ordered XML child observations > removes selected children for 'empty children'"
       },
       "red_evidence": {
         "status": "existing-behavior; no product-code change or invented failure"
       },
       "passing_result": {
-        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
-        "result": "58 passed; 36 URI and 22 XML tests"
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "ordered XML child observations > removes selected children for 'empty children'",
+        "status": "passed"
       },
       "equivalence": "One dedicated test per bound source variant; original orchard/river/stone names replace formatting tokens while preserving order, repetition, absence and transition. Explicit readonly children + Array.find maps first-child selection; owned editor insertion/removal publishes only selected changes. Parser/editor snapshots retain their original children."
     },
@@ -5811,10 +5983,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeSerializeForReading::it_pretty_prints_an_lxml_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Display XML indents element-only content and retains Unicode text"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Display XML indents element-only content and retains Unicode text",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5824,10 +6006,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeSerializeForReading::it_returns_unicode_text"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Display XML returns a bounded JavaScript string"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Display XML returns a bounded JavaScript string",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5837,10 +6029,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture0]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML complete parse observation 1"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML complete parse observation 1",
+        "status": "passed"
+      },
+      "equivalence": "Native test-only line-splitting comparison helper maps to parsing complete original XML and observing tag/attribute/text fields. Namespace context is explicit; closing fragments alone are not admitted XML."
     },
     {
       "source": {
@@ -5850,10 +6052,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture1]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML complete parse observation 2"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML complete parse observation 2",
+        "status": "passed"
+      },
+      "equivalence": "Native test-only line-splitting comparison helper maps to parsing complete original XML and observing tag/attribute/text fields. Namespace context is explicit; closing fragments alone are not admitted XML."
     },
     {
       "source": {
@@ -5863,10 +6075,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture2]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML complete parse observation 3"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML complete parse observation 3",
+        "status": "passed"
+      },
+      "equivalence": "Native test-only line-splitting comparison helper maps to parsing complete original XML and observing tag/attribute/text fields. Namespace context is explicit; closing fragments alone are not admitted XML."
     },
     {
       "source": {
@@ -5876,10 +6098,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture3]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML complete parse observation 4"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML complete parse observation 4",
+        "status": "passed"
+      },
+      "equivalence": "Native test-only line-splitting comparison helper maps to parsing complete original XML and observing tag/attribute/text fields. Namespace context is explicit; closing fragments alone are not admitted XML."
     },
     {
       "source": {
@@ -5889,10 +6121,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture4]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML complete parse observation 5"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML complete parse observation 5",
+        "status": "passed"
+      },
+      "equivalence": "Native test-only line-splitting comparison helper maps to parsing complete original XML and observing tag/attribute/text fields. Namespace context is explicit; closing fragments alone are not admitted XML."
     },
     {
       "source": {
@@ -5902,10 +6144,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[simple_elm]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML comparison observes simple elm"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML comparison observes simple elm",
+        "status": "passed"
+      },
+      "equivalence": "Test-only lexical comparison machinery maps to expanded-name, sorted attribute and ordered content observations. Prefix differences with identical bindings are semantically equal; significant whitespace differences remain observable under the preservation contract."
     },
     {
       "source": {
@@ -5915,10 +6167,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[nsp_tagname]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML comparison observes nsp tagname"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML comparison observes nsp tagname",
+        "status": "passed"
+      },
+      "equivalence": "Test-only lexical comparison machinery maps to expanded-name, sorted attribute and ordered content observations. Prefix differences with identical bindings are semantically equal; significant whitespace differences remain observable under the preservation contract."
     },
     {
       "source": {
@@ -5928,10 +6190,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[indent]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML comparison observes indent"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML comparison observes indent",
+        "status": "passed"
+      },
+      "equivalence": "Test-only lexical comparison machinery maps to expanded-name, sorted attribute and ordered content observations. Prefix differences with identical bindings are semantically equal; significant whitespace differences remain observable under the preservation contract."
     },
     {
       "source": {
@@ -5941,10 +6213,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[attrs]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML comparison observes attrs"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML comparison observes attrs",
+        "status": "passed"
+      },
+      "equivalence": "Test-only lexical comparison machinery maps to expanded-name, sorted attribute and ordered content observations. Prefix differences with identical bindings are semantically equal; significant whitespace differences remain observable under the preservation contract."
     },
     {
       "source": {
@@ -5954,10 +6236,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[nsdecl_order]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML comparison observes nsdecl order"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML comparison observes nsdecl order",
+        "status": "passed"
+      },
+      "equivalence": "Test-only lexical comparison machinery maps to expanded-name, sorted attribute and ordered content observations. Prefix differences with identical bindings are semantically equal; significant whitespace differences remain observable under the preservation contract."
     },
     {
       "source": {
@@ -5967,10 +6259,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[closing_elm]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML comparison observes closing elm"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML comparison observes closing elm",
+        "status": "passed"
+      },
+      "equivalence": "Test-only lexical comparison machinery maps to expanded-name, sorted attribute and ordered content observations. Prefix differences with identical bindings are semantically equal; significant whitespace differences remain observable under the preservation contract."
     },
     {
       "source": {
@@ -5980,10 +6282,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_getter_property_for_the_choice_element[choice]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive leaf present observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive leaf present observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -5993,10 +6305,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_getter_property_for_the_choice_element[None]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive absence observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive absence observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6006,10 +6328,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_creator_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive creation returns independently admitted bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive creation returns independently admitted bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6019,10 +6351,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_an_insert_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive inserts before declared successors"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive inserts before declared successors",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6032,10 +6374,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_an_add_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive owned addition preserves existing siblings"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive owned addition preserves existing siblings",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6045,10 +6397,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture0]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive transition from alternate child"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive transition from alternate child",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6058,10 +6420,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture1]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive transition from absent child"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive transition from absent child",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6071,10 +6443,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture2]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML exclusive transition from same child"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML exclusive transition from same child",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6084,10 +6466,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneAndOnlyOne::it_adds_a_getter_property_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML required single leaf present observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML required single leaf present observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6097,10 +6489,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_getter_property_for_the_child_element_list"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML required repeated leaf present observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML required repeated leaf present observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6110,10 +6512,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_creator_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML required repeated creation returns independently admitted bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML required repeated creation returns independently admitted bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6123,10 +6535,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_an_insert_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML required repeated inserts before declared successors"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML required repeated inserts before declared successors",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6136,10 +6558,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_private_add_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML required repeated owned addition preserves existing siblings"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML required repeated owned addition preserves existing siblings",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6149,10 +6581,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_public_add_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML required repeated public addition preserves existing siblings"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML required repeated public addition preserves existing siblings",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6162,10 +6604,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_getter_property_for_the_attr_value"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Optional numeric reads retain their edge value"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Optional numeric reads retain their edge value",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6175,10 +6627,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_setter_property_for_the_attr[36]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Optional numeric assignment stores 36"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Optional numeric assignment stores 36",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6188,10 +6650,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_setter_property_for_the_attr[None]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Optional numeric assignment stores null"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Optional numeric assignment stores null",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6201,10 +6673,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_docstring_for_the_property"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Nullable attribute metadata is declared in discovery"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Nullable attribute metadata is declared in discovery",
+        "status": "passed"
+      },
+      "equivalence": "Native descriptor docstrings map to observable fixed operation receiver/value schemas, independently of private runtime descriptor construction."
     },
     {
       "source": {
@@ -6214,10 +6696,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_getter_property_for_the_attr_value"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Required numeric reads retain their edge value"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Required numeric reads retain their edge value",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6227,10 +6719,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_setter_property_for_the_attr"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Required numeric assignment stores 24"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Required numeric assignment stores 24",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6240,10 +6742,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_docstring_for_the_property"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Required attribute metadata is declared in discovery"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Required attribute metadata is declared in discovery",
+        "status": "passed"
+      },
+      "equivalence": "Native descriptor docstrings map to observable fixed operation receiver/value schemas, independently of private runtime descriptor construction."
     },
     {
       "source": {
@@ -6253,10 +6765,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_get_when_attribute_not_present"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Missing required relationship attributes fail package admission"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Missing required relationship attributes fail package admission",
+        "status": "passed"
+      },
+      "equivalence": "Private missing-required-attribute getter maps to maintained graph required-value rejection; generic bounded XML does not invent dependency descriptors."
     },
     {
       "source": {
@@ -6266,10 +6788,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture0]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Required numeric assignment rejects null"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Required numeric assignment rejects null",
+        "status": "passed"
+      },
+      "equivalence": "Private required integer descriptor maps to an existing checked required positive integer model property; null/-4/string 2 retain strict rejection without coercion or state changes."
     },
     {
       "source": {
@@ -6279,10 +6811,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture1]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Required numeric assignment rejects -4"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Required numeric assignment rejects -4",
+        "status": "passed"
+      },
+      "equivalence": "Private required integer descriptor maps to an existing checked required positive integer model property; null/-4/string 2 retain strict rejection without coercion or state changes."
     },
     {
       "source": {
@@ -6292,10 +6834,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture2]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Required numeric assignment rejects \"2\""
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Required numeric assignment rejects \"2\"",
+        "status": "passed"
+      },
+      "equivalence": "Private required integer descriptor maps to an existing checked required positive integer model property; null/-4/string 2 retain strict rejection without coercion or state changes."
     },
     {
       "source": {
@@ -6305,10 +6857,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_getter_property_for_the_child_element_list"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional repeated leaf present observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional repeated leaf present observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6318,10 +6880,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_creator_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional repeated creation returns independently admitted bytes"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional repeated creation returns independently admitted bytes",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6331,10 +6903,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_an_insert_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional repeated inserts before declared successors"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional repeated inserts before declared successors",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6344,10 +6926,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_an_add_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional repeated owned addition preserves existing siblings"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional repeated owned addition preserves existing siblings",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6357,10 +6949,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_public_add_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional repeated public addition preserves existing siblings"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional repeated public addition preserves existing siblings",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6370,10 +6972,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_removes_the_property_root_name_used_for_declaration"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "Repeated-child declaration has no competing singular accessor"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "Repeated-child declaration has no competing singular accessor",
+        "status": "passed"
+      },
+      "equivalence": "Private metaclass property removal maps to the public ordered children surface without inventing a competing singular XML accessor."
     },
     {
       "source": {
@@ -6383,10 +6995,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_getter_property_for_the_child_element[True]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single leaf present observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single leaf present observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6396,10 +7018,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_getter_property_for_the_child_element[False]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single absence observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single absence observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6409,10 +7041,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_an_add_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single owned addition preserves existing siblings"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single owned addition preserves existing siblings",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6422,10 +7064,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_an_insert_method_for_the_child_element"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single inserts before declared successors"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single inserts before declared successors",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6435,10 +7087,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_get_or_add_method_for_the_child_element[True]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single ensures a child when present"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single ensures a child when present",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6448,10 +7110,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_get_or_add_method_for_the_child_element[False]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single ensures a child when absent"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single ensures a child when absent",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6461,10 +7133,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_remover_method_for_the_child_element[True]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single removal when present"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single removal when present",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6474,10 +7156,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_remover_method_for_the_child_element[False]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional single removal when absent"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional single removal when absent",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6487,10 +7179,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[None]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional exclusive absence observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional exclusive absence observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6500,10 +7202,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[choice]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional exclusive leaf present observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional exclusive leaf present observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6513,10 +7225,20 @@
         "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[choice2]"
       },
       "owning_task": "loss-preserving-xml-write",
-      "status": "pending",
-      "target": null,
-      "red_evidence": null,
-      "passing_result": null
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/xml-behavior-variants.test.ts",
+        "title": "XML optional exclusive branch present observation"
+      },
+      "red_evidence": {
+        "status": "Existing behavior passes without invented product red; validated schema/deletion failures retained in separate fix receipts."
+      },
+      "passing_result": {
+        "receipt": "opc-xml-image-xml-receipt.json",
+        "test": "XML optional exclusive branch present observation",
+        "status": "passed"
+      },
+      "equivalence": "Native XML class/descriptor machinery maps to bounded owned nodes, expanded names, explicit serialization and observable state; no dynamic class registration or native parser API is added."
     },
     {
       "source": {
@@ -6640,8 +7362,9 @@
     "packages/docx/src/style-model-batch.ts": "cdffb58fc8df0e85e9797dcb8006e5c2933b5e08de1918972c9b35b97bcc2f4b",
     "packages/docx/src/operation-schema-data.ts": "0a6050ab305e29cfdb3460c1b296e8d001668e28c2bd7b702380d0ca736f4608",
     "packages/docx/src/style-model-result-schema.ts": "7e139ac1830fd1668ff01ac42fe1f01d6da6dcec3ebe0102715b6e3d97838653",
-    "packages/docx/src/xml-sequence-cases.test.ts": "91e13d1577e7acc40192532a9bca5aa16971633417b530f0b592f6b692b2a815",
-    "packages/docx/src/image-characterization-variants.test.ts": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f"
+    "packages/docx/src/xml-sequence-cases.test.ts": "b3ca73d7788428bfe2c17a16e3133683a9394b0b21c0aba339fb7b500a41b6dd",
+    "packages/docx/src/image-characterization-variants.test.ts": "12ef0e38ab1aa2788533fac079981463ce33b6997a697fe701d90a1d6ef4c08f",
+    "packages/docx/src/xml-behavior-variants.test.ts": "49286f158b0990d0a0eea9d1ff26e3e1972ff6f8965e5447e3a03132a6c8d101"
   },
   "batch_tdd": [
     {

@@ -1,0 +1,168 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-setup-scripts
+
+ ❯ packages/docx/src/style-workflow-variants.test.ts (116 tests | 2 failed) 5964ms
+   ✓ style workflow 001 69ms
+   ✓ style workflow 002 58ms
+   ✓ style workflow 003 53ms
+   ✓ style workflow 004 96ms
+   ✓ style workflow 005 49ms
+   ✓ style workflow 006 53ms
+   ✓ style workflow 007 52ms
+   ✓ style workflow 008 51ms
+   ✓ style workflow 009 51ms
+   ✓ style workflow 010 53ms
+   ✓ style workflow 011 51ms
+   ✓ style workflow 012 51ms
+   ✓ style workflow 013 54ms
+   ✓ style workflow 014 52ms
+   ✓ style workflow 015 49ms
+   ✓ style workflow 016 53ms
+   ✓ style workflow 017 52ms
+   ✓ style workflow 018 56ms
+   ✓ style workflow 019 52ms
+   ✓ style workflow 020 49ms
+   ✓ style workflow 021 50ms
+   ✓ style workflow 022 52ms
+   ✓ style workflow 023 52ms
+   ✓ style workflow 024 51ms
+   ✓ style workflow 025 50ms
+   ✓ style workflow 026 51ms
+   ✓ style workflow 027 50ms
+   ✓ style workflow 028 48ms
+   ✓ style workflow 029 50ms
+   ✓ style workflow 030 49ms
+   ✓ style workflow 031 51ms
+   ✓ style workflow 032 52ms
+   ✓ style workflow 033 51ms
+   ✓ style workflow 034 50ms
+   ✓ style workflow 035 51ms
+   ✓ style workflow 036 54ms
+   ✓ style workflow 037 57ms
+   ✓ style workflow 038 56ms
+   ✓ style workflow 039 50ms
+   ✓ style workflow 040 49ms
+   ✓ style workflow 041 50ms
+   ✓ style workflow 042 50ms
+   ✓ style workflow 043 49ms
+   ✓ style workflow 044 49ms
+   ✓ style workflow 045 48ms
+   ✓ style workflow 046 51ms
+   ✓ style workflow 047 50ms
+   ✓ style workflow 048 51ms
+   ✓ style workflow 049 51ms
+   ✓ style workflow 050 53ms
+   ✓ style workflow 051 51ms
+   ✓ style workflow 052 49ms
+   ✓ style workflow 053 53ms
+   ✓ style workflow 054 51ms
+   ✓ style workflow 055 49ms
+   ✓ style workflow 056 53ms
+   ✓ style workflow 057 55ms
+   ✓ style workflow 058 51ms
+   ✓ style workflow 059 51ms
+   ✓ style workflow 060 49ms
+   ✓ style workflow 061 50ms
+   ✓ style workflow 062 51ms
+   ✓ style workflow 063 49ms
+   ✓ style workflow 064 50ms
+   ✓ style workflow 065 50ms
+   ✓ style workflow 066 51ms
+   ✓ style workflow 067 50ms
+   ✓ style workflow 068 50ms
+   ✓ style workflow 069 51ms
+   ✓ style workflow 070 50ms
+   ✓ style workflow 071 50ms
+   ✓ style workflow 072 50ms
+   ✓ style workflow 073 53ms
+   ✓ style workflow 074 52ms
+   ✓ style workflow 075 50ms
+   ✓ style workflow 076 51ms
+   ✓ style workflow 077 52ms
+   ✓ style workflow 078 52ms
+   ✓ style workflow 079 51ms
+   ✓ style workflow 080 49ms
+   ✓ style workflow 081 49ms
+   ✓ style workflow 082 51ms
+   ✓ style workflow 083 54ms
+   ✓ style workflow 084 52ms
+   ✓ style workflow 085 50ms
+   ✓ style workflow 086 51ms
+   ✓ style workflow 087 49ms
+   ✓ style workflow 088 51ms
+   ✓ style workflow 089 49ms
+   ✓ style workflow 090 48ms
+   ✓ style workflow 091 50ms
+   ✓ style workflow 092 48ms
+   ✓ style workflow 093 50ms
+   ✓ style workflow 094 50ms
+   ✓ style workflow 095 51ms
+   ✓ style workflow 096 52ms
+   ✓ style workflow 097 49ms
+   ✓ style workflow 098 50ms
+   ✓ style workflow 099 49ms
+   ✓ style workflow 100 49ms
+   ✓ style workflow 101 50ms
+   ✓ style workflow 102 50ms
+   ✓ style workflow 103 51ms
+   ✓ style workflow 104 45ms
+   ✓ style workflow 105 49ms
+   ✓ style workflow 106 51ms
+   × style workflow 107 51ms
+   × style workflow 108 48ms
+   ✓ style workflow 109 51ms
+   ✓ style workflow 110 48ms
+   ✓ style workflow 111 52ms
+   ✓ style workflow 112 50ms
+   ✓ style workflow 113 50ms
+   ✓ style workflow 114 50ms
+   ✓ style workflow 115 53ms
+   ✓ style workflow 116 52ms
+FAIL packages/docx/src/style-workflow-variants.test.ts > style workflow 107
+TypeError: Expected valid tab stop properties.
+ ❯ Proxy.change packages/docx/src/formatting-model.ts:235:118
+    233|     this.refresh(); const index = this.records.findIndex(r => r.id ===…
+    234|     const value = { ...this.records[index]!.value, ...patch, ...(patch…
+    235|     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIG…
+       |                                                                                                                      ^
+    236|     const xml = editor(this.owner), props = child(xml.root, "pPr")!, t…
+    237|     const node = tabs.children.filter(c => c.namespace === tabs.namesp…
+ ❯ TabStop.set position [as position] packages/docx/src/formatting-model.ts:272:53
+ ❯ packages/docx/src/style-workflow-variants.test.ts:1032:27
+
+FAIL packages/docx/src/style-workflow-variants.test.ts > style workflow 108
+TypeError: Expected valid tab stop properties.
+ ❯ Proxy.change packages/docx/src/formatting-model.ts:235:118
+    233|     this.refresh(); const index = this.records.findIndex(r => r.id ===…
+    234|     const value = { ...this.records[index]!.value, ...patch, ...(patch…
+    235|     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIG…
+       |                                                                                                                      ^
+    236|     const xml = editor(this.owner), props = child(xml.root, "pPr")!, t…
+    237|     const node = tabs.children.filter(c => c.namespace === tabs.namesp…
+ ❯ TabStop.set position [as position] packages/docx/src/formatting-model.ts:272:53
+ ❯ packages/docx/src/style-workflow-variants.test.ts:1032:27
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/docx/src/style-workflow-variants.test.ts > style workflow 107
+ FAIL  packages/docx/src/style-workflow-variants.test.ts > style workflow 108
+TypeError: Expected valid tab stop properties.
+ ❯ Proxy.change packages/docx/src/formatting-model.ts:235:118
+    233|     this.refresh(); const index = this.records.findIndex(r => r.id ===…
+    234|     const value = { ...this.records[index]!.value, ...patch, ...(patch…
+    235|     if (!validateDocxValue("{position: Length; alignment?: WD_TAB_ALIG…
+       |                                                                                                                      ^
+    236|     const xml = editor(this.owner), props = child(xml.root, "pPr")!, t…
+    237|     const node = tabs.children.filter(c => c.namespace === tabs.namesp…
+ ❯ TabStop.set position [as position] packages/docx/src/formatting-model.ts:272:53
+ ❯ packages/docx/src/style-workflow-variants.test.ts:1032:27
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 114 passed (116)
+   Start at  22:47:54
+   Duration  6.97s (transform 785ms, setup 29ms, import 921ms, tests 5.96s, environment 0ms)
+

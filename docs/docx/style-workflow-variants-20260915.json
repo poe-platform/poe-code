@@ -1,0 +1,4652 @@
+{
+  "task": "adapt-upstream-tables-bdd",
+  "status": "116-exact-original-model-workflows-passing",
+  "count": 116,
+  "selection": "Every sty-* and tab-* expanded BDD row; no txt-* rows",
+  "rows": [
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-access-font.feature",
+        "line": 13,
+        "expanded_name": "Get style font -- @1.1 Style types",
+        "inventory_template_name": "Get style font -- @1.1 Style types",
+        "inventory_template_line": 13,
+        "example_identity": {
+          "line": 13,
+          "columns": {
+            "style-type": "WD_STYLE_TYPE.CHARACTER"
+          }
+        }
+      },
+      "bound_parameters": {
+        "style-type": "WD_STYLE_TYPE.CHARACTER"
+      },
+      "required_observations": ["style.font is the Font object for the style"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 001",
+      "adapted_parameters": {
+        "label": "style workflow 001",
+        "kind": "font",
+        "write": false,
+        "type": "CHARACTER"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 001",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-access-font.feature",
+        "line": 14,
+        "expanded_name": "Get style font -- @1.2 Style types",
+        "inventory_template_name": "Get style font -- @1.2 Style types",
+        "inventory_template_line": 14,
+        "example_identity": {
+          "line": 14,
+          "columns": {
+            "style-type": "WD_STYLE_TYPE.PARAGRAPH"
+          }
+        }
+      },
+      "bound_parameters": {
+        "style-type": "WD_STYLE_TYPE.PARAGRAPH"
+      },
+      "required_observations": ["style.font is the Font object for the style"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 002",
+      "adapted_parameters": {
+        "label": "style workflow 002",
+        "kind": "font",
+        "write": false,
+        "type": "PARAGRAPH"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 002",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-access-font.feature",
+        "line": 15,
+        "expanded_name": "Get style font -- @1.3 Style types",
+        "inventory_template_name": "Get style font -- @1.3 Style types",
+        "inventory_template_line": 15,
+        "example_identity": {
+          "line": 15,
+          "columns": {
+            "style-type": "WD_STYLE_TYPE.TABLE"
+          }
+        }
+      },
+      "bound_parameters": {
+        "style-type": "WD_STYLE_TYPE.TABLE"
+      },
+      "required_observations": ["style.font is the Font object for the style"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 003",
+      "adapted_parameters": {
+        "label": "style workflow 003",
+        "kind": "font",
+        "write": false,
+        "type": "TABLE"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 003",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-access-latent-styles.feature",
+        "line": 7,
+        "expanded_name": "Access latent styles collection",
+        "inventory_template_name": "Access latent styles collection",
+        "inventory_template_line": 7,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": [
+        "styles.latent_styles is the LatentStyles object for the document",
+        "len(latent_styles) is 137"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 004",
+      "adapted_parameters": {
+        "label": "style workflow 004",
+        "kind": "latent-collection",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 004",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-access-latent-styles.feature",
+        "line": 13,
+        "expanded_name": "Access latent style in collection",
+        "inventory_template_name": "Access latent style in collection",
+        "inventory_template_line": 13,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": [
+        "I can iterate over the latent styles",
+        "I can access a latent style by name"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 005",
+      "adapted_parameters": {
+        "label": "style workflow 005",
+        "kind": "latent-lookup",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 005",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-access-parfmt.feature",
+        "line": 13,
+        "expanded_name": "Get style paragraph format -- @1.1 Style types",
+        "inventory_template_name": "Get style paragraph format -- @1.1 Style types",
+        "inventory_template_line": 13,
+        "example_identity": {
+          "line": 13,
+          "columns": {
+            "style-type": "WD_STYLE_TYPE.PARAGRAPH"
+          }
+        }
+      },
+      "bound_parameters": {
+        "style-type": "WD_STYLE_TYPE.PARAGRAPH"
+      },
+      "required_observations": [
+        "style.paragraph_format is the ParagraphFormat object for the style"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 006",
+      "adapted_parameters": {
+        "label": "style workflow 006",
+        "kind": "paragraph-format",
+        "write": false,
+        "type": "PARAGRAPH"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 006",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-access-parfmt.feature",
+        "line": 14,
+        "expanded_name": "Get style paragraph format -- @1.2 Style types",
+        "inventory_template_name": "Get style paragraph format -- @1.2 Style types",
+        "inventory_template_line": 14,
+        "example_identity": {
+          "line": 14,
+          "columns": {
+            "style-type": "WD_STYLE_TYPE.TABLE"
+          }
+        }
+      },
+      "bound_parameters": {
+        "style-type": "WD_STYLE_TYPE.TABLE"
+      },
+      "required_observations": [
+        "style.paragraph_format is the ParagraphFormat object for the style"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 007",
+      "adapted_parameters": {
+        "label": "style workflow 007",
+        "kind": "paragraph-format",
+        "write": false,
+        "type": "TABLE"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 007",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-add-style.feature",
+        "line": 17,
+        "expanded_name": "Add a style -- @1.1 New style varieties",
+        "inventory_template_name": "Add a style -- @1.1 New style varieties",
+        "inventory_template_line": 17,
+        "example_identity": {
+          "line": 17,
+          "columns": {
+            "name": "Heading 1",
+            "type": "WD_STYLE_TYPE.PARAGRAPH",
+            "builtin": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "name": "Heading 1",
+        "type": "WD_STYLE_TYPE.PARAGRAPH",
+        "builtin": "True"
+      },
+      "required_observations": [
+        "the document has one additional style",
+        "styles['Heading 1'] is a style",
+        "style.type is WD_STYLE_TYPE.PARAGRAPH",
+        "style.builtin is True"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 008",
+      "adapted_parameters": {
+        "label": "style workflow 008",
+        "kind": "add-style",
+        "write": false,
+        "type": "PARAGRAPH",
+        "builtin": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 008",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-add-style.feature",
+        "line": 18,
+        "expanded_name": "Add a style -- @1.2 New style varieties",
+        "inventory_template_name": "Add a style -- @1.2 New style varieties",
+        "inventory_template_line": 18,
+        "example_identity": {
+          "line": 18,
+          "columns": {
+            "name": "Inline Code",
+            "type": "WD_STYLE_TYPE.CHARACTER",
+            "builtin": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "name": "Inline Code",
+        "type": "WD_STYLE_TYPE.CHARACTER",
+        "builtin": "False"
+      },
+      "required_observations": [
+        "the document has one additional style",
+        "styles['Inline Code'] is a style",
+        "style.type is WD_STYLE_TYPE.CHARACTER",
+        "style.builtin is False"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 009",
+      "adapted_parameters": {
+        "label": "style workflow 009",
+        "kind": "add-style",
+        "write": false,
+        "type": "CHARACTER",
+        "builtin": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 009",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-add-style.feature",
+        "line": 19,
+        "expanded_name": "Add a style -- @1.3 New style varieties",
+        "inventory_template_name": "Add a style -- @1.3 New style varieties",
+        "inventory_template_line": 19,
+        "example_identity": {
+          "line": 19,
+          "columns": {
+            "name": "List Bullet",
+            "type": "WD_STYLE_TYPE.LIST",
+            "builtin": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "name": "List Bullet",
+        "type": "WD_STYLE_TYPE.LIST",
+        "builtin": "True"
+      },
+      "required_observations": [
+        "the document has one additional style",
+        "styles['List Bullet'] is a style",
+        "style.type is WD_STYLE_TYPE.LIST",
+        "style.builtin is True"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 010",
+      "adapted_parameters": {
+        "label": "style workflow 010",
+        "kind": "add-style",
+        "write": false,
+        "type": "LIST",
+        "builtin": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 010",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-add-style.feature",
+        "line": 20,
+        "expanded_name": "Add a style -- @1.4 New style varieties",
+        "inventory_template_name": "Add a style -- @1.4 New style varieties",
+        "inventory_template_line": 20,
+        "example_identity": {
+          "line": 20,
+          "columns": {
+            "name": "Shipments",
+            "type": "WD_STYLE_TYPE.TABLE",
+            "builtin": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "name": "Shipments",
+        "type": "WD_STYLE_TYPE.TABLE",
+        "builtin": "False"
+      },
+      "required_observations": [
+        "the document has one additional style",
+        "styles['Shipments'] is a style",
+        "style.type is WD_STYLE_TYPE.TABLE",
+        "style.builtin is False"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 011",
+      "adapted_parameters": {
+        "label": "style workflow 011",
+        "kind": "add-style",
+        "write": false,
+        "type": "TABLE",
+        "builtin": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 011",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-delete-style.feature",
+        "line": 7,
+        "expanded_name": "Delete a style",
+        "inventory_template_name": "Delete a style",
+        "inventory_template_line": 7,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": [
+        "the document has one fewer styles",
+        "the deleted style is not in the styles collection"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 012",
+      "adapted_parameters": {
+        "label": "style workflow 012",
+        "kind": "delete-style",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 012",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-add-del.feature",
+        "line": 7,
+        "expanded_name": "Add a latent style",
+        "inventory_template_name": "Add a latent style",
+        "inventory_template_line": 7,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": [
+        "the document has one additional latent style",
+        "latent_styles['Foobar'] is a latent style"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 013",
+      "adapted_parameters": {
+        "label": "style workflow 013",
+        "kind": "add-latent",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 013",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-add-del.feature",
+        "line": 14,
+        "expanded_name": "Delete a latent style",
+        "inventory_template_name": "Delete a latent style",
+        "inventory_template_line": 14,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": [
+        "the document has one fewer latent styles",
+        "the deleted latent style is not in the latent styles collection"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 014",
+      "adapted_parameters": {
+        "label": "style workflow 014",
+        "kind": "delete-latent",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 014",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 13,
+        "expanded_name": "Get default latent style properties -- @1.1 known latent_styles property values",
+        "inventory_template_name": "Get default latent style properties -- @1.1 known latent_styles property values",
+        "inventory_template_line": 13,
+        "example_identity": {
+          "line": 13,
+          "columns": {
+            "prop-name": "default_priority",
+            "value": "99"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_priority",
+        "value": "99"
+      },
+      "required_observations": ["latent_styles.default_priority is 99"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 015",
+      "adapted_parameters": {
+        "label": "style workflow 015",
+        "kind": "defaults",
+        "write": false,
+        "property": "default_priority",
+        "expected": 99
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 015",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 14,
+        "expanded_name": "Get default latent style properties -- @1.2 known latent_styles property values",
+        "inventory_template_name": "Get default latent style properties -- @1.2 known latent_styles property values",
+        "inventory_template_line": 14,
+        "example_identity": {
+          "line": 14,
+          "columns": {
+            "prop-name": "load_count",
+            "value": "276"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "load_count",
+        "value": "276"
+      },
+      "required_observations": ["latent_styles.load_count is 276"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 016",
+      "adapted_parameters": {
+        "label": "style workflow 016",
+        "kind": "defaults",
+        "write": false,
+        "property": "load_count",
+        "expected": 276
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 016",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 15,
+        "expanded_name": "Get default latent style properties -- @1.3 known latent_styles property values",
+        "inventory_template_name": "Get default latent style properties -- @1.3 known latent_styles property values",
+        "inventory_template_line": 15,
+        "example_identity": {
+          "line": 15,
+          "columns": {
+            "prop-name": "default_to_hidden",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_hidden",
+        "value": "True"
+      },
+      "required_observations": ["latent_styles.default_to_hidden is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 017",
+      "adapted_parameters": {
+        "label": "style workflow 017",
+        "kind": "defaults",
+        "write": false,
+        "property": "default_to_hidden",
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 017",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 16,
+        "expanded_name": "Get default latent style properties -- @1.4 known latent_styles property values",
+        "inventory_template_name": "Get default latent style properties -- @1.4 known latent_styles property values",
+        "inventory_template_line": 16,
+        "example_identity": {
+          "line": 16,
+          "columns": {
+            "prop-name": "default_to_locked",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_locked",
+        "value": "False"
+      },
+      "required_observations": ["latent_styles.default_to_locked is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 018",
+      "adapted_parameters": {
+        "label": "style workflow 018",
+        "kind": "defaults",
+        "write": false,
+        "property": "default_to_locked",
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 018",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 17,
+        "expanded_name": "Get default latent style properties -- @1.5 known latent_styles property values",
+        "inventory_template_name": "Get default latent style properties -- @1.5 known latent_styles property values",
+        "inventory_template_line": 17,
+        "example_identity": {
+          "line": 17,
+          "columns": {
+            "prop-name": "default_to_quick_style",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_quick_style",
+        "value": "False"
+      },
+      "required_observations": ["latent_styles.default_to_quick_style is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 019",
+      "adapted_parameters": {
+        "label": "style workflow 019",
+        "kind": "defaults",
+        "write": false,
+        "property": "default_to_quick_style",
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 019",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 18,
+        "expanded_name": "Get default latent style properties -- @1.6 known latent_styles property values",
+        "inventory_template_name": "Get default latent style properties -- @1.6 known latent_styles property values",
+        "inventory_template_line": 18,
+        "example_identity": {
+          "line": 18,
+          "columns": {
+            "prop-name": "default_to_unhide_when_used",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_unhide_when_used",
+        "value": "True"
+      },
+      "required_observations": ["latent_styles.default_to_unhide_when_used is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 020",
+      "adapted_parameters": {
+        "label": "style workflow 020",
+        "kind": "defaults",
+        "write": false,
+        "property": "default_to_unhide_when_used",
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 020",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 28,
+        "expanded_name": "Set default latent style properties -- @1.1 known latent_styles property values",
+        "inventory_template_name": "Set default latent style properties -- @1.1 known latent_styles property values",
+        "inventory_template_line": 28,
+        "example_identity": {
+          "line": 28,
+          "columns": {
+            "prop-name": "default_priority",
+            "new-value": "42",
+            "value": "42"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_priority",
+        "new-value": "42",
+        "value": "42"
+      },
+      "required_observations": ["latent_styles.default_priority is 42"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 021",
+      "adapted_parameters": {
+        "label": "style workflow 021",
+        "kind": "defaults",
+        "write": true,
+        "property": "default_priority",
+        "expected": 42,
+        "assigned": 42
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 021",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 29,
+        "expanded_name": "Set default latent style properties -- @1.2 known latent_styles property values",
+        "inventory_template_name": "Set default latent style properties -- @1.2 known latent_styles property values",
+        "inventory_template_line": 29,
+        "example_identity": {
+          "line": 29,
+          "columns": {
+            "prop-name": "load_count",
+            "new-value": "240",
+            "value": "240"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "load_count",
+        "new-value": "240",
+        "value": "240"
+      },
+      "required_observations": ["latent_styles.load_count is 240"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 022",
+      "adapted_parameters": {
+        "label": "style workflow 022",
+        "kind": "defaults",
+        "write": true,
+        "property": "load_count",
+        "expected": 240,
+        "assigned": 240
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 022",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 30,
+        "expanded_name": "Set default latent style properties -- @1.3 known latent_styles property values",
+        "inventory_template_name": "Set default latent style properties -- @1.3 known latent_styles property values",
+        "inventory_template_line": 30,
+        "example_identity": {
+          "line": 30,
+          "columns": {
+            "prop-name": "default_to_hidden",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_hidden",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["latent_styles.default_to_hidden is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 023",
+      "adapted_parameters": {
+        "label": "style workflow 023",
+        "kind": "defaults",
+        "write": true,
+        "property": "default_to_hidden",
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 023",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 31,
+        "expanded_name": "Set default latent style properties -- @1.4 known latent_styles property values",
+        "inventory_template_name": "Set default latent style properties -- @1.4 known latent_styles property values",
+        "inventory_template_line": 31,
+        "example_identity": {
+          "line": 31,
+          "columns": {
+            "prop-name": "default_to_locked",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_locked",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["latent_styles.default_to_locked is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 024",
+      "adapted_parameters": {
+        "label": "style workflow 024",
+        "kind": "defaults",
+        "write": true,
+        "property": "default_to_locked",
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 024",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 32,
+        "expanded_name": "Set default latent style properties -- @1.5 known latent_styles property values",
+        "inventory_template_name": "Set default latent style properties -- @1.5 known latent_styles property values",
+        "inventory_template_line": 32,
+        "example_identity": {
+          "line": 32,
+          "columns": {
+            "prop-name": "default_to_quick_style",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_quick_style",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["latent_styles.default_to_quick_style is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 025",
+      "adapted_parameters": {
+        "label": "style workflow 025",
+        "kind": "defaults",
+        "write": true,
+        "property": "default_to_quick_style",
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 025",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 33,
+        "expanded_name": "Set default latent style properties -- @1.6 known latent_styles property values",
+        "inventory_template_name": "Set default latent style properties -- @1.6 known latent_styles property values",
+        "inventory_template_line": 33,
+        "example_identity": {
+          "line": 33,
+          "columns": {
+            "prop-name": "default_to_unhide_when_used",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "default_to_unhide_when_used",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["latent_styles.default_to_unhide_when_used is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 026",
+      "adapted_parameters": {
+        "label": "style workflow 026",
+        "kind": "defaults",
+        "write": true,
+        "property": "default_to_unhide_when_used",
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 026",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 36,
+        "expanded_name": "Get latent style name",
+        "inventory_template_name": "Get latent style name",
+        "inventory_template_line": 36,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": ["latent_style.name is the known name"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 027",
+      "adapted_parameters": {
+        "label": "style workflow 027",
+        "kind": "latent-name",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 027",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 47,
+        "expanded_name": "Get latent style display sort order -- @1.1 latent_style.priority values",
+        "inventory_template_name": "Get latent style display sort order -- @1.1 latent_style.priority values",
+        "inventory_template_line": 47,
+        "example_identity": {
+          "line": 47,
+          "columns": {
+            "setting": "no setting",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.priority is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 028",
+      "adapted_parameters": {
+        "label": "style workflow 028",
+        "kind": "latent-property",
+        "write": false,
+        "property": "priority",
+        "initial": null,
+        "expected": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 028",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 48,
+        "expanded_name": "Get latent style display sort order -- @1.2 latent_style.priority values",
+        "inventory_template_name": "Get latent style display sort order -- @1.2 latent_style.priority values",
+        "inventory_template_line": 48,
+        "example_identity": {
+          "line": 48,
+          "columns": {
+            "setting": "42",
+            "value": "42"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "42",
+        "value": "42"
+      },
+      "required_observations": ["latent_style.priority is 42"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 029",
+      "adapted_parameters": {
+        "label": "style workflow 029",
+        "kind": "latent-property",
+        "write": false,
+        "property": "priority",
+        "initial": 42,
+        "expected": 42
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 029",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 58,
+        "expanded_name": "Set latent style display sort order -- @1.1 Latent style priority values",
+        "inventory_template_name": "Set latent style display sort order -- @1.1 Latent style priority values",
+        "inventory_template_line": 58,
+        "example_identity": {
+          "line": 58,
+          "columns": {
+            "setting": "no setting",
+            "new-value": "42",
+            "value": "42"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "new-value": "42",
+        "value": "42"
+      },
+      "required_observations": ["latent_style.priority is 42"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 030",
+      "adapted_parameters": {
+        "label": "style workflow 030",
+        "kind": "latent-property",
+        "write": true,
+        "property": "priority",
+        "initial": null,
+        "expected": 42,
+        "assigned": 42
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 030",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 59,
+        "expanded_name": "Set latent style display sort order -- @1.2 Latent style priority values",
+        "inventory_template_name": "Set latent style display sort order -- @1.2 Latent style priority values",
+        "inventory_template_line": 59,
+        "example_identity": {
+          "line": 59,
+          "columns": {
+            "setting": "42",
+            "new-value": "24",
+            "value": "24"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "42",
+        "new-value": "24",
+        "value": "24"
+      },
+      "required_observations": ["latent_style.priority is 24"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 031",
+      "adapted_parameters": {
+        "label": "style workflow 031",
+        "kind": "latent-property",
+        "write": true,
+        "property": "priority",
+        "initial": 42,
+        "expected": 24,
+        "assigned": 24
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 031",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 60,
+        "expanded_name": "Set latent style display sort order -- @1.3 Latent style priority values",
+        "inventory_template_name": "Set latent style display sort order -- @1.3 Latent style priority values",
+        "inventory_template_line": 60,
+        "example_identity": {
+          "line": 60,
+          "columns": {
+            "setting": "42",
+            "new-value": "None",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "42",
+        "new-value": "None",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.priority is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 032",
+      "adapted_parameters": {
+        "label": "style workflow 032",
+        "kind": "latent-property",
+        "write": true,
+        "property": "priority",
+        "initial": 42,
+        "expected": null,
+        "assigned": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 032",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 69,
+        "expanded_name": "Get on/off latent style properties -- @1.1 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.1 Latent style hidden values",
+        "inventory_template_line": 69,
+        "example_identity": {
+          "line": 69,
+          "columns": {
+            "prop-name": "hidden",
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "hidden",
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.hidden is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 033",
+      "adapted_parameters": {
+        "label": "style workflow 033",
+        "kind": "latent-property",
+        "write": false,
+        "property": "hidden",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 033",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 70,
+        "expanded_name": "Get on/off latent style properties -- @1.2 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.2 Latent style hidden values",
+        "inventory_template_line": 70,
+        "example_identity": {
+          "line": 70,
+          "columns": {
+            "prop-name": "hidden",
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "hidden",
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.hidden is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 034",
+      "adapted_parameters": {
+        "label": "style workflow 034",
+        "kind": "latent-property",
+        "write": false,
+        "property": "hidden",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 034",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 71,
+        "expanded_name": "Get on/off latent style properties -- @1.3 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.3 Latent style hidden values",
+        "inventory_template_line": 71,
+        "example_identity": {
+          "line": 71,
+          "columns": {
+            "prop-name": "hidden",
+            "setting": "no setting",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "hidden",
+        "setting": "no setting",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.hidden is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 035",
+      "adapted_parameters": {
+        "label": "style workflow 035",
+        "kind": "latent-property",
+        "write": false,
+        "property": "hidden",
+        "initial": null,
+        "expected": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 035",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 72,
+        "expanded_name": "Get on/off latent style properties -- @1.4 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.4 Latent style hidden values",
+        "inventory_template_line": 72,
+        "example_identity": {
+          "line": 72,
+          "columns": {
+            "prop-name": "locked",
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "locked",
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.locked is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 036",
+      "adapted_parameters": {
+        "label": "style workflow 036",
+        "kind": "latent-property",
+        "write": false,
+        "property": "locked",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 036",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 73,
+        "expanded_name": "Get on/off latent style properties -- @1.5 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.5 Latent style hidden values",
+        "inventory_template_line": 73,
+        "example_identity": {
+          "line": 73,
+          "columns": {
+            "prop-name": "locked",
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "locked",
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.locked is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 037",
+      "adapted_parameters": {
+        "label": "style workflow 037",
+        "kind": "latent-property",
+        "write": false,
+        "property": "locked",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 037",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 74,
+        "expanded_name": "Get on/off latent style properties -- @1.6 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.6 Latent style hidden values",
+        "inventory_template_line": 74,
+        "example_identity": {
+          "line": 74,
+          "columns": {
+            "prop-name": "locked",
+            "setting": "no setting",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "locked",
+        "setting": "no setting",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.locked is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 038",
+      "adapted_parameters": {
+        "label": "style workflow 038",
+        "kind": "latent-property",
+        "write": false,
+        "property": "locked",
+        "initial": null,
+        "expected": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 038",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 75,
+        "expanded_name": "Get on/off latent style properties -- @1.7 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.7 Latent style hidden values",
+        "inventory_template_line": 75,
+        "example_identity": {
+          "line": 75,
+          "columns": {
+            "prop-name": "quick_style",
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "quick_style",
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.quick_style is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 039",
+      "adapted_parameters": {
+        "label": "style workflow 039",
+        "kind": "latent-property",
+        "write": false,
+        "property": "quick_style",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 039",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 76,
+        "expanded_name": "Get on/off latent style properties -- @1.8 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.8 Latent style hidden values",
+        "inventory_template_line": 76,
+        "example_identity": {
+          "line": 76,
+          "columns": {
+            "prop-name": "quick_style",
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "quick_style",
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.quick_style is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 040",
+      "adapted_parameters": {
+        "label": "style workflow 040",
+        "kind": "latent-property",
+        "write": false,
+        "property": "quick_style",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 040",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 77,
+        "expanded_name": "Get on/off latent style properties -- @1.9 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.9 Latent style hidden values",
+        "inventory_template_line": 77,
+        "example_identity": {
+          "line": 77,
+          "columns": {
+            "prop-name": "quick_style",
+            "setting": "no setting",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "quick_style",
+        "setting": "no setting",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.quick_style is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 041",
+      "adapted_parameters": {
+        "label": "style workflow 041",
+        "kind": "latent-property",
+        "write": false,
+        "property": "quick_style",
+        "initial": null,
+        "expected": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 041",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 78,
+        "expanded_name": "Get on/off latent style properties -- @1.10 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.10 Latent style hidden values",
+        "inventory_template_line": 78,
+        "example_identity": {
+          "line": 78,
+          "columns": {
+            "prop-name": "unhide_when_used",
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "unhide_when_used",
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.unhide_when_used is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 042",
+      "adapted_parameters": {
+        "label": "style workflow 042",
+        "kind": "latent-property",
+        "write": false,
+        "property": "unhide_when_used",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 042",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 79,
+        "expanded_name": "Get on/off latent style properties -- @1.11 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.11 Latent style hidden values",
+        "inventory_template_line": 79,
+        "example_identity": {
+          "line": 79,
+          "columns": {
+            "prop-name": "unhide_when_used",
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "unhide_when_used",
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.unhide_when_used is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 043",
+      "adapted_parameters": {
+        "label": "style workflow 043",
+        "kind": "latent-property",
+        "write": false,
+        "property": "unhide_when_used",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 043",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 80,
+        "expanded_name": "Get on/off latent style properties -- @1.12 Latent style hidden values",
+        "inventory_template_name": "Get on/off latent style properties -- @1.12 Latent style hidden values",
+        "inventory_template_line": 80,
+        "example_identity": {
+          "line": 80,
+          "columns": {
+            "prop-name": "unhide_when_used",
+            "setting": "no setting",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "unhide_when_used",
+        "setting": "no setting",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.unhide_when_used is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 044",
+      "adapted_parameters": {
+        "label": "style workflow 044",
+        "kind": "latent-property",
+        "write": false,
+        "property": "unhide_when_used",
+        "initial": null,
+        "expected": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 044",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 90,
+        "expanded_name": "Set on/off latent style properties -- @1.1 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.1 Latent style hidden values",
+        "inventory_template_line": 90,
+        "example_identity": {
+          "line": 90,
+          "columns": {
+            "prop-name": "hidden",
+            "setting": "no setting",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "hidden",
+        "setting": "no setting",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.hidden is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 045",
+      "adapted_parameters": {
+        "label": "style workflow 045",
+        "kind": "latent-property",
+        "write": true,
+        "property": "hidden",
+        "initial": null,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 045",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 91,
+        "expanded_name": "Set on/off latent style properties -- @1.2 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.2 Latent style hidden values",
+        "inventory_template_line": 91,
+        "example_identity": {
+          "line": 91,
+          "columns": {
+            "prop-name": "hidden",
+            "setting": "on",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "hidden",
+        "setting": "on",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.hidden is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 046",
+      "adapted_parameters": {
+        "label": "style workflow 046",
+        "kind": "latent-property",
+        "write": true,
+        "property": "hidden",
+        "initial": true,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 046",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 92,
+        "expanded_name": "Set on/off latent style properties -- @1.3 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.3 Latent style hidden values",
+        "inventory_template_line": 92,
+        "example_identity": {
+          "line": 92,
+          "columns": {
+            "prop-name": "hidden",
+            "setting": "off",
+            "new-value": "None",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "hidden",
+        "setting": "off",
+        "new-value": "None",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.hidden is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 047",
+      "adapted_parameters": {
+        "label": "style workflow 047",
+        "kind": "latent-property",
+        "write": true,
+        "property": "hidden",
+        "initial": false,
+        "expected": null,
+        "assigned": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 047",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 93,
+        "expanded_name": "Set on/off latent style properties -- @1.4 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.4 Latent style hidden values",
+        "inventory_template_line": 93,
+        "example_identity": {
+          "line": 93,
+          "columns": {
+            "prop-name": "locked",
+            "setting": "no setting",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "locked",
+        "setting": "no setting",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.locked is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 048",
+      "adapted_parameters": {
+        "label": "style workflow 048",
+        "kind": "latent-property",
+        "write": true,
+        "property": "locked",
+        "initial": null,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 048",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 94,
+        "expanded_name": "Set on/off latent style properties -- @1.5 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.5 Latent style hidden values",
+        "inventory_template_line": 94,
+        "example_identity": {
+          "line": 94,
+          "columns": {
+            "prop-name": "locked",
+            "setting": "off",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "locked",
+        "setting": "off",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.locked is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 049",
+      "adapted_parameters": {
+        "label": "style workflow 049",
+        "kind": "latent-property",
+        "write": true,
+        "property": "locked",
+        "initial": false,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 049",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 95,
+        "expanded_name": "Set on/off latent style properties -- @1.6 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.6 Latent style hidden values",
+        "inventory_template_line": 95,
+        "example_identity": {
+          "line": 95,
+          "columns": {
+            "prop-name": "locked",
+            "setting": "on",
+            "new-value": "None",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "locked",
+        "setting": "on",
+        "new-value": "None",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.locked is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 050",
+      "adapted_parameters": {
+        "label": "style workflow 050",
+        "kind": "latent-property",
+        "write": true,
+        "property": "locked",
+        "initial": true,
+        "expected": null,
+        "assigned": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 050",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 96,
+        "expanded_name": "Set on/off latent style properties -- @1.7 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.7 Latent style hidden values",
+        "inventory_template_line": 96,
+        "example_identity": {
+          "line": 96,
+          "columns": {
+            "prop-name": "quick_style",
+            "setting": "no setting",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "quick_style",
+        "setting": "no setting",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.quick_style is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 051",
+      "adapted_parameters": {
+        "label": "style workflow 051",
+        "kind": "latent-property",
+        "write": true,
+        "property": "quick_style",
+        "initial": null,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 051",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 97,
+        "expanded_name": "Set on/off latent style properties -- @1.8 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.8 Latent style hidden values",
+        "inventory_template_line": 97,
+        "example_identity": {
+          "line": 97,
+          "columns": {
+            "prop-name": "quick_style",
+            "setting": "on",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "quick_style",
+        "setting": "on",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.quick_style is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 052",
+      "adapted_parameters": {
+        "label": "style workflow 052",
+        "kind": "latent-property",
+        "write": true,
+        "property": "quick_style",
+        "initial": true,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 052",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 98,
+        "expanded_name": "Set on/off latent style properties -- @1.9 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.9 Latent style hidden values",
+        "inventory_template_line": 98,
+        "example_identity": {
+          "line": 98,
+          "columns": {
+            "prop-name": "quick_style",
+            "setting": "off",
+            "new-value": "None",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "quick_style",
+        "setting": "off",
+        "new-value": "None",
+        "value": "None"
+      },
+      "required_observations": ["latent_style.quick_style is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 053",
+      "adapted_parameters": {
+        "label": "style workflow 053",
+        "kind": "latent-property",
+        "write": true,
+        "property": "quick_style",
+        "initial": false,
+        "expected": null,
+        "assigned": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 053",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 99,
+        "expanded_name": "Set on/off latent style properties -- @1.10 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.10 Latent style hidden values",
+        "inventory_template_line": 99,
+        "example_identity": {
+          "line": 99,
+          "columns": {
+            "prop-name": "unhide_when_used",
+            "setting": "no setting",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "unhide_when_used",
+        "setting": "no setting",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.unhide_when_used is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 054",
+      "adapted_parameters": {
+        "label": "style workflow 054",
+        "kind": "latent-property",
+        "write": true,
+        "property": "unhide_when_used",
+        "initial": null,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 054",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 100,
+        "expanded_name": "Set on/off latent style properties -- @1.11 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.11 Latent style hidden values",
+        "inventory_template_line": 100,
+        "example_identity": {
+          "line": 100,
+          "columns": {
+            "prop-name": "unhide_when_used",
+            "setting": "off",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "unhide_when_used",
+        "setting": "off",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["latent_style.unhide_when_used is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 055",
+      "adapted_parameters": {
+        "label": "style workflow 055",
+        "kind": "latent-property",
+        "write": true,
+        "property": "unhide_when_used",
+        "initial": false,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 055",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-latent-props.feature",
+        "line": 101,
+        "expanded_name": "Set on/off latent style properties -- @1.12 Latent style hidden values",
+        "inventory_template_name": "Set on/off latent style properties -- @1.12 Latent style hidden values",
+        "inventory_template_line": 101,
+        "example_identity": {
+          "line": 101,
+          "columns": {
+            "prop-name": "unhide_when_used",
+            "setting": "on",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "prop-name": "unhide_when_used",
+        "setting": "on",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["latent_style.unhide_when_used is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 056",
+      "adapted_parameters": {
+        "label": "style workflow 056",
+        "kind": "latent-property",
+        "write": true,
+        "property": "unhide_when_used",
+        "initial": true,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 056",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 13,
+        "expanded_name": "Get base style -- @1.1 Base style values",
+        "inventory_template_name": "Get base style -- @1.1 Base style values",
+        "inventory_template_line": 13,
+        "example_identity": {
+          "line": 13,
+          "columns": {
+            "base-style": "no style",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "base-style": "no style",
+        "value": "None"
+      },
+      "required_observations": ["style.base_style is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 057",
+      "adapted_parameters": {
+        "label": "style workflow 057",
+        "kind": "base",
+        "write": false,
+        "initial": null,
+        "expected": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 057",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 14,
+        "expanded_name": "Get base style -- @1.2 Base style values",
+        "inventory_template_name": "Get base style -- @1.2 Base style values",
+        "inventory_template_line": 14,
+        "example_identity": {
+          "line": 14,
+          "columns": {
+            "base-style": "Normal",
+            "value": "styles['Normal']"
+          }
+        }
+      },
+      "bound_parameters": {
+        "base-style": "Normal",
+        "value": "styles['Normal']"
+      },
+      "required_observations": ["style.base_style is styles['Normal']"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 058",
+      "adapted_parameters": {
+        "label": "style workflow 058",
+        "kind": "base",
+        "write": false,
+        "initial": "Anchor",
+        "expected": "Anchor"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 058",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 24,
+        "expanded_name": "Set base style -- @1.1 Base style values",
+        "inventory_template_name": "Set base style -- @1.1 Base style values",
+        "inventory_template_line": 24,
+        "example_identity": {
+          "line": 24,
+          "columns": {
+            "base-style": "no style",
+            "assigned-value": "styles['Normal']",
+            "value": "styles['Normal']"
+          }
+        }
+      },
+      "bound_parameters": {
+        "base-style": "no style",
+        "assigned-value": "styles['Normal']",
+        "value": "styles['Normal']"
+      },
+      "required_observations": ["style.base_style is styles['Normal']"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 059",
+      "adapted_parameters": {
+        "label": "style workflow 059",
+        "kind": "base",
+        "write": true,
+        "initial": null,
+        "expected": "Anchor",
+        "assigned": "Anchor"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 059",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 25,
+        "expanded_name": "Set base style -- @1.2 Base style values",
+        "inventory_template_name": "Set base style -- @1.2 Base style values",
+        "inventory_template_line": 25,
+        "example_identity": {
+          "line": 25,
+          "columns": {
+            "base-style": "Normal",
+            "assigned-value": "styles['Base']",
+            "value": "styles['Base']"
+          }
+        }
+      },
+      "bound_parameters": {
+        "base-style": "Normal",
+        "assigned-value": "styles['Base']",
+        "value": "styles['Base']"
+      },
+      "required_observations": ["style.base_style is styles['Base']"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 060",
+      "adapted_parameters": {
+        "label": "style workflow 060",
+        "kind": "base",
+        "write": true,
+        "initial": "Anchor",
+        "expected": "Foundation",
+        "assigned": "Foundation"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 060",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 26,
+        "expanded_name": "Set base style -- @1.3 Base style values",
+        "inventory_template_name": "Set base style -- @1.3 Base style values",
+        "inventory_template_line": 26,
+        "example_identity": {
+          "line": 26,
+          "columns": {
+            "base-style": "Base",
+            "assigned-value": "None",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "base-style": "Base",
+        "assigned-value": "None",
+        "value": "None"
+      },
+      "required_observations": ["style.base_style is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 061",
+      "adapted_parameters": {
+        "label": "style workflow 061",
+        "kind": "base",
+        "write": true,
+        "initial": "Foundation",
+        "expected": null,
+        "assigned": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 061",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 35,
+        "expanded_name": "Get hidden value -- @1.1 Style hidden values",
+        "inventory_template_name": "Get hidden value -- @1.1 Style hidden values",
+        "inventory_template_line": 35,
+        "example_identity": {
+          "line": 35,
+          "columns": {
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["style.hidden is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 062",
+      "adapted_parameters": {
+        "label": "style workflow 062",
+        "kind": "style-property",
+        "write": false,
+        "property": "hidden",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 062",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 36,
+        "expanded_name": "Get hidden value -- @1.2 Style hidden values",
+        "inventory_template_name": "Get hidden value -- @1.2 Style hidden values",
+        "inventory_template_line": 36,
+        "example_identity": {
+          "line": 36,
+          "columns": {
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["style.hidden is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 063",
+      "adapted_parameters": {
+        "label": "style workflow 063",
+        "kind": "style-property",
+        "write": false,
+        "property": "hidden",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 063",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 37,
+        "expanded_name": "Get hidden value -- @1.3 Style hidden values",
+        "inventory_template_name": "Get hidden value -- @1.3 Style hidden values",
+        "inventory_template_line": 37,
+        "example_identity": {
+          "line": 37,
+          "columns": {
+            "setting": "no setting",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "value": "False"
+      },
+      "required_observations": ["style.hidden is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 064",
+      "adapted_parameters": {
+        "label": "style workflow 064",
+        "kind": "style-property",
+        "write": false,
+        "property": "hidden",
+        "initial": null,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 064",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 47,
+        "expanded_name": "Set hidden value -- @1.1 Style hidden values",
+        "inventory_template_name": "Set hidden value -- @1.1 Style hidden values",
+        "inventory_template_line": 47,
+        "example_identity": {
+          "line": 47,
+          "columns": {
+            "setting": "no setting",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["style.hidden is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 065",
+      "adapted_parameters": {
+        "label": "style workflow 065",
+        "kind": "style-property",
+        "write": true,
+        "property": "hidden",
+        "initial": null,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 065",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 48,
+        "expanded_name": "Set hidden value -- @1.2 Style hidden values",
+        "inventory_template_name": "Set hidden value -- @1.2 Style hidden values",
+        "inventory_template_line": 48,
+        "example_identity": {
+          "line": 48,
+          "columns": {
+            "setting": "on",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["style.hidden is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 066",
+      "adapted_parameters": {
+        "label": "style workflow 066",
+        "kind": "style-property",
+        "write": true,
+        "property": "hidden",
+        "initial": true,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 066",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 57,
+        "expanded_name": "Get locked value -- @1.1 Style locked values",
+        "inventory_template_name": "Get locked value -- @1.1 Style locked values",
+        "inventory_template_line": 57,
+        "example_identity": {
+          "line": 57,
+          "columns": {
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["style.locked is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 067",
+      "adapted_parameters": {
+        "label": "style workflow 067",
+        "kind": "style-property",
+        "write": false,
+        "property": "locked",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 067",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 58,
+        "expanded_name": "Get locked value -- @1.2 Style locked values",
+        "inventory_template_name": "Get locked value -- @1.2 Style locked values",
+        "inventory_template_line": 58,
+        "example_identity": {
+          "line": 58,
+          "columns": {
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["style.locked is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 068",
+      "adapted_parameters": {
+        "label": "style workflow 068",
+        "kind": "style-property",
+        "write": false,
+        "property": "locked",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 068",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 59,
+        "expanded_name": "Get locked value -- @1.3 Style locked values",
+        "inventory_template_name": "Get locked value -- @1.3 Style locked values",
+        "inventory_template_line": 59,
+        "example_identity": {
+          "line": 59,
+          "columns": {
+            "setting": "no setting",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "value": "False"
+      },
+      "required_observations": ["style.locked is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 069",
+      "adapted_parameters": {
+        "label": "style workflow 069",
+        "kind": "style-property",
+        "write": false,
+        "property": "locked",
+        "initial": null,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 069",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 69,
+        "expanded_name": "Set locked value -- @1.1 Style locked values",
+        "inventory_template_name": "Set locked value -- @1.1 Style locked values",
+        "inventory_template_line": 69,
+        "example_identity": {
+          "line": 69,
+          "columns": {
+            "setting": "no setting",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["style.locked is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 070",
+      "adapted_parameters": {
+        "label": "style workflow 070",
+        "kind": "style-property",
+        "write": true,
+        "property": "locked",
+        "initial": null,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 070",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 70,
+        "expanded_name": "Set locked value -- @1.2 Style locked values",
+        "inventory_template_name": "Set locked value -- @1.2 Style locked values",
+        "inventory_template_line": 70,
+        "example_identity": {
+          "line": 70,
+          "columns": {
+            "setting": "on",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["style.locked is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 071",
+      "adapted_parameters": {
+        "label": "style workflow 071",
+        "kind": "style-property",
+        "write": true,
+        "property": "locked",
+        "initial": true,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 071",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 73,
+        "expanded_name": "Get name",
+        "inventory_template_name": "Get name",
+        "inventory_template_line": 73,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": ["style.name is the known name"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 072",
+      "adapted_parameters": {
+        "label": "style workflow 072",
+        "kind": "name",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 072",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 78,
+        "expanded_name": "Set name",
+        "inventory_template_name": "Set name",
+        "inventory_template_line": 78,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": ["style.name is the new name"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 073",
+      "adapted_parameters": {
+        "label": "style workflow 073",
+        "kind": "name",
+        "write": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 073",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 90,
+        "expanded_name": "Get next paragraph style -- @1.1 Style next paragraph style values",
+        "inventory_template_name": "Get next paragraph style -- @1.1 Style next paragraph style values",
+        "inventory_template_line": 90,
+        "example_identity": {
+          "line": 90,
+          "columns": {
+            "setting": "no setting",
+            "value": "Base"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "value": "Base"
+      },
+      "required_observations": ["style.next_paragraph_style is Base"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 074",
+      "adapted_parameters": {
+        "label": "style workflow 074",
+        "kind": "next",
+        "write": false,
+        "initial": null,
+        "expected": "Harbor"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 074",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 91,
+        "expanded_name": "Get next paragraph style -- @1.2 Style next paragraph style values",
+        "inventory_template_name": "Get next paragraph style -- @1.2 Style next paragraph style values",
+        "inventory_template_line": 91,
+        "example_identity": {
+          "line": 91,
+          "columns": {
+            "setting": "Sub Normal",
+            "value": "Sub Normal"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "Sub Normal",
+        "value": "Sub Normal"
+      },
+      "required_observations": ["style.next_paragraph_style is Sub Normal"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 075",
+      "adapted_parameters": {
+        "label": "style workflow 075",
+        "kind": "next",
+        "write": false,
+        "initial": "Anchor",
+        "expected": "Anchor"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 075",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 92,
+        "expanded_name": "Get next paragraph style -- @1.3 Style next paragraph style values",
+        "inventory_template_name": "Get next paragraph style -- @1.3 Style next paragraph style values",
+        "inventory_template_line": 92,
+        "example_identity": {
+          "line": 92,
+          "columns": {
+            "setting": "Foobar",
+            "value": "Sub Normal"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "Foobar",
+        "value": "Sub Normal"
+      },
+      "required_observations": ["style.next_paragraph_style is Sub Normal"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 076",
+      "adapted_parameters": {
+        "label": "style workflow 076",
+        "kind": "next",
+        "write": false,
+        "initial": "missing",
+        "expected": "Harbor"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions. Missing next-style target returns the selected paragraph style itself, preserving the exact source fallback rather than assuming a default style.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 076",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 102,
+        "expanded_name": "Set next paragraph style -- @1.1 Results of assignment to .next_paragraph_style",
+        "inventory_template_name": "Set next paragraph style -- @1.1 Results of assignment to .next_paragraph_style",
+        "inventory_template_line": 102,
+        "example_identity": {
+          "line": 102,
+          "columns": {
+            "setting": "no setting",
+            "new-value": "Citation",
+            "value": "Citation"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "new-value": "Citation",
+        "value": "Citation"
+      },
+      "required_observations": ["style.next_paragraph_style is Citation"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 077",
+      "adapted_parameters": {
+        "label": "style workflow 077",
+        "kind": "next",
+        "write": true,
+        "initial": null,
+        "expected": "Annotation",
+        "assigned": "Annotation"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 077",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 103,
+        "expanded_name": "Set next paragraph style -- @1.2 Results of assignment to .next_paragraph_style",
+        "inventory_template_name": "Set next paragraph style -- @1.2 Results of assignment to .next_paragraph_style",
+        "inventory_template_line": 103,
+        "example_identity": {
+          "line": 103,
+          "columns": {
+            "setting": "Sub Normal",
+            "new-value": "Base",
+            "value": "Base"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "Sub Normal",
+        "new-value": "Base",
+        "value": "Base"
+      },
+      "required_observations": ["style.next_paragraph_style is Base"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 078",
+      "adapted_parameters": {
+        "label": "style workflow 078",
+        "kind": "next",
+        "write": true,
+        "initial": "Anchor",
+        "expected": "Foundation",
+        "assigned": "Foundation"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 078",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 104,
+        "expanded_name": "Set next paragraph style -- @1.3 Results of assignment to .next_paragraph_style",
+        "inventory_template_name": "Set next paragraph style -- @1.3 Results of assignment to .next_paragraph_style",
+        "inventory_template_line": 104,
+        "example_identity": {
+          "line": 104,
+          "columns": {
+            "setting": "Base",
+            "new-value": "None",
+            "value": "Foo"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "Base",
+        "new-value": "None",
+        "value": "Foo"
+      },
+      "required_observations": ["style.next_paragraph_style is Foo"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 079",
+      "adapted_parameters": {
+        "label": "style workflow 079",
+        "kind": "next",
+        "write": true,
+        "initial": "Foundation",
+        "expected": "Harbor",
+        "assigned": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 079",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 113,
+        "expanded_name": "Get style display sort order -- @1.1 style.priority values",
+        "inventory_template_name": "Get style display sort order -- @1.1 style.priority values",
+        "inventory_template_line": 113,
+        "example_identity": {
+          "line": 113,
+          "columns": {
+            "setting": "no setting",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "value": "None"
+      },
+      "required_observations": ["style.priority is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 080",
+      "adapted_parameters": {
+        "label": "style workflow 080",
+        "kind": "style-property",
+        "write": false,
+        "property": "priority",
+        "initial": null,
+        "expected": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 080",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 114,
+        "expanded_name": "Get style display sort order -- @1.2 style.priority values",
+        "inventory_template_name": "Get style display sort order -- @1.2 style.priority values",
+        "inventory_template_line": 114,
+        "example_identity": {
+          "line": 114,
+          "columns": {
+            "setting": "42",
+            "value": "42"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "42",
+        "value": "42"
+      },
+      "required_observations": ["style.priority is 42"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 081",
+      "adapted_parameters": {
+        "label": "style workflow 081",
+        "kind": "style-property",
+        "write": false,
+        "property": "priority",
+        "initial": 42,
+        "expected": 42
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 081",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 124,
+        "expanded_name": "Set style display sort order -- @1.1 Style priority values",
+        "inventory_template_name": "Set style display sort order -- @1.1 Style priority values",
+        "inventory_template_line": 124,
+        "example_identity": {
+          "line": 124,
+          "columns": {
+            "setting": "no setting",
+            "new-value": "42",
+            "value": "42"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "new-value": "42",
+        "value": "42"
+      },
+      "required_observations": ["style.priority is 42"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 082",
+      "adapted_parameters": {
+        "label": "style workflow 082",
+        "kind": "style-property",
+        "write": true,
+        "property": "priority",
+        "initial": null,
+        "expected": 42,
+        "assigned": 42
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 082",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 125,
+        "expanded_name": "Set style display sort order -- @1.2 Style priority values",
+        "inventory_template_name": "Set style display sort order -- @1.2 Style priority values",
+        "inventory_template_line": 125,
+        "example_identity": {
+          "line": 125,
+          "columns": {
+            "setting": "42",
+            "new-value": "24",
+            "value": "24"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "42",
+        "new-value": "24",
+        "value": "24"
+      },
+      "required_observations": ["style.priority is 24"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 083",
+      "adapted_parameters": {
+        "label": "style workflow 083",
+        "kind": "style-property",
+        "write": true,
+        "property": "priority",
+        "initial": 42,
+        "expected": 24,
+        "assigned": 24
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 083",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 126,
+        "expanded_name": "Set style display sort order -- @1.3 Style priority values",
+        "inventory_template_name": "Set style display sort order -- @1.3 Style priority values",
+        "inventory_template_line": 126,
+        "example_identity": {
+          "line": 126,
+          "columns": {
+            "setting": "42",
+            "new-value": "None",
+            "value": "None"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "42",
+        "new-value": "None",
+        "value": "None"
+      },
+      "required_observations": ["style.priority is None"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 084",
+      "adapted_parameters": {
+        "label": "style workflow 084",
+        "kind": "style-property",
+        "write": true,
+        "property": "priority",
+        "initial": 42,
+        "expected": null,
+        "assigned": null
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 084",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 135,
+        "expanded_name": "Get quick-style value -- @1.1 Style quick-style values",
+        "inventory_template_name": "Get quick-style value -- @1.1 Style quick-style values",
+        "inventory_template_line": 135,
+        "example_identity": {
+          "line": 135,
+          "columns": {
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["style.quick_style is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 085",
+      "adapted_parameters": {
+        "label": "style workflow 085",
+        "kind": "style-property",
+        "write": false,
+        "property": "quick_style",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 085",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 136,
+        "expanded_name": "Get quick-style value -- @1.2 Style quick-style values",
+        "inventory_template_name": "Get quick-style value -- @1.2 Style quick-style values",
+        "inventory_template_line": 136,
+        "example_identity": {
+          "line": 136,
+          "columns": {
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["style.quick_style is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 086",
+      "adapted_parameters": {
+        "label": "style workflow 086",
+        "kind": "style-property",
+        "write": false,
+        "property": "quick_style",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 086",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 137,
+        "expanded_name": "Get quick-style value -- @1.3 Style quick-style values",
+        "inventory_template_name": "Get quick-style value -- @1.3 Style quick-style values",
+        "inventory_template_line": 137,
+        "example_identity": {
+          "line": 137,
+          "columns": {
+            "setting": "no setting",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "value": "False"
+      },
+      "required_observations": ["style.quick_style is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 087",
+      "adapted_parameters": {
+        "label": "style workflow 087",
+        "kind": "style-property",
+        "write": false,
+        "property": "quick_style",
+        "initial": null,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 087",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 147,
+        "expanded_name": "Set quick-style value -- @1.1 Style quick_style values",
+        "inventory_template_name": "Set quick-style value -- @1.1 Style quick_style values",
+        "inventory_template_line": 147,
+        "example_identity": {
+          "line": 147,
+          "columns": {
+            "setting": "no setting",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["style.quick_style is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 088",
+      "adapted_parameters": {
+        "label": "style workflow 088",
+        "kind": "style-property",
+        "write": true,
+        "property": "quick_style",
+        "initial": null,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 088",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 148,
+        "expanded_name": "Set quick-style value -- @1.2 Style quick_style values",
+        "inventory_template_name": "Set quick-style value -- @1.2 Style quick_style values",
+        "inventory_template_line": 148,
+        "example_identity": {
+          "line": 148,
+          "columns": {
+            "setting": "on",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["style.quick_style is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 089",
+      "adapted_parameters": {
+        "label": "style workflow 089",
+        "kind": "style-property",
+        "write": true,
+        "property": "quick_style",
+        "initial": true,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 089",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 151,
+        "expanded_name": "Get style id",
+        "inventory_template_name": "Get style id",
+        "inventory_template_line": 151,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": ["style.style_id is the known style id"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 090",
+      "adapted_parameters": {
+        "label": "style workflow 090",
+        "kind": "id",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 090",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 156,
+        "expanded_name": "Set style id",
+        "inventory_template_name": "Set style id",
+        "inventory_template_line": 156,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": ["style.style_id is the new style id"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 091",
+      "adapted_parameters": {
+        "label": "style workflow 091",
+        "kind": "id",
+        "write": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 091",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 162,
+        "expanded_name": "Get style type",
+        "inventory_template_name": "Get style type",
+        "inventory_template_line": 162,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": ["style.type is the known type"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 092",
+      "adapted_parameters": {
+        "label": "style workflow 092",
+        "kind": "type",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 092",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 173,
+        "expanded_name": "Get unhide-when-used value -- @1.1 Style unhide-when-used values",
+        "inventory_template_name": "Get unhide-when-used value -- @1.1 Style unhide-when-used values",
+        "inventory_template_line": 173,
+        "example_identity": {
+          "line": 173,
+          "columns": {
+            "setting": "on",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "value": "True"
+      },
+      "required_observations": ["style.unhide_when_used is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 093",
+      "adapted_parameters": {
+        "label": "style workflow 093",
+        "kind": "style-property",
+        "write": false,
+        "property": "unhide_when_used",
+        "initial": true,
+        "expected": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 093",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 174,
+        "expanded_name": "Get unhide-when-used value -- @1.2 Style unhide-when-used values",
+        "inventory_template_name": "Get unhide-when-used value -- @1.2 Style unhide-when-used values",
+        "inventory_template_line": 174,
+        "example_identity": {
+          "line": 174,
+          "columns": {
+            "setting": "off",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "off",
+        "value": "False"
+      },
+      "required_observations": ["style.unhide_when_used is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 094",
+      "adapted_parameters": {
+        "label": "style workflow 094",
+        "kind": "style-property",
+        "write": false,
+        "property": "unhide_when_used",
+        "initial": false,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 094",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 175,
+        "expanded_name": "Get unhide-when-used value -- @1.3 Style unhide-when-used values",
+        "inventory_template_name": "Get unhide-when-used value -- @1.3 Style unhide-when-used values",
+        "inventory_template_line": 175,
+        "example_identity": {
+          "line": 175,
+          "columns": {
+            "setting": "no setting",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "value": "False"
+      },
+      "required_observations": ["style.unhide_when_used is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 095",
+      "adapted_parameters": {
+        "label": "style workflow 095",
+        "kind": "style-property",
+        "write": false,
+        "property": "unhide_when_used",
+        "initial": null,
+        "expected": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 095",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 185,
+        "expanded_name": "Set unhide-when-used value -- @1.1 Style unhide_when_used values",
+        "inventory_template_name": "Set unhide-when-used value -- @1.1 Style unhide_when_used values",
+        "inventory_template_line": 185,
+        "example_identity": {
+          "line": 185,
+          "columns": {
+            "setting": "no setting",
+            "new-value": "True",
+            "value": "True"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "no setting",
+        "new-value": "True",
+        "value": "True"
+      },
+      "required_observations": ["style.unhide_when_used is True"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 096",
+      "adapted_parameters": {
+        "label": "style workflow 096",
+        "kind": "style-property",
+        "write": true,
+        "property": "unhide_when_used",
+        "initial": null,
+        "expected": true,
+        "assigned": true
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 096",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/sty-style-props.feature",
+        "line": 186,
+        "expanded_name": "Set unhide-when-used value -- @1.2 Style unhide_when_used values",
+        "inventory_template_name": "Set unhide-when-used value -- @1.2 Style unhide_when_used values",
+        "inventory_template_line": 186,
+        "example_identity": {
+          "line": 186,
+          "columns": {
+            "setting": "on",
+            "new-value": "False",
+            "value": "False"
+          }
+        }
+      },
+      "bound_parameters": {
+        "setting": "on",
+        "new-value": "False",
+        "value": "False"
+      },
+      "required_observations": ["style.unhide_when_used is False"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 097",
+      "adapted_parameters": {
+        "label": "style workflow 097",
+        "kind": "style-property",
+        "write": true,
+        "property": "unhide_when_used",
+        "initial": true,
+        "expected": false,
+        "assigned": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 097",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-access-tabs.feature",
+        "line": 13,
+        "expanded_name": "TabStops.__len__ -- @1.1 tab_stop counts",
+        "inventory_template_name": "TabStops.__len__ -- @1.1 tab_stop counts",
+        "inventory_template_line": 13,
+        "example_identity": {
+          "line": 13,
+          "columns": {
+            "count": "0"
+          }
+        }
+      },
+      "bound_parameters": {
+        "count": "0"
+      },
+      "required_observations": ["len(tab_stops) is 0"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 098",
+      "adapted_parameters": {
+        "label": "style workflow 098",
+        "kind": "tab-count",
+        "write": false,
+        "count": 0
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 098",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-access-tabs.feature",
+        "line": 14,
+        "expanded_name": "TabStops.__len__ -- @1.2 tab_stop counts",
+        "inventory_template_name": "TabStops.__len__ -- @1.2 tab_stop counts",
+        "inventory_template_line": 14,
+        "example_identity": {
+          "line": 14,
+          "columns": {
+            "count": "3"
+          }
+        }
+      },
+      "bound_parameters": {
+        "count": "3"
+      },
+      "required_observations": ["len(tab_stops) is 3"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 099",
+      "adapted_parameters": {
+        "label": "style workflow 099",
+        "kind": "tab-count",
+        "write": false,
+        "count": 3
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 099",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-access-tabs.feature",
+        "line": 17,
+        "expanded_name": "Access an existing TabStop object",
+        "inventory_template_name": "Access an existing TabStop object",
+        "inventory_template_line": 17,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": [
+        "I can iterate the TabStops object",
+        "I can access a tab stop by index"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 100",
+      "adapted_parameters": {
+        "label": "style workflow 100",
+        "kind": "tab-lookup",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 100",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-access-tabs.feature",
+        "line": 31,
+        "expanded_name": "TabStops.add_tab_stop() -- @1.1 tab stop object counts",
+        "inventory_template_name": "TabStops.add_tab_stop() -- @1.1 tab stop object counts",
+        "inventory_template_line": 31,
+        "example_identity": {
+          "line": 31,
+          "columns": {
+            "count": "0",
+            "new-count": "1"
+          }
+        }
+      },
+      "bound_parameters": {
+        "count": "0",
+        "new-count": "1"
+      },
+      "required_observations": [
+        "len(tab_stops) is 1",
+        "the tab stops are sequenced in position order"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 101",
+      "adapted_parameters": {
+        "label": "style workflow 101",
+        "kind": "tab-add",
+        "write": false,
+        "count": 0,
+        "expected": 1
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 101",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-access-tabs.feature",
+        "line": 32,
+        "expanded_name": "TabStops.add_tab_stop() -- @1.2 tab stop object counts",
+        "inventory_template_name": "TabStops.add_tab_stop() -- @1.2 tab stop object counts",
+        "inventory_template_line": 32,
+        "example_identity": {
+          "line": 32,
+          "columns": {
+            "count": "3",
+            "new-count": "4"
+          }
+        }
+      },
+      "bound_parameters": {
+        "count": "3",
+        "new-count": "4"
+      },
+      "required_observations": [
+        "len(tab_stops) is 4",
+        "the tab stops are sequenced in position order"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 102",
+      "adapted_parameters": {
+        "label": "style workflow 102",
+        "kind": "tab-add",
+        "write": false,
+        "count": 3,
+        "expected": 4
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 102",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-access-tabs.feature",
+        "line": 35,
+        "expanded_name": "TabStops.__delitem__()",
+        "inventory_template_name": "TabStops.__delitem__()",
+        "inventory_template_line": 35,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": [
+        "len(tab_stops) is 2",
+        "the removed tab stop is no longer present in tab_stops"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 103",
+      "adapted_parameters": {
+        "label": "style workflow 103",
+        "kind": "tab-delete",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 103",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-access-tabs.feature",
+        "line": 42,
+        "expanded_name": "TabStops.clear_all()",
+        "inventory_template_name": "TabStops.clear_all()",
+        "inventory_template_line": 42,
+        "example_identity": null
+      },
+      "bound_parameters": {},
+      "required_observations": ["len(tab_stops) is 0"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 104",
+      "adapted_parameters": {
+        "label": "style workflow 104",
+        "kind": "tab-clear",
+        "write": false
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 104",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 13,
+        "expanded_name": "Get TabStop.position -- @1.1 tab stop positions",
+        "inventory_template_name": "Get TabStop.position -- @1.1 tab stop positions",
+        "inventory_template_line": 13,
+        "example_identity": {
+          "line": 13,
+          "columns": {
+            "in-or-out": "in",
+            "position": "457200"
+          }
+        }
+      },
+      "bound_parameters": {
+        "in-or-out": "in",
+        "position": "457200"
+      },
+      "required_observations": ["tab_stop.position is 457200"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 105",
+      "adapted_parameters": {
+        "label": "style workflow 105",
+        "kind": "tab-position",
+        "write": false,
+        "initial": 457200,
+        "expected": 457200
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 105",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 14,
+        "expanded_name": "Get TabStop.position -- @1.2 tab stop positions",
+        "inventory_template_name": "Get TabStop.position -- @1.2 tab stop positions",
+        "inventory_template_line": 14,
+        "example_identity": {
+          "line": 14,
+          "columns": {
+            "in-or-out": "out",
+            "position": "-457200"
+          }
+        }
+      },
+      "bound_parameters": {
+        "in-or-out": "out",
+        "position": "-457200"
+      },
+      "required_observations": ["tab_stop.position is -457200"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 106",
+      "adapted_parameters": {
+        "label": "style workflow 106",
+        "kind": "tab-position",
+        "write": false,
+        "initial": -457200,
+        "expected": -457200
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 106",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 25,
+        "expanded_name": "Set TabStop.position -- @1.1 tab stop positions",
+        "inventory_template_name": "Set TabStop.position -- @1.1 tab stop positions",
+        "inventory_template_line": 25,
+        "example_identity": {
+          "line": 25,
+          "columns": {
+            "value": "228600"
+          }
+        }
+      },
+      "bound_parameters": {
+        "value": "228600"
+      },
+      "required_observations": [
+        "tab_stop.position is 228600",
+        "the tab stops are sequenced in position order"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 107",
+      "adapted_parameters": {
+        "label": "style workflow 107",
+        "kind": "tab-position",
+        "write": true,
+        "initial": 457200,
+        "expected": 228600,
+        "assigned": 228600
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions. Setter uses Emu(exact source integer), following the documented JS Length mapping; bare integer assignment is not promised.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 107",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 26,
+        "expanded_name": "Set TabStop.position -- @1.2 tab stop positions",
+        "inventory_template_name": "Set TabStop.position -- @1.2 tab stop positions",
+        "inventory_template_line": 26,
+        "example_identity": {
+          "line": 26,
+          "columns": {
+            "value": "-914400"
+          }
+        }
+      },
+      "bound_parameters": {
+        "value": "-914400"
+      },
+      "required_observations": [
+        "tab_stop.position is -914400",
+        "the tab stops are sequenced in position order"
+      ],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 108",
+      "adapted_parameters": {
+        "label": "style workflow 108",
+        "kind": "tab-position",
+        "write": true,
+        "initial": 457200,
+        "expected": -914400,
+        "assigned": -914400
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions. Setter uses Emu(exact source integer), following the documented JS Length mapping; bare integer assignment is not promised.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 108",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 35,
+        "expanded_name": "Get TabStop.alignment -- @1.1 tab stop alignments",
+        "inventory_template_name": "Get TabStop.alignment -- @1.1 tab stop alignments",
+        "inventory_template_line": 35,
+        "example_identity": {
+          "line": 35,
+          "columns": {
+            "alignment": "LEFT"
+          }
+        }
+      },
+      "bound_parameters": {
+        "alignment": "LEFT"
+      },
+      "required_observations": ["tab_stop.alignment is LEFT"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 109",
+      "adapted_parameters": {
+        "label": "style workflow 109",
+        "kind": "tab-alignment",
+        "write": false,
+        "initial": "LEFT",
+        "expected": "LEFT"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 109",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 36,
+        "expanded_name": "Get TabStop.alignment -- @1.2 tab stop alignments",
+        "inventory_template_name": "Get TabStop.alignment -- @1.2 tab stop alignments",
+        "inventory_template_line": 36,
+        "example_identity": {
+          "line": 36,
+          "columns": {
+            "alignment": "RIGHT"
+          }
+        }
+      },
+      "bound_parameters": {
+        "alignment": "RIGHT"
+      },
+      "required_observations": ["tab_stop.alignment is RIGHT"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 110",
+      "adapted_parameters": {
+        "label": "style workflow 110",
+        "kind": "tab-alignment",
+        "write": false,
+        "initial": "RIGHT",
+        "expected": "RIGHT"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 110",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 46,
+        "expanded_name": "Set TabStop.alignment -- @1.1 tab stop alignments",
+        "inventory_template_name": "Set TabStop.alignment -- @1.1 tab stop alignments",
+        "inventory_template_line": 46,
+        "example_identity": {
+          "line": 46,
+          "columns": {
+            "alignment": "LEFT",
+            "member": "CENTER"
+          }
+        }
+      },
+      "bound_parameters": {
+        "alignment": "LEFT",
+        "member": "CENTER"
+      },
+      "required_observations": ["tab_stop.alignment is CENTER"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 111",
+      "adapted_parameters": {
+        "label": "style workflow 111",
+        "kind": "tab-alignment",
+        "write": true,
+        "initial": "LEFT",
+        "expected": "CENTER",
+        "assigned": "CENTER"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 111",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 47,
+        "expanded_name": "Set TabStop.alignment -- @1.2 tab stop alignments",
+        "inventory_template_name": "Set TabStop.alignment -- @1.2 tab stop alignments",
+        "inventory_template_line": 47,
+        "example_identity": {
+          "line": 47,
+          "columns": {
+            "alignment": "RIGHT",
+            "member": "LEFT"
+          }
+        }
+      },
+      "bound_parameters": {
+        "alignment": "RIGHT",
+        "member": "LEFT"
+      },
+      "required_observations": ["tab_stop.alignment is LEFT"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 112",
+      "adapted_parameters": {
+        "label": "style workflow 112",
+        "kind": "tab-alignment",
+        "write": true,
+        "initial": "RIGHT",
+        "expected": "LEFT",
+        "assigned": "LEFT"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 112",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 56,
+        "expanded_name": "Get TabStop.leader -- @1.1 tab stop leaders",
+        "inventory_template_name": "Get TabStop.leader -- @1.1 tab stop leaders",
+        "inventory_template_line": 56,
+        "example_identity": {
+          "line": 56,
+          "columns": {
+            "leader": "no specified",
+            "value": "SPACES"
+          }
+        }
+      },
+      "bound_parameters": {
+        "leader": "no specified",
+        "value": "SPACES"
+      },
+      "required_observations": ["tab_stop.leader is SPACES"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 113",
+      "adapted_parameters": {
+        "label": "style workflow 113",
+        "kind": "tab-leader",
+        "write": false,
+        "initial": "SPACES",
+        "expected": "SPACES"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 113",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 57,
+        "expanded_name": "Get TabStop.leader -- @1.2 tab stop leaders",
+        "inventory_template_name": "Get TabStop.leader -- @1.2 tab stop leaders",
+        "inventory_template_line": 57,
+        "example_identity": {
+          "line": 57,
+          "columns": {
+            "leader": "a dotted",
+            "value": "DOTS"
+          }
+        }
+      },
+      "bound_parameters": {
+        "leader": "a dotted",
+        "value": "DOTS"
+      },
+      "required_observations": ["tab_stop.leader is DOTS"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 114",
+      "adapted_parameters": {
+        "label": "style workflow 114",
+        "kind": "tab-leader",
+        "write": false,
+        "initial": "DOTS",
+        "expected": "DOTS"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 114",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 67,
+        "expanded_name": "Set TabStop.leader -- @1.1 tab stop leaders",
+        "inventory_template_name": "Set TabStop.leader -- @1.1 tab stop leaders",
+        "inventory_template_line": 67,
+        "example_identity": {
+          "line": 67,
+          "columns": {
+            "leader": "no specified",
+            "member": "DOTS"
+          }
+        }
+      },
+      "bound_parameters": {
+        "leader": "no specified",
+        "member": "DOTS"
+      },
+      "required_observations": ["tab_stop.leader is DOTS"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 115",
+      "adapted_parameters": {
+        "label": "style workflow 115",
+        "kind": "tab-leader",
+        "write": true,
+        "initial": "SPACES",
+        "expected": "DOTS",
+        "assigned": "DOTS"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 115",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "features/tab-tabstop-props.feature",
+        "line": 68,
+        "expanded_name": "Set TabStop.leader -- @1.2 tab stop leaders",
+        "inventory_template_name": "Set TabStop.leader -- @1.2 tab stop leaders",
+        "inventory_template_line": 68,
+        "example_identity": {
+          "line": 68,
+          "columns": {
+            "leader": "a dotted",
+            "member": "SPACES"
+          }
+        }
+      },
+      "bound_parameters": {
+        "leader": "a dotted",
+        "member": "SPACES"
+      },
+      "required_observations": ["tab_stop.leader is SPACES"],
+      "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+      "test_name": "style workflow 116",
+      "adapted_parameters": {
+        "label": "style workflow 116",
+        "kind": "tab-leader",
+        "write": true,
+        "initial": "DOTS",
+        "expected": "SPACES",
+        "assigned": "SPACES"
+      },
+      "disposition": "passing-original-sdk-workflow",
+      "semantic_mapping": "Original names replace incidental style labels; booleans/null/numbers, enum types, counts and layout units retain exact semantics. Live public SDK owners replace wrapper allocation assertions.",
+      "passing_evidence": {
+        "test_file": "../../packages/docx/src/style-workflow-variants.test.ts",
+        "test_name": "style workflow 116",
+        "log": "style-workflow-evidence-20260915/green.log"
+      },
+      "full_source_workflow_qualified": true
+    }
+  ],
+  "counts": {
+    "styles": 97,
+    "tabs": 19,
+    "rows": 116,
+    "passing": 116
+  },
+  "evidence": {
+    "log": "style-workflow-evidence-20260915/green.log",
+    "initial_run": "style-workflow-evidence-20260915/initial.log",
+    "test_sha256": "835a4fac9bc2ca5f5cee3358764064a51369b1be3e8dbd5412f34f4465d58a44",
+    "renderer_qa": "not-run",
+    "cli_scope": "Original model workflows; not a whole CLI/API qualification",
+    "focused_lint": "passed; style-workflow-evidence-20260915/focused-lint.log",
+    "maintained_package_lint": "unsuccessful due to concurrently owned image namespace typing; see lint.log; root integration gate required",
+    "test_typecheck": "no errors in new style file; concurrent image/workflow errors retained in test-types.log"
+  }
+}

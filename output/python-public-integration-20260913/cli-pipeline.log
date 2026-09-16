@@ -1,5 +1,0 @@
-
-> poe-code@0.0.0-dev screenshot
-> tsx scripts/screenshot.ts --output output/python-public-integration-20260913/cli-built-pipeline.png node dist/bin.cjs bash --python-runtime file:///Users/kjopek/Workspace/poe-setup-scripts/packages/safe-bash/tests/integration/pyodide-runtime/node_modules/pyodide/pyodide.mjs --python-trusted -c python -c "print(21)" | python3 -c "import sys; print(int(sys.stdin.read())*2)"
-
-output/python-public-integration-20260913/cli-built-pipeline.png

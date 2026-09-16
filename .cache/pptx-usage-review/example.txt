@@ -1,3 +1,0 @@
-$ pptx text final.pptx
-Final coastal survey
-exit 0

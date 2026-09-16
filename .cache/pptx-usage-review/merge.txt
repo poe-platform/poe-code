@@ -1,4 +1,0 @@
-$ pptx slides merge final.pptx --sources [{"vfsPath":"draft.pptx"}] --theme-policy source --output combined.pptx
-Merged 1 slide(s)
-
-exit 0

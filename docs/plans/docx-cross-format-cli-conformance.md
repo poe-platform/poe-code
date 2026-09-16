@@ -148,3 +148,10 @@ Fulfilled usage stdout/stderr reproduced 2 instead of 130 before the last fix.
 The final ten focused cancellation cases and complete DOCX suite pass. Preserve
 typed image/archive extraction receipts; commit only ordinary cancellation paths
 and their original regression tests.
+
+### Rejected-path transport delivery
+
+Paired alias failure-envelope assertions reproduced empty/mislabelled transport
+before correction. All eight paired spelling cases now pass with help-labelled
+JSON failures before reads; option-value and terminator boundaries are retained.
+Commit only early DOCX JSON detection, PPTX fallback label and paired assertions.

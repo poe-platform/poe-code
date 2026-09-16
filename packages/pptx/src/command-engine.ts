@@ -4003,7 +4003,7 @@ async function execute(
   if (request.args?.[0] instanceof Uint8Array && request.args[0].length === 4 &&
     request.args[0].every((byte, index) => byte === [100, 105, 102, 102][index]))
     return executeDiffCommand(request, options);
-  const output = { json: false, operation: "inspect" };
+  const output = { json: false, operation: "help" };
   let result: OfficeResult<unknown>;
   let exitCode = 0;
   let human: string | undefined;

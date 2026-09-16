@@ -126,7 +126,10 @@ describe.each(["docx", "pptx"] as const)("%s common public adapter", format => {
   it.each(["image list", "table list", "metadata list", "replace"])("rejects conflicting spelling %s", async path => {
     const f = await fixture(format);
     try {
-      expect((await f.run(`${path} ${f.input} --json`)).exitCode).toBe(2);
+      const result = await f.run(`${path} ${f.input} --json`);
+      expect(result.exitCode).toBe(2);
+      const value = JSON.parse(result.stdout);
+      expect(value).toMatchObject({ version: 1, operation: "help", ok: false, data: null, affected: 0, warnings: [], locations: [], errors: [expect.objectContaining({ code: expect.any(String), message: expect.any(String) })] });
       expect(f.readFile).not.toHaveBeenCalled();
     } finally { await f.shell.dispose(); }
   });

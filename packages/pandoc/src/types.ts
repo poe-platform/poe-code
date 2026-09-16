@@ -120,7 +120,7 @@ export type MetadataValue = string | number | boolean | null | readonly Metadata
 /** Explicit trusted adapters; their format conformance is not established by this seam. */
 export interface AdapterContext {
   /** Parser origin sidecar; never serialized into the AST. */
-  resourceTarget?(target: object, line: number): void;
+  resourceTarget?(target: object, line: number, origin?: {readonly base?: string; readonly source?: string}): void;
   readonly operation?: Operation;
   readonly lossy?: boolean;
   readonly standalone?: boolean;

@@ -25,7 +25,8 @@ class Session extends ExecutionContext {
   readonly media = new ResourceSession(this);
   sourceLocations: readonly {source: string; line: number; base?: string}[] = [];
   inputBase: string | undefined;
-  resourceTarget(target: object, line: number): void {
+  resourceTarget(target: object, line: number, explicitOrigin?: {readonly base?: string; readonly source?: string}): void {
+    if (explicitOrigin !== undefined) {this.media.origins.set(target, explicitOrigin); return;}
     let origin = this.sourceLocations[0];
     for (const entry of this.sourceLocations) {if (entry.line > line) break; origin = entry;}
     const base = origin ? origin.base : this.inputBase;
@@ -34,6 +35,7 @@ class Session extends ExecutionContext {
   sourceLocation(location?: string): string | undefined {
     if (!this.sourceLocations.length) return location;
     const parts = location?.split(":") ?? [];
+    if (parts.length > 2 && parts.slice(-2).every(part => part !== "" && Number.isSafeInteger(Number(part)) && Number(part) > 0)) return location;
     const line = Number(parts[0]);
     const numeric = parts.length === 2 && Number.isSafeInteger(line) && line > 0 && Number.isSafeInteger(Number(parts[1]));
     let source = this.sourceLocations[0]!;

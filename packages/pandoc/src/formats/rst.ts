@@ -1,5 +1,7 @@
 import type { FormatDescriptor } from "../formats.js";
+import { rstReader } from "../rst.js";
 export default {
+  reader: rstReader,
   name: "rst",
   read: true,
   write: true,

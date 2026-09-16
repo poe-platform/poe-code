@@ -24,3 +24,22 @@ packed-consumer fixture. Iterate the export values directly, preserving all
 consumer imports and assertions. Guarded repository ESLint then passed with zero
 errors and two warnings. Rebase the remaining correction onto current main,
 check the rebased maintained runner, push and monitor GitHub publication.
+
+## Consumer fixture namespace
+
+Release `01dc744df` reproduced 24 consumer-resolution failures after the package
+rename. The in-memory fixtures now declare and resolve
+`@poe-platform/safe-bash` in both checkout and installed-consumer profiles,
+including the scope directory required by the checkout symlink. All 24 tests
+passed; export, declaration-byte, metadata and peer-closure controls remain exact.
+Remote `20f6645ed` independently delivered this correction; the overlapping
+local commit was dropped during rebase.
+
+## WebDAV helper imports
+
+The release also failed to load two active WebDAV integration suites because
+their public mock helpers imported the previous package name. Update their root
+and WebDAV subpath imports. The affected matrix, independent controls and consumer
+resolution suites passed all 117 tests after a fresh dependency installation.
+Remote `20f6645ed` delivered the mock-helper correction; retain only the
+remaining active controls-helper import update.

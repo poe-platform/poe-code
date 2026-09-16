@@ -3,8 +3,8 @@ import test from "node:test";
 import {
   agentCommands, FsError, MemoryFileSystem, MountFileSystem, OverlayFileSystem,
   ReadOnlyFileSystem, Shell, WebDavFileSystem, type FileSystem,
-} from "virtual-bash";
-import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "virtual-bash/fs/webdav";
+} from "@poe-platform/safe-bash";
+import type { WebDavAtomicEmptyDirectoryBinding, WebDavAtomicEmptyDirectoryRequest } from "@poe-platform/safe-bash/fs/webdav";
 import { MockDav } from "../../../fs/webdav/mock.js";
 import { atomicMockBinding } from "./atomic-mock.js";
 

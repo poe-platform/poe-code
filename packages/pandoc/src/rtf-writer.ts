@@ -125,7 +125,9 @@ class RtfWriter {
     }
   }
   async paragraph(nodes: readonly Inline[], state: Paragraph, attr?: Attr): Promise<void> {
-    this.add(`{\\pard\\plain\\s${state.style ?? 0}\\li${state.indent}\\fi${state.marker ? -360 : 0}\\${state.direction}par`);
+    this.add(`{\\pard\\plain\\s${state.style ?? 0}`);
+    if(state.style) this.add(`\\b\\fs${40 - state.style * 2}`);
+    this.add(`\\li${state.indent}\\fi${state.marker ? -360 : 0}\\${state.direction}par`);
     if(state.cell) this.add(`\\intbl\\${alignments[state.cell]}`);
     if(attr) this.attrs(attr, true);
     if(state.marker && state.list) this.add(`\\ls${state.list.id}\\ilvl${state.list.level}`);
@@ -193,7 +195,7 @@ class RtfWriter {
               if(end <= previous || !Number.isSafeInteger(end)) this.fail("RTF column width too small");
               this.add(`\\cellx${end}`); previous = end;
             }
-            this.add(" ");
+            this.add("\\intbl ");
             for(const [j, cell] of row[1].entries()) {
               if(cell[2] !== 1 || cell[3] !== 1 || cell[0][0] || cell[0][1].length || cell[0][2].length) this.fail("RTF merged or attributed cells unsupported");
               const cellState = {...state, indent: 0, cell: cell[1] === "AlignDefault" ? t[2][j]![0] : cell[1]};

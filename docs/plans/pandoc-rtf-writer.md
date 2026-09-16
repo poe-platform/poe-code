@@ -33,3 +33,10 @@ numbering placeholders, stable list ids and nested level references were added.
 Package tests (837), lint and selected workspace build passed; independent
 macOS text extraction now retains 3), bullet and 4) markers. Full visual
 interoperability remains under investigation, especially cells and pictures.
+
+Paragraph/table scope fix: an original heading/scope test failed first; explicit
+heading character properties and ambient intbl at cell/row terminators now pass.
+All 838 package tests, lint and selected build passed. Regenerated the entire QA
+document directly from the independently authored AST (stored as JSON evidence).
+LibreOffice 26.8.0 is the additional independent application lane because macOS
+Quick Look omits pict images. PDF export and visual inspection remain pending.

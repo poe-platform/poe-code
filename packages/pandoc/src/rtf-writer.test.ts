@@ -68,6 +68,13 @@ it("emits independent cell and row terminators with paragraph resets inside cell
   expect(text).toContain("\\intbl\\ql b\\par}\n\\cell ");
   expect(text).toContain("\\intbl\\qr c\\par}\n\\cell \\row}");
 });
+it("applies heading properties explicitly and keeps table terminators within table paragraph scope", async () => {
+  expect(await rtf([{t: "Header", c: [1,a,[s("Heading")]]}, p(s("normal"))]))
+    .toContain("\\s1\\b\\fs38\\li0");
+  const row: Row = [a, [[a,"AlignDefault",1,1,[p(s("a"))]], [a,"AlignDefault",1,1,[p(s("b"))]]]];
+  const table: Block = {t: "Table", c: [a,[null,[]],[["AlignLeft",{t:"ColWidthDefault"}],["AlignRight",{t:"ColWidthDefault"}]], [a,[]],[[a,0,[],[row]]],[a,[]]]};
+  expect(await rtf([table])).toContain("\\cellx8640\\intbl ");
+});
 it("rejects raw objects, embedded font resources, controls and undeclared resources before publication", async () => {
   const publish = vi.fn(async () => {});
   for(const blocks of [[{t: "RawBlock", c: ["rtf", "{\\object\\objdata 00}"]}], [p(s("\0"))]] as Block[][])
